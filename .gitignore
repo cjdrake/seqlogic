@@ -1,0 +1,7 @@
+*.pyc
+
+# pytest --cov outputs
+.coverage
+
+# pytest --profile outputs
+prof

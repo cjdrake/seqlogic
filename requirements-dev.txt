@@ -1,0 +1,6 @@
+-r requirements.txt
+
+black
+pylint
+pytest-cov
+pytest-profiling
