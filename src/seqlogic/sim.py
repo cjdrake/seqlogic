@@ -108,7 +108,7 @@ class _SimQueue:
         time, region, _, task, var = heapq.heappop(self._items)
         return (time, region, task, var)
 
-    def pop_all(self) -> Generator[_SimQueueItem]:
+    def pop_region(self) -> Generator[_SimQueueItem]:
         time, region, _, task, var = heapq.heappop(self._items)
         yield (time, region, task, var)
         while self._items:
@@ -278,7 +278,7 @@ class Sim:
                 self._time = time
 
             # Resume execution
-            for _, _, self._task, var in self._queue.pop_all():
+            for _, _, self._task, var in self._queue.pop_region():
                 try:
                     self._task.send(var)
                 except StopIteration:
