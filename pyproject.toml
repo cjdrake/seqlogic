@@ -1,2 +1,16 @@
+[project]
+name = "seqlogic"
+version = "0.0.1"
+description = "Sequential Logic"
+readme = "README.md"
+
+requires-python = ">=3.10"
+dependencies = [
+    "networkx",
+]
+
+[project.urls]
+Repository = "https://github.com/cjdrake/seqlogic.git"
+
 [tool.black]
 line-length=100

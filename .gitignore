@@ -1,7 +1,12 @@
+# Python bytecode compiler outputs
 *.pyc
+
+# build outputs
+dist/
+*.egg-info/
 
 # pytest --cov outputs
 .coverage
 
 # pytest --profile outputs
-prof
+prof/

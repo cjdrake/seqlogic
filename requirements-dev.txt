@@ -1,5 +1,8 @@
 -r requirements.txt
 
+build
+twine
+
 black
 pylint
 pytest-cov
