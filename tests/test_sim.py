@@ -4,6 +4,8 @@ Test seqlogic.sim
 
 from collections import defaultdict
 
+import pytest
+
 from seqlogic.sim import SimVar, get_loop, notify, sleep
 
 loop = get_loop()
@@ -50,7 +52,12 @@ def test_hello(capsys):
 
     loop.add_proc(hello, 0)
 
-    loop.run(42)
+    # Invalid run limit
+    with pytest.raises(TypeError):
+        loop.run("Invalid argument type")
+
+    # Run until no events left
+    loop.run()
 
     assert capsys.readouterr().out == HELLO_OUT
 
@@ -61,6 +68,7 @@ def test_vars():
 
     a = TraceVar()
     b = TraceVar()
+    c = TraceVar()
 
     async def run_a():
         while True:
@@ -71,25 +79,46 @@ def test_vars():
         i = 0
         while True:
             await notify(a.edge)
+            # Dirty next state
             if i % 2 == 0:
                 b.next = not b.value
+            # Clean next state
             else:
                 b.next = b.value
             i += 1
 
+    async def run_c():
+        i = 0
+        while True:
+            await notify(a.edge)
+            if i % 3 == 0:
+                c.next = not c.value
+            i += 1
+
     loop.add_proc(run_a, 1)
     loop.add_proc(run_b, 0)
+    loop.add_proc(run_c, 0)
 
-    loop.run(50)
+    # Event loop not started yet
+    assert not loop.started
+
+    # Relative run limit
+    loop.run(ticks=25)
+    assert loop.started
+
+    # Absolute run limit
+    loop.run(until=50)
 
     exp = {
         -1: {
             a: False,
             b: False,
+            c: False,
         },
         5: {
             a: True,
             b: True,
+            c: True,
         },
         10: {
             a: False,
@@ -100,6 +129,7 @@ def test_vars():
         },
         20: {
             a: False,
+            c: False,
         },
         25: {
             a: True,
@@ -111,6 +141,7 @@ def test_vars():
         35: {
             a: True,
             b: False,
+            c: True,
         },
         40: {
             a: False,

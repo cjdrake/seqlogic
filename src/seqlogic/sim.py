@@ -104,9 +104,9 @@ class _SimQueue:
         time, region, _, task, var = self._items[0]
         return (time, region, task, var)
 
-    def pop(self) -> _SimQueueItem:
-        time, region, _, task, var = heapq.heappop(self._items)
-        return (time, region, task, var)
+    # def pop(self) -> _SimQueueItem:
+    #    time, region, _, task, var = heapq.heappop(self._items)
+    #    return (time, region, task, var)
 
     def pop_region(self) -> Generator[_SimQueueItem]:
         time, region, _, task, var = heapq.heappop(self._items)
