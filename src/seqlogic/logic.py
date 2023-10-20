@@ -41,6 +41,12 @@ class logic(Enum):
     X = 0b11
     UNKNOWN = 0b11
 
+    def __str__(self) -> str:
+        return _logic2char[self]
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
     def __invert__(self) -> "logic":
         return self.not_()
 
@@ -61,12 +67,6 @@ class logic(Enum):
 
     def __rxor__(self, other: "logic") -> "logic":
         return self.xor(other)
-
-    def __str__(self) -> str:
-        return _logic2char[self]
-
-    def __repr__(self) -> str:
-        return self.__str__()
 
     def not_(self) -> "logic":
         """Return output of NOT function
