@@ -12,11 +12,10 @@ https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 import heapq
 from collections.abc import Awaitable, Callable, Coroutine, Generator
 from enum import Enum
-from typing import NewType, Optional, TypeVar
+from typing import NewType, Optional
 
 import networkx as nx
 
-T = TypeVar("T")
 Event = Callable[[], bool]
 Task = Coroutine
 Proc = Callable[[], Task]
@@ -24,9 +23,9 @@ Region = NewType("Region", int)
 Time = NewType("Time", int)
 
 
-_INIT_TIME = -1
-_INIT_REGION = -1
-_START_TIME = 0
+_INIT_TIME = Time(-1)
+_INIT_REGION = Region(-1)
+_START_TIME = Time(0)
 
 
 class State(Enum):
@@ -40,19 +39,19 @@ class SimVar:
     The simulation component of a variable.
     """
 
-    def __init__(self, value: T):
-        self._value: T = value
-        self._next: Optional[T] = None
+    def __init__(self, value):
+        self._value = value
+        self._next = None
         self._state: State = State.INVALID
 
         # Reference to the event loop
         self._sim = _sim
 
     @property
-    def value(self) -> T:
+    def value(self):
         return self._value
 
-    def _set_next(self, value: T):
+    def _set_next(self, value):
         # Protect against double assignment in the same time slot
         assert self._state is State.INVALID
 
@@ -84,7 +83,7 @@ class _SimQueue:
     """
 
     def __init__(self):
-        self._items: list[_SimQueueItem] = []
+        self._items = []
 
         # Monotonically increasing integer to break ties in the heapq
         self._index: int = 0
@@ -108,7 +107,7 @@ class _SimQueue:
     #    time, region, _, task, var = heapq.heappop(self._items)
     #    return (time, region, task, var)
 
-    def pop_region(self) -> Generator[_SimQueueItem]:
+    def pop_region(self) -> Generator[_SimQueueItem, None, None]:
         time, region, _, task, var = heapq.heappop(self._items)
         yield (time, region, task, var)
         while self._items:
@@ -175,7 +174,8 @@ class Sim:
     def time(self) -> Time:
         return self._time
 
-    def task(self) -> Optional[Task]:
+    def task(self) -> Task:
+        assert self._task is not None
         return self._task
 
     def call_soon(self, task: Task, var: Optional[SimVar] = None):
@@ -186,7 +186,7 @@ class Sim:
     def call_later(self, delay: Time, task: Task):
         """Schedule the task after a relative delay."""
         region = self._task_region[task]
-        self._queue.push(self._time + delay, region, task)
+        self._queue.push(Time(self._time + delay), region, task)
 
     def call_at(self, when: Time, task: Task):
         """Schedule the task for an absolute timeslot."""
@@ -233,7 +233,7 @@ class Sim:
                 return until
             # Run until a number of ticks in the future
             case int(), None:
-                return max(_START_TIME, self._time) + ticks
+                return Time(max(_START_TIME, self._time) + ticks)
             case _:
                 s = "Expected either ticks or until to be int | None"
                 raise TypeError(s)

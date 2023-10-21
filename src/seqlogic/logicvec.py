@@ -8,11 +8,14 @@ import math
 import re
 from collections.abc import Generator
 from functools import cached_property
-from typing import Optional
+from typing import Optional, Union
 
 from .logic import logic
 
-Shape = tuple[int]
+Logic = Union[logic, "logicvec"]
+
+# __getitem__ input key type
+Key = Union[int, slice, "logicvec", tuple[Union[int, slice, "logicvec"], ...]]
 
 
 _NUM_RE = re.compile(r"([0-9]+)'b([X01x_]+)")
@@ -54,15 +57,14 @@ class logicvec:
     Use the factory functions instead.
     """
 
-    def __init__(self, shape: Shape, data: int):
+    def __init__(self, shape: tuple[int, ...], data: int):
         self._shape = shape
         assert 0 <= data < (1 << self.nbits)
         self._data = data
 
     def __str__(self):
-        pre, post = "vec(", ")"
-        indent = " " * len(pre) + " "
-        return pre + self._str(indent) + post
+        indent = "     "
+        return f"vec({self._str(indent)})"
 
     def __repr__(self):
         return self.__str__()
@@ -70,11 +72,11 @@ class logicvec:
     def __len__(self):
         return self._shape[0]
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[Logic, None, None]:
         for i in range(self._shape[0]):
             yield self.__getitem__(i)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Key) -> Logic:
         if self._shape == (0,):
             raise IndexError("Cannot index an empty vector")
         return _sel(self, self._norm_key(key))
@@ -105,14 +107,14 @@ class logicvec:
         return self.rsh(n)[0]
 
     @property
-    def shape(self) -> Shape:
+    def shape(self) -> tuple[int, ...]:
         return self._shape
 
     @property
     def data(self) -> int:
         return self._data
 
-    def reshape(self, shape: Shape) -> "logicvec":
+    def reshape(self, shape: tuple[int, ...]) -> "logicvec":
         """Return an equivalent logic_vector with modified shape."""
         if math.prod(shape) != self.size:
             raise ValueError("Expected shape with equal volume")
@@ -134,7 +136,7 @@ class logicvec:
         return self.size << 1
 
     @property
-    def flat(self) -> Generator[logic]:
+    def flat(self) -> Generator[logic, None, None]:
         """Return a flat iterator to the logic items."""
         for i in range(self.size):
             yield _pc_get(self._data, i)
@@ -329,7 +331,7 @@ class logicvec:
             raise ValueError("zext only defined for 1D vectors")
         return cat([self, uint2vec(0, n)], flatten=True)
 
-    def lsh(self, n: int, ci: Optional["logicvec"] = None) -> "logicvec":
+    def lsh(self, n: int, ci: Optional["logicvec"] = None) -> tuple["logicvec", "logicvec"]:
         """Return vector left shifted by n bits."""
         if self.ndim != 1:
             raise ValueError("lsh defined for 1D vectors")
@@ -337,14 +339,13 @@ class logicvec:
             raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
         if n == 0:
             return self, self.__class__((0,), 0)
-        else:
-            if ci is None:
-                ci = uint2vec(0, n)
-            elif ci.shape != (n,):
-                raise ValueError(f"Expected ci to have shape ({n},)")
-            return cat([ci, self[:-n]], flatten=True), self[-n:]
+        if ci is None:
+            ci = uint2vec(0, n)
+        elif ci.shape != (n,):
+            raise ValueError(f"Expected ci to have shape ({n},)")
+        return cat([ci, self[:-n]], flatten=True), self[-n:]
 
-    def rsh(self, n: int, ci: Optional["logicvec"] = None) -> "logicvec":
+    def rsh(self, n: int, ci: Optional["logicvec"] = None) -> tuple["logicvec", "logicvec"]:
         """Return vector right shifted by n bits."""
         if self.ndim != 1:
             raise ValueError("rsh defined for 1D vectors")
@@ -352,14 +353,13 @@ class logicvec:
             raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
         if n == 0:
             return self, self.__class__((0,), 0)
-        else:
-            if ci is None:
-                ci = uint2vec(0, n)
-            elif ci.shape != (n,):
-                raise ValueError(f"Expected ci to have shape ({n},)")
-            return cat([self[n:], ci], flatten=True), self[:n]
+        if ci is None:
+            ci = uint2vec(0, n)
+        elif ci.shape != (n,):
+            raise ValueError(f"Expected ci to have shape ({n},)")
+        return cat([self[n:], ci], flatten=True), self[:n]
 
-    def arsh(self, n: int) -> "logicvec":
+    def arsh(self, n: int) -> tuple["logicvec", "logicvec"]:
         """Return vector arithmetically right shifted by n bits."""
         if self.ndim != 1:
             raise ValueError("arsh defined for 1D vectors")
@@ -367,9 +367,8 @@ class logicvec:
             raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
         if n == 0:
             return self, self.__class__((0,), 0)
-        else:
-            sign = rep(self[-1], n)
-            return cat([self[n:], sign], flatten=True), self[:n]
+        sign = rep(self[-1], n)
+        return cat([self[n:], sign], flatten=True), self[:n]
 
     def _to_lit(self) -> str:
         prefix = f"{self.size}'b"
@@ -380,7 +379,7 @@ class logicvec:
             chars.append(str(_pc_get(self._data, i)))
         return prefix + "".join(reversed(chars))
 
-    def _str(self, indent: str = "") -> str:
+    def _str(self, indent: str) -> str:
         """Helper funtion for __str__"""
         # Empty
         if self._shape == (0,):
@@ -388,10 +387,11 @@ class logicvec:
         # Scalar
         if self._shape == (1,):
             return f"[{logic(self._data)}]"
-
+        # 1D Vector
         if self.ndim == 1:
             return self._to_lit()
 
+        # Tensor, ie N-dimensional vector
         if self.ndim == 2:
             sep = ", "
         elif self.ndim == 3:
@@ -401,12 +401,12 @@ class logicvec:
         return "[" + sep.join(x._str(indent + " ") for x in self) + "]"
 
     @cached_property
-    def _data_mask(self) -> tuple[int, int]:
+    def _data_mask(self) -> list[int]:
         mask = [0, 0]
         for i in range(self.size):
             mask[0] |= _pc_set(i, logic.ZERO)
             mask[1] |= _pc_set(i, logic.ONE)
-        return tuple(mask)
+        return mask
 
     def _bits(self, n: int) -> int:
         return self._data & self._data_mask[n]
@@ -440,39 +440,40 @@ class logicvec:
             sl = slice(sl.start, sl.stop, 1)
         return sl
 
-    def _norm_key(self, key):
+    def _norm_key(self, key: Key) -> tuple[int | slice, ...]:
         # First, convert key to a list
         match key:
             case int() | slice() | logicvec():
-                key = [key]
+                lkey = [key]
             case tuple():
-                key = list(key)
+                lkey = list(key)
             case _:
                 s = "Expected key to be int, slice, logicvec, or tuple"
                 raise TypeError(s)
 
-        ndim = len(key)
+        ndim = len(lkey)
         if ndim > self.ndim:
             s = f"Expected ≤ {self.ndim} slice dimensions, got {ndim}"
             raise ValueError(s)
 
         # Append ':' to the end
         for _ in range(self.ndim - ndim):
-            key.append(slice(None))
+            lkey.append(slice(None))
 
         # Normalize key dimensions
-        for i, dim in enumerate(key[:]):
+        lnkey: list[int | slice] = []
+        for i, dim in enumerate(lkey):
             match dim:
                 case int():
-                    key[i] = self._norm_index(dim, i)
+                    lnkey.append(self._norm_index(dim, i))
                 case logicvec():
-                    key[i] = self._norm_index(dim.to_uint(), i)
+                    lnkey.append(self._norm_index(dim.to_uint(), i))
                 case slice():
-                    key[i] = self._norm_slice(dim, i)
+                    lnkey.append(self._norm_slice(dim, i))
                 case _:  # pragma: no cover
                     assert False
 
-        return tuple(key)
+        return tuple(lnkey)
 
 
 def _parse_str_lit(lit: str) -> logicvec:
@@ -594,21 +595,22 @@ def uint2vec(num: int, size: Optional[int] = None) -> logicvec:
     return logicvec((size,), data)
 
 
-def cat(vs: list[logic | logicvec], flatten: bool = False) -> logicvec:
+def cat(objs: list[Logic], flatten: bool = False) -> logicvec:
     """Join a sequence of logicvecs."""
     # Empty
-    if len(vs) == 0:
+    if len(objs) == 0:
         return logicvec((0,), 0)
 
     # Convert inputs
-    for i, v in enumerate(vs[:]):
-        match v:
+    vs: list[logicvec] = []
+    for obj in objs:
+        match obj:
             case logic() as x:
-                vs[i] = logicvec((1,), x.value)
+                vs.append(logicvec((1,), x.value))
             case 0 | 1 as x:
-                vs[i] = logicvec((1,), _int2logic[x].value)
-            case logicvec():
-                vs[i] = v
+                vs.append(logicvec((1,), _int2logic[x].value))
+            case logicvec() as v:
+                vs.append(v)
             case _:
                 raise TypeError("Invalid input")
 
@@ -637,12 +639,12 @@ def cat(vs: list[logic | logicvec], flatten: bool = False) -> logicvec:
     return logicvec(shape, data)
 
 
-def rep(v: logic | logicvec, n: int, flatten: bool = False) -> logicvec:
+def rep(v: Logic, n: int, flatten: bool = False) -> logicvec:
     """Repeat a logicvec n times."""
     return cat([v] * n, flatten)
 
 
-def _sel(v: logicvec, key: tuple[int | slice]) -> logic | logicvec:
+def _sel(v: logicvec, key: tuple[int | slice, ...]) -> Logic:
     assert 0 <= v.ndim == len(key)
 
     shape = v.shape[1:]
@@ -669,28 +671,28 @@ def _sel(v: logicvec, key: tuple[int | slice]) -> logic | logicvec:
             assert False
 
 
-def _consts(shape: Shape, x: logic) -> logicvec:
+def _consts(shape: tuple[int, ...], x: logic) -> logicvec:
     data = 0
     for i in range(math.prod(shape)):
         data |= _pc_set(i, x)
     return logicvec(shape, data)
 
 
-def nulls(shape: Shape) -> logicvec:
+def nulls(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with NULLs."""
     return _consts(shape, logic.N)
 
 
-def zeros(shape: Shape) -> logicvec:
+def zeros(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with zeros."""
     return _consts(shape, logic.F)
 
 
-def ones(shape: Shape) -> logicvec:
+def ones(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with ones."""
     return _consts(shape, logic.T)
 
 
-def xes(shape: Shape) -> logicvec:
+def xes(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with Xes."""
     return _consts(shape, logic.X)

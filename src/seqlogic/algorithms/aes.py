@@ -93,11 +93,11 @@ _INV_MTXA = [
 
 
 # Convert raw data to logicvec
-_SBOX = cat([uint2vec(x, _BYTE_BITS) for x in _SBOX])
-_INV_SBOX = cat([uint2vec(x, _BYTE_BITS) for x in _INV_SBOX])
-_RCON = cat([uint2vec(x, _BYTE_BITS) for x in _RCON])
-_MTXA = cat([uint2vec(x, 16) for x in _MTXA])
-_INV_MTXA = cat([uint2vec(x, 16) for x in _INV_MTXA])
+SBOX = cat([uint2vec(x, _BYTE_BITS) for x in _SBOX])
+INV_SBOX = cat([uint2vec(x, _BYTE_BITS) for x in _INV_SBOX])
+RCON = cat([uint2vec(x, _BYTE_BITS) for x in _RCON])
+MTXA = cat([uint2vec(x, 16) for x in _MTXA])
+INV_MTXA = cat([uint2vec(x, 16) for x in _INV_MTXA])
 
 
 def sub_word(w: logicvec) -> logicvec:
@@ -106,7 +106,7 @@ def sub_word(w: logicvec) -> logicvec:
     and applies an S-box to each of the four bytes to produce an output word.
     """
     w = w.reshape((_WORD_BYTES, _BYTE_BITS))
-    return cat([_SBOX[w[b]] for b in range(_WORD_BYTES)], flatten=True)
+    return cat([SBOX[w[b]] for b in range(_WORD_BYTES)], flatten=True)
 
 
 def inv_sub_word(w: logicvec) -> logicvec:
@@ -114,7 +114,7 @@ def inv_sub_word(w: logicvec) -> logicvec:
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
     """
     w = w.reshape((_WORD_BYTES, _BYTE_BITS))
-    return cat([_INV_SBOX[w[b]] for b in range(_WORD_BYTES)], flatten=True)
+    return cat([INV_SBOX[w[b]] for b in range(_WORD_BYTES)], flatten=True)
 
 
 def rot_word(w: logicvec) -> logicvec:
@@ -164,7 +164,7 @@ def mix_columns(state: logicvec) -> logicvec:
     mixes their data (independently of one another) to produce new columns.
     """
     state = state.reshape((NB, _WORD_BYTES, _BYTE_BITS))
-    return cat([_multiply(_MTXA, state[c]) for c in range(NB)])
+    return cat([_multiply(MTXA, state[c]) for c in range(NB)])
 
 
 def inv_mix_columns(state: logicvec) -> logicvec:
@@ -172,7 +172,7 @@ def inv_mix_columns(state: logicvec) -> logicvec:
     Transformation in the Inverse Cipher that is the inverse of MixColumns().
     """
     state = state.reshape((NB, _WORD_BYTES, _BYTE_BITS))
-    return cat([_multiply(_INV_MTXA, state[c]) for c in range(NB)])
+    return cat([_multiply(INV_MTXA, state[c]) for c in range(NB)])
 
 
 def add_round_key(state: logicvec, rkey: logicvec) -> logicvec:
@@ -252,7 +252,7 @@ def key_expansion(nk: int, key: logicvec) -> logicvec:
     for k in range(nk, NB * (nr + 1)):
         temp = w[k - 1]
         if k % nk == 0:
-            temp = sub_word(rot_word(temp)) ^ _RCON[k // nk].zext(_BYTE_BITS * 3)
+            temp = sub_word(rot_word(temp)) ^ RCON[k // nk].zext(_BYTE_BITS * 3)
         elif nk > 6 and k % nk == 4:
             temp = sub_word(temp)
         w.append(w[k - nk] ^ temp)
