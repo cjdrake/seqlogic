@@ -41,10 +41,10 @@ class logic(Enum):
     X = 0b11
     UNKNOWN = 0b11
 
-    def __str__(self) -> str:
+    def __str__(self):
         return _logic2char[self]
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return self.__str__()
 
     def __invert__(self) -> "logic":
