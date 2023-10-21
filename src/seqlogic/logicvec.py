@@ -581,7 +581,7 @@ def cat(vs: list[logic | logicvec], flatten: bool = False) -> logicvec:
     return logicvec(shape, data)
 
 
-def rep(v: logicvec, n: int, flatten: bool = False) -> logicvec:
+def rep(v: logic | logicvec, n: int, flatten: bool = False) -> logicvec:
     """Repeat a logicvec n times."""
     return cat([v] * n, flatten)
 
