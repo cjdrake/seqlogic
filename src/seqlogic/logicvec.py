@@ -328,6 +328,7 @@ class logicvec:
         return cat([self, uint2vec(0, n)], flatten=True)
 
     def lsh(self, n: int, ci: Optional["logicvec"] = None) -> "logicvec":
+        """Return vector left shifted by n bits."""
         if self.ndim != 1:
             raise ValueError("lsh defined for 1D vectors")
         if not 0 <= n <= self.size:
@@ -342,6 +343,7 @@ class logicvec:
             return cat([ci, self[:-n]], flatten=True), self[-n:]
 
     def rsh(self, n: int, ci: Optional["logicvec"] = None) -> "logicvec":
+        """Return vector right shifted by n bits."""
         if self.ndim != 1:
             raise ValueError("rsh defined for 1D vectors")
         if not 0 <= n <= self.size:
@@ -356,8 +358,9 @@ class logicvec:
             return cat([self[n:], ci], flatten=True), self[:n]
 
     def arsh(self, n: int) -> "logicvec":
+        """Return vector arithmetically right shifted by n bits."""
         if self.ndim != 1:
-            raise ValueError("rsh defined for 1D vectors")
+            raise ValueError("arsh defined for 1D vectors")
         if not 0 <= n <= self.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
         if n == 0:
