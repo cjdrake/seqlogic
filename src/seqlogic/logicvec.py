@@ -80,9 +80,11 @@ class logicvec:
         return _sel(self, self._norm_key(key))
 
     def __eq__(self, other):
-        if not isinstance(other, logicvec):
-            return False
-        return self._shape == other.shape and self._data == other.data
+        match other:
+            case logicvec():
+                return self._shape == other.shape and self._data == other.data
+            case _:
+                return False
 
     def __invert__(self) -> "logicvec":
         return self.not_()
