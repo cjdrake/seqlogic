@@ -96,6 +96,12 @@ class logicvec:
     def __xor__(self, other: "logicvec") -> "logicvec":
         return self.xor(other)
 
+    def __lshift__(self, n: int) -> "logicvec":
+        return self.lsh(n)[0]
+
+    def __rshift__(self, n: int) -> "logicvec":
+        return self.rsh(n)[0]
+
     @property
     def shape(self) -> Shape:
         return self._shape
@@ -314,6 +320,51 @@ class logicvec:
                 s = "Cannot convert logicvec with X to uint"
                 raise ValueError(s) from e
         return y
+
+    def zext(self, n: int) -> "logicvec":
+        """Return vector zero extended by n bits."""
+        if self.ndim != 1:
+            raise ValueError("zext only defined for 1D vectors")
+        return cat([self, uint2vec(0, n)], flatten=True)
+
+    def lsh(self, n: int, ci: Optional["logicvec"] = None) -> "logicvec":
+        if self.ndim != 1:
+            raise ValueError("lsh defined for 1D vectors")
+        if not 0 <= n <= self.size:
+            raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
+        if n == 0:
+            return self, self.__class__((0,), 0)
+        else:
+            if ci is None:
+                ci = uint2vec(0, n)
+            elif ci.shape != (n,):
+                raise ValueError(f"Expected ci to have shape ({n},)")
+            return cat([ci, self[:-n]], flatten=True), self[-n:]
+
+    def rsh(self, n: int, ci: Optional["logicvec"] = None) -> "logicvec":
+        if self.ndim != 1:
+            raise ValueError("rsh defined for 1D vectors")
+        if not 0 <= n <= self.size:
+            raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
+        if n == 0:
+            return self, self.__class__((0,), 0)
+        else:
+            if ci is None:
+                ci = uint2vec(0, n)
+            elif ci.shape != (n,):
+                raise ValueError(f"Expected ci to have shape ({n},)")
+            return cat([self[n:], ci], flatten=True), self[:n]
+
+    def arsh(self, n: int) -> "logicvec":
+        if self.ndim != 1:
+            raise ValueError("rsh defined for 1D vectors")
+        if not 0 <= n <= self.size:
+            raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
+        if n == 0:
+            return self, self.__class__((0,), 0)
+        else:
+            sign = rep(self[-1], n)
+            return cat([self[n:], sign], flatten=True), self[:n]
 
     def _to_lit(self) -> str:
         prefix = f"{self.size}'b"

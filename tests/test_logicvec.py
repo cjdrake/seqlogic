@@ -115,6 +115,80 @@ def test_uxor():
     assert vec("2'bxx").uxor() is logic.X
 
 
+def test_zext():
+    v = vec("4'b1010")
+    assert v.zext(4) == vec("8'b0000_1010")
+
+    with pytest.raises(ValueError):
+        vec(["4'b0000", "4'b1111"]).zext(2)
+
+
+def test_lsh():
+    v = vec("4'b1111")
+    assert v.lsh(0) == (vec("4'b1111"), vec())
+    assert v.lsh(1) == (vec("4'b1110"), vec("1'b1"))
+    assert v.lsh(2) == (vec("4'b1100"), vec("2'b11"))
+    assert v << 2 == vec("4'b1100")
+    assert v.lsh(3) == (vec("4'b1000"), vec("3'b111"))
+    assert v.lsh(4) == (vec("4'b0000"), vec("4'b1111"))
+    with pytest.raises(ValueError):
+        v.lsh(-1)
+    with pytest.raises(ValueError):
+        v.lsh(5)
+
+    assert v.lsh(2, vec("2'b00")) == (vec("4'b1100"), vec("2'b11"))
+    with pytest.raises(ValueError):
+        assert v.lsh(2, vec("3'b000"))
+
+    with pytest.raises(ValueError):
+        vec(["4'b0000", "4'b1111"]).lsh(2)
+
+
+def test_rsh():
+    v = vec("4'b1111")
+    assert v.rsh(0) == (vec("4'b1111"), vec())
+    assert v.rsh(1) == (vec("4'b0111"), vec("1'b1"))
+    assert v.rsh(2) == (vec("4'b0011"), vec("2'b11"))
+    assert v >> 2 == vec("4'b0011")
+    assert v.rsh(3) == (vec("4'b0001"), vec("3'b111"))
+    assert v.rsh(4) == (vec("4'b0000"), vec("4'b1111"))
+    with pytest.raises(ValueError):
+        v.rsh(-1)
+    with pytest.raises(ValueError):
+        v.rsh(5)
+
+    assert v.rsh(2, vec("2'b00")) == (vec("4'b0011"), vec("2'b11"))
+    with pytest.raises(ValueError):
+        assert v.rsh(2, vec("3'b000"))
+
+    with pytest.raises(ValueError):
+        vec(["4'b0000", "4'b1111"]).rsh(2)
+
+
+def test_arsh():
+    v = vec("4'b1111")
+    assert v.arsh(0) == (vec("4'b1111"), vec())
+    assert v.arsh(1) == (vec("4'b1111"), vec("1'b1"))
+    assert v.arsh(2) == (vec("4'b1111"), vec("2'b11"))
+    assert v.arsh(3) == (vec("4'b1111"), vec("3'b111"))
+    assert v.arsh(4) == (vec("4'b1111"), vec("4'b1111"))
+
+    v = vec("4'b0111")
+    assert v.arsh(0) == (vec("4'b0111"), vec())
+    assert v.arsh(1) == (vec("4'b0011"), vec("1'b1"))
+    assert v.arsh(2) == (vec("4'b0001"), vec("2'b11"))
+    assert v.arsh(3) == (vec("4'b0000"), vec("3'b111"))
+    assert v.arsh(4) == (vec("4'b0000"), vec("4'b0111"))
+
+    with pytest.raises(ValueError):
+        v.arsh(-1)
+    with pytest.raises(ValueError):
+        v.arsh(5)
+
+    with pytest.raises(ValueError):
+        vec(["4'b0000", "4'b1111"]).arsh(2)
+
+
 def test_operand_shape_mismatch():
     """Test vector operations with mismatching shapes.
 
