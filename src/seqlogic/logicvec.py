@@ -331,6 +331,12 @@ class logicvec:
             raise ValueError("zext only defined for 1D vectors")
         return cat([self, uint2vec(0, n)], flatten=True)
 
+    def sext(self, n: int) -> "logicvec":
+        """Return vector sign extended by n bits."""
+        if self.ndim != 1:
+            raise ValueError("sext only defined for 1D vectors")
+        return cat([self, rep(self[-1], n)], flatten=True)
+
     def lsh(self, n: int, ci: Optional["logicvec"] = None) -> tuple["logicvec", "logicvec"]:
         """Return vector left shifted by n bits."""
         if self.ndim != 1:
@@ -367,8 +373,7 @@ class logicvec:
             raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
         if n == 0:
             return self, self.__class__((0,), 0)
-        sign = rep(self[-1], n)
-        return cat([self[n:], sign], flatten=True), self[:n]
+        return cat([self[n:], rep(self[-1], n)], flatten=True), self[:n]
 
     def _to_lit(self) -> str:
         prefix = f"{self.size}'b"
@@ -398,7 +403,7 @@ class logicvec:
             sep = ",\n" + indent
         else:
             sep = ",\n\n" + indent
-        return "[" + sep.join(x._str(indent + " ") for x in self) + "]"
+        return "[" + sep.join(v._str(indent + " ") for v in self) + "]"
 
     @cached_property
     def _data_mask(self) -> list[int]:
@@ -517,13 +522,13 @@ def _expect_str(lit: str, size: int) -> int:
 def _rank2(fst: logicvec, rst) -> logicvec:
     shape = (len(rst) + 1,) + fst.shape
     data = fst.data
-    for i, x in enumerate(rst, start=1):
-        match x:
+    for i, v in enumerate(rst, start=1):
+        match v:
             case str():
-                d = _expect_str(x, fst.size)
+                d = _expect_str(v, fst.size)
                 data |= d << (fst.nbits * i)
-            case logicvec() if x.shape == fst.shape:
-                data |= x.data << (fst.nbits * i)
+            case logicvec() if v.shape == fst.shape:
+                data |= v.data << (fst.nbits * i)
             case _:
                 s = f"Expected item to be str or logicvec{fst.shape}"
                 raise TypeError(s)

@@ -116,11 +116,18 @@ def test_uxor():
 
 
 def test_zext():
-    v = vec("4'b1010")
-    assert v.zext(4) == vec("8'b0000_1010")
+    assert vec("4'b1010").zext(4) == vec("8'b0000_1010")
 
     with pytest.raises(ValueError):
         vec(["4'b0000", "4'b1111"]).zext(2)
+
+
+def test_sext():
+    assert vec("4'b1010").sext(4) == vec("8'b1111_1010")
+    assert vec("4'b0101").sext(4) == vec("8'b0000_0101")
+
+    with pytest.raises(ValueError):
+        vec(["4'b0000", "4'b1111"]).sext(2)
 
 
 def test_lsh():
