@@ -71,9 +71,9 @@ async def reset_drv(
         ValueError: An argument has the correct type, but an incorrect value
     """
     if phase1_ticks < 0:
-        raise ValueError(f"Expected phase1_ticks >= 0, got {phase1_ticks}")
+        raise ValueError(f"Expected phase1_ticks ≥ 0, got {phase1_ticks}")
     if phase2_ticks < 0:
-        raise ValueError(f"Expected phase2_ticks >= 0, got {phase2_ticks}")
+        raise ValueError(f"Expected phase2_ticks ≥ 0, got {phase2_ticks}")
 
     # T = 0
     reset.next = init
@@ -112,11 +112,11 @@ async def clock_drv(
         ValueError: An argument has the correct type, but an incorrect value
     """
     if shift_ticks < 0:
-        raise ValueError(f"Expected shift_ticks >= 0, got {shift_ticks}")
+        raise ValueError(f"Expected shift_ticks ≥ 0, got {shift_ticks}")
     if phase1_ticks < 0:
-        raise ValueError(f"Expected phase1_ticks >= 0, got {phase1_ticks}")
+        raise ValueError(f"Expected phase1_ticks ≥ 0, got {phase1_ticks}")
     if phase2_ticks < 0:
-        raise ValueError(f"Expected phase2_ticks >= 0, got {phase2_ticks}")
+        raise ValueError(f"Expected phase2_ticks ≥ 0, got {phase2_ticks}")
 
     # T = 0
     clock.next = init
