@@ -3,9 +3,10 @@ Example LFSR implementation
 """
 
 from collections import defaultdict
+from collections.abc import Callable
 
 from seqlogic.logic import logic
-from seqlogic.logicvec import vec, xes
+from seqlogic.logicvec import cat, logicvec, vec, xes
 from seqlogic.sim import SimVar, get_loop, notify, sleep
 
 loop = get_loop()
@@ -129,14 +130,20 @@ async def clock_drv(
         await sleep(phase2_ticks)
 
 
-async def lfsr_drv(lfsr: TraceVec, reset_n: TraceVar, clock: TraceVar):
+async def dff_arn_drv(
+    q: TraceVec,
+    d: Callable[[], logicvec],
+    reset_n: TraceVar,
+    reset_value: logicvec,
+    clock: TraceVar,
+):
     while True:
         var = await notify(reset_n.negedge, clock.posedge)
         assert var in {reset_n, clock}
         if var is reset_n:
-            lfsr.next = vec("3'b100")
+            q.next = reset_value
         elif var is clock and reset_n.value is logic.T:
-            lfsr.next = vec([lfsr.value[2] ^ lfsr.value[0], lfsr.value[0], lfsr.value[1]])
+            q.next = d()
 
 
 def test_lfsr():
@@ -144,12 +151,20 @@ def test_lfsr():
     loop.reset()
     waves.clear()
 
+    # State Variables
+    q = TraceVec(3)
+
+    def d() -> logicvec:
+        v: logicvec = q.value
+        return cat([v[0] ^ v[2], v[:2]])
+
+    # Control Variables
     reset_n = TraceVar()
+    reset_value = vec("3'b100")
     clock = TraceVar()
-    lfsr = TraceVec(3)
 
     # Schedule LFSR
-    loop.add_proc(lfsr_drv, 0, lfsr, reset_n, clock)
+    loop.add_proc(dff_arn_drv, 0, q, d, reset_n, reset_value, clock)
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
@@ -159,26 +174,31 @@ def test_lfsr():
     loop.run(until=100)
 
     exp = {
+        # Initialize everything to X'es
         -1: {
             reset_n: logic.X,
             clock: logic.X,
-            lfsr: vec("3'bxxx"),
+            q: vec("3'bxxx"),
         },
         0: {
             reset_n: logic.T,
             clock: logic.F,
         },
+        # clock.posedge; reset_n = 1
+        # q = xxx
         5: {
             clock: logic.T,
         },
         # reset_n.negedge
+        # q = reset_value
         6: {
             reset_n: logic.F,
-            lfsr: vec("3'b100"),
+            q: vec("3'b100"),
         },
         10: {
             clock: logic.F,
         },
+        # clock.posedge; reset_n = 0
         15: {
             clock: logic.T,
         },
@@ -189,45 +209,46 @@ def test_lfsr():
         20: {
             clock: logic.F,
         },
-        # clock.posedge
+        # clock.posedge; reset_n = 1
+        # q = 001
         25: {
             clock: logic.T,
-            lfsr: vec("3'b001"),
+            q: vec("3'b001"),
         },
         30: {
             clock: logic.F,
         },
         35: {
             clock: logic.T,
-            lfsr: vec("3'b011"),
+            q: vec("3'b011"),
         },
         40: {
             clock: logic.F,
         },
         45: {
             clock: logic.T,
-            lfsr: vec("3'b111"),
+            q: vec("3'b111"),
         },
         50: {
             clock: logic.F,
         },
         55: {
             clock: logic.T,
-            lfsr: vec("3'b110"),
+            q: vec("3'b110"),
         },
         60: {
             clock: logic.F,
         },
         65: {
             clock: logic.T,
-            lfsr: vec("3'b101"),
+            q: vec("3'b101"),
         },
         70: {
             clock: logic.F,
         },
         75: {
             clock: logic.T,
-            lfsr: vec("3'b010"),
+            q: vec("3'b010"),
         },
         80: {
             clock: logic.F,
@@ -235,14 +256,14 @@ def test_lfsr():
         # Repeat cycle
         85: {
             clock: logic.T,
-            lfsr: vec("3'b100"),
+            q: vec("3'b100"),
         },
         90: {
             clock: logic.F,
         },
         95: {
             clock: logic.T,
-            lfsr: vec("3'b001"),
+            q: vec("3'b001"),
         },
     }
 
