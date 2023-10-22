@@ -6,8 +6,8 @@ See https://csrc.nist.gov/pubs/fips/197/final for details.
 
 from collections import deque
 
-from seqlogic.logic import logic
-from seqlogic.logicvec import cat, logicvec, rep, uint2vec
+from ..logic import logic
+from ..logicvec import cat, logicvec, rep, uint2vec
 
 NB = 4
 
