@@ -8,7 +8,7 @@ import math
 import re
 from collections.abc import Generator
 from functools import cached_property
-from typing import Optional, Union
+from typing import Optional, Self, Union
 
 from .logic import logic
 
@@ -88,22 +88,22 @@ class logicvec:
             case _:
                 return False
 
-    def __invert__(self) -> "logicvec":
+    def __invert__(self) -> Self:
         return self.not_()
 
-    def __or__(self, other: "logicvec") -> "logicvec":
+    def __or__(self, other: Self) -> Self:
         return self.or_(other)
 
-    def __and__(self, other: "logicvec") -> "logicvec":
+    def __and__(self, other: Self) -> Self:
         return self.and_(other)
 
-    def __xor__(self, other: "logicvec") -> "logicvec":
+    def __xor__(self, other: Self) -> Self:
         return self.xor(other)
 
-    def __lshift__(self, n: int) -> "logicvec":
+    def __lshift__(self, n: int) -> Self:
         return self.lsh(n)[0]
 
-    def __rshift__(self, n: int) -> "logicvec":
+    def __rshift__(self, n: int) -> Self:
         return self.rsh(n)[0]
 
     @property
@@ -114,7 +114,7 @@ class logicvec:
     def data(self) -> int:
         return self._data
 
-    def reshape(self, shape: tuple[int, ...]) -> "logicvec":
+    def reshape(self, shape: tuple[int, ...]) -> Self:
         """Return an equivalent logic_vector with modified shape."""
         if math.prod(shape) != self.size:
             raise ValueError("Expected shape with equal volume")
@@ -141,7 +141,7 @@ class logicvec:
         for i in range(self.size):
             yield _pc_get(self._data, i)
 
-    def not_(self) -> "logicvec":
+    def not_(self) -> Self:
         """Return output of NOT function."""
         x_0 = self._bits(0)
         x_01 = x_0 << 1
@@ -153,7 +153,7 @@ class logicvec:
 
         return self.__class__(self._shape, y0 | y1)
 
-    def nor(self, other: "logicvec") -> "logicvec":
+    def nor(self, other: Self) -> Self:
         """Return output of NOR function.
 
         y1 = x0[0] & x1[0]
@@ -177,7 +177,7 @@ class logicvec:
 
         return self.__class__(self._shape, y0 | y1)
 
-    def or_(self, other: "logicvec") -> "logicvec":
+    def or_(self, other: Self) -> Self:
         """Return output of OR function.
 
         y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
@@ -206,7 +206,7 @@ class logicvec:
             y |= x
         return y
 
-    def nand(self, other: "logicvec") -> "logicvec":
+    def nand(self, other: Self) -> Self:
         """Return output of NAND function.
 
         y1 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
@@ -230,7 +230,7 @@ class logicvec:
 
         return self.__class__(self._shape, y0 | y1)
 
-    def and_(self, other: "logicvec") -> "logicvec":
+    def and_(self, other: Self) -> Self:
         """Return output of AND function.
 
         y1 = x0[1] & x1[1]
@@ -259,7 +259,7 @@ class logicvec:
             y &= x
         return y
 
-    def xnor(self, other: "logicvec") -> "logicvec":
+    def xnor(self, other: Self) -> Self:
         """Return output of XNOR function.
 
         y1 = x0[0] & x1[0] | x0[1] & x1[1]
@@ -283,7 +283,7 @@ class logicvec:
 
         return self.__class__(self._shape, y0 | y1)
 
-    def xor(self, other: "logicvec") -> "logicvec":
+    def xor(self, other: Self) -> Self:
         """Return output of XOR function.
 
         y1 = x0[0] & x1[1] | x0[1] & x1[0]
@@ -325,19 +325,19 @@ class logicvec:
                 raise ValueError(s) from e
         return y
 
-    def zext(self, n: int) -> "logicvec":
+    def zext(self, n: int) -> Self:
         """Return vector zero extended by n bits."""
         if self.ndim != 1:
             raise ValueError("zext only defined for 1D vectors")
         return cat([self, uint2vec(0, n)], flatten=True)
 
-    def sext(self, n: int) -> "logicvec":
+    def sext(self, n: int) -> Self:
         """Return vector sign extended by n bits."""
         if self.ndim != 1:
             raise ValueError("sext only defined for 1D vectors")
         return cat([self, rep(self[-1], n)], flatten=True)
 
-    def lsh(self, n: int, ci: Optional["logicvec"] = None) -> tuple["logicvec", "logicvec"]:
+    def lsh(self, n: int, ci: Optional[Self] = None) -> tuple[Self, Self]:
         """Return vector left shifted by n bits."""
         if self.ndim != 1:
             raise ValueError("lsh defined for 1D vectors")
@@ -351,7 +351,7 @@ class logicvec:
             raise ValueError(f"Expected ci to have shape ({n},)")
         return cat([ci, self[:-n]], flatten=True), self[-n:]
 
-    def rsh(self, n: int, ci: Optional["logicvec"] = None) -> tuple["logicvec", "logicvec"]:
+    def rsh(self, n: int, ci: Optional[Self] = None) -> tuple[Self, Self]:
         """Return vector right shifted by n bits."""
         if self.ndim != 1:
             raise ValueError("rsh defined for 1D vectors")
@@ -365,7 +365,7 @@ class logicvec:
             raise ValueError(f"Expected ci to have shape ({n},)")
         return cat([self[n:], ci], flatten=True), self[:n]
 
-    def arsh(self, n: int) -> tuple["logicvec", "logicvec"]:
+    def arsh(self, n: int) -> tuple[Self, Self]:
         """Return vector arithmetically right shifted by n bits."""
         if self.ndim != 1:
             raise ValueError("arsh defined for 1D vectors")

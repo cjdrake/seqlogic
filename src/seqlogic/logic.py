@@ -3,6 +3,7 @@ Logic Data Type
 """
 
 from enum import Enum
+from typing import Self
 
 from .util import bools2int, get_bit
 
@@ -47,28 +48,28 @@ class logic(Enum):
     def __repr__(self):
         return self.__str__()
 
-    def __invert__(self) -> "logic":
+    def __invert__(self) -> Self:
         return self.not_()
 
-    def __or__(self, other: "logic") -> "logic":
+    def __or__(self, other: Self) -> Self:
         return self.or_(other)
 
-    def __ror__(self, other: "logic") -> "logic":
+    def __ror__(self, other: Self) -> Self:
         return self.or_(other)
 
-    def __and__(self, other: "logic") -> "logic":
+    def __and__(self, other: Self) -> Self:
         return self.and_(other)
 
-    def __rand__(self, other: "logic") -> "logic":
+    def __rand__(self, other: Self) -> Self:
         return self.and_(other)
 
-    def __xor__(self, other: "logic") -> "logic":
+    def __xor__(self, other: Self) -> Self:
         return self.xor(other)
 
-    def __rxor__(self, other: "logic") -> "logic":
+    def __rxor__(self, other: Self) -> Self:
         return self.xor(other)
 
-    def not_(self) -> "logic":
+    def not_(self) -> Self:
         """Return output of NOT function
 
         f(x) -> y:
@@ -84,7 +85,7 @@ class logic(Enum):
 
         return self.__class__(bools2int(y_0, y_1))
 
-    def nor(self, other: "logic") -> "logic":
+    def nor(self, other: Self) -> Self:
         """Return output of NOR function
 
         f(x0, x1) -> y:
@@ -121,7 +122,7 @@ class logic(Enum):
 
         return self.__class__(bools2int(y_0, y_1))
 
-    def or_(self, other: "logic") -> "logic":
+    def or_(self, other: Self) -> Self:
         """Return output of OR function
 
         f(x0, x1) -> y:
@@ -158,7 +159,7 @@ class logic(Enum):
 
         return self.__class__(bools2int(y_0, y_1))
 
-    def nand(self, other: "logic") -> "logic":
+    def nand(self, other: Self) -> Self:
         """Return output of NAND function
 
         f(x0, x1) -> y:
@@ -195,7 +196,7 @@ class logic(Enum):
 
         return self.__class__(bools2int(y_0, y_1))
 
-    def and_(self, other: "logic") -> "logic":
+    def and_(self, other: Self) -> Self:
         """Return output of AND function
 
         f(x0, x1) -> y:
@@ -232,7 +233,7 @@ class logic(Enum):
 
         return self.__class__(bools2int(y_0, y_1))
 
-    def xnor(self, other: "logic") -> "logic":
+    def xnor(self, other: Self) -> Self:
         """Return output of XNOR function
 
         f(x0, x1) -> y:
@@ -269,7 +270,7 @@ class logic(Enum):
 
         return self.__class__(bools2int(y_0, y_1))
 
-    def xor(self, other: "logic") -> "logic":
+    def xor(self, other: Self) -> Self:
         """Return output of XOR function
 
         f(x0, x1) -> y:
@@ -306,7 +307,7 @@ class logic(Enum):
 
         return self.__class__(bools2int(y_0, y_1))
 
-    def implies(self, other: "logic") -> "logic":
+    def implies(self, other: Self) -> Self:
         """Return output of IMPLIES function
 
         f(p, q) -> y:
