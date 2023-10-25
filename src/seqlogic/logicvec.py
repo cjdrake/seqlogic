@@ -8,7 +8,7 @@ import math
 import re
 from collections.abc import Collection, Generator
 from functools import cached_property
-from typing import Optional, Self, TypeAlias, Union
+from typing import Self, TypeAlias, Union
 
 from .logic import logic
 
@@ -343,7 +343,7 @@ class logicvec:
             raise ValueError("sext only defined for 1D vectors")
         return cat([self, rep(self[-1], n)], flatten=True)
 
-    def lsh(self, n: int, ci: Optional[Self] = None) -> tuple[Self, Self]:
+    def lsh(self, n: int, ci: Self | None = None) -> tuple[Self, Self]:
         """Return vector left shifted by n bits."""
         if self.ndim != 1:
             raise ValueError("lsh defined for 1D vectors")
@@ -357,7 +357,7 @@ class logicvec:
             raise ValueError(f"Expected ci to have shape ({n},)")
         return cat([ci, self[:-n]], flatten=True), self[-n:]
 
-    def rsh(self, n: int, ci: Optional[Self] = None) -> tuple[Self, Self]:
+    def rsh(self, n: int, ci: Self | None = None) -> tuple[Self, Self]:
         """Return vector right shifted by n bits."""
         if self.ndim != 1:
             raise ValueError("rsh defined for 1D vectors")
@@ -578,7 +578,7 @@ def vec(obj=None) -> logicvec:
             raise TypeError("Invalid input")
 
 
-def uint2vec(num: int, size: Optional[int] = None) -> logicvec:
+def uint2vec(num: int, size: int | None = None) -> logicvec:
     """Convert a nonnegative int to a logic_vector."""
     if num < 0:
         raise ValueError(f"Expected num ≥ 0, got {num}")

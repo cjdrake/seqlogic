@@ -12,7 +12,7 @@ https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 import heapq
 from collections.abc import Awaitable, Callable, Coroutine, Generator
 from enum import Enum
-from typing import NewType, Optional, TypeAlias
+from typing import NewType, TypeAlias
 
 import networkx as nx
 
@@ -75,7 +75,7 @@ class SimVar:
         self._state = State.INVALID
 
 
-_SimQueueItem = tuple[_Time, _Region, _Task, Optional[SimVar]]
+_SimQueueItem = tuple[_Time, _Region, _Task, SimVar | None]
 
 
 class _SimQueue:
@@ -96,7 +96,7 @@ class _SimQueue:
         self._items.clear()
         self._index = 0
 
-    def push(self, time: _Time, region: _Region, task: _Task, var: Optional[SimVar] = None):
+    def push(self, time: _Time, region: _Region, task: _Task, var: SimVar | None):
         heapq.heappush(self._items, (time, region, self._index, task, var))
         self._index += 1
 
@@ -143,7 +143,7 @@ class Sim:
         # Task queue
         self._queue = _SimQueue()
         # Currently executing task
-        self._task: Optional[_Task] = None
+        self._task: _Task | None = None
         self._task_region: dict[_Task, _Region] = {}
         # Dynamic event dependencies
         self._deps = nx.DiGraph()
@@ -179,7 +179,7 @@ class Sim:
         assert self._task is not None
         return self._task
 
-    def call_soon(self, task: _Task, var: Optional[SimVar] = None):
+    def call_soon(self, task: _Task, var: SimVar | None = None):
         """Schedule the task in the current timeslot."""
         region = self._task_region[task]
         self._queue.push(self._time, region, task, var)
@@ -187,12 +187,12 @@ class Sim:
     def call_later(self, delay: _Time, task: _Task):
         """Schedule the task after a relative delay."""
         region = self._task_region[task]
-        self._queue.push(_Time(self._time + delay), region, task)
+        self._queue.push(_Time(self._time + delay), region, task, None)
 
     def call_at(self, when: _Time, task: _Task):
         """Schedule the task for an absolute timeslot."""
         region = self._task_region[task]
-        self._queue.push(when, region, task)
+        self._queue.push(when, region, task, None)
 
     def add_proc(self, proc: _Proc, region: _Region, *args, **kwargs):
         """Add a process to run at start of simulation."""
@@ -223,9 +223,7 @@ class Sim:
         # Add variable to update set
         self._valid_vars.add(var)
 
-    def _limit(
-        self, ticks: Optional[_Time] = None, until: Optional[_Time] = None
-    ) -> Optional[_Time]:
+    def _limit(self, ticks: _Time | None, until: _Time | None) -> _Time | None:
         """Determine the run limit."""
         match ticks, until:
             # Run until no tasks left
@@ -248,7 +246,7 @@ class Sim:
             self.call_at(_START_TIME, task)
         self._started = True
 
-    def run(self, ticks: Optional[_Time] = None, until: Optional[_Time] = None):
+    def run(self, ticks: _Time | None = None, until: _Time | None = None):
         """
         Run the simulation until:
         1. We hit the runlimit, OR
