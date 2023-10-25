@@ -295,8 +295,9 @@ def test_empty():
     assert v == v.reshape((0,))
     assert v != vec(0)
 
-    # Test to_uint
+    # Test to_uint, to_int
     assert v.to_uint() == 0
+    assert v.to_int() == 0
 
 
 def test_scalar():
@@ -335,11 +336,13 @@ def test_scalar():
     assert v0 != vec()
     assert v0 != vec(1)
 
-    # Test to_uint
+    # Test to_uint, to_int
     with pytest.raises(ValueError):
         assert vn.to_uint()
     assert v0.to_uint() == 0
+    assert v0.to_int() == 0
     assert v1.to_uint() == 1
+    assert v1.to_int() == -1
     with pytest.raises(ValueError):
         assert vx.to_uint()
 
@@ -389,6 +392,16 @@ def test_rank1_str():
 
     # Test to_uint
     assert vec("16'b1101_1110_1010_1101").to_uint() == 0xDEAD
+
+    # Test to_int
+    assert vec("4'b0000").to_int() == 0
+    assert vec("4'b0001").to_int() == 1
+    assert vec("4'b0110").to_int() == 6
+    assert vec("4'b0111").to_int() == 7
+    assert vec("4'b1000").to_int() == -8
+    assert vec("4'b1001").to_int() == -7
+    assert vec("4'b1110").to_int() == -2
+    assert vec("4'b1111").to_int() == -1
 
 
 def test_rank1_logic():

@@ -322,6 +322,15 @@ class logicvec:
                     raise ValueError("Cannot convert logicvec with X to uint")
         return y
 
+    def to_int(self) -> int:
+        """Convert vector to signed integer."""
+        if self._shape == (0,):
+            return 0
+        sign = _pc_get(self._data, self.size - 1)
+        if sign is logic.T:
+            return -(self.not_().to_uint() + 1)
+        return self.to_uint()
+
     def zext(self, n: int) -> Self:
         """Return vector zero extended by n bits."""
         if self.ndim != 1:
