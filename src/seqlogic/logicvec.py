@@ -15,7 +15,7 @@ from .logic import logic
 _Logic: TypeAlias = Union[logic, "logicvec"]
 
 # __getitem__ input key type
-_Key: TypeAlias = Union[int, slice, "logicvec", tuple[Union[int, slice, "logicvec"], ...]]
+_Key: TypeAlias = Union[int, "logicvec", slice, tuple[Union[int, "logicvec", slice], ...]]
 
 
 _NUM_RE = re.compile(r"([0-9]+)'b([X01x_]+)")
@@ -448,7 +448,7 @@ class logicvec:
     def _norm_key(self, key: _Key) -> tuple[int | slice, ...]:
         # First, convert key to a list
         match key:
-            case int() | slice() | logicvec():
+            case int() | logicvec() | slice():
                 lkey = [key]
             case tuple():
                 lkey = list(key)
