@@ -596,3 +596,31 @@ def test_slicing():
         v[0, 0, 0, 0]
     with pytest.raises(TypeError):
         v["invalid"]
+
+
+def test_countbits():
+    v = vec("8'bx10X_x10X")
+    assert v.countbits({logic.F, logic.T}) == 4
+    assert v.countbits({logic.N, logic.X}) == 4
+
+    assert vec("4'b0000").countones() == 0
+    assert vec("4'b0001").countones() == 1
+    assert vec("4'b0011").countones() == 2
+    assert vec("4'b0111").countones() == 3
+    assert vec("4'b1111").countones() == 4
+
+    assert not vec("4'b0000").onehot()
+    assert vec("4'b1000").onehot()
+    assert vec("4'b0001").onehot()
+    assert not vec("4'b1001").onehot()
+    assert not vec("4'b1101").onehot()
+
+    assert vec("4'b0000").onehot0()
+    assert vec("4'b1000").onehot0()
+    assert not vec("4'b1010").onehot0()
+    assert not vec("4'b1011").onehot0()
+
+    assert not vec("4'b0000").isunknown()
+    assert not vec("4'b1111").isunknown()
+    assert vec("4'b0x01").isunknown()
+    assert vec("4'b01X1").isunknown()

@@ -381,6 +381,29 @@ class logicvec:
             return self, self.__class__((0,), 0)
         return cat([self[n:], rep(self[-1], n)], flatten=True), self[:n]
 
+    def countbits(self, ctl: Collection[logic]) -> int:
+        """Return the number of bits in the ctl set."""
+        return sum(1 for x in self.flat if x in ctl)
+
+    def countones(self) -> int:
+        """Return the number of ones in the vector."""
+        return self.countbits({logic.T})
+
+    def onehot(self) -> bool:
+        """Return True if the vector has exactly one hot bit."""
+        return self.countones() == 1
+
+    def onehot0(self) -> bool:
+        """Return True if the vector has at most one hot bit."""
+        return self.countones() <= 1
+
+    def isunknown(self) -> bool:
+        """Return True if the vector contains at least one Null or X bit."""
+        for x in self.flat:
+            if x in {logic.N, logic.X}:
+                return True
+        return False
+
     def _to_lit(self) -> str:
         prefix = f"{self.size}'b"
         chars = []
