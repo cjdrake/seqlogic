@@ -8,14 +8,14 @@ import math
 import re
 from collections.abc import Generator
 from functools import cached_property
-from typing import Optional, Self, Union
+from typing import Optional, Self, TypeAlias, Union
 
 from .logic import logic
 
-Logic = Union[logic, "logicvec"]
+_Logic: TypeAlias = Union[logic, "logicvec"]
 
 # __getitem__ input key type
-Key = Union[int, slice, "logicvec", tuple[Union[int, slice, "logicvec"], ...]]
+_Key: TypeAlias = Union[int, slice, "logicvec", tuple[Union[int, slice, "logicvec"], ...]]
 
 
 _NUM_RE = re.compile(r"([0-9]+)'b([X01x_]+)")
@@ -72,11 +72,11 @@ class logicvec:
     def __len__(self):
         return self._shape[0]
 
-    def __iter__(self) -> Generator[Logic, None, None]:
+    def __iter__(self) -> Generator[_Logic, None, None]:
         for i in range(self._shape[0]):
             yield self.__getitem__(i)
 
-    def __getitem__(self, key: Key) -> Logic:
+    def __getitem__(self, key: _Key) -> _Logic:
         if self._shape == (0,):
             raise IndexError("Cannot index an empty vector")
         return _sel(self, self._norm_key(key))
@@ -445,7 +445,7 @@ class logicvec:
             sl = slice(sl.start, sl.stop, 1)
         return sl
 
-    def _norm_key(self, key: Key) -> tuple[int | slice, ...]:
+    def _norm_key(self, key: _Key) -> tuple[int | slice, ...]:
         # First, convert key to a list
         match key:
             case int() | slice() | logicvec():
@@ -600,7 +600,7 @@ def uint2vec(num: int, size: Optional[int] = None) -> logicvec:
     return logicvec((size,), data)
 
 
-def cat(objs: list[Logic], flatten: bool = False) -> logicvec:
+def cat(objs: list[_Logic], flatten: bool = False) -> logicvec:
     """Join a sequence of logicvecs."""
     # Empty
     if len(objs) == 0:
@@ -644,12 +644,12 @@ def cat(objs: list[Logic], flatten: bool = False) -> logicvec:
     return logicvec(shape, data)
 
 
-def rep(v: Logic, n: int, flatten: bool = False) -> logicvec:
+def rep(v: _Logic, n: int, flatten: bool = False) -> logicvec:
     """Repeat a logicvec n times."""
     return cat([v] * n, flatten)
 
 
-def _sel(v: logicvec, key: tuple[int | slice, ...]) -> Logic:
+def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
     assert 0 <= v.ndim == len(key)
 
     shape = v.shape[1:]
