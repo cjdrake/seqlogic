@@ -6,7 +6,7 @@ Logic Vector Data Type
 
 import math
 import re
-from collections.abc import Generator
+from collections.abc import Collection, Generator
 from functools import cached_property
 from typing import Optional, Self, TypeAlias, Union
 
@@ -606,7 +606,7 @@ def uint2vec(num: int, size: Optional[int] = None) -> logicvec:
     return logicvec((size,), data)
 
 
-def cat(objs: list[_Logic], flatten: bool = False) -> logicvec:
+def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
     """Join a sequence of logicvecs."""
     # Empty
     if len(objs) == 0:
