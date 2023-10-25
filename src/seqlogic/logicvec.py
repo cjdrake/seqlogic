@@ -57,14 +57,14 @@ class logicvec:
         assert 0 <= data < (1 << self.nbits)
         self._data = data
 
-    def __str__(self):
+    def __str__(self) -> str:
         indent = "     "
         return f"vec({self._str(indent)})"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._shape[0]
 
     def __iter__(self) -> Generator[_Logic, None, None]:
@@ -76,7 +76,7 @@ class logicvec:
             raise IndexError("Cannot index an empty vector")
         return _sel(self, self._norm_key(key))
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         match other:
             case logicvec():
                 return self._shape == other.shape and self._data == other.data
