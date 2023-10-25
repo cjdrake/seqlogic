@@ -43,11 +43,6 @@ _int2logic = {
     1: logic.T,
 }
 
-_logic2int = {
-    logic.F: 0,
-    logic.T: 1,
-}
-
 
 class logicvec:
     """
@@ -318,11 +313,13 @@ class logicvec:
         """Convert vector to unsigned integer."""
         y = 0
         for i, x in enumerate(self.flat):
-            try:
-                y |= _logic2int[x] << i
-            except KeyError as e:
-                s = "Cannot convert logicvec with X to uint"
-                raise ValueError(s) from e
+            match x:
+                case logic.F:
+                    pass
+                case logic.T:
+                    y |= 1 << i
+                case _:
+                    raise ValueError("Cannot convert logicvec with X to uint")
         return y
 
     def zext(self, n: int) -> Self:
