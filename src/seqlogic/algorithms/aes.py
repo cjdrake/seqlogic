@@ -123,9 +123,8 @@ def rot_word(w: logicvec) -> logicvec:
     performs a cyclic permutation.
     """
     w = w.reshape((_WORD_BYTES, _BYTE_BITS))
-    bs = deque(range(_WORD_BYTES))
-    bs.rotate(-1)
-    bytes_ = [w[b] for b in bs]
+    bytes_ = deque(w[b] for b in range(_WORD_BYTES))
+    bytes_.rotate(-1)
     return cat(bytes_, flatten=True)
 
 
