@@ -34,7 +34,7 @@ def test_a1():
     key = s2v("2b7e151628aed2a6abf7158809cf4f3c")
     rkey = key_expansion(nk, key)
     for i, w in enumerate(rkey):
-        assert str(w) == f"vec(32'b{A1_EXP[i]:039_b})"
+        assert str(w) == f"vec(32b{A1_EXP[i]:039_b})"
 
 
 # fmt: off
@@ -62,7 +62,7 @@ def test_a2():
     key = s2v("8e73b0f7da0e6452c810f32b809079e562f8ead2522c6b7b")
     rkey = key_expansion(nk, key)
     for i, w in enumerate(rkey):
-        assert str(w) == f"vec(32'b{A2_EXP[i]:039_b})"
+        assert str(w) == f"vec(32b{A2_EXP[i]:039_b})"
 
 
 # fmt: off
@@ -92,7 +92,7 @@ def test_a3():
     key = s2v("603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4")
     rkey = key_expansion(nk, key)
     for i, w in enumerate(rkey):
-        assert str(w) == f"vec(32'b{A3_EXP[i]:039_b})"
+        assert str(w) == f"vec(32b{A3_EXP[i]:039_b})"
 
 
 PT = s2v("00112233445566778899aabbccddeeff")

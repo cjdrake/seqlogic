@@ -18,7 +18,7 @@ _Logic: TypeAlias = Union[logic, "logicvec"]
 _Key: TypeAlias = Union[int, "logicvec", slice, tuple[Union[int, "logicvec", slice], ...]]
 
 
-_NUM_RE = re.compile(r"([0-9]+)'b([X01x_]+)")
+_NUM_RE = re.compile(r"([0-9]+)b([X01x_]+)")
 _PC_BITS = 2
 _PC_MASK = (1 << _PC_BITS) - 1
 
@@ -423,7 +423,7 @@ class logicvec:
         return False
 
     def _to_lit(self) -> str:
-        prefix = f"{self.size}'b"
+        prefix = f"{self.size}b"
         chars = []
         for i in range(self.size):
             if i % 4 == 0 and i != 0:

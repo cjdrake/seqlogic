@@ -160,7 +160,7 @@ def test_lfsr():
 
     # Control Variables
     reset_n = TraceVar()
-    reset_value = vec("3'b100")
+    reset_value = vec("3b100")
     clock = TraceVar()
 
     # Schedule LFSR
@@ -178,7 +178,7 @@ def test_lfsr():
         -1: {
             reset_n: logic.X,
             clock: logic.X,
-            q: vec("3'bxxx"),
+            q: vec("3bxxx"),
         },
         0: {
             reset_n: logic.T,
@@ -193,7 +193,7 @@ def test_lfsr():
         # q = reset_value
         6: {
             reset_n: logic.F,
-            q: vec("3'b100"),
+            q: vec("3b100"),
         },
         10: {
             clock: logic.F,
@@ -213,42 +213,42 @@ def test_lfsr():
         # q = 001
         25: {
             clock: logic.T,
-            q: vec("3'b001"),
+            q: vec("3b001"),
         },
         30: {
             clock: logic.F,
         },
         35: {
             clock: logic.T,
-            q: vec("3'b011"),
+            q: vec("3b011"),
         },
         40: {
             clock: logic.F,
         },
         45: {
             clock: logic.T,
-            q: vec("3'b111"),
+            q: vec("3b111"),
         },
         50: {
             clock: logic.F,
         },
         55: {
             clock: logic.T,
-            q: vec("3'b110"),
+            q: vec("3b110"),
         },
         60: {
             clock: logic.F,
         },
         65: {
             clock: logic.T,
-            q: vec("3'b101"),
+            q: vec("3b101"),
         },
         70: {
             clock: logic.F,
         },
         75: {
             clock: logic.T,
-            q: vec("3'b010"),
+            q: vec("3b010"),
         },
         80: {
             clock: logic.F,
@@ -256,14 +256,14 @@ def test_lfsr():
         # Repeat cycle
         85: {
             clock: logic.T,
-            q: vec("3'b100"),
+            q: vec("3b100"),
         },
         90: {
             clock: logic.F,
         },
         95: {
             clock: logic.T,
-            q: vec("3'b001"),
+            q: vec("3b001"),
         },
     }
 
