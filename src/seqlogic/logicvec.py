@@ -99,7 +99,8 @@ class logicvec:
     def reshape(self, shape: tuple[int, ...]) -> Self:
         """Return an equivalent logic_vector with modified shape."""
         if math.prod(shape) != self.size:
-            raise ValueError("Expected shape with equal volume")
+            s = f"Expected shape with size {self.size}, got {shape}"
+            raise ValueError(s)
         return self.__class__(shape, self._data)
 
     @cached_property
@@ -123,6 +124,12 @@ class logicvec:
         for i in range(self.size):
             yield _pc_get(self._data, i)
 
+    def flatten(self) -> Self:
+        """Return a vector with equal data, flattened to 1D shape."""
+        if self.ndim == 1:
+            return self
+        return self.__class__((self.size,), self._data)
+
     def not_(self) -> Self:
         """Return output of NOT function."""
         x_0 = self._bits(0)
@@ -135,14 +142,18 @@ class logicvec:
 
         return self.__class__(self._shape, y0 | y1)
 
+    def _check_shape(self, other: Self):
+        if self._shape != other.shape:
+            s = f"Expected shape {self._shape}, got {other.shape}"
+            raise ValueError(s)
+
     def nor(self, other: Self) -> Self:
         """Return output of NOR function.
 
         y1 = x0[0] & x1[0]
         y0 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
         """
-        if self._shape != other.shape:
-            raise ValueError("Expected operand shapes to match")
+        self._check_shape(other)
 
         x0_0 = self._bits(0)
         x0_01 = x0_0 << 1
@@ -165,8 +176,7 @@ class logicvec:
         y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
         y0 = x0[0] & x1[0]
         """
-        if self._shape != other.shape:
-            raise ValueError("Expected operand shapes to match")
+        self._check_shape(other)
 
         x0_0 = self._bits(0)
         x0_01 = x0_0 << 1
@@ -194,8 +204,7 @@ class logicvec:
         y1 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
         y0 = x0[1] & x1[1]
         """
-        if self._shape != other.shape:
-            raise ValueError("Expected operand shapes to match")
+        self._check_shape(other)
 
         x0_0 = self._bits(0)
         x0_01 = x0_0 << 1
@@ -218,8 +227,7 @@ class logicvec:
         y1 = x0[1] & x1[1]
         y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
         """
-        if self._shape != other.shape:
-            raise ValueError("Expected operand shapes to match")
+        self._check_shape(other)
 
         x0_0 = self._bits(0)
         x0_1 = self._bits(1)
@@ -247,8 +255,7 @@ class logicvec:
         y1 = x0[0] & x1[0] | x0[1] & x1[1]
         y0 = x0[0] & x1[1] | x0[1] & x1[0]
         """
-        if self._shape != other.shape:
-            raise ValueError("Expected operand shapes to match")
+        self._check_shape(other)
 
         x0_0 = self._bits(0)
         x0_01 = x0_0 << 1
@@ -271,8 +278,7 @@ class logicvec:
         y1 = x0[0] & x1[1] | x0[1] & x1[0]
         y0 = x0[0] & x1[0] | x0[1] & x1[1]
         """
-        if self._shape != other.shape:
-            raise ValueError("Expected operand shapes to match")
+        self._check_shape(other)
 
         x0_0 = self._bits(0)
         x0_01 = x0_0 << 1
@@ -306,7 +312,7 @@ class logicvec:
                 case logic.T:
                     y |= 1 << i
                 case _:
-                    raise ValueError("Cannot convert logicvec with X to uint")
+                    raise ValueError("Cannot convert unknown to uint")
         return y
 
     def to_int(self) -> int:
@@ -319,54 +325,79 @@ class logicvec:
         return self.to_uint()
 
     def zext(self, n: int) -> Self:
-        """Return vector zero extended by n bits."""
+        """Return vector zero extended by n bits.
+
+        Zero extension is defined for 1-D vectors.
+        Vectors of higher dimensions will be flattened, then zero extended.
+        """
+        v = self
         if self.ndim != 1:
-            raise ValueError("zext only defined for 1D vectors")
-        return cat([self, uint2vec(0, n)], flatten=True)
+            v = self.flatten()
+        return cat([v, uint2vec(0, n)], flatten=True)
 
     def sext(self, n: int) -> Self:
-        """Return vector sign extended by n bits."""
+        """Return vector sign extended by n bits.
+
+        Sign extension is defined for 1-D vectors.
+        Vectors of higher dimension will be flattened, then sign extended.
+        """
+        v = self
         if self.ndim != 1:
-            raise ValueError("sext only defined for 1D vectors")
-        return cat([self, rep(self[-1], n)], flatten=True)
+            v = self.flatten()
+        return cat([v, rep(v[-1], n)], flatten=True)
 
     def lsh(self, n: int, ci: Self | None = None) -> tuple[Self, Self]:
-        """Return vector left shifted by n bits."""
+        """Return vector left shifted by n bits.
+
+        Left shift is defined for 1-D vectors.
+        Vectors of higher dimension will be flattened, then shifted.
+        """
+        v = self
         if self.ndim != 1:
-            raise ValueError("lsh defined for 1D vectors")
-        if not 0 <= n <= self.size:
-            raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
+            v = self.flatten()
+        if not 0 <= n <= v.size:
+            raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return self, self.__class__((0,), 0)
+            return v, self.__class__((0,), 0)
         if ci is None:
             ci = uint2vec(0, n)
         elif ci.shape != (n,):
             raise ValueError(f"Expected ci to have shape ({n},)")
-        return cat([ci, self[:-n]], flatten=True), self[-n:]
+        return cat([ci, v[:-n]], flatten=True), v[-n:]
 
     def rsh(self, n: int, ci: Self | None = None) -> tuple[Self, Self]:
-        """Return vector right shifted by n bits."""
+        """Return vector right shifted by n bits.
+
+        Right shift is defined for 1-D vectors.
+        Vectors of higher dimension will be flattened, then shifted.
+        """
+        v = self
         if self.ndim != 1:
-            raise ValueError("rsh defined for 1D vectors")
-        if not 0 <= n <= self.size:
-            raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
+            v = self.flatten()
+        if not 0 <= n <= v.size:
+            raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return self, self.__class__((0,), 0)
+            return v, self.__class__((0,), 0)
         if ci is None:
             ci = uint2vec(0, n)
         elif ci.shape != (n,):
             raise ValueError(f"Expected ci to have shape ({n},)")
-        return cat([self[n:], ci], flatten=True), self[:n]
+        return cat([v[n:], ci], flatten=True), v[:n]
 
     def arsh(self, n: int) -> tuple[Self, Self]:
-        """Return vector arithmetically right shifted by n bits."""
+        """Return vector arithmetically right shifted by n bits.
+
+        Arithmetic right shift is defined for 1-D vectors.
+        Vectors of higher dimension will be flattened, then shifted.
+        """
+        v = self
         if self.ndim != 1:
-            raise ValueError("arsh defined for 1D vectors")
-        if not 0 <= n <= self.size:
-            raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
+            v = self.flatten()
+        if not 0 <= n <= v.size:
+            raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return self, self.__class__((0,), 0)
-        return cat([self[n:], rep(self[-1], n)], flatten=True), self[:n]
+            return v, self.__class__((0,), 0)
+        return cat([v[n:], rep(v[-1], n)], flatten=True), v[:n]
 
     def countbits(self, ctl: Collection[logic]) -> int:
         """Return the number of bits in the ctl set."""
@@ -585,7 +616,7 @@ def vec(obj=None) -> logicvec:
             return cat([vec(obj) for obj in objs])
         # Unimplemented
         case _:
-            raise TypeError("Invalid input")
+            raise TypeError(f"Invalid input: {type(obj)}")
 
 
 def uint2vec(num: int, size: int | None = None) -> logicvec:
@@ -633,7 +664,7 @@ def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
             case logicvec() as v:
                 vs.append(v)
             case _:
-                raise TypeError("Invalid input")
+                raise TypeError(f"Invalid input: {type(obj)}")
 
     if len(vs) == 1:
         return vs[0]
@@ -648,7 +679,8 @@ def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
         if v.shape[0] != fst.shape[0]:
             regular = False
         if v.shape[1:] != fst.shape[1:]:
-            raise ValueError("Expected matching shapes")
+            s = f"Expected shape {fst.shape[1:]}, got {v.shape[1:]}"
+            raise ValueError(s)
         dims.append(v.shape[0])
         data |= v.data << (fst.nbits * i)
 

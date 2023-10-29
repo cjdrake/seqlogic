@@ -117,17 +117,15 @@ def test_uxor():
 
 def test_zext():
     assert vec("4'b1010").zext(4) == vec("8'b0000_1010")
-
-    with pytest.raises(ValueError):
-        vec(["4'b0000", "4'b1111"]).zext(2)
+    # Zero extension on multi-dimensional array will flatten
+    assert vec(["4'b0000", "4'b1111"]).zext(2) == vec("10'b00_1111_0000")
 
 
 def test_sext():
     assert vec("4'b1010").sext(4) == vec("8'b1111_1010")
     assert vec("4'b0101").sext(4) == vec("8'b0000_0101")
-
-    with pytest.raises(ValueError):
-        vec(["4'b0000", "4'b1111"]).sext(2)
+    # Sign extension of multi-dimensional array will flatten
+    assert vec(["4'b0000", "4'b1111"]).sext(2) == vec("10'b11_1111_0000")
 
 
 def test_lsh():
@@ -147,8 +145,7 @@ def test_lsh():
     with pytest.raises(ValueError):
         assert v.lsh(2, vec("3'b000"))
 
-    with pytest.raises(ValueError):
-        vec(["4'b0000", "4'b1111"]).lsh(2)
+    assert vec(["4'b0000", "4'b1111"]).lsh(2) == (vec("8'b1100_0000"), vec("2'b11"))
 
 
 def test_rsh():
@@ -168,8 +165,7 @@ def test_rsh():
     with pytest.raises(ValueError):
         assert v.rsh(2, vec("3'b000"))
 
-    with pytest.raises(ValueError):
-        vec(["4'b0000", "4'b1111"]).rsh(2)
+    assert vec(["4'b0000", "4'b1111"]).rsh(2) == (vec("8'b0011_1100"), vec("2'b00"))
 
 
 def test_arsh():
@@ -192,8 +188,7 @@ def test_arsh():
     with pytest.raises(ValueError):
         v.arsh(5)
 
-    with pytest.raises(ValueError):
-        vec(["4'b0000", "4'b1111"]).arsh(2)
+    assert vec(["4'b0000", "4'b1111"]).arsh(2) == (vec("8'b1111_1100"), vec("2'b00"))
 
 
 def test_operand_shape_mismatch():
@@ -277,6 +272,8 @@ def test_empty():
     assert v.nbits == 0
     assert list(v.flat) == []  # pylint: disable = use-implicit-booleaness-not-comparison
 
+    assert v.flatten() is v
+
     # Test __str__ and __repr__
     assert str(v) == repr(v) == "vec([])"
 
@@ -314,6 +311,8 @@ def test_scalar():
     assert v0.size == 1
     assert v0.nbits == 2
     assert list(v0.flat) == [logic.F]
+
+    assert v0.flatten() is v0
 
     # Test __str__ and __repr__
     assert str(vn) == repr(vn) == "vec([X])"
@@ -365,6 +364,8 @@ def test_rank1_str():
     assert v.size == 8
     assert v.nbits == 16
     assert list(v.flat) == xs
+
+    assert v.flatten() is v
 
     # Test __str__ and __repr__
     assert str(v) == repr(v) == "vec(8'bx10X_x10X)"
@@ -427,6 +428,8 @@ def test_rank1_logic():
 def test_rank2_str():
     v = vec(["4'bx10X", "4'bx10X"])
 
+    assert v.flatten() == vec("8'bx10X_x10X")
+
     # Test __str__ and __repr__
     assert str(v) == repr(v) == "vec([4'bx10X, 4'bx10X])"
 
@@ -459,6 +462,8 @@ def test_rank3_vec():
             [vec("4'bx10X"), vec("4'bx10X")],
         ]
     )
+
+    assert v.flatten() == vec("16'bx10X_x10X_x10X_x10X")
 
     # Test __str__ and __repr__
     assert str(v) == repr(v) == R3VEC
