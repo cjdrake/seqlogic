@@ -10,7 +10,7 @@ from collections.abc import Collection, Generator
 from functools import cached_property
 from typing import Self, TypeAlias, Union
 
-from .logic import logic
+from .logic import _char2logic, _int2logic, logic
 
 _Logic: TypeAlias = Union[logic, "logicvec"]
 
@@ -29,19 +29,6 @@ def _pc_get(data: int, n: int) -> logic:
 
 def _pc_set(n: int, x: logic) -> int:
     return x.value << (_PC_BITS * n)
-
-
-_char2logic = {
-    "X": logic.N,
-    "0": logic.F,
-    "1": logic.T,
-    "x": logic.X,
-}
-
-_int2logic = {
-    0: logic.F,
-    1: logic.T,
-}
 
 
 class logicvec:

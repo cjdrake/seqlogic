@@ -355,6 +355,15 @@ _logic2char = {
     logic.X: "x",
 }
 
+
+_char2logic = {
+    "X": logic.N,
+    "0": logic.F,
+    "1": logic.T,
+    "x": logic.X,
+}
+
+
 _int2logic = {
     0: logic.F,
     1: logic.T,
