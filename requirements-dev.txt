@@ -4,6 +4,7 @@ build
 twine
 
 black
+flake8
 pylint
 pytest-cov
 pytest-profiling

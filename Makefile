@@ -10,11 +10,13 @@ help:
 
 PYTHON := python
 PYLINT := pylint
+FLAKE8 := flake8
 PYTEST := pytest
 
 .PHONY: lint
 lint:
 	@$(PYLINT) src/seqlogic tests
+	@$(FLAKE8)
 
 .PHONY: test
 test:
