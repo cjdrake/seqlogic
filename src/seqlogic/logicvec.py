@@ -18,7 +18,7 @@ _Logic: TypeAlias = Union[logic, "logicvec"]
 _Key: TypeAlias = Union[int, "logicvec", slice, tuple[Union[int, "logicvec", slice], ...]]
 
 
-_NUM_RE = re.compile(r"([0-9]+)b([X01x_]+)")
+_NUM_RE = re.compile(r"(?:([0-9]+)b([X01x_]+))|(?:([0-9]+)h([0-9a-fA-F_]+))")
 _PC_BITS = 2
 _PC_MASK = (1 << _PC_BITS) - 1
 
@@ -528,17 +528,58 @@ class logicvec:
         return tuple(lnkey)
 
 
+_hexchar2pcnibble = {
+    "0": 0x55,
+    "1": 0x56,
+    "2": 0x59,
+    "3": 0x5A,
+    "4": 0x65,
+    "5": 0x66,
+    "6": 0x69,
+    "7": 0x6A,
+    "8": 0x95,
+    "9": 0x96,
+    "a": 0x99,
+    "b": 0x9A,
+    "c": 0xA5,
+    "d": 0xA6,
+    "e": 0xA9,
+    "f": 0xAA,
+    "A": 0x99,
+    "B": 0x9A,
+    "C": 0xA5,
+    "D": 0xA6,
+    "E": 0xA9,
+    "F": 0xAA,
+}
+
+
 def _parse_str_lit(lit: str) -> logicvec:
     if m := _NUM_RE.match(lit):
-        size = int(m.group(1))
-        digits = m.group(2).replace("_", "")
-        num_digits = len(digits)
-        if num_digits != size:
-            raise ValueError(f"Expected {size} digits, got {num_digits}")
-        data = 0
-        for i, digit in enumerate(reversed(digits)):
-            data |= _pc_set(i, _char2logic[digit])
-        return logicvec((size,), data)
+        # Binary
+        if m.group(1):
+            size = int(m.group(1))
+            digits = m.group(2).replace("_", "")
+            num_digits = len(digits)
+            if num_digits != size:
+                raise ValueError(f"Expected {size} digits, got {num_digits}")
+            data = 0
+            for i, digit in enumerate(reversed(digits)):
+                data |= _pc_set(i, _char2logic[digit])
+            return logicvec((size,), data)
+        # Hexadecimal
+        elif m.group(3):
+            size = int(m.group(3))
+            digits = m.group(4).replace("_", "")
+            num_digits = len(digits)
+            if 4 * num_digits != size:
+                raise ValueError(f"Expected {size//4} digits, got {num_digits}")
+            data = 0
+            for i, digit in enumerate(reversed(digits)):
+                data |= _hexchar2pcnibble[digit] << (8 * i)
+            return logicvec((size,), data)
+        else:  # pragma: no cover
+            assert False
     else:
         raise ValueError(f"Expected str literal, got {lit}")
 

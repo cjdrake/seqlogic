@@ -221,6 +221,10 @@ def test_parse_str_literal():
         vec("4b1010_1010")
     with pytest.raises(ValueError):
         vec("8b1010")
+    with pytest.raises(ValueError):
+        vec("16hdead_beef")
+    with pytest.raises(ValueError):
+        vec("8hdead")
 
     # Invalid input
     with pytest.raises(ValueError):
@@ -229,6 +233,10 @@ def test_parse_str_literal():
     # Valid input
     v = vec("4bx1_0X")
     assert v.data == 0b11_10_01_00
+    v = vec("64hFeDc_Ba98_7654_3210")
+    assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
+    v = vec("64hfEdC_bA98_7654_3210")
+    assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
 
 
 def test_uint2vec():
