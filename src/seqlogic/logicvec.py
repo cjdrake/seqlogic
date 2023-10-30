@@ -621,7 +621,8 @@ def _rank2(fst: logicvec, rst) -> logicvec:
             case logicvec() if v.shape == fst.shape:
                 data |= v.data << (fst.nbits * i)
             case _:
-                s = f"Expected item to be str or logicvec{fst.shape}"
+                s = ",".join(str(dim) for dim in fst.shape)
+                s = f"Expected item to be str or logicvec[{s}]"
                 raise TypeError(s)
     return logicvec(shape, data)
 
