@@ -573,7 +573,8 @@ def _parse_str_lit(lit: str) -> logicvec:
             digits = m.group(4).replace("_", "")
             num_digits = len(digits)
             if 4 * num_digits != size:
-                raise ValueError(f"Expected {size//4} digits, got {num_digits}")
+                s = f"Expected size to match # digits, got {size} ≠ {4*num_digits}"
+                raise ValueError(s)
             data = 0
             for i, digit in enumerate(reversed(digits)):
                 data |= _hexchar2pcnibble[digit] << (8 * i)
