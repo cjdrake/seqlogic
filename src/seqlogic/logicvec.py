@@ -601,11 +601,10 @@ def _rank1(fst: logic, rst) -> logicvec:
 
 def _expect_str(lit: str, size: int) -> int:
     v = _parse_str_lit(lit)
-    if v.size == size:
-        return v.data
-    else:
+    if v.size != size:
         s = f"Expected str literal to have size {size}, got {v.size}"
         raise TypeError(s)
+    return v.data
 
 
 def _rank2(fst: logicvec, rst) -> logicvec:
@@ -754,14 +753,12 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
             d = f(v.data, i)
             if shape:
                 return _sel(logicvec(shape, d), key[1:])
-            else:
-                return logic(d)
+            return logic(d)
         case slice() as sl:
             ds = [f(v.data, i) for i in range(sl.start, sl.stop, sl.step)]
             if shape:
                 return cat([_sel(logicvec(shape, d), key[1:]) for d in ds])
-            else:
-                return cat([logic(d) for d in ds])
+            return cat([logic(d) for d in ds])
         case _:  # pragma: no cover
             assert False
 
