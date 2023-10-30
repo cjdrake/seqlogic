@@ -18,7 +18,10 @@ _Logic: TypeAlias = Union[logic, "logicvec"]
 _Key: TypeAlias = Union[int, "logicvec", slice, tuple[Union[int, "logicvec", slice], ...]]
 
 
-_NUM_RE = re.compile(r"(?:([0-9]+)b([X01x_]+))|(?:([0-9]+)h([0-9a-fA-F_]+))")
+_NUM_RE = re.compile(
+    r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[X01x_]+))|"
+    r"((?P<HexSize>[0-9]+)h(?P<HexDigits>[0-9a-fA-F_]+))"
+)
 _PC_BITS = 2
 _PC_MASK = (1 << _PC_BITS) - 1
 
@@ -557,9 +560,9 @@ _hexchar2pcnibble = {
 def _parse_str_lit(lit: str) -> logicvec:
     if m := _NUM_RE.match(lit):
         # Binary
-        if m.group(1):
-            size = int(m.group(1))
-            digits = m.group(2).replace("_", "")
+        if m.group("BinSize"):
+            size = int(m.group("BinSize"))
+            digits = m.group("BinDigits").replace("_", "")
             num_digits = len(digits)
             if num_digits != size:
                 raise ValueError(f"Expected {size} digits, got {num_digits}")
@@ -568,9 +571,9 @@ def _parse_str_lit(lit: str) -> logicvec:
                 data |= _pc_set(i, _char2logic[digit])
             return logicvec((size,), data)
         # Hexadecimal
-        elif m.group(3):
-            size = int(m.group(3))
-            digits = m.group(4).replace("_", "")
+        elif m.group("HexSize"):
+            size = int(m.group("HexSize"))
+            digits = m.group("HexDigits").replace("_", "")
             num_digits = len(digits)
             if 4 * num_digits != size:
                 s = f"Expected size to match # digits, got {size} ≠ {4*num_digits}"
