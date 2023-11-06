@@ -557,7 +557,7 @@ _hexchar2pcnibble = {
 }
 
 
-def _parse_str_lit(lit: str) -> logicvec:
+def _parse_str_lit(lit: str) -> tuple[int, int]:
     if m := _NUM_RE.match(lit):
         # Binary
         if m.group("BinSize"):
@@ -569,7 +569,7 @@ def _parse_str_lit(lit: str) -> logicvec:
             data = 0
             for i, digit in enumerate(reversed(digits)):
                 data |= _pc_set(i, _char2logic[digit])
-            return logicvec((size,), data)
+            return size, data
         # Hexadecimal
         elif m.group("HexSize"):
             size = int(m.group("HexSize"))
@@ -581,7 +581,7 @@ def _parse_str_lit(lit: str) -> logicvec:
             data = 0
             for i, digit in enumerate(reversed(digits)):
                 data |= _hexchar2pcnibble[digit] << (8 * i)
-            return logicvec((size,), data)
+            return size, data
         else:  # pragma: no cover
             assert False
     else:
@@ -602,21 +602,16 @@ def _rank1(fst: logic, rst) -> logicvec:
     return logicvec(shape, data)
 
 
-def _expect_str(lit: str, size: int) -> int:
-    v = _parse_str_lit(lit)
-    if v.size != size:
-        s = f"Expected str literal to have size {size}, got {v.size}"
-        raise TypeError(s)
-    return v.data
-
-
 def _rank2(fst: logicvec, rst) -> logicvec:
     shape = (len(rst) + 1,) + fst.shape
     data = fst.data
     for i, v in enumerate(rst, start=1):
         match v:
-            case str():
-                d = _expect_str(v, fst.size)
+            case str() as lit:
+                size, d = _parse_str_lit(lit)
+                if size != fst.size:
+                    s = f"Expected str literal to have size {fst.size}, got {size}"
+                    raise TypeError(s)
                 data |= d << (fst.nbits * i)
             case logicvec() if v.shape == fst.shape:
                 data |= v.data << (fst.nbits * i)
@@ -643,7 +638,8 @@ def vec(obj=None) -> logicvec:
             return logicvec((1,), _int2logic[obj].value)
         # Rank 1 str
         case str():
-            return _parse_str_lit(obj)
+            size, data = _parse_str_lit(obj)
+            return logicvec((size,), data)
         # Rank 1 [logic(), ...]
         case [logic() as fst, *rst]:
             return _rank1(fst, rst)
@@ -652,7 +648,8 @@ def vec(obj=None) -> logicvec:
             return _rank1(_int2logic[fst], rst)
         # Rank 2 str
         case [str() as fst, *rst]:
-            return _rank2(_parse_str_lit(fst), rst)
+            size, data = _parse_str_lit(fst)
+            return _rank2(logicvec((size,), data), rst)
         # Rank 2 logic_vector
         case [logicvec() as fst, *rst]:
             return _rank2(fst, rst)
