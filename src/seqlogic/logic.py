@@ -51,22 +51,22 @@ class logic(Enum):
     def __invert__(self) -> Self:
         return self.not_()
 
-    def __or__(self, other: Self) -> Self:
+    def __or__(self, other: object) -> Self:
         return self.or_(other)
 
-    def __ror__(self, other: Self) -> Self:
+    def __ror__(self, other: object) -> Self:
         return self.or_(other)
 
-    def __and__(self, other: Self) -> Self:
+    def __and__(self, other: object) -> Self:
         return self.and_(other)
 
-    def __rand__(self, other: Self) -> Self:
+    def __rand__(self, other: object) -> Self:
         return self.and_(other)
 
-    def __xor__(self, other: Self) -> Self:
+    def __xor__(self, other: object) -> Self:
         return self.xor(other)
 
-    def __rxor__(self, other: Self) -> Self:
+    def __rxor__(self, other: object) -> Self:
         return self.xor(other)
 
     def not_(self) -> Self:
@@ -78,14 +78,24 @@ class logic(Enum):
             1 => 0 | 10 => 01
             X => X | 11 => 11
         """
-        x_0 = get_bit(self.value, 0)
-        x_1 = get_bit(self.value, 1)
+        x = self.value
+        x_0, x_1 = (get_bit(x, i) for i in range(2))
 
         y_0, y_1 = x_1, x_0
+        y = bools2int(y_0, y_1)
 
-        return self.__class__(bools2int(y_0, y_1))
+        return logic(y)
 
-    def nor(self, other: Self) -> Self:
+    def _get_xs(self, other: object) -> tuple[int, int]:
+        x0 = self.value
+        match other:
+            case logic():
+                x1 = other.value
+            case _:
+                x1 = (0b01, 0b10)[bool(other)]
+        return x0, x1
+
+    def nor(self, other: object) -> Self:
         """Return output of NOR function
 
         f(x0, x1) -> y:
@@ -109,20 +119,17 @@ class logic(Enum):
            10 |00|10|10|10|     | x0[1] & x1[1]
               +--+--+--+--+
         """
-        if other in (0, 1):
-            other = _int2logic[other]
-
-        x0_0 = get_bit(self.value, 0)
-        x0_1 = get_bit(self.value, 1)
-        x1_0 = get_bit(other.value, 0)
-        x1_1 = get_bit(other.value, 1)
+        x0, x1 = self._get_xs(other)
+        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
+        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
 
         y_0 = x0_0 & x1_1 | x0_1 & x1_0 | x0_1 & x1_1
         y_1 = x0_0 & x1_0
+        y = bools2int(y_0, y_1)
 
-        return self.__class__(bools2int(y_0, y_1))
+        return logic(y)
 
-    def or_(self, other: Self) -> Self:
+    def or_(self, other: object) -> Self:
         """Return output of OR function
 
         f(x0, x1) -> y:
@@ -146,20 +153,17 @@ class logic(Enum):
            10 |00|10|10|10|
               +--+--+--+--+
         """
-        if other in (0, 1):
-            other = _int2logic[other]
-
-        x0_0 = get_bit(self.value, 0)
-        x0_1 = get_bit(self.value, 1)
-        x1_0 = get_bit(other.value, 0)
-        x1_1 = get_bit(other.value, 1)
+        x0, x1 = self._get_xs(other)
+        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
+        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
 
         y_0 = x0_0 & x1_0
         y_1 = x0_0 & x1_1 | x0_1 & x1_0 | x0_1 & x1_1
+        y = bools2int(y_0, y_1)
 
-        return self.__class__(bools2int(y_0, y_1))
+        return logic(y)
 
-    def nand(self, other: Self) -> Self:
+    def nand(self, other: object) -> Self:
         """Return output of NAND function
 
         f(x0, x1) -> y:
@@ -183,20 +187,17 @@ class logic(Enum):
            10 |00|01|11|10|
               +--+--+--+--+
         """
-        if other in (0, 1):
-            other = _int2logic[other]
-
-        x0_0 = get_bit(self.value, 0)
-        x0_1 = get_bit(self.value, 1)
-        x1_0 = get_bit(other.value, 0)
-        x1_1 = get_bit(other.value, 1)
+        x0, x1 = self._get_xs(other)
+        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
+        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
 
         y_0 = x0_1 & x1_1
         y_1 = x0_0 & x1_0 | x0_0 & x1_1 | x0_1 & x1_0
+        y = bools2int(y_0, y_1)
 
-        return self.__class__(bools2int(y_0, y_1))
+        return logic(y)
 
-    def and_(self, other: Self) -> Self:
+    def and_(self, other: object) -> Self:
         """Return output of AND function
 
         f(x0, x1) -> y:
@@ -220,20 +221,17 @@ class logic(Enum):
            10 |00|01|11|10|     | x0[1] & x1[0]
               +--+--+--+--+
         """
-        if other in (0, 1):
-            other = _int2logic[other]
-
-        x0_0 = get_bit(self.value, 0)
-        x0_1 = get_bit(self.value, 1)
-        x1_0 = get_bit(other.value, 0)
-        x1_1 = get_bit(other.value, 1)
+        x0, x1 = self._get_xs(other)
+        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
+        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
 
         y_0 = x0_0 & x1_0 | x0_0 & x1_1 | x0_1 & x1_0
         y_1 = x0_1 & x1_1
+        y = bools2int(y_0, y_1)
 
-        return self.__class__(bools2int(y_0, y_1))
+        return logic(y)
 
-    def xnor(self, other: Self) -> Self:
+    def xnor(self, other: object) -> Self:
         """Return output of XNOR function
 
         f(x0, x1) -> y:
@@ -257,20 +255,17 @@ class logic(Enum):
            10 |00|01|11|10|
               +--+--+--+--+
         """
-        if other in (0, 1):
-            other = _int2logic[other]
-
-        x0_0 = get_bit(self.value, 0)
-        x0_1 = get_bit(self.value, 1)
-        x1_0 = get_bit(other.value, 0)
-        x1_1 = get_bit(other.value, 1)
+        x0, x1 = self._get_xs(other)
+        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
+        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
 
         y_0 = x0_0 & x1_1 | x0_1 & x1_0
         y_1 = x0_0 & x1_0 | x0_1 & x1_1
+        y = bools2int(y_0, y_1)
 
-        return self.__class__(bools2int(y_0, y_1))
+        return logic(y)
 
-    def xor(self, other: Self) -> Self:
+    def xor(self, other: object) -> Self:
         """Return output of XOR function
 
         f(x0, x1) -> y:
@@ -294,20 +289,17 @@ class logic(Enum):
            10 |00|10|11|01|
               +--+--+--+--+
         """
-        if other in (0, 1):
-            other = _int2logic[other]
-
-        x0_0 = get_bit(self.value, 0)
-        x0_1 = get_bit(self.value, 1)
-        x1_0 = get_bit(other.value, 0)
-        x1_1 = get_bit(other.value, 1)
+        x0, x1 = self._get_xs(other)
+        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
+        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
 
         y_0 = x0_0 & x1_0 | x0_1 & x1_1
         y_1 = x0_0 & x1_1 | x0_1 & x1_0
+        y = bools2int(y_0, y_1)
 
-        return self.__class__(bools2int(y_0, y_1))
+        return logic(y)
 
-    def implies(self, other: Self) -> Self:
+    def implies(self, other: object) -> Self:
         """Return output of IMPLIES function
 
         f(p, q) -> y:
@@ -334,18 +326,15 @@ class logic(Enum):
            10 |00|01|11|10|
               +--+--+--+--+
         """
-        if other in (0, 1):
-            other = _int2logic[other]
-
-        p_0 = get_bit(self.value, 0)
-        p_1 = get_bit(self.value, 1)
-        q_0 = get_bit(other.value, 0)
-        q_1 = get_bit(other.value, 1)
+        p, q = self._get_xs(other)
+        p_0, p_1 = (get_bit(p, i) for i in range(2))
+        q_0, q_1 = (get_bit(q, i) for i in range(2))
 
         y_0 = p_1 & q_0
         y_1 = p_0 & q_0 | p_0 & q_1 | p_1 & q_1
+        y = bools2int(y_0, y_1)
 
-        return self.__class__(bools2int(y_0, y_1))
+        return logic(y)
 
 
 _logic2char = {
@@ -364,7 +353,4 @@ _char2logic = {
 }
 
 
-_int2logic = {
-    0: logic.F,
-    1: logic.T,
-}
+_int2logic = (logic.F, logic.T)
