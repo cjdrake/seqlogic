@@ -104,7 +104,7 @@ class logicvec:
         if math.prod(shape) != self.size:
             s = f"Expected shape with size {self.size}, got {shape}"
             raise ValueError(s)
-        return self.__class__(shape, self._data)
+        return logicvec(shape, self._data)
 
     @cached_property
     def ndim(self) -> int:
@@ -131,7 +131,7 @@ class logicvec:
         """Return a vector with equal data, flattened to 1D shape."""
         if self.ndim == 1:
             return self
-        return self.__class__((self.size,), self._data)
+        return logicvec((self.size,), self._data)
 
     def not_(self) -> Self:
         """Return output of NOT function."""
@@ -143,7 +143,7 @@ class logicvec:
         y0 = x_10
         y1 = x_01
 
-        return self.__class__(self._shape, y0 | y1)
+        return logicvec(self._shape, y0 | y1)
 
     def _check_shape(self, other: Self):
         if self._shape != other.shape:
@@ -171,7 +171,7 @@ class logicvec:
         y0 = x0_0 & x1_10 | x0_10 & x1_0 | x0_10 & x1_10
         y1 = x0_01 & x1_01
 
-        return self.__class__(self._shape, y0 | y1)
+        return logicvec(self._shape, y0 | y1)
 
     def or_(self, other: Self) -> Self:
         """Return output of OR function.
@@ -192,7 +192,7 @@ class logicvec:
         y0 = x0_0 & x1_0
         y1 = x0_01 & x1_1 | x0_1 & x1_01 | x0_1 & x1_1
 
-        return self.__class__(self._shape, y0 | y1)
+        return logicvec(self._shape, y0 | y1)
 
     def uor(self) -> logic:
         """Return unary OR of bits."""
@@ -222,7 +222,7 @@ class logicvec:
         y0 = x0_10 & x1_10
         y1 = x0_01 & x1_01 | x0_01 & x1_1 | x0_1 & x1_01
 
-        return self.__class__(self._shape, y0 | y1)
+        return logicvec(self._shape, y0 | y1)
 
     def and_(self, other: Self) -> Self:
         """Return output of AND function.
@@ -243,7 +243,7 @@ class logicvec:
         y0 = x0_0 & x1_0 | x0_0 & x1_10 | x0_10 & x1_0
         y1 = x0_1 & x1_1
 
-        return self.__class__(self._shape, y0 | y1)
+        return logicvec(self._shape, y0 | y1)
 
     def uand(self) -> logic:
         """Return unary AND of bits."""
@@ -273,7 +273,7 @@ class logicvec:
         y0 = x0_0 & x1_10 | x0_10 & x1_0
         y1 = x0_01 & x1_01 | x0_1 & x1_1
 
-        return self.__class__(self._shape, y0 | y1)
+        return logicvec(self._shape, y0 | y1)
 
     def xor(self, other: Self) -> Self:
         """Return output of XOR function.
@@ -296,7 +296,7 @@ class logicvec:
         y0 = x0_0 & x1_0 | x0_10 & x1_10
         y1 = x0_01 & x1_1 | x0_1 & x1_01
 
-        return self.__class__(self._shape, y0 | y1)
+        return logicvec(self._shape, y0 | y1)
 
     def uxor(self) -> logic:
         """Return unary XOR of bits."""
@@ -361,7 +361,7 @@ class logicvec:
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return v, self.__class__((0,), 0)
+            return v, logicvec((0,), 0)
         if ci is None:
             ci = uint2vec(0, n)
         elif ci.shape != (n,):
@@ -380,7 +380,7 @@ class logicvec:
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return v, self.__class__((0,), 0)
+            return v, logicvec((0,), 0)
         if ci is None:
             ci = uint2vec(0, n)
         elif ci.shape != (n,):
@@ -399,7 +399,7 @@ class logicvec:
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return v, self.__class__((0,), 0)
+            return v, logicvec((0,), 0)
         return cat([v[n:], rep(v[-1], n)], flatten=True), v[:n]
 
     def countbits(self, ctl: Collection[logic]) -> int:
