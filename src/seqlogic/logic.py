@@ -5,7 +5,9 @@ Logic Data Type
 from enum import Enum
 from typing import Self
 
-from .util import bools2int, get_bit
+# Positional Cube (PC) notation
+_PC_ZERO = 0b01
+_PC_ONE = 0b10
 
 
 class logic(Enum):
@@ -30,17 +32,17 @@ class logic(Enum):
         1 ^ X = X
     """
 
-    N = 0b00
-    NULL = 0b00
+    N = _PC_ZERO & _PC_ONE
+    NULL = N
 
-    F = 0b01
-    ZERO = 0b01
+    F = _PC_ZERO
+    ZERO = F
 
-    T = 0b10
-    ONE = 0b10
+    T = _PC_ONE
+    ONE = T
 
-    X = 0b11
-    UNKNOWN = 0b11
+    X = _PC_ZERO | _PC_ONE
+    UNKNOWN = X
 
     def __str__(self) -> str:
         return _logic2char[self]
@@ -78,21 +80,23 @@ class logic(Enum):
             1 => 0 | 10 => 01
             X => X | 11 => 11
         """
-        x = self.value
-        x_0, x_1 = (get_bit(x, i) for i in range(2))
+        x: int = self.value
+        x_0 = x & 1
+        x_1 = (x >> 1) & 1
 
         y_0, y_1 = x_1, x_0
-        y = bools2int(y_0, y_1)
+        y = (y_1 << 1) | y_0
 
         return logic(y)
 
     def _get_xs(self, other: object) -> tuple[int, int]:
-        x0 = self.value
+        x0: int = self.value
         match other:
             case logic():
-                x1 = other.value
+                x1: int = other.value
             case _:
-                x1 = (0b01, 0b10)[bool(other)]
+                index = bool(other)
+                x1 = (_PC_ZERO, _PC_ONE)[index]
         return x0, x1
 
     def nor(self, other: object) -> Self:
@@ -120,12 +124,14 @@ class logic(Enum):
               +--+--+--+--+
         """
         x0, x1 = self._get_xs(other)
-        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
-        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
+        x0_0 = x0 & 1
+        x0_1 = (x0 >> 1) & 1
+        x1_0 = x1 & 1
+        x1_1 = (x1 >> 1) & 1
 
         y_0 = x0_0 & x1_1 | x0_1 & x1_0 | x0_1 & x1_1
         y_1 = x0_0 & x1_0
-        y = bools2int(y_0, y_1)
+        y = (y_1 << 1) | y_0
 
         return logic(y)
 
@@ -154,12 +160,14 @@ class logic(Enum):
               +--+--+--+--+
         """
         x0, x1 = self._get_xs(other)
-        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
-        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
+        x0_0 = x0 & 1
+        x0_1 = (x0 >> 1) & 1
+        x1_0 = x1 & 1
+        x1_1 = (x1 >> 1) & 1
 
         y_0 = x0_0 & x1_0
         y_1 = x0_0 & x1_1 | x0_1 & x1_0 | x0_1 & x1_1
-        y = bools2int(y_0, y_1)
+        y = (y_1 << 1) | y_0
 
         return logic(y)
 
@@ -188,12 +196,14 @@ class logic(Enum):
               +--+--+--+--+
         """
         x0, x1 = self._get_xs(other)
-        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
-        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
+        x0_0 = x0 & 1
+        x0_1 = (x0 >> 1) & 1
+        x1_0 = x1 & 1
+        x1_1 = (x1 >> 1) & 1
 
         y_0 = x0_1 & x1_1
         y_1 = x0_0 & x1_0 | x0_0 & x1_1 | x0_1 & x1_0
-        y = bools2int(y_0, y_1)
+        y = (y_1 << 1) | y_0
 
         return logic(y)
 
@@ -222,12 +232,14 @@ class logic(Enum):
               +--+--+--+--+
         """
         x0, x1 = self._get_xs(other)
-        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
-        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
+        x0_0 = x0 & 1
+        x0_1 = (x0 >> 1) & 1
+        x1_0 = x1 & 1
+        x1_1 = (x1 >> 1) & 1
 
         y_0 = x0_0 & x1_0 | x0_0 & x1_1 | x0_1 & x1_0
         y_1 = x0_1 & x1_1
-        y = bools2int(y_0, y_1)
+        y = (y_1 << 1) | y_0
 
         return logic(y)
 
@@ -256,12 +268,14 @@ class logic(Enum):
               +--+--+--+--+
         """
         x0, x1 = self._get_xs(other)
-        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
-        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
+        x0_0 = x0 & 1
+        x0_1 = (x0 >> 1) & 1
+        x1_0 = x1 & 1
+        x1_1 = (x1 >> 1) & 1
 
         y_0 = x0_0 & x1_1 | x0_1 & x1_0
         y_1 = x0_0 & x1_0 | x0_1 & x1_1
-        y = bools2int(y_0, y_1)
+        y = (y_1 << 1) | y_0
 
         return logic(y)
 
@@ -290,12 +304,14 @@ class logic(Enum):
               +--+--+--+--+
         """
         x0, x1 = self._get_xs(other)
-        x0_0, x0_1 = (get_bit(x0, i) for i in range(2))
-        x1_0, x1_1 = (get_bit(x1, i) for i in range(2))
+        x0_0 = x0 & 1
+        x0_1 = (x0 >> 1) & 1
+        x1_0 = x1 & 1
+        x1_1 = (x1 >> 1) & 1
 
         y_0 = x0_0 & x1_0 | x0_1 & x1_1
         y_1 = x0_0 & x1_1 | x0_1 & x1_0
-        y = bools2int(y_0, y_1)
+        y = (y_1 << 1) | y_0
 
         return logic(y)
 
@@ -327,12 +343,14 @@ class logic(Enum):
               +--+--+--+--+
         """
         p, q = self._get_xs(other)
-        p_0, p_1 = (get_bit(p, i) for i in range(2))
-        q_0, q_1 = (get_bit(q, i) for i in range(2))
+        p_0 = p & 1
+        p_1 = (p >> 1) & 1
+        q_0 = q & 1
+        q_1 = (q >> 1) & 1
 
         y_0 = p_1 & q_0
         y_1 = p_0 & q_0 | p_0 & q_1 | p_1 & q_1
-        y = bools2int(y_0, y_1)
+        y = (y_1 << 1) | y_0
 
         return logic(y)
 
