@@ -527,12 +527,12 @@ class logicvec:
         lnkey: list[int | slice] = []
         for i, dim in enumerate(lkey):
             match dim:
-                case int():
-                    lnkey.append(self._norm_index(dim, i))
-                case logicvec():
-                    lnkey.append(self._norm_index(dim.to_uint(), i))
-                case slice():
-                    lnkey.append(self._norm_slice(dim, i))
+                case int() as index:
+                    lnkey.append(self._norm_index(index, i))
+                case logicvec() as v:
+                    lnkey.append(self._norm_index(v.to_uint(), i))
+                case slice() as sl:
+                    lnkey.append(self._norm_slice(sl, i))
                 case _:  # pragma: no cover
                     assert False
 
@@ -639,28 +639,28 @@ def vec(obj=None) -> logicvec:
         case None:
             return logicvec((0,), 0)
         # Rank 0 Logic
-        case logic():
-            return logicvec((1,), obj.value)
+        case logic() as x:
+            return logicvec((1,), x.value)
         # Rank 0 int
-        case 0 | 1:
-            return logicvec((1,), pc.from_int[obj])
+        case 0 | 1 as x:
+            return logicvec((1,), pc.from_int[x])
         # Rank 1 str
-        case str():
-            size, data = _parse_str_lit(obj)
+        case str() as lit:
+            size, data = _parse_str_lit(lit)
             return logicvec((size,), data)
         # Rank 1 [logic(), ...]
-        case [logic() as fst, *rst]:
-            return _rank1(fst, rst)
+        case [logic() as x, *rst]:
+            return _rank1(x, rst)
         # Rank 1 [0 | 1, ...]
-        case [0 | 1 as fst, *rst]:
-            return _rank1(logic(pc.from_int[fst]), rst)
+        case [0 | 1 as x, *rst]:
+            return _rank1(logic(pc.from_int[x]), rst)
         # Rank 2 str
-        case [str() as fst, *rst]:
-            size, data = _parse_str_lit(fst)
+        case [str() as lit, *rst]:
+            size, data = _parse_str_lit(lit)
             return _rank2(logicvec((size,), data), rst)
         # Rank 2 logic_vector
-        case [logicvec() as fst, *rst]:
-            return _rank2(fst, rst)
+        case [logicvec() as v, *rst]:
+            return _rank2(v, rst)
         # Rank 3+
         case [*objs]:
             return cat([vec(obj) for obj in objs])
@@ -758,8 +758,8 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
         return (data >> (nbits * n)) & mask
 
     match key[0]:
-        case int() as i:
-            d = f(v.data, i)
+        case int() as index:
+            d = f(v.data, index)
             if shape:
                 return _sel(logicvec(shape, d), key[1:])
             return logic(d)
