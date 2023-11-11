@@ -4,10 +4,8 @@ Example FSM implementation
 Demonstrate usage of an enum
 """
 
-from enum import Enum
-
+from seqlogic.enum import Enum
 from seqlogic.logic import logic
-from seqlogic.logicvec import vec
 from seqlogic.sim import SimVar, get_loop, notify
 
 from .common import TraceVar, clock_drv, dff_arn_drv, reset_drv, waves
@@ -16,12 +14,12 @@ loop = get_loop()
 
 
 class SeqDetect(Enum):
-    A = vec("2b00")
-    B = vec("2b01")
-    C = vec("2b10")
-    D = vec("2b11")
+    A = "2b00"
+    B = "2b01"
+    C = "2b10"
+    D = "2b11"
 
-    XX = vec("2bxx")
+    XX = "2bxx"
 
 
 class TraceSeqDetect(SimVar):

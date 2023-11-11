@@ -280,7 +280,7 @@ def test_empty():
     assert v.nbits == 0
     assert list(v.flat) == []  # pylint: disable = use-implicit-booleaness-not-comparison
 
-    assert v.flatten() is v
+    assert v.flatten() == v
 
     # Test __str__ and __repr__
     assert str(v) == repr(v) == "vec([])"
@@ -320,7 +320,7 @@ def test_scalar():
     assert v0.nbits == 2
     assert list(v0.flat) == [logic.F]
 
-    assert v0.flatten() is v0
+    assert v0.flatten() == v0
 
     # Test __str__ and __repr__
     assert str(vn) == repr(vn) == "vec([X])"
@@ -373,7 +373,7 @@ def test_rank1_str():
     assert v.nbits == 16
     assert list(v.flat) == xs
 
-    assert v.flatten() is v
+    assert v.flatten() == v
 
     # Test __str__ and __repr__
     assert str(v) == repr(v) == "vec(8bx10X_x10X)"

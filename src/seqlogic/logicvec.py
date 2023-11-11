@@ -129,8 +129,6 @@ class logicvec:
 
     def flatten(self) -> Self:
         """Return a vector with equal data, flattened to 1D shape."""
-        if self.ndim == 1:
-            return self
         return logicvec((self.size,), self._data)
 
     def not_(self) -> Self:
