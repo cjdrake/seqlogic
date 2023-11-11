@@ -10,7 +10,8 @@ from collections.abc import Collection, Generator
 from functools import cached_property
 from typing import Self, TypeAlias, Union
 
-from .logic import _char2logic, _int2logic, logic
+from . import pc
+from .logic import _char2logic, logic
 
 _Logic: TypeAlias = Union[logic, "logicvec"]
 
@@ -22,16 +23,6 @@ _NUM_RE = re.compile(
     r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[X01x_]+))|"
     r"((?P<HexSize>[0-9]+)h(?P<HexDigits>[0-9a-fA-F_]+))"
 )
-_PC_BITS = 2
-_PC_MASK = (1 << _PC_BITS) - 1
-
-
-def _pc_get(data: int, n: int) -> logic:
-    return logic((data >> (_PC_BITS * n)) & _PC_MASK)
-
-
-def _pc_set(n: int, x: logic) -> int:
-    return x.value << (_PC_BITS * n)
 
 
 class logicvec:
@@ -125,7 +116,7 @@ class logicvec:
     def flat(self) -> Generator[logic, None, None]:
         """Return a flat iterator to the logic items."""
         for i in range(self.size):
-            yield _pc_get(self._data, i)
+            yield logic(pc.getx(self._data, i))
 
     def flatten(self) -> Self:
         """Return a vector with equal data, flattened to 1D shape."""
@@ -320,7 +311,7 @@ class logicvec:
         """Convert vector to signed integer."""
         if self._shape == (0,):
             return 0
-        sign = _pc_get(self._data, self.size - 1)
+        sign = logic(pc.getx(self._data, self.size - 1))
         if sign is logic.T:
             return -(self.not_().to_uint() + 1)
         return self.to_uint()
@@ -429,7 +420,7 @@ class logicvec:
         for i in range(self.size):
             if i % 4 == 0 and i != 0:
                 chars.append("_")
-            chars.append(str(_pc_get(self._data, i)))
+            chars.append(str(logic(pc.getx(self._data, i))))
         return prefix + "".join(reversed(chars))
 
     def _str(self, indent: str) -> str:
@@ -585,7 +576,7 @@ def _parse_str_lit(lit: str) -> tuple[int, int]:
                 raise ValueError(f"Expected {size} digits, got {num_digits}")
             data = 0
             for i, digit in enumerate(reversed(digits)):
-                data |= _pc_set(i, _char2logic[digit])
+                data |= pc.setx(i, _char2logic[digit].value)
             return size, data
         # Hexadecimal
         elif m.group("HexSize"):
@@ -607,13 +598,13 @@ def _parse_str_lit(lit: str) -> tuple[int, int]:
 
 def _rank1(fst: logic, rst) -> logicvec:
     shape = (len(rst) + 1,)
-    data = _pc_set(0, fst)
+    data = pc.setx(0, fst.value)
     for i, x in enumerate(rst, start=1):
         match x:
             case logic():
-                data |= _pc_set(i, x)
+                data |= pc.setx(i, x.value)
             case 0 | 1:
-                data |= _pc_set(i, _int2logic[x])
+                data |= pc.setx(i, pc.from_int[x])
             case _:
                 raise TypeError("Expected item to be logic, or in (0, 1)")
     return logicvec(shape, data)
@@ -652,7 +643,7 @@ def vec(obj=None) -> logicvec:
             return logicvec((1,), obj.value)
         # Rank 0 int
         case 0 | 1:
-            return logicvec((1,), _int2logic[obj].value)
+            return logicvec((1,), pc.from_int[obj])
         # Rank 1 str
         case str():
             size, data = _parse_str_lit(obj)
@@ -662,7 +653,7 @@ def vec(obj=None) -> logicvec:
             return _rank1(fst, rst)
         # Rank 1 [0 | 1, ...]
         case [0 | 1 as fst, *rst]:
-            return _rank1(_int2logic[fst], rst)
+            return _rank1(logic(pc.from_int[fst]), rst)
         # Rank 2 str
         case [str() as fst, *rst]:
             size, data = _parse_str_lit(fst)
@@ -685,12 +676,12 @@ def uint2vec(num: int, size: int | None = None) -> logicvec:
 
     if num == 0:
         index = 1
-        data = logic.F.value
+        data = pc.ZERO
     else:
         index = 0
         data = 0
         while num:
-            data |= _pc_set(index, _int2logic[num & 1])
+            data |= pc.setx(index, pc.from_int[num & 1])
             index += 1
             num >>= 1
 
@@ -699,7 +690,7 @@ def uint2vec(num: int, size: int | None = None) -> logicvec:
             s = f"Overflow: num = {num} requires length ≥ {index}, got {size}"
             raise ValueError(s)
         for i in range(index, size):
-            data |= _pc_set(i, logic.F)
+            data |= pc.setx(i, pc.ZERO)
     else:
         size = index
 
@@ -719,7 +710,7 @@ def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
             case logic() as x:
                 vs.append(logicvec((1,), x.value))
             case 0 | 1 as x:
-                vs.append(logicvec((1,), _int2logic[x].value))
+                vs.append(logicvec((1,), pc.from_int[x]))
             case logicvec() as v:
                 vs.append(v)
             case _:
@@ -784,7 +775,7 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
 def _consts(shape: tuple[int, ...], x: logic) -> logicvec:
     data = 0
     for i in range(math.prod(shape)):
-        data |= _pc_set(i, x)
+        data |= pc.setx(i, x.value)
     return logicvec(shape, data)
 
 

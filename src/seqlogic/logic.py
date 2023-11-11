@@ -5,9 +5,7 @@ Logic Data Type
 from enum import Enum
 from typing import Self
 
-# Positional Cube (PC) notation
-_PC_ZERO = 0b01
-_PC_ONE = 0b10
+from . import pc
 
 
 class logic(Enum):
@@ -32,16 +30,16 @@ class logic(Enum):
         1 ^ X = X
     """
 
-    N = _PC_ZERO & _PC_ONE
+    N = pc.ZERO & pc.ONE
     NULL = N
 
-    F = _PC_ZERO
+    F = pc.ZERO
     ZERO = F
 
-    T = _PC_ONE
+    T = pc.ONE
     ONE = T
 
-    X = _PC_ZERO | _PC_ONE
+    X = pc.ZERO | pc.ONE
     UNKNOWN = X
 
     def __str__(self) -> str:
@@ -96,7 +94,7 @@ class logic(Enum):
                 x1: int = other.value
             case _:
                 index = bool(other)
-                x1 = (_PC_ZERO, _PC_ONE)[index]
+                x1 = (pc.ZERO, pc.ONE)[index]
         return x0, x1
 
     def nor(self, other: object) -> Self:
@@ -369,6 +367,3 @@ _char2logic = {
     "1": logic.T,
     "x": logic.X,
 }
-
-
-_int2logic = (logic.F, logic.T)
