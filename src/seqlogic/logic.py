@@ -359,11 +359,3 @@ _logic2char = {
     logic.T: "1",
     logic.X: "x",
 }
-
-
-_char2logic = {
-    "X": logic.N,
-    "0": logic.F,
-    "1": logic.T,
-    "x": logic.X,
-}

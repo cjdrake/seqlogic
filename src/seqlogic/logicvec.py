@@ -11,7 +11,7 @@ from functools import cached_property
 from typing import Self, TypeAlias, Union
 
 from . import pc
-from .logic import _char2logic, logic
+from .logic import logic
 
 _Logic: TypeAlias = Union[logic, "logicvec"]
 
@@ -576,7 +576,7 @@ def _parse_str_lit(lit: str) -> tuple[int, int]:
                 raise ValueError(f"Expected {size} digits, got {num_digits}")
             data = 0
             for i, digit in enumerate(reversed(digits)):
-                data |= pc.setx(i, _char2logic[digit].value)
+                data |= pc.setx(i, pc.from_char[digit])
             return size, data
         # Hexadecimal
         elif m.group("HexSize"):

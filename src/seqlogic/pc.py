@@ -7,6 +7,13 @@ ONE = 0b10
 
 from_int = (ZERO, ONE)
 
+from_char = {
+    "X": ZERO & ONE,
+    "0": ZERO,
+    "1": ONE,
+    "x": ZERO | ONE,
+}
+
 
 def getx(data: int, n: int) -> int:
     return (data >> (n << 1)) & 0b11
