@@ -4,12 +4,24 @@ Utility Functions
 
 
 def get_bit(x: int, n: int) -> bool:
-    """Return the nth bit of x as a bool."""
+    """Return the nth bit of x as a bool.
+
+    >>> get_bit(2, 0)
+    False
+    >>> get_bit(2, 1)
+    True
+    """
     return bool((x >> n) & 1)
 
 
 def bools2int(*xs: bool) -> int:
-    """Convert a tuple of bools to an int."""
+    """Convert a tuple of bools to an int.
+
+    >>> bools2int()
+    0
+    >>> bools2int(False, True, False, True, False, True)
+    42
+    """
     y = 0
     for i, x in enumerate(xs):
         y |= x << i
