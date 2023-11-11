@@ -43,7 +43,7 @@ class logic(Enum):
     UNKNOWN = X
 
     def __str__(self) -> str:
-        return _logic2char[self]
+        return pc.to_char[self.value]
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -351,11 +351,3 @@ class logic(Enum):
         y = (y_1 << 1) | y_0
 
         return logic(y)
-
-
-_logic2char = {
-    logic.N: "X",
-    logic.F: "0",
-    logic.T: "1",
-    logic.X: "x",
-}

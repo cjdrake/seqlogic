@@ -14,6 +14,13 @@ from_char = {
     "x": ZERO | ONE,
 }
 
+to_char = {
+    ZERO & ONE: "X",
+    ZERO: "0",
+    ONE: "1",
+    ZERO | ONE: "x",
+}
+
 
 def getx(data: int, n: int) -> int:
     return (data >> (n << 1)) & 0b11
