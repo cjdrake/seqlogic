@@ -456,12 +456,31 @@ class logicvec:
         return "[" + sep.join(v._str(indent + " ") for v in self) + "]"
 
     @cached_property
-    def _data_mask(self) -> list[int]:
-        mask = [0, 0]
+    def _data_mask(self) -> tuple[int, int]:
+        """Return PC zero/one mask.
+
+        The zero mask is: 0b01010101...
+        The one mask is:  0b10101010...
+
+        N
+        1          01 =  1 = (  4-1)/3
+        2        0101 =  5 = ( 16-1)/3
+        3      010101 = 21 = ( 64-1)/3
+        4    01010101 = 85 = (256-1)/3
+        ...
+
+        F(0) = 1
+        F(n+1) = 4*F(n) + 1
+        F(n) = (4^n - 1) / 3
+        """
+        # zero_mask = ((1 << (self.size << 1)) - 1) // 3
+        zero_mask = 0
         for i in range(self.size):
-            mask[0] |= _pc_set(i, logic.ZERO)
-            mask[1] |= _pc_set(i, logic.ONE)
-        return mask
+            zero_mask += 1 << (i << 1)
+        # for i in range((self.size + 31) // 32):
+        #    zero_mask |= 0x5555_5555_5555_5555 << (i << 6)
+        one_mask = zero_mask << 1
+        return (zero_mask, one_mask)
 
     def _bits(self, n: int) -> int:
         return self._data & self._data_mask[n]
