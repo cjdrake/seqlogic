@@ -772,28 +772,28 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
             assert False
 
 
-def _consts(shape: tuple[int, ...], x: logic) -> logicvec:
+def _consts(shape: tuple[int, ...], x: int) -> logicvec:
     data = 0
     for i in range(math.prod(shape)):
-        data |= pcn.setx(i, x.value)
+        data |= pcn.setx(i, x)
     return logicvec(shape, data)
 
 
 def nulls(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with NULLs."""
-    return _consts(shape, logic.N)
+    return _consts(shape, pcn.NULL)
 
 
 def zeros(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with zeros."""
-    return _consts(shape, logic.F)
+    return _consts(shape, pcn.ZERO)
 
 
 def ones(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with ones."""
-    return _consts(shape, logic.T)
+    return _consts(shape, pcn.ONE)
 
 
 def xes(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with Xes."""
-    return _consts(shape, logic.X)
+    return _consts(shape, pcn.DC)
