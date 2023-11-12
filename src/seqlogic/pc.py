@@ -4,21 +4,24 @@ Positional Cube (PC) Notation
 
 ZERO = 0b01
 ONE = 0b10
+NULL = ZERO & ONE
+DC = ZERO | ONE  # "Don't Care"
+
 
 from_int = (ZERO, ONE)
 
 from_char = {
-    "X": ZERO & ONE,
+    "X": NULL,
     "0": ZERO,
     "1": ONE,
-    "x": ZERO | ONE,
+    "x": DC,
 }
 
 to_char = {
-    ZERO & ONE: "X",
+    NULL: "X",
     ZERO: "0",
     ONE: "1",
-    ZERO | ONE: "x",
+    DC: "x",
 }
 
 

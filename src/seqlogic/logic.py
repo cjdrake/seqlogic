@@ -30,7 +30,7 @@ class logic(Enum):
         1 ^ X = X
     """
 
-    N = pc.ZERO & pc.ONE
+    N = pc.NULL
     NULL = N
 
     F = pc.ZERO
@@ -39,7 +39,7 @@ class logic(Enum):
     T = pc.ONE
     ONE = T
 
-    X = pc.ZERO | pc.ONE
+    X = pc.DC
     UNKNOWN = X
 
     def __str__(self) -> str:
