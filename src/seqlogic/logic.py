@@ -5,7 +5,7 @@ Logic Data Type
 from enum import Enum
 from typing import Self
 
-from . import pc
+from . import pcn
 
 
 class logic(Enum):
@@ -30,20 +30,20 @@ class logic(Enum):
         1 ^ X = X
     """
 
-    N = pc.NULL
+    N = pcn.NULL
     NULL = N
 
-    F = pc.ZERO
+    F = pcn.ZERO
     ZERO = F
 
-    T = pc.ONE
+    T = pcn.ONE
     ONE = T
 
-    X = pc.DC
+    X = pcn.DC
     UNKNOWN = X
 
     def __str__(self) -> str:
-        return pc.to_char[self.value]
+        return pcn.to_char[self.value]
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -94,7 +94,7 @@ class logic(Enum):
                 x1: int = other.value
             case _:
                 index = bool(other)
-                x1 = (pc.ZERO, pc.ONE)[index]
+                x1 = pcn.from_int[index]
         return x0, x1
 
     def nor(self, other: object) -> Self:
