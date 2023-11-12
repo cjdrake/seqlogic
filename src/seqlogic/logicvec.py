@@ -539,32 +539,6 @@ class logicvec:
         return tuple(lnkey)
 
 
-_hexchar2pcnibble = {
-    "0": 0x55,
-    "1": 0x56,
-    "2": 0x59,
-    "3": 0x5A,
-    "4": 0x65,
-    "5": 0x66,
-    "6": 0x69,
-    "7": 0x6A,
-    "8": 0x95,
-    "9": 0x96,
-    "a": 0x99,
-    "b": 0x9A,
-    "c": 0xA5,
-    "d": 0xA6,
-    "e": 0xA9,
-    "f": 0xAA,
-    "A": 0x99,
-    "B": 0x9A,
-    "C": 0xA5,
-    "D": 0xA6,
-    "E": 0xA9,
-    "F": 0xAA,
-}
-
-
 def _parse_str_lit(lit: str) -> tuple[int, int]:
     if m := _NUM_RE.match(lit):
         # Binary
@@ -588,7 +562,7 @@ def _parse_str_lit(lit: str) -> tuple[int, int]:
                 raise ValueError(s)
             data = 0
             for i, digit in enumerate(reversed(digits)):
-                data |= _hexchar2pcnibble[digit] << (8 * i)
+                data |= pcn.from_hexchar[digit] << (8 * i)
             return size, data
         else:  # pragma: no cover
             assert False
