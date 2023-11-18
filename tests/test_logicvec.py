@@ -191,6 +191,93 @@ def test_arsh():
     assert vec(["4b0000", "4b1111"]).arsh(2) == (vec("8b1111_1100"), vec("2b00"))
 
 
+ADD_VALS = [
+    ("2b00", "2b00", logic.F, "2b00", logic.F, logic.F),
+    ("2b00", "2b01", logic.F, "2b01", logic.F, logic.F),
+    ("2b00", "2b10", logic.F, "2b10", logic.F, logic.F),
+    ("2b00", "2b11", logic.F, "2b11", logic.F, logic.F),
+    ("2b01", "2b00", logic.F, "2b01", logic.F, logic.F),
+    ("2b01", "2b01", logic.F, "2b10", logic.F, logic.T),  # overflow
+    ("2b01", "2b10", logic.F, "2b11", logic.F, logic.F),
+    ("2b01", "2b11", logic.F, "2b00", logic.T, logic.F),
+    ("2b10", "2b00", logic.F, "2b10", logic.F, logic.F),
+    ("2b10", "2b01", logic.F, "2b11", logic.F, logic.F),
+    ("2b10", "2b10", logic.F, "2b00", logic.T, logic.T),  # overflow
+    ("2b10", "2b11", logic.F, "2b01", logic.T, logic.T),  # overflow
+    ("2b11", "2b00", logic.F, "2b11", logic.F, logic.F),
+    ("2b11", "2b01", logic.F, "2b00", logic.T, logic.F),
+    ("2b11", "2b10", logic.F, "2b01", logic.T, logic.T),  # overflow
+    ("2b11", "2b11", logic.F, "2b10", logic.T, logic.F),
+    ("2b00", "2b00", logic.T, "2b01", logic.F, logic.F),
+    ("2b00", "2b01", logic.T, "2b10", logic.F, logic.T),  # overflow
+    ("2b00", "2b10", logic.T, "2b11", logic.F, logic.F),
+    ("2b00", "2b11", logic.T, "2b00", logic.T, logic.F),
+    ("2b01", "2b00", logic.T, "2b10", logic.F, logic.T),  # overflow
+    ("2b01", "2b01", logic.T, "2b11", logic.F, logic.T),  # overflow
+    ("2b01", "2b10", logic.T, "2b00", logic.T, logic.F),
+    ("2b01", "2b11", logic.T, "2b01", logic.T, logic.F),
+    ("2b10", "2b00", logic.T, "2b11", logic.F, logic.F),
+    ("2b10", "2b01", logic.T, "2b00", logic.T, logic.F),
+    ("2b10", "2b10", logic.T, "2b01", logic.T, logic.T),  # overflow
+    ("2b10", "2b11", logic.T, "2b10", logic.T, logic.F),
+    ("2b11", "2b00", logic.T, "2b00", logic.T, logic.F),
+    ("2b11", "2b01", logic.T, "2b01", logic.T, logic.F),
+    ("2b11", "2b10", logic.T, "2b10", logic.T, logic.F),
+    ("2b11", "2b11", logic.T, "2b11", logic.T, logic.F),
+]
+
+
+def test_add():
+    for a, b, ci, s, co, v in ADD_VALS:
+        a, b, s = vec(a), vec(b), vec(s)
+        assert a.add(b, ci) == (s, co, v)
+
+
+def test_addsubops():
+    assert vec("2b00") + vec("2b00") == vec("2b00")
+    assert vec("2b00") + vec("2b01") == vec("2b01")
+    assert vec("2b01") + vec("2b00") == vec("2b01")
+    assert vec("2b00") + vec("2b10") == vec("2b10")
+    assert vec("2b01") + vec("2b01") == vec("2b10")
+    assert vec("2b10") + vec("2b00") == vec("2b10")
+    assert vec("2b00") + vec("2b11") == vec("2b11")
+    assert vec("2b01") + vec("2b10") == vec("2b11")
+    assert vec("2b10") + vec("2b01") == vec("2b11")
+    assert vec("2b11") + vec("2b00") == vec("2b11")
+    assert vec("2b01") + vec("2b11") == vec("2b00")
+    assert vec("2b10") + vec("2b10") == vec("2b00")
+    assert vec("2b11") + vec("2b01") == vec("2b00")
+    assert vec("2b10") + vec("2b11") == vec("2b01")
+    assert vec("2b11") + vec("2b10") == vec("2b01")
+    assert vec("2b11") + vec("2b11") == vec("2b10")
+
+    assert vec("2b00") - vec("2b11") == vec("2b01")
+    assert vec("2b00") - vec("2b10") == vec("2b10")
+    assert vec("2b01") - vec("2b11") == vec("2b10")
+    assert vec("2b00") - vec("2b01") == vec("2b11")
+    assert vec("2b01") - vec("2b10") == vec("2b11")
+    assert vec("2b10") - vec("2b11") == vec("2b11")
+    assert vec("2b00") - vec("2b00") == vec("2b00")
+    assert vec("2b01") - vec("2b01") == vec("2b00")
+    assert vec("2b10") - vec("2b10") == vec("2b00")
+    assert vec("2b11") - vec("2b11") == vec("2b00")
+    assert vec("2b01") - vec("2b00") == vec("2b01")
+    assert vec("2b10") - vec("2b01") == vec("2b01")
+    assert vec("2b11") - vec("2b10") == vec("2b01")
+    assert vec("2b10") - vec("2b00") == vec("2b10")
+    assert vec("2b11") - vec("2b01") == vec("2b10")
+    assert vec("2b11") - vec("2b00") == vec("2b11")
+
+    assert -vec("3b000") == vec("3b000")
+    assert -vec("3b001") == vec("3b111")
+    assert -vec("3b111") == vec("3b001")
+    assert -vec("3b010") == vec("3b110")
+    assert -vec("3b110") == vec("3b010")
+    assert -vec("3b011") == vec("3b101")
+    assert -vec("3b101") == vec("3b011")
+    assert -vec("3b100") == vec("3b100")
+
+
 def test_operand_shape_mismatch():
     """Test vector operations with mismatching shapes.
 

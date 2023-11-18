@@ -82,6 +82,25 @@ class logicvec:
     def __rshift__(self, n: int) -> Self:
         return self.rsh(n)[0]
 
+    def __add__(self, other: Self) -> Self:
+        s, _, _ = self.add(other, ci=logic.F)
+        return s
+
+    def __sub__(self, other: Self) -> Self:
+        s, _, _ = self.add(~other, ci=logic.T)
+        return s
+
+    def __neg__(self) -> Self:
+        s = []
+        c = [logic.T]
+        for i, x in enumerate((~self).flat):
+            s.append(x ^ c[i])
+            c.append(x & c[i])
+        data = 0
+        for i, x in enumerate(s):
+            data |= pcn.setx(i, x.value)
+        return logicvec((self.size,), data)
+
     @property
     def shape(self) -> tuple[int, ...]:
         return self._shape
@@ -390,6 +409,24 @@ class logicvec:
         if n == 0:
             return v, logicvec((0,), 0)
         return cat([v[n:], rep(v[-1], n)], flatten=True), v[:n]
+
+    def add(self, other: Self, ci: object) -> tuple[Self, logic, logic]:
+        """Return the sum of two vectors, carry out, and overflow.
+
+        The implementation propagates Xes according to the
+        ripple carry addition algorithm.
+        """
+        s = []
+        c = [ci]
+        for i, (a, b) in enumerate(zip(self.flat, other.flat)):
+            s.append(a ^ b ^ c[i])
+            c.append(a & b | a & c[i] | b & c[i])
+        co = c[-1]
+        v = c[-2] ^ c[-1]
+        data = 0
+        for i, x in enumerate(s):
+            data |= pcn.setx(i, x.value)
+        return logicvec((self.size,), data), co, v
 
     def countbits(self, ctl: Collection[logic]) -> int:
         """Return the number of bits in the ctl set."""
