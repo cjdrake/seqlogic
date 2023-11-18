@@ -31,16 +31,16 @@ class logic(Enum):
     """
 
     N = pcn.NULL
-    NULL = N
+    NULL = pcn.NULL
 
     F = pcn.ZERO
-    ZERO = F
+    ZERO = pcn.ZERO
 
     T = pcn.ONE
-    ONE = T
+    ONE = pcn.ONE
 
     X = pcn.DC
-    UNKNOWN = X
+    UNKNOWN = pcn.DC
 
     def __str__(self) -> str:
         return pcn.to_char[self.value]
@@ -78,7 +78,7 @@ class logic(Enum):
             1 => 0 | 10 => 01
             X => X | 11 => 11
         """
-        x: int = self.value
+        x = self.value
         x_0 = x & 1
         x_1 = (x >> 1) & 1
 
@@ -87,11 +87,11 @@ class logic(Enum):
 
         return logic(y)
 
-    def _get_xs(self, other: object) -> tuple[int, int]:
-        x0: int = self.value
+    def _get_xs(self, other: object) -> tuple[pcn.PcItem, pcn.PcItem]:
+        x0 = self.value
         match other:
             case logic():
-                x1: int = other.value
+                x1 = other.value
             case _:
                 index = bool(other)
                 x1 = pcn.from_int[index]
