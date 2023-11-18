@@ -2,10 +2,15 @@
 Positional Cube (PC) Notation
 """
 
-ZERO = 0b01
-ONE = 0b10
-NULL = ZERO & ONE
-DC = ZERO | ONE  # "Don't Care"
+from typing import NewType
+
+PcItem = NewType("PcItem", int)
+PcList = NewType("PcList", int)
+
+ZERO = PcItem(0b01)
+ONE = PcItem(0b10)
+NULL = PcItem(ZERO & ONE)
+DC = PcItem(ZERO | ONE)  # "Don't Care"
 
 
 from_int = (ZERO, ONE)
@@ -18,28 +23,28 @@ from_char = {
 }
 
 from_hexchar = {
-    "0": 0x55,
-    "1": 0x56,
-    "2": 0x59,
-    "3": 0x5A,
-    "4": 0x65,
-    "5": 0x66,
-    "6": 0x69,
-    "7": 0x6A,
-    "8": 0x95,
-    "9": 0x96,
-    "a": 0x99,
-    "b": 0x9A,
-    "c": 0xA5,
-    "d": 0xA6,
-    "e": 0xA9,
-    "f": 0xAA,
-    "A": 0x99,
-    "B": 0x9A,
-    "C": 0xA5,
-    "D": 0xA6,
-    "E": 0xA9,
-    "F": 0xAA,
+    "0": PcList(0b01_01_01_01),
+    "1": PcList(0b01_01_01_10),
+    "2": PcList(0b01_01_10_01),
+    "3": PcList(0b01_01_10_10),
+    "4": PcList(0b01_10_01_01),
+    "5": PcList(0b01_10_01_10),
+    "6": PcList(0b01_10_10_01),
+    "7": PcList(0b01_10_10_10),
+    "8": PcList(0b10_01_01_01),
+    "9": PcList(0b10_01_01_10),
+    "a": PcList(0b10_01_10_01),
+    "A": PcList(0b10_01_10_01),
+    "b": PcList(0b10_01_10_10),
+    "B": PcList(0b10_01_10_10),
+    "c": PcList(0b10_10_01_01),
+    "C": PcList(0b10_10_01_01),
+    "d": PcList(0b10_10_01_10),
+    "D": PcList(0b10_10_01_10),
+    "e": PcList(0b10_10_10_01),
+    "E": PcList(0b10_10_10_01),
+    "f": PcList(0b10_10_10_10),
+    "F": PcList(0b10_10_10_10),
 }
 
 to_char = {
@@ -50,9 +55,9 @@ to_char = {
 }
 
 
-def getx(data: int, n: int) -> int:
-    return (data >> (n << 1)) & 0b11
+def get_item(data: PcList, n: int) -> PcItem:
+    return PcItem((data >> (n << 1)) & 0b11)
 
 
-def setx(n: int, x: int) -> int:
-    return x << (n << 1)
+def set_item(n: int, x: PcItem) -> PcList:
+    return PcList(x << (n << 1))

@@ -98,7 +98,7 @@ class logicvec:
             c.append(x & c[i])
         data = 0
         for i, x in enumerate(s):
-            data |= pcn.setx(i, x.value)
+            data |= pcn.set_item(i, x.value)
         return logicvec((self.size,), data)
 
     @property
@@ -135,7 +135,7 @@ class logicvec:
     def flat(self) -> Generator[logic, None, None]:
         """Return a flat iterator to the logic items."""
         for i in range(self.size):
-            yield logic(pcn.getx(self._data, i))
+            yield logic(pcn.get_item(self._data, i))
 
     def flatten(self) -> Self:
         """Return a vector with equal data, flattened to 1D shape."""
@@ -330,7 +330,7 @@ class logicvec:
         """Convert vector to signed integer."""
         if self._shape == (0,):
             return 0
-        sign = logic(pcn.getx(self._data, self.size - 1))
+        sign = logic(pcn.get_item(self._data, self.size - 1))
         if sign is logic.T:
             return -(self.not_().to_uint() + 1)
         return self.to_uint()
@@ -425,7 +425,7 @@ class logicvec:
         v = c[-2] ^ c[-1]
         data = 0
         for i, x in enumerate(s):
-            data |= pcn.setx(i, x.value)
+            data |= pcn.set_item(i, x.value)
         return logicvec((self.size,), data), co, v
 
     def countbits(self, ctl: Collection[logic]) -> int:
@@ -457,7 +457,7 @@ class logicvec:
         for i in range(self.size):
             if i % 4 == 0 and i != 0:
                 chars.append("_")
-            chars.append(str(logic(pcn.getx(self._data, i))))
+            chars.append(str(logic(pcn.get_item(self._data, i))))
         return prefix + "".join(reversed(chars))
 
     def _str(self, indent: str) -> str:
@@ -587,7 +587,7 @@ def _parse_str_lit(lit: str) -> tuple[int, int]:
                 raise ValueError(f"Expected {size} digits, got {num_digits}")
             data = 0
             for i, digit in enumerate(reversed(digits)):
-                data |= pcn.setx(i, pcn.from_char[digit])
+                data |= pcn.set_item(i, pcn.from_char[digit])
             return size, data
         # Hexadecimal
         elif m.group("HexSize"):
@@ -609,13 +609,13 @@ def _parse_str_lit(lit: str) -> tuple[int, int]:
 
 def _rank1(fst: logic, rst) -> logicvec:
     shape = (len(rst) + 1,)
-    data = pcn.setx(0, fst.value)
+    data = pcn.set_item(0, fst.value)
     for i, x in enumerate(rst, start=1):
         match x:
             case logic():
-                data |= pcn.setx(i, x.value)
+                data |= pcn.set_item(i, x.value)
             case 0 | 1:
-                data |= pcn.setx(i, pcn.from_int[x])
+                data |= pcn.set_item(i, pcn.from_int[x])
             case _:
                 raise TypeError("Expected item to be logic, or in (0, 1)")
     return logicvec(shape, data)
@@ -692,7 +692,7 @@ def uint2vec(num: int, size: int | None = None) -> logicvec:
         index = 0
         data = 0
         while num:
-            data |= pcn.setx(index, pcn.from_int[num & 1])
+            data |= pcn.set_item(index, pcn.from_int[num & 1])
             index += 1
             num >>= 1
 
@@ -701,7 +701,7 @@ def uint2vec(num: int, size: int | None = None) -> logicvec:
             s = f"Overflow: num = {num} requires length ≥ {index}, got {size}"
             raise ValueError(s)
         for i in range(index, size):
-            data |= pcn.setx(i, pcn.ZERO)
+            data |= pcn.set_item(i, pcn.ZERO)
     else:
         size = index
 
@@ -786,7 +786,7 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
 def _consts(shape: tuple[int, ...], x: int) -> logicvec:
     data = 0
     for i in range(math.prod(shape)):
-        data |= pcn.setx(i, x)
+        data |= pcn.set_item(i, x)
     return logicvec(shape, data)
 
 
