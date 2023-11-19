@@ -416,13 +416,18 @@ class logicvec:
         The implementation propagates Xes according to the
         ripple carry addition algorithm.
         """
+        match ci:
+            case logic():
+                pass
+            case _:
+                ci = (logic.F, logic.T)[bool(ci)]
         s = []
         c = [ci]
         for i, (a, b) in enumerate(zip(self.flat, other.flat)):
             s.append(a ^ b ^ c[i])
             c.append(a & b | a & c[i] | b & c[i])
         co = c[-1]
-        v = c[-2] ^ c[-1]
+        v = c[-2] ^ c[-1] if self.size else logic.F
         data = 0
         for i, x in enumerate(s):
             data |= pcn.set_item(i, x.value)
@@ -783,7 +788,7 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
             assert False
 
 
-def _consts(shape: tuple[int, ...], x: int) -> logicvec:
+def _consts(shape: tuple[int, ...], x: pcn.PcItem) -> logicvec:
     data = 0
     for i in range(math.prod(shape)):
         data |= pcn.set_item(i, x)
