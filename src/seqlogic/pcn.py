@@ -59,5 +59,5 @@ def get_item(data: PcList, n: int) -> PcItem:
     return PcItem((data >> (n << 1)) & 0b11)
 
 
-def set_item(n: int, x: PcItem) -> PcList:
-    return PcList(x << (n << 1))
+def set_item(data: PcList, n: int, x: PcItem) -> PcList:
+    return PcList(data | (x << (n << 1)))
