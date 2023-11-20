@@ -370,7 +370,7 @@ class logicvec:
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return v, logicvec((0,), 0)
+            return v, _empty
         if ci is None:
             ci = uint2vec(0, n)
         elif ci.shape != (n,):
@@ -389,7 +389,7 @@ class logicvec:
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return v, logicvec((0,), 0)
+            return v, _empty
         if ci is None:
             ci = uint2vec(0, n)
         elif ci.shape != (n,):
@@ -408,7 +408,7 @@ class logicvec:
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return v, logicvec((0,), 0)
+            return v, _empty
         return cat([v[n:], rep(v[-1], n)], flatten=True), v[:n]
 
     def add(self, other: Self, ci: object) -> tuple[Self, logic, logic]:
@@ -654,7 +654,7 @@ def vec(obj=None) -> logicvec:
     match obj:
         # Empty
         case None:
-            return logicvec((0,), 0)
+            return _empty
         # Rank 0 Logic
         case logic() as x:
             return logicvec((1,), x.value)
@@ -718,7 +718,7 @@ def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
     """Join a sequence of logicvecs."""
     # Empty
     if len(objs) == 0:
-        return logicvec((0,), 0)
+        return _empty
 
     # Convert inputs
     vs: list[logicvec] = []
@@ -787,6 +787,10 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
             return cat([logic(d) for d in ds])
         case _:  # pragma: no cover
             assert False
+
+
+# The empty vector is a singleton
+_empty = logicvec((0,), 0)
 
 
 def _consts(shape: tuple[int, ...], x: PcItem) -> logicvec:
