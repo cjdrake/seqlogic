@@ -61,3 +61,17 @@ def get_item(data: PcList, n: int) -> PcItem:
 
 def set_item(data: PcList, n: int, x: PcItem) -> PcList:
     return PcList(data | (x << (n << 1)))
+
+
+def zeros(n: int) -> PcList:
+    data = PcList(0)
+    for i in range(n):
+        data = set_item(data, i, ZERO)
+    return data
+
+
+def ones(n: int) -> PcList:
+    data = PcList(0)
+    for i in range(n):
+        data = set_item(data, i, ONE)
+    return data

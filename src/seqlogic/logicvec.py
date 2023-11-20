@@ -488,7 +488,7 @@ class logicvec:
         return "[" + sep.join(v._str(indent + " ") for v in self) + "]"
 
     @cached_property
-    def _data_mask(self) -> tuple[int, int]:
+    def _data_mask(self) -> tuple[PcList, PcList]:
         """Return PC zero/one mask.
 
         The zero mask is: 0b01010101...
@@ -511,11 +511,12 @@ class logicvec:
             zero_mask += 1 << (i << 1)
         # for i in range((self.size + 31) // 32):
         #    zero_mask |= 0x5555_5555_5555_5555 << (i << 6)
-        one_mask = zero_mask << 1
+        zero_mask = pcn.zeros(self.size)
+        one_mask = PcList(zero_mask << 1)
         return (zero_mask, one_mask)
 
-    def _bits(self, n: int) -> int:
-        return self._data & self._data_mask[n]
+    def _bits(self, n: int) -> PcList:
+        return PcList(self._data & self._data_mask[n])
 
     def _norm_index(self, index: int, i: int) -> int:
         lo, hi = -self._shape[i], self._shape[i]
