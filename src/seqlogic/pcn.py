@@ -64,7 +64,7 @@ def set_item(data: PcList, n: int, x: PcItem) -> PcList:
 
 
 def set_byte(data: PcList, n: int, x: PcList) -> PcList:
-    return PcList(data | x << (8 * n))
+    return PcList(data | (x << (8 * n)))
 
 
 def zeros(n: int) -> PcList:
