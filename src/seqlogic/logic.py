@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Self
 
 from . import pcn
+from .pcn import PcItem
 
 
 class logic(Enum):
@@ -87,7 +88,7 @@ class logic(Enum):
 
         return logic(y)
 
-    def _get_xs(self, other: object) -> tuple[pcn.PcItem, pcn.PcItem]:
+    def _get_xs(self, other: object) -> tuple[PcItem, PcItem]:
         x0 = self.value
         match other:
             case logic():

@@ -12,6 +12,7 @@ from typing import Self, TypeAlias, Union
 
 from . import pcn
 from .logic import logic
+from .pcn import PcItem
 
 _Logic: TypeAlias = Union[logic, "logicvec"]
 
@@ -788,7 +789,7 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
             assert False
 
 
-def _consts(shape: tuple[int, ...], x: pcn.PcItem) -> logicvec:
+def _consts(shape: tuple[int, ...], x: PcItem) -> logicvec:
     data = 0
     for i in range(math.prod(shape)):
         data |= pcn.set_item(i, x)
