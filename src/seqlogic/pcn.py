@@ -63,6 +63,10 @@ def set_item(data: PcList, n: int, x: PcItem) -> PcList:
     return PcList(data | (x << (n << 1)))
 
 
+def set_byte(data: PcList, n: int, x: PcList) -> PcList:
+    return PcList(data | x << (8 * n))
+
+
 def zeros(n: int) -> PcList:
     data = PcList(0)
     for i in range(n):

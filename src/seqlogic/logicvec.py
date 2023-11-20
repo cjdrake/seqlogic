@@ -583,7 +583,7 @@ class logicvec:
         return tuple(lnkey)
 
 
-def _parse_str_lit(lit: str) -> tuple[int, int]:
+def _parse_str_lit(lit: str) -> tuple[int, PcList]:
     if m := _NUM_RE.match(lit):
         # Binary
         if m.group("BinSize"):
@@ -604,9 +604,9 @@ def _parse_str_lit(lit: str) -> tuple[int, int]:
             if 4 * num_digits != size:
                 s = f"Expected size to match # digits, got {size} ≠ {4*num_digits}"
                 raise ValueError(s)
-            data = 0
+            data = PcList(0)
             for i, digit in enumerate(reversed(digits)):
-                data |= pcn.from_hexchar[digit] << (8 * i)
+                data = pcn.set_byte(data, i, pcn.from_hexchar[digit])
             return size, data
         else:  # pragma: no cover
             assert False
