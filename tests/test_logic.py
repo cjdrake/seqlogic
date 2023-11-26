@@ -1,6 +1,4 @@
-"""
-Test Logic Data Type
-"""
+"""Test Logic data type."""
 
 
 from seqlogic.logic import logic
@@ -14,7 +12,7 @@ char2logic = {
 
 
 def test_str():
-    """Test logic.__str__ method"""
+    """Test logic.__str__ method."""
     assert str(logic.N) == "X"
     assert str(logic.F) == "0"
     assert str(logic.T) == "1"
@@ -22,7 +20,7 @@ def test_str():
 
 
 def test_repr():
-    """Test logic.__repr__ method"""
+    """Test logic.__repr__ method."""
     assert repr(logic.N) == "X"
     assert repr(logic.F) == "0"
     assert repr(logic.T) == "1"
@@ -30,7 +28,7 @@ def test_repr():
 
 
 def test_not():
-    """Test logic NOT function"""
+    """Test logic NOT function."""
     table = {
         "0": "1",
         "1": "0",
@@ -44,7 +42,7 @@ def test_not():
 
 
 def test_nor():
-    """Test logic NOR function"""
+    """Test logic NOR function."""
     table = {
         "00": "1",
         "01": "0",
@@ -77,7 +75,7 @@ def test_nor():
 
 
 def test_or():
-    """Test logic OR function"""
+    """Test logic OR function."""
     table = {
         "00": "0",
         "01": "1",
@@ -115,7 +113,7 @@ def test_or():
 
 
 def test_nand():
-    """Test logic NAND function"""
+    """Test logic NAND function."""
     table = {
         "00": "1",
         "01": "1",
@@ -148,7 +146,7 @@ def test_nand():
 
 
 def test_and():
-    """Test logic AND function"""
+    """Test logic AND function."""
     table = {
         "00": "0",
         "01": "0",
@@ -186,7 +184,7 @@ def test_and():
 
 
 def test_xnor():
-    """Test logic XNOR function"""
+    """Test logic XNOR function."""
     table = {
         "00": "1",
         "01": "0",
@@ -219,7 +217,7 @@ def test_xnor():
 
 
 def test_xor():
-    """Test logic XOR function"""
+    """Test logic XOR function."""
     table = {
         "00": "0",
         "01": "1",
@@ -257,7 +255,7 @@ def test_xor():
 
 
 def test_implies():
-    """Test logic Implies function"""
+    """Test logic Implies function."""
     table = {
         "00": "1",
         "01": "1",

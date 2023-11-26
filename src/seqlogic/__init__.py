@@ -1,3 +1,1 @@
-"""
-Sequential Logic
-"""
+"""Sequential Logic."""

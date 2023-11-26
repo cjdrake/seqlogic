@@ -1,6 +1,4 @@
-"""
-Test Logic Vector Data Type
-"""
+"""Test Logic Vector data type."""
 
 # pylint: disable = pointless-statement
 
@@ -11,54 +9,55 @@ from seqlogic.logicvec import cat, nulls, ones, rep, uint2vec, vec, xes, zeros
 
 
 def test_not():
-    """Test logic_vector NOT function"""
+    """Test logicvec NOT function."""
     x = vec([logic.N, logic.F, logic.T, logic.X])
     assert str(~x) == "vec(4bx01X)"
 
 
 def test_nor():
-    """Test logic_vector NOR function"""
+    """Test logicvec NOR function."""
     x0 = vec("16bxxxx_1111_0000_XXXX")
     x1 = vec("16bx10X_x10X_x10X_x10X")
     assert str(x0.nor(x1)) == "vec(16bx0xX_000X_x01X_XXXX)"
 
 
 def test_or():
-    """Test logic_vector OR function"""
+    """Test logicvec OR function."""
     x0 = vec("16bxxxx_1111_0000_XXXX")
     x1 = vec("16bx10X_x10X_x10X_x10X")
     assert str(x0 | x1) == "vec(16bx1xX_111X_x10X_XXXX)"
 
 
 def test_nand():
-    """Test logic_vector NAND function"""
+    """Test logicvec NAND function."""
     x0 = vec("16bxxxx_1111_0000_XXXX")
     x1 = vec("16bx10X_x10X_x10X_x10X")
     assert str(x0.nand(x1)) == "vec(16bxx1X_x01X_111X_XXXX)"
 
 
 def test_and():
-    """Test logic_vector AND function"""
+    """Test logicvec AND function."""
     x0 = vec("16bxxxx_1111_0000_XXXX")
     x1 = vec("16bx10X_x10X_x10X_x10X")
     assert str(x0 & x1) == "vec(16bxx0X_x10X_000X_XXXX)"
 
 
 def test_xnor():
-    """Test logic_vector XNOR function"""
+    """Test logicvec XNOR function."""
     x0 = vec("16bxxxx_1111_0000_XXXX")
     x1 = vec("16bx10X_x10X_x10X_x10X")
     assert str(x0.xnor(x1)) == "vec(16bxxxX_x10X_x01X_XXXX)"
 
 
 def test_xor():
-    """Test logic_vector XOR function"""
+    """Test logicvec XOR function."""
     x0 = vec("16bxxxx_1111_0000_XXXX")
     x1 = vec("16bx10X_x10X_x10X_x10X")
     assert str(x0 ^ x1) == "vec(16bxxxX_x01X_x10X_XXXX)"
 
 
 def test_uor():
+    """Test logicvec unary OR method."""
     assert vec("2bXX").uor() is logic.N
     assert vec("2b0X").uor() is logic.N
     assert vec("2b1X").uor() is logic.N
@@ -78,6 +77,7 @@ def test_uor():
 
 
 def test_uand():
+    """Test logicvec unary and method."""
     assert vec("2bXX").uand() is logic.N
     assert vec("2b0X").uand() is logic.N
     assert vec("2b1X").uand() is logic.N
@@ -97,6 +97,7 @@ def test_uand():
 
 
 def test_uxor():
+    """Test logicvec unary xor method."""
     assert vec("2bXX").uxor() is logic.N
     assert vec("2b0X").uxor() is logic.N
     assert vec("2b1X").uxor() is logic.N
@@ -116,12 +117,14 @@ def test_uxor():
 
 
 def test_zext():
+    """Test logicvec zext method."""
     assert vec("4b1010").zext(4) == vec("8b0000_1010")
     # Zero extension on multi-dimensional array will flatten
     assert vec(["4b0000", "4b1111"]).zext(2) == vec("10b00_1111_0000")
 
 
 def test_sext():
+    """Test logicvec sext method."""
     assert vec("4b1010").sext(4) == vec("8b1111_1010")
     assert vec("4b0101").sext(4) == vec("8b0000_0101")
     # Sign extension of multi-dimensional array will flatten
@@ -129,6 +132,7 @@ def test_sext():
 
 
 def test_lsh():
+    """Test logicvec lsh method."""
     v = vec("4b1111")
     assert v.lsh(0) == (vec("4b1111"), vec())
     assert v.lsh(1) == (vec("4b1110"), vec("1b1"))
@@ -149,6 +153,7 @@ def test_lsh():
 
 
 def test_rsh():
+    """Test logicvec rsh method."""
     v = vec("4b1111")
     assert v.rsh(0) == (vec("4b1111"), vec())
     assert v.rsh(1) == (vec("4b0111"), vec("1b1"))
@@ -169,6 +174,7 @@ def test_rsh():
 
 
 def test_arsh():
+    """Test logicvec arsh method."""
     v = vec("4b1111")
     assert v.arsh(0) == (vec("4b1111"), vec())
     assert v.arsh(1) == (vec("4b1111"), vec("1b1"))
@@ -228,12 +234,14 @@ ADD_VALS = [
 
 
 def test_add():
+    """Test logicvec add method."""
     for a, b, ci, s, co, v in ADD_VALS:
         a, b, s = vec(a), vec(b), vec(s)
         assert a.add(b, ci) == (s, co, v)
 
 
 def test_addsubops():
+    """Test logicvec add/substract operators."""
     assert vec("2b00") + vec("2b00") == vec("2b00")
     assert vec("2b00") + vec("2b01") == vec("2b01")
     assert vec("2b01") + vec("2b00") == vec("2b01")
@@ -302,7 +310,6 @@ def test_operand_shape_mismatch():
 
 def test_parse_str_literal():
     """Test parsing of vector string literals."""
-
     # literal doesn't match size
     with pytest.raises(ValueError):
         vec("4b1010_1010")
@@ -356,7 +363,7 @@ def test_uint2vec():
 
 
 def test_empty():
-    """Test empty vector"""
+    """Test empty vector."""
     v = vec()
 
     # Test properties
@@ -393,7 +400,7 @@ def test_empty():
 
 
 def test_scalar():
-    """Test scalar (vector w/ one element)"""
+    """Test scalar (vector w/ one element)."""
     vn = vec(logic.N)
     v0 = vec(0)
     v1 = vec(1)
@@ -442,7 +449,7 @@ def test_scalar():
 
 
 def test_rank1_str():
-    """Test vec rank1 string input"""
+    """Test vec rank1 string input."""
     v = vec("8bx10X_x10X")
     data = 0b11100100_11100100
     xs = [
@@ -501,6 +508,7 @@ def test_rank1_str():
 
 
 def test_rank1_logic():
+    """Test vec function w/ rank1 logic input."""
     xs = [logic.N, logic.F, logic.T, logic.X]
     v1 = vec(xs)
     v2 = vec([0, 1, 0, 1])
@@ -521,6 +529,7 @@ def test_rank1_logic():
 
 
 def test_rank2_str():
+    """Test vec function w/ rank2 str input."""
     v = vec(["4bx10X", "4bx10X"])
 
     assert v.flatten() == vec("8bx10X_x10X")
@@ -530,6 +539,7 @@ def test_rank2_str():
 
 
 def test_rank2_vec():
+    """Test vec function w/ rank2 vec input."""
     v = vec([vec("4bx10X"), vec("4bx10X")])
 
     # Test __str__ and __repr__
@@ -537,6 +547,7 @@ def test_rank2_vec():
 
 
 def test_rank2_errors():
+    """Test vec function rank2 errors."""
     # Mismatched str literal
     with pytest.raises(TypeError):
         vec(["4bx10X", "3b10X"])
@@ -551,6 +562,7 @@ vec([[4bx10X, 4bx10X],
 
 
 def test_rank3_vec():
+    """Test vec function w/ rank3 input."""
     v = vec(
         [
             [vec("4bx10X"), vec("4bx10X")],
@@ -573,6 +585,7 @@ vec([[[4bx10X, 4bx10X],
 
 
 def test_rank4_vec():
+    """Test vec function w/ rank4 input."""
     v = vec(
         [
             [[vec("4bx10X"), vec("4bx10X")], [vec("4bx10X"), vec("4bx10X")]],
@@ -585,11 +598,13 @@ def test_rank4_vec():
 
 
 def test_invalid_vec():
+    """Test vec function invalid input."""
     with pytest.raises(TypeError):
         vec(42)
 
 
 def test_cat():
+    """Test logicvec cat function."""
     assert cat([]) == vec()
     assert cat([False, True, False, True]) == vec("4b1010")
 
@@ -615,6 +630,7 @@ def test_cat():
 
 
 def test_rep():
+    """Test logicvec rep function."""
     v = rep(vec("2b00"), 4, flatten=True)
     assert v == vec("8b0000_0000")
     assert v.shape == (8,)
@@ -624,6 +640,7 @@ def test_rep():
 
 
 def test_consts():
+    """Test logicvec constants."""
     assert nulls((8,)) == vec("8bXXXX_XXXX")
     assert zeros((8,)) == vec("8b0000_0000")
     assert ones((8,)) == vec("8b1111_1111")
@@ -631,6 +648,7 @@ def test_consts():
 
 
 def test_slicing():
+    """Test logicvec slicing behavior."""
     v = vec(
         [
             [vec("4b0000"), vec("4b0001"), vec("4b0010"), vec("4b0011")],
@@ -699,6 +717,7 @@ def test_slicing():
 
 
 def test_countbits():
+    """Test logicvec countbits methods."""
     v = vec("8bx10X_x10X")
     assert v.countbits({logic.F, logic.T}) == 4
     assert v.countbits({logic.N, logic.X}) == 4

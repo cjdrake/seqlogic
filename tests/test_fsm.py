@@ -1,7 +1,6 @@
-"""
-Example FSM implementation
+"""Example FSM implementation.
 
-Demonstrate usage of an enum
+Demonstrate usage of an enum.
 """
 
 from seqlogic.enum import Enum
@@ -14,6 +13,8 @@ loop = get_loop()
 
 
 class SeqDetect(Enum):
+    """Sequence Detector state."""
+
     A = "2b00"
     B = "2b01"
     C = "2b10"
@@ -22,10 +23,8 @@ class SeqDetect(Enum):
     XX = "2bxx"
 
 
-class TraceSeqDetect(SimVar):
-    """
-    Variable that supports dumping to memory.
-    """
+class _TraceSeqDetect(SimVar):
+    """Variable that supports dumping to memory."""
 
     def __init__(self):
         super().__init__(value=SeqDetect.XX)
@@ -37,7 +36,7 @@ class TraceSeqDetect(SimVar):
         super().update()
 
 
-async def input_drv(
+async def _input_drv(
     x: TraceVar,
     reset_n: TraceVar,
     clock: TraceVar,
@@ -64,12 +63,12 @@ async def input_drv(
 
 
 def test_fsm():
-    """Test a 3-bit LFSR"""
+    """Test a 3-bit LFSR."""
     loop.reset()
     waves.clear()
 
     # State Variables
-    ps = TraceSeqDetect()
+    ps = _TraceSeqDetect()
 
     # Inputs
     x = TraceVar()
@@ -105,7 +104,7 @@ def test_fsm():
     clock = TraceVar()
 
     # Schedule input
-    loop.add_proc(input_drv, 0, x, reset_n, clock)
+    loop.add_proc(_input_drv, 0, x, reset_n, clock)
 
     # Schedule LFSR
     loop.add_proc(dff_arn_drv, 0, ps, ns, reset_n, reset_value, clock)

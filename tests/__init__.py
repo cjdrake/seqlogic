@@ -1,6 +1,4 @@
-"""
-Prepend workspace root to system path.
-"""
+"""Prepend workspace root to system path."""
 
 import os
 import sys

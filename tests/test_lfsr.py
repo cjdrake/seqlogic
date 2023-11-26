@@ -1,6 +1,4 @@
-"""
-Example LFSR implementation
-"""
+"""Example LFSR implementation."""
 
 
 from seqlogic.logic import logic
@@ -13,7 +11,7 @@ loop = get_loop()
 
 
 def test_lfsr():
-    """Test a 3-bit LFSR"""
+    """Test a 3-bit LFSR."""
     loop.reset()
     waves.clear()
 

@@ -1,5 +1,4 @@
-"""
-Common code
+"""Common code.
 
 For now this is just used for testing.
 It might be useful to add to seqlogic library.
@@ -17,9 +16,7 @@ waves = defaultdict(dict)
 
 
 class TraceVar(SimVar):
-    """
-    Variable that supports dumping to memory.
-    """
+    """Variable that supports dumping to memory."""
 
     def __init__(self):
         super().__init__(value=logic.X)
@@ -38,9 +35,7 @@ class TraceVar(SimVar):
 
 
 class TraceVec(SimVar):
-    """
-    Variable that supports dumping to memory.
-    """
+    """Variable that supports dumping to memory."""
 
     def __init__(self, n: int):
         super().__init__(value=xes((n,)))
@@ -136,6 +131,7 @@ async def dff_arn_drv(
     reset_value: logicvec,
     clock: TraceVar,
 ):
+    """D Flop Flop with asynchronous, negedge-triggered reset."""
     while True:
         var = await notify(reset_n.negedge, clock.posedge)
         assert var in {reset_n, clock}

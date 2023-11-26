@@ -1,6 +1,4 @@
-"""
-Utility Functions
-"""
+"""Utility Functions."""
 
 
 def get_bit(x: int, n: int) -> bool:

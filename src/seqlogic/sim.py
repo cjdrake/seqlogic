@@ -1,5 +1,4 @@
-"""
-Simulation using async/await
+"""Simulation using async/await.
 
 We are intentionally imitating the style of Python's Event Loop API:
 https://docs.python.org/3/library/asyncio-eventloop.html
@@ -30,15 +29,15 @@ _START_TIME = _Time(0)
 
 
 class State(Enum):
+    """Simulation variable state."""
+
     INVALID = 0b00
     CLEAN = 0b01
     DIRTY = 0b11
 
 
 class SimVar:
-    """
-    The simulation component of a variable.
-    """
+    """The simulation component of a variable."""
 
     def __init__(self, value):
         self._value = value
@@ -79,9 +78,7 @@ _SimQueueItem = tuple[_Time, _Region, _Task, SimVar | None]
 
 
 class _SimQueue:
-    """
-    Priority queue for ordering task execution
-    """
+    """Priority queue for ordering task execution."""
 
     def __init__(self):
         self._items = []
@@ -121,9 +118,7 @@ class _SimQueue:
 
 
 class _SimAwaitable(Awaitable):
-    """
-    Suspend execution of the current task.
-    """
+    """Suspend execution of the current task."""
 
     def __await__(self):
         var = yield
@@ -131,9 +126,7 @@ class _SimAwaitable(Awaitable):
 
 
 class Sim:
-    """
-    Simulation event loop
-    """
+    """Simulation event loop."""
 
     def __init__(self):
         self._started: bool = False
@@ -247,8 +240,9 @@ class Sim:
         self._started = True
 
     def run(self, ticks: _Time | None = None, until: _Time | None = None):
-        """
-        Run the simulation until:
+        """Run the simulation.
+
+        Until:
         1. We hit the runlimit, OR
         2. There are no tasks left in the queue
         """

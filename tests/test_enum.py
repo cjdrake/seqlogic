@@ -1,6 +1,4 @@
-"""
-Test Enum
-"""
+"""Test seqlogic.enum module."""
 
 
 import pytest
@@ -12,6 +10,8 @@ from seqlogic.logic import logic
 
 
 class Color(Enum):
+    """Boilerplate logicvec enum."""
+
     RED = "2b00"
     GREEN = "2b01"
     BLUE = "2b10"

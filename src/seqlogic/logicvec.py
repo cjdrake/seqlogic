@@ -1,6 +1,4 @@
-"""
-Logic Vector Data Type
-"""
+"""Logic Vector Data Type."""
 
 # pylint: disable = protected-access
 
@@ -27,8 +25,7 @@ _NUM_RE = re.compile(
 
 
 class logicvec:
-    """
-    Logic vector data type
+    """Logic vector data type.
 
     Do NOT instantiate this type directly.
     Use the factory functions instead.
@@ -104,10 +101,12 @@ class logicvec:
 
     @property
     def shape(self) -> tuple[int, ...]:
+        """Return logicvec shape."""
         return self._shape
 
     @property
     def data(self) -> int:
+        """Return logicvec data."""
         return self._data
 
     def reshape(self, shape: tuple[int, ...]) -> Self:
@@ -119,17 +118,17 @@ class logicvec:
 
     @cached_property
     def ndim(self) -> int:
-        """Number of dimensions"""
+        """Number of dimensions."""
         return len(self._shape)
 
     @cached_property
     def size(self) -> int:
-        """Number of elements in the vector"""
+        """Number of elements in the vector."""
         return math.prod(self._shape)
 
     @cached_property
     def nbits(self) -> int:
-        """Number of bits of data"""
+        """Number of bits of data."""
         return self.size << 1
 
     @property
@@ -467,7 +466,7 @@ class logicvec:
         return prefix + "".join(reversed(chars))
 
     def _str(self, indent: str) -> str:
-        """Helper funtion for __str__"""
+        """Help __str__ method recursion."""
         # Empty
         if self._shape == (0,):
             return "[]"
@@ -596,7 +595,7 @@ def _parse_str_lit(lit: str) -> tuple[int, PcList]:
             digits = m.group("HexDigits").replace("_", "")
             num_digits = len(digits)
             if 4 * num_digits != size:
-                s = f"Expected size to match # digits, got {size} ≠ {4*num_digits}"
+                s = f"Expected size to match # digits, got {size} ≠ {4 * num_digits}"
                 raise ValueError(s)
             data = PcList(0)
             for i, digit in enumerate(reversed(digits)):
@@ -643,9 +642,7 @@ def _rank2(fst: logicvec, rst) -> logicvec:
 
 
 def vec(obj=None) -> logicvec:
-    """
-    Create a logic_vector.
-    """
+    """Create a logic_vector."""
     match obj:
         # Empty
         case None:

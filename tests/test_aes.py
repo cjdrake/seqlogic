@@ -1,12 +1,10 @@
-"""
-Test AES Algorithm
-"""
+"""Test AES Algorithm."""
 
 from seqlogic.algorithms.aes import decrypt, encrypt, key_expansion
 from seqlogic.logicvec import uint2vec
 
 
-def s2v(s: str):
+def _s2v(s: str):
     a = bytearray.fromhex(s)
     return uint2vec(int.from_bytes(a, byteorder="little"), 4 * len(s))
 
@@ -29,9 +27,9 @@ A1_EXP = [
 
 
 def test_a1():
-    """Test using values from Appendix A.1"""
+    """Test using values from Appendix A.1."""
     nk = 4
-    key = s2v("2b7e151628aed2a6abf7158809cf4f3c")
+    key = _s2v("2b7e151628aed2a6abf7158809cf4f3c")
     rkey = key_expansion(nk, key)
     for i, w in enumerate(rkey):
         assert str(w) == f"vec(32b{A1_EXP[i]:039_b})"
@@ -57,9 +55,9 @@ A2_EXP = [
 
 
 def test_a2():
-    """Test using values from Appendix A.2"""
+    """Test using values from Appendix A.2."""
     nk = 6
-    key = s2v("8e73b0f7da0e6452c810f32b809079e562f8ead2522c6b7b")
+    key = _s2v("8e73b0f7da0e6452c810f32b809079e562f8ead2522c6b7b")
     rkey = key_expansion(nk, key)
     for i, w in enumerate(rkey):
         assert str(w) == f"vec(32b{A2_EXP[i]:039_b})"
@@ -87,22 +85,22 @@ A3_EXP = [
 
 
 def test_a3():
-    """Test using values from Appendix A.3"""
+    """Test using values from Appendix A.3."""
     nk = 8
-    key = s2v("603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4")
+    key = _s2v("603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4")
     rkey = key_expansion(nk, key)
     for i, w in enumerate(rkey):
         assert str(w) == f"vec(32b{A3_EXP[i]:039_b})"
 
 
-PT = s2v("00112233445566778899aabbccddeeff")
+PT = _s2v("00112233445566778899aabbccddeeff")
 
 
 def test_c1():
-    """Test using values from Appendix C.1"""
+    """Test using values from Appendix C.1."""
     nk = 4
-    key = s2v("000102030405060708090a0b0c0d0e0f")
-    ct = s2v("69c4e0d86a7b0430d8cdb78070b4c55a")
+    key = _s2v("000102030405060708090a0b0c0d0e0f")
+    ct = _s2v("69c4e0d86a7b0430d8cdb78070b4c55a")
     ct_got = encrypt(nk, PT, key)
     assert ct_got == ct
     pt_got = decrypt(nk, ct, key)
@@ -110,10 +108,10 @@ def test_c1():
 
 
 def test_c2():
-    """Test using values from Appendix C.2"""
+    """Test using values from Appendix C.2."""
     nk = 6
-    key = s2v("000102030405060708090a0b0c0d0e0f1011121314151617")
-    ct = s2v("dda97ca4864cdfe06eaf70a0ec0d7191")
+    key = _s2v("000102030405060708090a0b0c0d0e0f1011121314151617")
+    ct = _s2v("dda97ca4864cdfe06eaf70a0ec0d7191")
     ct_got = encrypt(nk, PT, key)
     assert ct_got == ct
     pt_got = decrypt(nk, ct, key)
@@ -121,10 +119,10 @@ def test_c2():
 
 
 def test_c3():
-    """Test using values from Appendix C.3"""
+    """Test using values from Appendix C.3."""
     nk = 8
-    key = s2v("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
-    ct = s2v("8ea2b7ca516745bfeafc49904b496089")
+    key = _s2v("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
+    ct = _s2v("8ea2b7ca516745bfeafc49904b496089")
     ct_got = encrypt(nk, PT, key)
     assert ct_got == ct
     pt_got = decrypt(nk, ct, key)

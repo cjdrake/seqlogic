@@ -1,6 +1,4 @@
-"""
-Enum Logic
-"""
+"""Enum Logic Data Type."""
 
 from .logicvec import _parse_str_lit, logicvec
 
@@ -9,9 +7,7 @@ from .logicvec import _parse_str_lit, logicvec
 
 
 class _EnumMeta(type):
-    """
-    Enum Metaclass: Create enum base classes
-    """
+    """Enum Metaclass: Create enum base classes."""
 
     def __new__(mcs, name, bases, attrs):
         base_attrs = {}
@@ -35,9 +31,7 @@ class _EnumMeta(type):
 
 
 class Enum(metaclass=_EnumMeta):
-    """
-    Enum Base Class: Create enums
-    """
+    """Enum Base Class: Create enums."""
 
     def __new__(cls, lit: str):
         if lit not in cls._lit2name:

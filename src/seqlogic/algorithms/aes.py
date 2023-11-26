@@ -1,5 +1,4 @@
-"""
-Advanced Encryption Standard
+"""Advanced Encryption Standard.
 
 See https://csrc.nist.gov/pubs/fips/197/final for details.
 """

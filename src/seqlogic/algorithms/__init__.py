@@ -1,3 +1,1 @@
-"""
-Logical Algorithms
-"""
+"""Logical Algorithms."""

@@ -1,6 +1,4 @@
-"""
-Test seqlogic.sim
-"""
+"""Test seqlogic.sim module."""
 
 from collections import defaultdict
 
@@ -17,9 +15,7 @@ def waves_add(time, var, val):
 
 
 class TraceVar(SimVar):
-    """
-    Variable that supports dumping to memory.
-    """
+    """Variable that supports dumping to memory."""
 
     def __init__(self):
         super().__init__(value=False)
