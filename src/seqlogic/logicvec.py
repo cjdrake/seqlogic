@@ -505,12 +505,6 @@ class logicvec:
         F(n+1) = 4*F(n) + 1
         F(n) = (4^n - 1) / 3
         """
-        # zero_mask = ((1 << (self.size << 1)) - 1) // 3
-        zero_mask = 0
-        for i in range(self.size):
-            zero_mask += 1 << (i << 1)
-        # for i in range((self.size + 31) // 32):
-        #    zero_mask |= 0x5555_5555_5555_5555 << (i << 6)
         zero_mask = pcn.zeros(self.size)
         one_mask = PcList(zero_mask << 1)
         return (zero_mask, one_mask)
