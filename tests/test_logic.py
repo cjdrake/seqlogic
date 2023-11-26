@@ -67,13 +67,13 @@ def test_nor():
         x0 = char2logic[xs[0]]
         x1 = char2logic[xs[1]]
         y = char2logic[y]
-        assert x0.nor(x1) == y
+        assert x0.lnor(x1) == y
         assert ~(x0 | x1) == y
 
-    assert logic.F.nor(False) is logic.T
-    assert logic.F.nor(True) is logic.F
-    assert logic.F.nor(0) is logic.T
-    assert logic.F.nor(1) is logic.F
+    assert logic.F.lnor(False) is logic.T
+    assert logic.F.lnor(True) is logic.F
+    assert logic.F.lnor(0) is logic.T
+    assert logic.F.lnor(1) is logic.F
 
 
 def test_or():
@@ -100,7 +100,7 @@ def test_or():
         x0 = char2logic[xs[0]]
         x1 = char2logic[xs[1]]
         y = char2logic[y]
-        assert x0.or_(x1) == y
+        assert x0.lor(x1) == y
         assert (x0 | x1) == y
 
     assert logic.F | False is logic.F
@@ -138,13 +138,13 @@ def test_nand():
         x0 = char2logic[xs[0]]
         x1 = char2logic[xs[1]]
         y = char2logic[y]
-        assert x0.nand(x1) == y
+        assert x0.lnand(x1) == y
         assert ~(x0 & x1) == y
 
-    assert logic.T.nand(False) is logic.T
-    assert logic.T.nand(True) is logic.F
-    assert logic.T.nand(0) is logic.T
-    assert logic.T.nand(1) is logic.F
+    assert logic.T.lnand(False) is logic.T
+    assert logic.T.lnand(True) is logic.F
+    assert logic.T.lnand(0) is logic.T
+    assert logic.T.lnand(1) is logic.F
 
 
 def test_and():
@@ -171,7 +171,7 @@ def test_and():
         x0 = char2logic[xs[0]]
         x1 = char2logic[xs[1]]
         y = char2logic[y]
-        assert x0.and_(x1) == y
+        assert x0.land(x1) == y
         assert (x0 & x1) == y
 
     assert logic.T & False is logic.F
@@ -209,13 +209,13 @@ def test_xnor():
         x0 = char2logic[xs[0]]
         x1 = char2logic[xs[1]]
         y = char2logic[y]
-        assert x0.xnor(x1) == y
+        assert x0.lxnor(x1) == y
         assert ~(x0 ^ x1) == y
 
-    assert logic.F.xnor(False) is logic.T
-    assert logic.F.xnor(True) is logic.F
-    assert logic.F.xnor(0) is logic.T
-    assert logic.F.xnor(1) is logic.F
+    assert logic.F.lxnor(False) is logic.T
+    assert logic.F.lxnor(True) is logic.F
+    assert logic.F.lxnor(0) is logic.T
+    assert logic.F.lxnor(1) is logic.F
 
 
 def test_xor():
@@ -242,7 +242,7 @@ def test_xor():
         x0 = char2logic[xs[0]]
         x1 = char2logic[xs[1]]
         y = char2logic[y]
-        assert x0.xor(x1) == y
+        assert x0.lxor(x1) == y
         assert (x0 ^ x1) == y
 
     assert logic.F ^ False is logic.F
@@ -280,10 +280,10 @@ def test_implies():
         p = char2logic[xs[0]]
         q = char2logic[xs[1]]
         y = char2logic[y]
-        assert p.implies(q) == y
-        assert (~p | q) == p.implies(q)
+        assert p.limplies(q) == y
+        assert (~p | q) == p.limplies(q)
 
-    assert logic.T.implies(False) is logic.F
-    assert logic.T.implies(True) is logic.T
-    assert logic.T.implies(0) is logic.F
-    assert logic.T.implies(1) is logic.T
+    assert logic.T.limplies(False) is logic.F
+    assert logic.T.limplies(True) is logic.T
+    assert logic.T.limplies(0) is logic.F
+    assert logic.T.limplies(1) is logic.T
