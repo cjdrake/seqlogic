@@ -18,7 +18,7 @@ def test_nor():
     """Test logicvec NOR function."""
     x0 = vec("16bxxxx_1111_0000_XXXX")
     x1 = vec("16bx10X_x10X_x10X_x10X")
-    assert str(x0.nor(x1)) == "vec(16bx0xX_000X_x01X_XXXX)"
+    assert str(x0.lnor(x1)) == "vec(16bx0xX_000X_x01X_XXXX)"
 
 
 def test_or():
@@ -32,7 +32,7 @@ def test_nand():
     """Test logicvec NAND function."""
     x0 = vec("16bxxxx_1111_0000_XXXX")
     x1 = vec("16bx10X_x10X_x10X_x10X")
-    assert str(x0.nand(x1)) == "vec(16bxx1X_x01X_111X_XXXX)"
+    assert str(x0.lnand(x1)) == "vec(16bxx1X_x01X_111X_XXXX)"
 
 
 def test_and():
@@ -46,7 +46,7 @@ def test_xnor():
     """Test logicvec XNOR function."""
     x0 = vec("16bxxxx_1111_0000_XXXX")
     x1 = vec("16bx10X_x10X_x10X_x10X")
-    assert str(x0.xnor(x1)) == "vec(16bxxxX_x10X_x01X_XXXX)"
+    assert str(x0.lxnor(x1)) == "vec(16bxxxX_x10X_x01X_XXXX)"
 
 
 def test_xor():
@@ -58,62 +58,62 @@ def test_xor():
 
 def test_uor():
     """Test logicvec unary OR method."""
-    assert vec("2bXX").uor() is logic.N
-    assert vec("2b0X").uor() is logic.N
-    assert vec("2b1X").uor() is logic.N
-    assert vec("2bxX").uor() is logic.N
-    assert vec("2bX0").uor() is logic.N
-    assert vec("2b00").uor() is logic.F
-    assert vec("2b10").uor() is logic.T
-    assert vec("2bx0").uor() is logic.X
-    assert vec("2bX1").uor() is logic.N
-    assert vec("2b01").uor() is logic.T
-    assert vec("2b11").uor() is logic.T
-    assert vec("2bx1").uor() is logic.T
-    assert vec("2bXx").uor() is logic.N
-    assert vec("2b0x").uor() is logic.X
-    assert vec("2b1x").uor() is logic.T
-    assert vec("2bxx").uor() is logic.X
+    assert vec("2bXX").ulor() is logic.N
+    assert vec("2b0X").ulor() is logic.N
+    assert vec("2b1X").ulor() is logic.N
+    assert vec("2bxX").ulor() is logic.N
+    assert vec("2bX0").ulor() is logic.N
+    assert vec("2b00").ulor() is logic.F
+    assert vec("2b10").ulor() is logic.T
+    assert vec("2bx0").ulor() is logic.X
+    assert vec("2bX1").ulor() is logic.N
+    assert vec("2b01").ulor() is logic.T
+    assert vec("2b11").ulor() is logic.T
+    assert vec("2bx1").ulor() is logic.T
+    assert vec("2bXx").ulor() is logic.N
+    assert vec("2b0x").ulor() is logic.X
+    assert vec("2b1x").ulor() is logic.T
+    assert vec("2bxx").ulor() is logic.X
 
 
 def test_uand():
     """Test logicvec unary and method."""
-    assert vec("2bXX").uand() is logic.N
-    assert vec("2b0X").uand() is logic.N
-    assert vec("2b1X").uand() is logic.N
-    assert vec("2bxX").uand() is logic.N
-    assert vec("2bX0").uand() is logic.N
-    assert vec("2b00").uand() is logic.F
-    assert vec("2b10").uand() is logic.F
-    assert vec("2bx0").uand() is logic.F
-    assert vec("2bX1").uand() is logic.N
-    assert vec("2b01").uand() is logic.F
-    assert vec("2b11").uand() is logic.T
-    assert vec("2bx1").uand() is logic.X
-    assert vec("2bXx").uand() is logic.N
-    assert vec("2b0x").uand() is logic.F
-    assert vec("2b1x").uand() is logic.X
-    assert vec("2bxx").uand() is logic.X
+    assert vec("2bXX").uland() is logic.N
+    assert vec("2b0X").uland() is logic.N
+    assert vec("2b1X").uland() is logic.N
+    assert vec("2bxX").uland() is logic.N
+    assert vec("2bX0").uland() is logic.N
+    assert vec("2b00").uland() is logic.F
+    assert vec("2b10").uland() is logic.F
+    assert vec("2bx0").uland() is logic.F
+    assert vec("2bX1").uland() is logic.N
+    assert vec("2b01").uland() is logic.F
+    assert vec("2b11").uland() is logic.T
+    assert vec("2bx1").uland() is logic.X
+    assert vec("2bXx").uland() is logic.N
+    assert vec("2b0x").uland() is logic.F
+    assert vec("2b1x").uland() is logic.X
+    assert vec("2bxx").uland() is logic.X
 
 
 def test_uxor():
     """Test logicvec unary xor method."""
-    assert vec("2bXX").uxor() is logic.N
-    assert vec("2b0X").uxor() is logic.N
-    assert vec("2b1X").uxor() is logic.N
-    assert vec("2bxX").uxor() is logic.N
-    assert vec("2bX0").uxor() is logic.N
-    assert vec("2b00").uxor() is logic.F
-    assert vec("2b10").uxor() is logic.T
-    assert vec("2bx0").uxor() is logic.X
-    assert vec("2bX1").uxor() is logic.N
-    assert vec("2b01").uxor() is logic.T
-    assert vec("2b11").uxor() is logic.F
-    assert vec("2bx1").uxor() is logic.X
-    assert vec("2bXx").uxor() is logic.N
-    assert vec("2b0x").uxor() is logic.X
-    assert vec("2b1x").uxor() is logic.X
-    assert vec("2bxx").uxor() is logic.X
+    assert vec("2bXX").ulxor() is logic.N
+    assert vec("2b0X").ulxor() is logic.N
+    assert vec("2b1X").ulxor() is logic.N
+    assert vec("2bxX").ulxor() is logic.N
+    assert vec("2bX0").ulxor() is logic.N
+    assert vec("2b00").ulxor() is logic.F
+    assert vec("2b10").ulxor() is logic.T
+    assert vec("2bx0").ulxor() is logic.X
+    assert vec("2bX1").ulxor() is logic.N
+    assert vec("2b01").ulxor() is logic.T
+    assert vec("2b11").ulxor() is logic.F
+    assert vec("2bx1").ulxor() is logic.X
+    assert vec("2bXx").ulxor() is logic.N
+    assert vec("2b0x").ulxor() is logic.X
+    assert vec("2b1x").ulxor() is logic.X
+    assert vec("2bxx").ulxor() is logic.X
 
 
 def test_zext():
@@ -295,15 +295,15 @@ def test_operand_shape_mismatch():
     x0 = vec("4b1010")
     x1 = vec("8b0101_0101")
     with pytest.raises(ValueError):
-        x0.nor(x1)
+        x0.lnor(x1)
     with pytest.raises(ValueError):
         x0 | x1
     with pytest.raises(ValueError):
-        x0.nand(x1)
+        x0.lnand(x1)
     with pytest.raises(ValueError):
         x0 & x1
     with pytest.raises(ValueError):
-        x0.xnor(x1)
+        x0.lxnor(x1)
     with pytest.raises(ValueError):
         x0 ^ x1
 
@@ -326,11 +326,11 @@ def test_parse_str_literal():
 
     # Valid input
     v = vec("4bx1_0X")
-    assert v.data == 0b11_10_01_00
+    assert v.pcs.bits == 0b11_10_01_00
     v = vec("64hFeDc_Ba98_7654_3210")
-    assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
+    assert v.pcs.bits == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
     v = vec("64hfEdC_bA98_7654_3210")
-    assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
+    assert v.pcs.bits == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
 
 
 def test_uint2vec():
@@ -368,10 +368,10 @@ def test_empty():
 
     # Test properties
     assert v.shape == (0,)
-    assert v.data == 0
+    assert v.pcs.bits == 0
     assert v.ndim == 1
     assert v.size == 0
-    assert v.nbits == 0
+    assert v.pcs.nbits == 0
     assert list(v.flat) == []  # pylint: disable = use-implicit-booleaness-not-comparison
 
     assert v.flatten() == v
@@ -408,10 +408,10 @@ def test_scalar():
 
     # Test properties
     assert v0.shape == (1,)
-    assert v0.data == logic.F.value
+    assert v0.pcs.bits == logic.F.value
     assert v0.ndim == 1
     assert v0.size == 1
-    assert v0.nbits == 2
+    assert v0.pcs.nbits == 2
     assert list(v0.flat) == [logic.F]
 
     assert v0.flatten() == v0
@@ -461,10 +461,10 @@ def test_rank1_str():
 
     # Test properties
     assert v.shape == (8,)
-    assert v.data == data
+    assert v.pcs.bits == data
     assert v.ndim == 1
     assert v.size == 8
-    assert v.nbits == 16
+    assert v.pcs.nbits == 16
     assert list(v.flat) == xs
 
     assert v.flatten() == v
@@ -517,10 +517,10 @@ def test_rank1_logic():
 
     # Test properties
     assert v1.shape == (4,)
-    assert v1.data == 0b11100100
+    assert v1.pcs.bits == 0b11100100
     assert v1.ndim == 1
     assert v1.size == 4
-    assert v1.nbits == 8
+    assert v1.pcs.nbits == 8
     assert list(v1.flat) == xs
 
     # Test __str__ and __repr__

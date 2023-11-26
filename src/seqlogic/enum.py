@@ -46,9 +46,7 @@ class Enum(metaclass=_EnumMeta):
         return obj
 
     def __init__(self, lit: str):
-        size, data = _parse_str_lit(lit)
-        # Invoke logicvec constructor
-        super().__init__((size,), data)
+        super().__init__(_parse_str_lit(lit))
         # Override string representation from base class
         self._name = self.__class__._lit2name[lit]
 

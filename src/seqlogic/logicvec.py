@@ -31,10 +31,13 @@ class logicvec:
     Use the factory functions instead.
     """
 
-    def __init__(self, shape: tuple[int, ...], data: int):
-        self._shape = shape
-        assert 0 <= data < (1 << self.nbits)
-        self._data = data
+    def __init__(self, pcs: PcList, shape: tuple[int, ...] | None = None):
+        self._pcs = pcs
+        if shape is None:
+            self._shape = (len(pcs),)
+        else:
+            assert math.prod(shape) == len(pcs)
+            self._shape = shape
 
     def __str__(self) -> str:
         indent = "     "
@@ -58,21 +61,21 @@ class logicvec:
     def __eq__(self, other) -> bool:
         match other:
             case logicvec():
-                return self._shape == other.shape and self._data == other.data
+                return self._pcs.bits == other.pcs.bits and self._shape == other.shape
             case _:
                 return False
 
     def __invert__(self) -> Self:
-        return self.not_()
+        return self.lnot()
 
     def __or__(self, other: Self) -> Self:
-        return self.or_(other)
+        return self.lor(other)
 
     def __and__(self, other: Self) -> Self:
-        return self.and_(other)
+        return self.land(other)
 
     def __xor__(self, other: Self) -> Self:
-        return self.xor(other)
+        return self.lxor(other)
 
     def __lshift__(self, n: int) -> Self:
         return self.lsh(n)[0]
@@ -94,27 +97,24 @@ class logicvec:
         for i, x in enumerate((~self).flat):
             s.append(x ^ c[i])
             c.append(x & c[i])
-        data = PcList(0)
-        for i, x in enumerate(s):
-            data = pcn.set_item(data, i, x.value)
-        return logicvec((self.size,), data)
+        return logicvec(pcn.from_pcitems(x.value for x in s))
+
+    @property
+    def pcs(self) -> PcList:
+        """Return logicvec data."""
+        return self._pcs
 
     @property
     def shape(self) -> tuple[int, ...]:
         """Return logicvec shape."""
         return self._shape
 
-    @property
-    def data(self) -> int:
-        """Return logicvec data."""
-        return self._data
-
     def reshape(self, shape: tuple[int, ...]) -> Self:
         """Return an equivalent logic_vector with modified shape."""
         if math.prod(shape) != self.size:
             s = f"Expected shape with size {self.size}, got {shape}"
             raise ValueError(s)
-        return logicvec(shape, self._data)
+        return logicvec(self._pcs, shape)
 
     @cached_property
     def ndim(self) -> int:
@@ -124,194 +124,68 @@ class logicvec:
     @cached_property
     def size(self) -> int:
         """Number of elements in the vector."""
-        return math.prod(self._shape)
-
-    @cached_property
-    def nbits(self) -> int:
-        """Number of bits of data."""
-        return self.size << 1
+        return len(self._pcs)
 
     @property
     def flat(self) -> Generator[logic, None, None]:
         """Return a flat iterator to the logic items."""
-        for i in range(self.size):
-            yield logic(pcn.get_item(self._data, i))
+        for pcitem in self._pcs:
+            yield logic(pcitem)
 
     def flatten(self) -> Self:
         """Return a vector with equal data, flattened to 1D shape."""
-        return logicvec((self.size,), self._data)
-
-    def not_(self) -> Self:
-        """Return output of NOT function."""
-        x_0 = self._bits(0)
-        x_01 = x_0 << 1
-        x_1 = self._bits(1)
-        x_10 = x_1 >> 1
-
-        y0 = x_10
-        y1 = x_01
-
-        return logicvec(self._shape, y0 | y1)
+        return logicvec(self._pcs)
 
     def _check_shape(self, other: Self):
         if self._shape != other.shape:
             s = f"Expected shape {self._shape}, got {other.shape}"
             raise ValueError(s)
 
-    def nor(self, other: Self) -> Self:
-        """Return output of NOR function.
+    def lnot(self) -> Self:
+        """Return output of "lifted" NOT function."""
+        return logicvec(self._pcs.lnot())
 
-        y1 = x0[0] & x1[0]
-        y0 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
-        """
+    def lnor(self, other: Self) -> Self:
+        """Return output of "lifted" NOR function."""
         self._check_shape(other)
+        return logicvec(self._pcs.lnor(other.pcs))
 
-        x0_0 = self._bits(0)
-        x0_01 = x0_0 << 1
-        x0_1 = self._bits(1)
-        x0_10 = x0_1 >> 1
-
-        x1_0 = other._bits(0)
-        x1_01 = x1_0 << 1
-        x1_1 = other._bits(1)
-        x1_10 = x1_1 >> 1
-
-        y0 = x0_0 & x1_10 | x0_10 & x1_0 | x0_10 & x1_10
-        y1 = x0_01 & x1_01
-
-        return logicvec(self._shape, y0 | y1)
-
-    def or_(self, other: Self) -> Self:
-        """Return output of OR function.
-
-        y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
-        y0 = x0[0] & x1[0]
-        """
+    def lor(self, other: Self) -> Self:
+        """Return output of "lifted" OR function."""
         self._check_shape(other)
+        return logicvec(self._pcs.lor(other.pcs))
 
-        x0_0 = self._bits(0)
-        x0_01 = x0_0 << 1
-        x0_1 = self._bits(1)
+    def ulor(self) -> logic:
+        """Return unary "lifted" OR of bits."""
+        return logic(self._pcs.ulor())
 
-        x1_0 = other._bits(0)
-        x1_01 = x1_0 << 1
-        x1_1 = other._bits(1)
-
-        y0 = x0_0 & x1_0
-        y1 = x0_01 & x1_1 | x0_1 & x1_01 | x0_1 & x1_1
-
-        return logicvec(self._shape, y0 | y1)
-
-    def uor(self) -> logic:
-        """Return unary OR of bits."""
-        y = logic.F
-        for x in self.flat:
-            y |= x
-        return y
-
-    def nand(self, other: Self) -> Self:
-        """Return output of NAND function.
-
-        y1 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
-        y0 = x0[1] & x1[1]
-        """
+    def lnand(self, other: Self) -> Self:
+        """Return output of "lifted" NAND function."""
         self._check_shape(other)
+        return logicvec(self._pcs.lnand(other.pcs))
 
-        x0_0 = self._bits(0)
-        x0_01 = x0_0 << 1
-        x0_1 = self._bits(1)
-        x0_10 = x0_1 >> 1
-
-        x1_0 = other._bits(0)
-        x1_01 = x1_0 << 1
-        x1_1 = other._bits(1)
-        x1_10 = x1_1 >> 1
-
-        y0 = x0_10 & x1_10
-        y1 = x0_01 & x1_01 | x0_01 & x1_1 | x0_1 & x1_01
-
-        return logicvec(self._shape, y0 | y1)
-
-    def and_(self, other: Self) -> Self:
-        """Return output of AND function.
-
-        y1 = x0[1] & x1[1]
-        y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
-        """
+    def land(self, other: Self) -> Self:
+        """Return output of "lifted" AND function."""
         self._check_shape(other)
+        return logicvec(self._pcs.land(other.pcs))
 
-        x0_0 = self._bits(0)
-        x0_1 = self._bits(1)
-        x0_10 = x0_1 >> 1
+    def uland(self) -> logic:
+        """Return unary "lifted" AND of bits."""
+        return logic(self._pcs.uland())
 
-        x1_0 = other._bits(0)
-        x1_1 = other._bits(1)
-        x1_10 = x1_1 >> 1
-
-        y0 = x0_0 & x1_0 | x0_0 & x1_10 | x0_10 & x1_0
-        y1 = x0_1 & x1_1
-
-        return logicvec(self._shape, y0 | y1)
-
-    def uand(self) -> logic:
-        """Return unary AND of bits."""
-        y = logic.T
-        for x in self.flat:
-            y &= x
-        return y
-
-    def xnor(self, other: Self) -> Self:
-        """Return output of XNOR function.
-
-        y1 = x0[0] & x1[0] | x0[1] & x1[1]
-        y0 = x0[0] & x1[1] | x0[1] & x1[0]
-        """
+    def lxnor(self, other: Self) -> Self:
+        """Return output of "lifted" XNOR function."""
         self._check_shape(other)
+        return logicvec(self._pcs.lxnor(other.pcs))
 
-        x0_0 = self._bits(0)
-        x0_01 = x0_0 << 1
-        x0_1 = self._bits(1)
-        x0_10 = x0_1 >> 1
-
-        x1_0 = other._bits(0)
-        x1_01 = x1_0 << 1
-        x1_1 = other._bits(1)
-        x1_10 = x1_1 >> 1
-
-        y0 = x0_0 & x1_10 | x0_10 & x1_0
-        y1 = x0_01 & x1_01 | x0_1 & x1_1
-
-        return logicvec(self._shape, y0 | y1)
-
-    def xor(self, other: Self) -> Self:
-        """Return output of XOR function.
-
-        y1 = x0[0] & x1[1] | x0[1] & x1[0]
-        y0 = x0[0] & x1[0] | x0[1] & x1[1]
-        """
+    def lxor(self, other: Self) -> Self:
+        """Return output of "lifted" XOR function."""
         self._check_shape(other)
+        return logicvec(self._pcs.lxor(other.pcs))
 
-        x0_0 = self._bits(0)
-        x0_01 = x0_0 << 1
-        x0_1 = self._bits(1)
-        x0_10 = x0_1 >> 1
-
-        x1_0 = other._bits(0)
-        x1_01 = x1_0 << 1
-        x1_1 = other._bits(1)
-        x1_10 = x1_1 >> 1
-
-        y0 = x0_0 & x1_0 | x0_10 & x1_10
-        y1 = x0_01 & x1_1 | x0_1 & x1_01
-
-        return logicvec(self._shape, y0 | y1)
-
-    def uxor(self) -> logic:
-        """Return unary XOR of bits."""
-        y = logic.F
-        for x in self.flat:
-            y ^= x
-        return y
+    def ulxor(self) -> logic:
+        """Return unary "lifted" XOR of bits."""
+        return logic(self._pcs.ulxor())
 
     def to_uint(self) -> int:
         """Convert vector to unsigned integer."""
@@ -330,9 +204,9 @@ class logicvec:
         """Convert vector to signed integer."""
         if self._shape == (0,):
             return 0
-        sign = logic(pcn.get_item(self._data, self.size - 1))
+        sign = logic(self._pcs[-1])
         if sign is logic.T:
-            return -(self.not_().to_uint() + 1)
+            return -(self.lnot().to_uint() + 1)
         return self.to_uint()
 
     def zext(self, n: int) -> Self:
@@ -355,7 +229,8 @@ class logicvec:
         v = self
         if self.ndim != 1:
             v = self.flatten()
-        return cat([v, rep(v[-1], n)], flatten=True)
+        sign = v[-1]
+        return cat([v, rep(sign, n)], flatten=True)
 
     def lsh(self, n: int, ci: Self | None = None) -> tuple[Self, Self]:
         """Return vector left shifted by n bits.
@@ -408,7 +283,8 @@ class logicvec:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
             return v, _empty
-        return cat([v[n:], rep(v[-1], n)], flatten=True), v[:n]
+        sign = v[-1]
+        return cat([v[n:], rep(sign, n)], flatten=True), v[:n]
 
     def add(self, other: Self, ci: object) -> tuple[Self, logic, logic]:
         """Return the sum of two vectors, carry out, and overflow.
@@ -427,11 +303,8 @@ class logicvec:
             s.append(a ^ b ^ c[i])
             c.append(a & b | a & c[i] | b & c[i])
         co = c[-1]
-        v = c[-2] ^ c[-1] if self.size else logic.F
-        data = PcList(0)
-        for i, x in enumerate(s):
-            data = pcn.set_item(data, i, x.value)
-        return logicvec((self.size,), data), co, v
+        ovf = c[-2] ^ c[-1] if self.size else logic.F
+        return logicvec(pcn.from_pcitems(x.value for x in s)), co, ovf
 
     def countbits(self, ctl: Collection[logic]) -> int:
         """Return the number of bits in the ctl set."""
@@ -459,10 +332,10 @@ class logicvec:
     def _to_lit(self) -> str:
         prefix = f"{self.size}b"
         chars = []
-        for i in range(self.size):
+        for i, x in enumerate(self.flat):
             if i % 4 == 0 and i != 0:
                 chars.append("_")
-            chars.append(str(logic(pcn.get_item(self._data, i))))
+            chars.append(str(x))
         return prefix + "".join(reversed(chars))
 
     def _str(self, indent: str) -> str:
@@ -472,7 +345,7 @@ class logicvec:
             return "[]"
         # Scalar
         if self._shape == (1,):
-            return f"[{logic(self._data)}]"
+            return f"[{logic(self._pcs[0])}]"
         # 1D Vector
         if self.ndim == 1:
             return self._to_lit()
@@ -485,31 +358,6 @@ class logicvec:
         else:
             sep = ",\n\n" + indent
         return "[" + sep.join(v._str(indent + " ") for v in self) + "]"
-
-    @cached_property
-    def _data_mask(self) -> tuple[PcList, PcList]:
-        """Return PC zero/one mask.
-
-        The zero mask is: 0b01010101...
-        The one mask is:  0b10101010...
-
-        N
-        1          01 =  1 = (  4-1)/3
-        2        0101 =  5 = ( 16-1)/3
-        3      010101 = 21 = ( 64-1)/3
-        4    01010101 = 85 = (256-1)/3
-        ...
-
-        F(0) = 1
-        F(n+1) = 4*F(n) + 1
-        F(n) = (4^n - 1) / 3
-        """
-        zero_mask = pcn.zeros(self.size)
-        one_mask = PcList(zero_mask << 1)
-        return (zero_mask, one_mask)
-
-    def _bits(self, n: int) -> PcList:
-        return PcList(self._data & self._data_mask[n])
 
     def _norm_index(self, index: int, i: int) -> int:
         lo, hi = -self._shape[i], self._shape[i]
@@ -576,31 +424,26 @@ class logicvec:
         return tuple(lnkey)
 
 
-def _parse_str_lit(lit: str) -> tuple[int, PcList]:
+def _parse_str_lit(lit: str) -> PcList:
     if m := _NUM_RE.match(lit):
         # Binary
         if m.group("BinSize"):
             size = int(m.group("BinSize"))
             digits = m.group("BinDigits").replace("_", "")
-            num_digits = len(digits)
-            if num_digits != size:
-                raise ValueError(f"Expected {size} digits, got {num_digits}")
-            data = PcList(0)
-            for i, digit in enumerate(reversed(digits)):
-                data = pcn.set_item(data, i, pcn.from_char[digit])
-            return size, data
+            ndigits = len(digits)
+            if ndigits != size:
+                s = f"Expected {size} digits, got {ndigits}"
+                raise ValueError(s)
+            return pcn.from_pcitems(pcn.from_char[c] for c in reversed(digits))
         # Hexadecimal
         elif m.group("HexSize"):
             size = int(m.group("HexSize"))
             digits = m.group("HexDigits").replace("_", "")
-            num_digits = len(digits)
-            if 4 * num_digits != size:
-                s = f"Expected size to match # digits, got {size} ≠ {4 * num_digits}"
+            ndigits = len(digits)
+            if 4 * ndigits != size:
+                s = f"Expected size to match # digits, got {size} ≠ {4 * ndigits}"
                 raise ValueError(s)
-            data = PcList(0)
-            for i, digit in enumerate(reversed(digits)):
-                data = pcn.set_byte(data, i, pcn.from_hexchar[digit])
-            return size, data
+            return pcn.from_quads(pcn.from_hexchar[c] for c in reversed(digits))
         else:  # pragma: no cover
             assert False
     else:
@@ -608,37 +451,38 @@ def _parse_str_lit(lit: str) -> tuple[int, PcList]:
 
 
 def _rank1(fst: logic, rst) -> logicvec:
-    shape = (len(rst) + 1,)
-    data = pcn.set_item(PcList(0), 0, fst.value)
-    for i, x in enumerate(rst, start=1):
+    pcitems = [fst.value]
+    for x in rst:
         match x:
             case logic():
-                data = pcn.set_item(data, i, x.value)
+                pcitems.append(x.value)
             case 0 | 1:
-                data = pcn.set_item(data, i, pcn.from_int[x])
+                pcitems.append(pcn.from_int[x])
             case _:
                 raise TypeError("Expected item to be logic, or in (0, 1)")
-    return logicvec(shape, data)
+    return logicvec(pcn.from_pcitems(pcitems))
 
 
 def _rank2(fst: logicvec, rst) -> logicvec:
     shape = (len(rst) + 1,) + fst.shape
-    data = fst.data
+    size = len(fst.pcs)
+    bits = fst.pcs.bits
     for i, v in enumerate(rst, start=1):
         match v:
             case str() as lit:
-                size, d = _parse_str_lit(lit)
-                if size != fst.size:
-                    s = f"Expected str literal to have size {fst.size}, got {size}"
+                pcs = _parse_str_lit(lit)
+                if len(pcs) != fst.size:
+                    s = f"Expected str literal to have size {fst.size}, got {len(pcs)}"
                     raise TypeError(s)
-                data |= d << (fst.nbits * i)
+                bits |= pcs.bits << (fst.pcs.nbits * i)
             case logicvec() if v.shape == fst.shape:
-                data |= v.data << (fst.nbits * i)
+                bits |= v.pcs.bits << (fst.pcs.nbits * i)
             case _:
                 s = ",".join(str(dim) for dim in fst.shape)
                 s = f"Expected item to be str or logicvec[{s}]"
                 raise TypeError(s)
-    return logicvec(shape, data)
+        size += len(fst.pcs)
+    return logicvec(PcList(size, bits), shape)
 
 
 def vec(obj=None) -> logicvec:
@@ -649,14 +493,13 @@ def vec(obj=None) -> logicvec:
             return _empty
         # Rank 0 Logic
         case logic() as x:
-            return logicvec((1,), x.value)
+            return logicvec(pcn.from_pcitems([x.value]))
         # Rank 0 int
         case 0 | 1 as x:
-            return logicvec((1,), pcn.from_int[x])
+            return logicvec(pcn.from_pcitems([pcn.from_int[x]]))
         # Rank 1 str
         case str() as lit:
-            size, data = _parse_str_lit(lit)
-            return logicvec((size,), data)
+            return logicvec(_parse_str_lit(lit))
         # Rank 1 [logic(), ...]
         case [logic() as x, *rst]:
             return _rank1(x, rst)
@@ -665,8 +508,7 @@ def vec(obj=None) -> logicvec:
             return _rank1(logic(pcn.from_int[x]), rst)
         # Rank 2 str
         case [str() as lit, *rst]:
-            size, data = _parse_str_lit(lit)
-            return _rank2(logicvec((size,), data), rst)
+            return _rank2(logicvec(_parse_str_lit(lit)), rst)
         # Rank 2 logic_vector
         case [logicvec() as v, *rst]:
             return _rank2(v, rst)
@@ -683,27 +525,27 @@ def uint2vec(num: int, size: int | None = None) -> logicvec:
     if num < 0:
         raise ValueError(f"Expected num ≥ 0, got {num}")
 
+    pcitems = []
     if num == 0:
         index = 1
-        data = pcn.set_item(PcList(0), 0, pcn.ZERO)
+        pcitems.append(pcn.ZERO)
     else:
         index = 0
-        data = PcList(0)
         while num:
-            data = pcn.set_item(data, index, pcn.from_int[num & 1])
+            pcitems.append(pcn.from_int[num & 1])
             index += 1
             num >>= 1
 
-    if size is not None:
+    if size is None:
+        size = index
+    else:
         if size < index:
             s = f"Overflow: num = {num} requires length ≥ {index}, got {size}"
             raise ValueError(s)
-        for i in range(index, size):
-            data = pcn.set_item(data, i, pcn.ZERO)
-    else:
-        size = index
+        for _ in range(index, size):
+            pcitems.append(pcn.ZERO)
 
-    return logicvec((size,), data)
+    return logicvec(pcn.from_pcitems(pcitems))
 
 
 def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
@@ -717,9 +559,9 @@ def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
     for obj in objs:
         match obj:
             case logic() as x:
-                vs.append(logicvec((1,), x.value))
+                vs.append(logicvec(pcn.from_pcitems([x.value])))
             case 0 | 1 as x:
-                vs.append(logicvec((1,), pcn.from_int[x]))
+                vs.append(logicvec(pcn.from_pcitems([pcn.from_int[x]])))
             case logicvec() as v:
                 vs.append(v)
             case _:
@@ -732,7 +574,8 @@ def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
     scalar = fst.shape == (1,)
     regular = True
     dims = [fst.shape[0]]
-    data = fst.data
+    size = len(fst.pcs)
+    bits = fst.pcs.bits
 
     for i, v in enumerate(rst, start=1):
         if v.shape[0] != fst.shape[0]:
@@ -741,14 +584,15 @@ def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
             s = f"Expected shape {fst.shape[1:]}, got {v.shape[1:]}"
             raise ValueError(s)
         dims.append(v.shape[0])
-        data |= v.data << (fst.nbits * i)
+        size += len(v.pcs)
+        bits |= v.pcs.bits << (fst.pcs.nbits * i)
 
     if not scalar and regular and not flatten:
         shape = (len(dims),) + fst.shape
     else:
         shape = (sum(dims),) + fst.shape[1:]
 
-    return logicvec(shape, data)
+    return logicvec(PcList(size, bits), shape)
 
 
 def rep(v: _Logic, n: int, flatten: bool = False) -> logicvec:
@@ -760,36 +604,35 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
     assert 0 <= v.ndim == len(key)
 
     shape = v.shape[1:]
-    nbits = math.prod(shape) << 1
+    num = math.prod(shape)
+    nbits = 2 * num
     mask = (1 << nbits) - 1
 
-    def f(data: int, n: int) -> int:
-        return (data >> (nbits * n)) & mask
+    def f(bits: int, n: int) -> int:
+        return (bits >> (nbits * n)) & mask
 
     match key[0]:
         case int() as index:
-            d = f(v.data, index)
+            bits = f(v.pcs.bits, index)
             if shape:
-                return _sel(logicvec(shape, d), key[1:])
-            return logic(d)
+                return _sel(logicvec(PcList(num, bits), shape), key[1:])
+            return logic(bits)
         case slice() as sl:
-            ds = [f(v.data, i) for i in range(sl.start, sl.stop, sl.step)]
+            filt = [f(v.pcs.bits, i) for i in range(sl.start, sl.stop, sl.step)]
             if shape:
-                return cat([_sel(logicvec(shape, d), key[1:]) for d in ds])
-            return cat([logic(d) for d in ds])
+                return cat([_sel(logicvec(PcList(num, bits), shape), key[1:]) for bits in filt])
+            return cat([logic(bits) for bits in filt])
         case _:  # pragma: no cover
             assert False
 
 
 # The empty vector is a singleton
-_empty = logicvec((0,), 0)
+_empty = logicvec(pcn.from_pcitems())
 
 
 def _consts(shape: tuple[int, ...], x: PcItem) -> logicvec:
-    data = PcList(0)
-    for i in range(math.prod(shape)):
-        data = pcn.set_item(data, i, x)
-    return logicvec(shape, data)
+    num = math.prod(shape)
+    return logicvec(pcn.from_pcitems([x] * num), shape)
 
 
 def nulls(shape: tuple[int, ...]) -> logicvec:
