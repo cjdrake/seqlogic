@@ -147,7 +147,7 @@ def test_lsh():
 
     assert v.lsh(2, vec("2b00")) == (vec("4b1100"), vec("2b11"))
     with pytest.raises(ValueError):
-        assert v.lsh(2, vec("3b000"))
+        assert v.lsh(2, vec("3b000"))  # pyright: ignore[reportAssertAlwaysTrue]
 
     assert vec(["4b0000", "4b1111"]).lsh(2) == (vec("8b1100_0000"), vec("2b11"))
 
@@ -168,7 +168,7 @@ def test_rsh():
 
     assert v.rsh(2, vec("2b00")) == (vec("4b0011"), vec("2b11"))
     with pytest.raises(ValueError):
-        assert v.rsh(2, vec("3b000"))
+        assert v.rsh(2, vec("3b000"))  # pyright: ignore[reportAssertAlwaysTrue]
 
     assert vec(["4b0000", "4b1111"]).rsh(2) == (vec("8b0011_1100"), vec("2b00"))
 
@@ -297,15 +297,15 @@ def test_operand_shape_mismatch():
     with pytest.raises(ValueError):
         x0.lnor(x1)
     with pytest.raises(ValueError):
-        x0 | x1
+        x0 | x1  # pyright: ignore[reportUnusedExpression]
     with pytest.raises(ValueError):
         x0.lnand(x1)
     with pytest.raises(ValueError):
-        x0 & x1
+        x0 & x1  # pyright: ignore[reportUnusedExpression]
     with pytest.raises(ValueError):
         x0.lxnor(x1)
     with pytest.raises(ValueError):
-        x0 ^ x1
+        x0 ^ x1  # pyright: ignore[reportUnusedExpression]
 
 
 def test_parse_str_literal():
@@ -609,7 +609,7 @@ def test_cat():
     assert cat([False, True, False, True]) == vec("4b1010")
 
     with pytest.raises(TypeError):
-        cat(["invalid"])
+        cat(["invalid"])  # pyright: ignore[reportGeneralTypeIssues]
 
     v = cat([vec("2b00"), vec("2b01"), vec("2b10"), vec("2b11")], flatten=True)
     assert v == vec("8b11100100")
@@ -663,7 +663,7 @@ def test_slicing():
     with pytest.raises(IndexError):
         v[-5]
     with pytest.raises(TypeError):
-        v["invalid"]
+        v["invalid"]  # pyright: ignore[reportGeneralTypeIssues]
 
     assert v == v[:]
     assert v == v[0:4]
@@ -713,7 +713,7 @@ def test_slicing():
     with pytest.raises(ValueError):
         v[0, 0, 0, 0]
     with pytest.raises(TypeError):
-        v["invalid"]
+        v["invalid"]  # pyright: ignore[reportGeneralTypeIssues]
 
 
 def test_countbits():

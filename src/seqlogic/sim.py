@@ -16,16 +16,13 @@ from typing import NewType, TypeAlias
 import networkx as nx
 
 _Event: TypeAlias = Callable[[], bool]
-_Task: TypeAlias = Coroutine
-_Proc: TypeAlias = Callable[[], _Task]
 
-_Region = NewType("Region", int)
-_Time = NewType("Time", int)
+Region = NewType("Region", int)
 
 
-_INIT_TIME = _Time(-1)
-_INIT_REGION = _Region(-1)
-_START_TIME = _Time(0)
+_INIT_TIME = -1
+_INIT_REGION = Region(-1)
+_START_TIME = 0
 
 
 class State(Enum):
@@ -74,7 +71,7 @@ class SimVar:
         self._state = State.INVALID
 
 
-_SimQueueItem = tuple[_Time, _Region, _Task, SimVar | None]
+_SimQueueItem = tuple[int, Region, Coroutine, SimVar | None]
 
 
 class _SimQueue:
@@ -93,7 +90,7 @@ class _SimQueue:
         self._items.clear()
         self._index = 0
 
-    def push(self, time: _Time, region: _Region, task: _Task, var: SimVar | None):
+    def push(self, time: int, region: Region, task: Coroutine, var: SimVar | None):
         heapq.heappush(self._items, (time, region, self._index, task, var))
         self._index += 1
 
@@ -131,13 +128,13 @@ class Sim:
     def __init__(self):
         self._started: bool = False
         # Simulation time
-        self._time: _Time = _INIT_TIME
-        self._region: _Region = _INIT_REGION
+        self._time: int = _INIT_TIME
+        self._region: Region = _INIT_REGION
         # Task queue
         self._queue = _SimQueue()
         # Currently executing task
-        self._task: _Task | None = None
-        self._task_region: dict[_Task, _Region] = {}
+        self._task: Coroutine | None = None
+        self._task_region: dict[Coroutine, Region] = {}
         # Dynamic event dependencies
         self._deps = nx.DiGraph()
         # Postponed actions
@@ -165,29 +162,29 @@ class Sim:
         self._procs.clear()
         self._task_region.clear()
 
-    def time(self) -> _Time:
+    def time(self) -> int:
         return self._time
 
-    def task(self) -> _Task:
+    def task(self) -> Coroutine:
         assert self._task is not None
         return self._task
 
-    def call_soon(self, task: _Task, var: SimVar | None = None):
+    def call_soon(self, task: Coroutine, var: SimVar | None = None):
         """Schedule the task in the current timeslot."""
         region = self._task_region[task]
         self._queue.push(self._time, region, task, var)
 
-    def call_later(self, delay: _Time, task: _Task):
+    def call_later(self, delay: int, task: Coroutine):
         """Schedule the task after a relative delay."""
         region = self._task_region[task]
-        self._queue.push(_Time(self._time + delay), region, task, None)
+        self._queue.push(self._time + delay, region, task, None)
 
-    def call_at(self, when: _Time, task: _Task):
+    def call_at(self, when: int, task: Coroutine):
         """Schedule the task for an absolute timeslot."""
         region = self._task_region[task]
         self._queue.push(when, region, task, None)
 
-    def add_proc(self, proc: _Proc, region: _Region, *args, **kwargs):
+    def add_proc(self, proc, region: Region, *args, **kwargs):
         """Add a process to run at start of simulation."""
         self._procs.append((proc, region, args, kwargs))
 
@@ -216,7 +213,7 @@ class Sim:
         # Add variable to update set
         self._valid_vars.add(var)
 
-    def _limit(self, ticks: _Time | None, until: _Time | None) -> _Time | None:
+    def _limit(self, ticks: int | None, until: int | None) -> int | None:
         """Determine the run limit."""
         match ticks, until:
             # Run until no tasks left
@@ -227,7 +224,7 @@ class Sim:
                 return until
             # Run until a number of ticks in the future
             case int(), None:
-                return _Time(max(_START_TIME, self._time) + ticks)
+                return max(_START_TIME, self._time) + ticks
             case _:
                 s = "Expected either ticks or until to be int | None"
                 raise TypeError(s)
@@ -239,7 +236,7 @@ class Sim:
             self.call_at(_START_TIME, task)
         self._started = True
 
-    def run(self, ticks: _Time | None = None, until: _Time | None = None):
+    def run(self, ticks: int | None = None, until: int | None = None):
         """Run the simulation.
 
         Until:
@@ -288,7 +285,7 @@ class Sim:
 _sim = Sim()
 
 
-async def sleep(delay: _Time):
+async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
     _sim.call_later(delay, _sim.task())
     await _SimAwaitable()

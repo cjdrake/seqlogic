@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import pytest
 
-from seqlogic.sim import SimVar, get_loop, notify, sleep
+from seqlogic.sim import Region, SimVar, get_loop, notify, sleep
 
 loop = get_loop()
 waves = defaultdict(dict)
@@ -26,7 +26,8 @@ class TraceVar(SimVar):
             waves_add(self._sim.time(), self, self._next)
         super().update()
 
-    def edge(self):
+    def edge(self) -> bool:
+        assert self._value is not None and self._next is not None
         return not self._value and self._next or self._value and not self._next
 
 
@@ -46,11 +47,11 @@ def test_hello(capsys):
         await sleep(2)
         print(f"[{loop.time()}] World")
 
-    loop.add_proc(hello, 0)
+    loop.add_proc(hello, Region(0))
 
     # Invalid run limit
     with pytest.raises(TypeError):
-        loop.run("Invalid argument type")
+        loop.run("Invalid argument type")  # pyright: ignore[reportGeneralTypeIssues]
 
     # Run until no events left
     loop.run()
@@ -91,9 +92,9 @@ def test_vars():
                 c.next = not c.value
             i += 1
 
-    loop.add_proc(run_a, 1)
-    loop.add_proc(run_b, 0)
-    loop.add_proc(run_c, 0)
+    loop.add_proc(run_a, Region(1))
+    loop.add_proc(run_b, Region(0))
+    loop.add_proc(run_c, Region(0))
 
     # Event loop not started yet
     assert not loop.started

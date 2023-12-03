@@ -3,7 +3,7 @@
 
 from seqlogic.logic import logic
 from seqlogic.logicvec import cat, logicvec, vec
-from seqlogic.sim import get_loop
+from seqlogic.sim import Region, get_loop
 
 from .common import TraceVar, TraceVec, clock_drv, dff_arn_drv, reset_drv, waves
 
@@ -28,12 +28,14 @@ def test_lfsr():
     clock = TraceVar()
 
     # Schedule LFSR
-    loop.add_proc(dff_arn_drv, 0, q, d, reset_n, reset_value, clock)
+    loop.add_proc(dff_arn_drv, Region(0), q, d, reset_n, reset_value, clock)
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(reset_drv, 1, reset_n, init=logic.T, phase1_ticks=6, phase2_ticks=10)
-    loop.add_proc(clock_drv, 1, clock, init=logic.F, shift_ticks=5, phase1_ticks=5, phase2_ticks=5)
+    loop.add_proc(reset_drv, Region(1), reset_n, init=logic.T, phase1_ticks=6, phase2_ticks=10)
+    loop.add_proc(
+        clock_drv, Region(1), clock, init=logic.F, shift_ticks=5, phase1_ticks=5, phase2_ticks=5
+    )
 
     loop.run(until=100)
 

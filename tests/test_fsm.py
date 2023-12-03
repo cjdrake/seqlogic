@@ -5,7 +5,7 @@ Demonstrate usage of an enum.
 
 from seqlogic.enum import Enum
 from seqlogic.logic import logic
-from seqlogic.sim import SimVar, get_loop, notify
+from seqlogic.sim import Region, SimVar, get_loop, notify
 
 from .common import TraceVar, clock_drv, dff_arn_drv, reset_drv, waves
 
@@ -104,15 +104,17 @@ def test_fsm():
     clock = TraceVar()
 
     # Schedule input
-    loop.add_proc(_input_drv, 0, x, reset_n, clock)
+    loop.add_proc(_input_drv, Region(0), x, reset_n, clock)
 
     # Schedule LFSR
-    loop.add_proc(dff_arn_drv, 0, ps, ns, reset_n, reset_value, clock)
+    loop.add_proc(dff_arn_drv, Region(0), ps, ns, reset_n, reset_value, clock)
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(reset_drv, 1, reset_n, init=logic.T, phase1_ticks=6, phase2_ticks=10)
-    loop.add_proc(clock_drv, 1, clock, init=logic.F, shift_ticks=5, phase1_ticks=5, phase2_ticks=5)
+    loop.add_proc(reset_drv, Region(1), reset_n, init=logic.T, phase1_ticks=6, phase2_ticks=10)
+    loop.add_proc(
+        clock_drv, Region(1), clock, init=logic.F, shift_ticks=5, phase1_ticks=5, phase2_ticks=5
+    )
 
     loop.run(until=100)
 

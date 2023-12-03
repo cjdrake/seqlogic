@@ -41,7 +41,7 @@ def test_enum_error():
         class InvalidType(Enum):
             FOO = 42
 
-        _ = InvalidType()
+        _ = InvalidType()  # pyright: ignore[reportGeneralTypeIssues]
 
     with pytest.raises(ValueError):
         _ = Color("2b11")

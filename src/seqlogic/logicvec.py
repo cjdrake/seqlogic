@@ -454,10 +454,10 @@ def _rank1(fst: logic, rst) -> logicvec:
     pcitems = [fst.value]
     for x in rst:
         match x:
-            case logic():
-                pcitems.append(x.value)
             case 0 | 1:
                 pcitems.append(pcn.from_int[x])
+            case logic():
+                pcitems.append(x.value)
             case _:
                 raise TypeError("Expected item to be logic, or in (0, 1)")
     return logicvec(pcn.from_pcitems(pcitems))
@@ -491,21 +491,21 @@ def vec(obj=None) -> logicvec:
         # Empty
         case None:
             return _empty
-        # Rank 0 Logic
-        case logic() as x:
-            return logicvec(pcn.from_pcitems([x.value]))
         # Rank 0 int
         case 0 | 1 as x:
             return logicvec(pcn.from_pcitems([pcn.from_int[x]]))
+        # Rank 0 Logic
+        case logic() as x:
+            return logicvec(pcn.from_pcitems([x.value]))
         # Rank 1 str
         case str() as lit:
             return logicvec(_parse_str_lit(lit))
-        # Rank 1 [logic(), ...]
-        case [logic() as x, *rst]:
-            return _rank1(x, rst)
         # Rank 1 [0 | 1, ...]
         case [0 | 1 as x, *rst]:
             return _rank1(logic(pcn.from_int[x]), rst)
+        # Rank 1 [logic(), ...]
+        case [logic() as x, *rst]:
+            return _rank1(x, rst)
         # Rank 2 str
         case [str() as lit, *rst]:
             return _rank2(logicvec(_parse_str_lit(lit)), rst)
@@ -548,7 +548,7 @@ def uint2vec(num: int, size: int | None = None) -> logicvec:
     return logicvec(pcn.from_pcitems(pcitems))
 
 
-def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
+def cat(objs: Collection[int | _Logic], flatten: bool = False) -> logicvec:
     """Join a sequence of logicvecs."""
     # Empty
     if len(objs) == 0:
@@ -558,10 +558,10 @@ def cat(objs: Collection[_Logic], flatten: bool = False) -> logicvec:
     vs: list[logicvec] = []
     for obj in objs:
         match obj:
-            case logic() as x:
-                vs.append(logicvec(pcn.from_pcitems([x.value])))
             case 0 | 1 as x:
                 vs.append(logicvec(pcn.from_pcitems([pcn.from_int[x]])))
+            case logic() as x:
+                vs.append(logicvec(pcn.from_pcitems([x.value])))
             case logicvec() as v:
                 vs.append(v)
             case _:
