@@ -34,6 +34,7 @@ class Enum(metaclass=_EnumMeta):
     """Enum Base Class: Create enums."""
 
     def __new__(cls, lit: str):
+        """TODO(cjdrake): Write docstring."""
         if lit not in cls._lit2name:
             valid = ", ".join(cls._lit2name)
             s = f"Expected literal in {{{valid}}}, got {lit}"
@@ -46,6 +47,7 @@ class Enum(metaclass=_EnumMeta):
         return obj
 
     def __init__(self, lit: str):
+        """TODO(cjdrake): Write docstring."""
         super().__init__(_parse_str_lit(lit))
         # Override string representation from base class
         self._name = self.__class__._lit2name[lit]

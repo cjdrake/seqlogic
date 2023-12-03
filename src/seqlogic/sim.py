@@ -37,6 +37,7 @@ class SimVar:
     """The simulation component of a variable."""
 
     def __init__(self, value):
+        """TODO(cjdrake): Write docstring."""
         self._value = value
         self._next = None
         self._state: State = State.INVALID
@@ -46,6 +47,7 @@ class SimVar:
 
     @property
     def value(self):
+        """TODO(cjdrake): Write docstring."""
         return self._value
 
     def _set_next(self, value):
@@ -63,9 +65,11 @@ class SimVar:
     next = property(fset=_set_next)
 
     def dirty(self) -> bool:
+        """TODO(cjdrake): Write docstring."""
         return self._state is State.DIRTY
 
     def update(self):
+        """TODO(cjdrake): Write docstring."""
         self._value = self._next
         self._next = None
         self._state = State.INVALID
@@ -126,6 +130,7 @@ class Sim:
     """Simulation event loop."""
 
     def __init__(self):
+        """TODO(cjdrake): Write docstring."""
         self._started: bool = False
         # Simulation time
         self._time: int = _INIT_TIME
@@ -144,6 +149,7 @@ class Sim:
 
     @property
     def started(self) -> bool:
+        """TODO(cjdrake): Write docstring."""
         return self._started
 
     def restart(self):
@@ -163,9 +169,11 @@ class Sim:
         self._task_region.clear()
 
     def time(self) -> int:
+        """TODO(cjdrake): Write docstring."""
         return self._time
 
     def task(self) -> Coroutine:
+        """TODO(cjdrake): Write docstring."""
         assert self._task is not None
         return self._task
 

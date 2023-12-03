@@ -314,6 +314,7 @@ class PcList:
     """Positional Cube (PC) List."""
 
     def __init__(self, num: int, bits: int):
+        """TODO(cjdrake): Write docstring."""
         self._num = num
         assert 0 <= bits < (1 << self.nbits)
         self._bits = bits
@@ -335,6 +336,7 @@ class PcList:
 
     @property
     def bits(self):
+        """TODO(cjdrake): Write docstring."""
         return self._bits
 
     @cached_property
@@ -556,6 +558,7 @@ class PcList:
 
 
 def from_pcitems(pcitems: Iterable[PcItem] = ()) -> PcList:
+    """TODO(cjdrake): Write docstring."""
     size = 0
     bits = 0
     for i, pcitem in enumerate(pcitems):
@@ -565,6 +568,7 @@ def from_pcitems(pcitems: Iterable[PcItem] = ()) -> PcList:
 
 
 def from_quads(quads: Iterable[int] = ()) -> PcList:
+    """TODO(cjdrake): Write docstring."""
     size = 0
     bits = 0
     for i, quad in enumerate(quads):

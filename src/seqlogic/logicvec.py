@@ -32,6 +32,7 @@ class logicvec:
     """
 
     def __init__(self, pcs: PcList, shape: tuple[int, ...] | None = None):
+        """TODO(cjdrake): Write docstring."""
         self._pcs = pcs
         if shape is None:
             self._shape = (len(pcs),)

@@ -10,20 +10,20 @@ loop = get_loop()
 waves = defaultdict(dict)
 
 
-def waves_add(time, var, val):
+def _waves_add(time, var, val):
     waves[time][var] = val
 
 
-class TraceVar(SimVar):
+class _TraceVar(SimVar):
     """Variable that supports dumping to memory."""
 
     def __init__(self):
         super().__init__(value=False)
-        waves_add(self._sim.time(), self, self._value)
+        _waves_add(self._sim.time(), self, self._value)
 
     def update(self):
         if self.dirty():
-            waves_add(self._sim.time(), self, self._next)
+            _waves_add(self._sim.time(), self, self._next)
         super().update()
 
     def edge(self) -> bool:
@@ -63,9 +63,9 @@ def test_vars():
     """Test generic variable functionality."""
     loop.reset()
 
-    a = TraceVar()
-    b = TraceVar()
-    c = TraceVar()
+    a = _TraceVar()
+    b = _TraceVar()
+    c = _TraceVar()
 
     async def run_a():
         while True:

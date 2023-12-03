@@ -15,7 +15,7 @@ from seqlogic.sim import SimVar, notify, sleep
 waves = defaultdict(dict)
 
 
-class TraceVar(SimVar):
+class _TraceVar(SimVar):
     """Variable that supports dumping to memory."""
 
     def __init__(self):
@@ -34,7 +34,7 @@ class TraceVar(SimVar):
         return (self._value is logic.F) and (self._next is logic.T)
 
 
-class TraceVec(SimVar):
+class _TraceVec(SimVar):
     """Variable that supports dumping to memory."""
 
     def __init__(self, n: int):
@@ -48,7 +48,7 @@ class TraceVec(SimVar):
 
 
 async def reset_drv(
-    reset: TraceVar, init: logic = logic.T, phase1_ticks: int = 1, phase2_ticks: int = 1
+    reset: _TraceVar, init: logic = logic.T, phase1_ticks: int = 1, phase2_ticks: int = 1
 ):
     r"""
     Simulate a reset signal.
@@ -80,7 +80,7 @@ async def reset_drv(
 
 
 async def clock_drv(
-    clock: TraceVar,
+    clock: _TraceVar,
     init: logic = logic.F,
     shift_ticks: int = 0,
     phase1_ticks: int = 1,
@@ -127,9 +127,9 @@ async def clock_drv(
 async def dff_arn_drv(
     q: SimVar,
     d: Callable[[], logicvec],
-    reset_n: TraceVar,
+    reset_n: _TraceVar,
     reset_value: logicvec,
-    clock: TraceVar,
+    clock: _TraceVar,
 ):
     """D Flop Flop with asynchronous, negedge-triggered reset."""
     while True:
