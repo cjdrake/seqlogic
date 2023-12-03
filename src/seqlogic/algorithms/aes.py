@@ -100,7 +100,8 @@ INV_MTXA = cat([uint2vec(x, 16) for x in _INV_MTXA])
 
 
 def sub_word(w: logicvec) -> logicvec:
-    """
+    """AES SubWord() function.
+
     Function used in the Key Expansion routine that takes a four-byte input word
     and applies an S-box to each of the four bytes to produce an output word.
     """
@@ -109,7 +110,8 @@ def sub_word(w: logicvec) -> logicvec:
 
 
 def inv_sub_word(w: logicvec) -> logicvec:
-    """
+    """AES InvSubWord() function.
+
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
     """
     w = w.reshape((_WORD_BYTES, _BYTE_BITS))
@@ -117,7 +119,8 @@ def inv_sub_word(w: logicvec) -> logicvec:
 
 
 def rot_word(w: logicvec) -> logicvec:
-    """
+    """AES RotWord() function.
+
     Function used in the Key Expansion routine that takes a four-byte word and
     performs a cyclic permutation.
     """
@@ -157,7 +160,8 @@ def _multiply(a: logicvec, col: logicvec) -> logicvec:
 
 
 def mix_columns(state: logicvec) -> logicvec:
-    """
+    """AES MixColumns() function.
+
     Transformation in the Cipher that takes all of the columns of the State and
     mixes their data (independently of one another) to produce new columns.
     """
@@ -166,7 +170,8 @@ def mix_columns(state: logicvec) -> logicvec:
 
 
 def inv_mix_columns(state: logicvec) -> logicvec:
-    """
+    """AES InvMixColumns function.
+
     Transformation in the Inverse Cipher that is the inverse of MixColumns().
     """
     state = state.reshape((NB, _WORD_BYTES, _BYTE_BITS))
@@ -174,7 +179,8 @@ def inv_mix_columns(state: logicvec) -> logicvec:
 
 
 def add_round_key(state: logicvec, rkey: logicvec) -> logicvec:
-    """
+    """AES AddRoundKey() function.
+
     Transformation in the Cipher and Inverse Cipher in which a Round Key is
     added to the State using an XOR operation. The length of a Round Key equals
     the size of the State (i.e., for Nb = 4, the Round Key length equals 128
@@ -187,7 +193,8 @@ def add_round_key(state: logicvec, rkey: logicvec) -> logicvec:
 
 
 def sub_bytes(state: logicvec) -> logicvec:
-    """
+    """AES SubBytes() function.
+
     Transformation in the Cipher that processes the State using a non­linear
     byte substitution table (S-box) that operates on each of the State bytes
     independently.
@@ -198,7 +205,8 @@ def sub_bytes(state: logicvec) -> logicvec:
 
 
 def inv_sub_bytes(state: logicvec) -> logicvec:
-    """
+    """AES InvSubBytes() function.
+
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
     """
     state = state.reshape((NB, _WORD_BITS))
@@ -207,7 +215,8 @@ def inv_sub_bytes(state: logicvec) -> logicvec:
 
 
 def shift_rows(state: logicvec) -> logicvec:
-    """
+    """AES ShiftRows() function.
+
     Transformation in the Cipher that processes the State by cyclically shifting
     the last three rows of the State by different offsets.
     """
@@ -224,7 +233,8 @@ def shift_rows(state: logicvec) -> logicvec:
 
 
 def inv_shift_rows(state: logicvec) -> logicvec:
-    """
+    """AES InvShiftRows() function.
+
     Transformation in the Inverse Cipher that is the inverse of ShiftRows().
     """
     state = state.reshape((NB, _WORD_BYTES, _BYTE_BITS))
@@ -240,7 +250,10 @@ def inv_shift_rows(state: logicvec) -> logicvec:
 
 
 def key_expansion(nk: int, key: logicvec) -> logicvec:
-    """Expand the key into the round key."""
+    """Expand the key into the round key.
+
+    See NIST FIPS 197 Section 5.2.
+    """
     assert nk in (4, 6, 8)
 
     nr = nk + 6
@@ -263,10 +276,9 @@ def _rksl(k: int) -> slice:
 
 
 def cipher(nk: int, pt: logicvec, rkey: logicvec):
-    """
-    AES encryption cipher.
+    """AES encryption cipher.
 
-    See NIST FIPS 197 Section 5.3
+    See NIST FIPS 197 Section 5.1.
     """
     assert nk in (4, 6, 8)
 
@@ -291,8 +303,9 @@ def cipher(nk: int, pt: logicvec, rkey: logicvec):
 
 
 def inv_cipher(nk: int, ct: logicvec, rkey: logicvec):
-    """
-    AES decryption cipher.
+    """AES decryption cipher.
+
+    SEE NIST FIPS 197 Section 5.3.
     """
     assert nk in (4, 6, 8)
 
