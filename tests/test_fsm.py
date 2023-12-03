@@ -76,27 +76,27 @@ def test_fsm():
     def ns() -> SeqDetect:
         match (ps.value, x.value):
             case (SeqDetect.A, logic.F):
-                return SeqDetect.A
+                return SeqDetect.A  # pyright: ignore[reportGeneralTypeIssues]
             case (SeqDetect.A, logic.T):
-                return SeqDetect.B
+                return SeqDetect.B  # pyright: ignore[reportGeneralTypeIssues]
 
             case (SeqDetect.B, logic.F):
-                return SeqDetect.A
+                return SeqDetect.A  # pyright: ignore[reportGeneralTypeIssues]
             case (SeqDetect.B, logic.T):
-                return SeqDetect.C
+                return SeqDetect.C  # pyright: ignore[reportGeneralTypeIssues]
 
             case (SeqDetect.C, logic.F):
-                return SeqDetect.A
+                return SeqDetect.A  # pyright: ignore[reportGeneralTypeIssues]
             case (SeqDetect.C, logic.T):
-                return SeqDetect.D
+                return SeqDetect.D  # pyright: ignore[reportGeneralTypeIssues]
 
             case (SeqDetect.D, logic.F):
-                return SeqDetect.A
+                return SeqDetect.A  # pyright: ignore[reportGeneralTypeIssues]
             case (SeqDetect.D, logic.T):
-                return SeqDetect.D
+                return SeqDetect.D  # pyright: ignore[reportGeneralTypeIssues]
 
             case _:
-                return SeqDetect.XX
+                return SeqDetect.XX  # pyright: ignore[reportGeneralTypeIssues]
 
     # Control Variables
     reset_n = _TraceVar()
