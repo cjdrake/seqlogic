@@ -199,37 +199,37 @@ def test_arsh():
 
 ADD_VALS = [
     ("2b00", "2b00", logic.F, "2b00", logic.F, logic.F),
-    ("2b00", "2b01", logic.F, "2b01", logic.F, logic.F),
+    ("2b00", "2b01", 0, "2b01", logic.F, logic.F),
     ("2b00", "2b10", logic.F, "2b10", logic.F, logic.F),
-    ("2b00", "2b11", logic.F, "2b11", logic.F, logic.F),
+    ("2b00", "2b11", 0, "2b11", logic.F, logic.F),
     ("2b01", "2b00", logic.F, "2b01", logic.F, logic.F),
-    ("2b01", "2b01", logic.F, "2b10", logic.F, logic.T),  # overflow
+    ("2b01", "2b01", 0, "2b10", logic.F, logic.T),  # overflow
     ("2b01", "2b10", logic.F, "2b11", logic.F, logic.F),
-    ("2b01", "2b11", logic.F, "2b00", logic.T, logic.F),
+    ("2b01", "2b11", 0, "2b00", logic.T, logic.F),
     ("2b10", "2b00", logic.F, "2b10", logic.F, logic.F),
-    ("2b10", "2b01", logic.F, "2b11", logic.F, logic.F),
+    ("2b10", "2b01", 0, "2b11", logic.F, logic.F),
     ("2b10", "2b10", logic.F, "2b00", logic.T, logic.T),  # overflow
-    ("2b10", "2b11", logic.F, "2b01", logic.T, logic.T),  # overflow
+    ("2b10", "2b11", 0, "2b01", logic.T, logic.T),  # overflow
     ("2b11", "2b00", logic.F, "2b11", logic.F, logic.F),
-    ("2b11", "2b01", logic.F, "2b00", logic.T, logic.F),
+    ("2b11", "2b01", 0, "2b00", logic.T, logic.F),
     ("2b11", "2b10", logic.F, "2b01", logic.T, logic.T),  # overflow
-    ("2b11", "2b11", logic.F, "2b10", logic.T, logic.F),
+    ("2b11", "2b11", 0, "2b10", logic.T, logic.F),
     ("2b00", "2b00", logic.T, "2b01", logic.F, logic.F),
-    ("2b00", "2b01", logic.T, "2b10", logic.F, logic.T),  # overflow
+    ("2b00", "2b01", 1, "2b10", logic.F, logic.T),  # overflow
     ("2b00", "2b10", logic.T, "2b11", logic.F, logic.F),
-    ("2b00", "2b11", logic.T, "2b00", logic.T, logic.F),
+    ("2b00", "2b11", 1, "2b00", logic.T, logic.F),
     ("2b01", "2b00", logic.T, "2b10", logic.F, logic.T),  # overflow
-    ("2b01", "2b01", logic.T, "2b11", logic.F, logic.T),  # overflow
+    ("2b01", "2b01", 1, "2b11", logic.F, logic.T),  # overflow
     ("2b01", "2b10", logic.T, "2b00", logic.T, logic.F),
-    ("2b01", "2b11", logic.T, "2b01", logic.T, logic.F),
+    ("2b01", "2b11", 1, "2b01", logic.T, logic.F),
     ("2b10", "2b00", logic.T, "2b11", logic.F, logic.F),
-    ("2b10", "2b01", logic.T, "2b00", logic.T, logic.F),
+    ("2b10", "2b01", 1, "2b00", logic.T, logic.F),
     ("2b10", "2b10", logic.T, "2b01", logic.T, logic.T),  # overflow
-    ("2b10", "2b11", logic.T, "2b10", logic.T, logic.F),
+    ("2b10", "2b11", 1, "2b10", logic.T, logic.F),
     ("2b11", "2b00", logic.T, "2b00", logic.T, logic.F),
-    ("2b11", "2b01", logic.T, "2b01", logic.T, logic.F),
+    ("2b11", "2b01", 1, "2b01", logic.T, logic.F),
     ("2b11", "2b10", logic.T, "2b10", logic.T, logic.F),
-    ("2b11", "2b11", logic.T, "2b11", logic.T, logic.F),
+    ("2b11", "2b11", 1, "2b11", logic.T, logic.F),
 ]
 
 
