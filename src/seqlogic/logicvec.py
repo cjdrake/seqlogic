@@ -6,15 +6,11 @@ import math
 import re
 from collections.abc import Collection, Generator
 from functools import cached_property
-from typing import Self, TypeAlias, Union
+from typing import Self
 
 from . import pcn
 from .logic import logic
 from .pcn import PcItem, PcList
-
-# __getitem__ input key type
-_Key: TypeAlias = Union[int, "logicvec", slice, tuple[Union[int, "logicvec", slice], ...]]
-
 
 _NUM_RE = re.compile(
     r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[X01x_]+))|"
@@ -52,10 +48,17 @@ class logicvec:
         for i in range(self._shape[0]):
             yield self.__getitem__(i)
 
-    def __getitem__(self, key: _Key) -> logic | Self:
+    def __getitem__(self, key: int | Self | slice | tuple[int | Self | slice, ...]) -> logic | Self:
         if self._shape == (0,):
             raise IndexError("Cannot index an empty vector")
-        return _sel(self, self._norm_key(key))
+        match key:
+            case int() | logicvec() | slice():
+                return _sel(self, self._norm_key([key]))
+            case tuple():
+                return _sel(self, self._norm_key(list(key)))
+            case _:
+                s = "Expected key to be int, logicvec, slice, or tuple"
+                raise TypeError(s)
 
     def __eq__(self, other) -> bool:
         match other:
@@ -387,40 +390,30 @@ class logicvec:
             sl = slice(sl.start, sl.stop, 1)
         return sl
 
-    def _norm_key(self, key: _Key) -> tuple[int | slice, ...]:
-        # First, convert key to a list
-        match key:
-            case int() | logicvec() | slice():
-                lkey = [key]
-            case tuple():
-                lkey = list(key)
-            case _:
-                s = "Expected key to be int, slice, logicvec, or tuple"
-                raise TypeError(s)
-
-        ndim = len(lkey)
+    def _norm_key(self, key: list[int | Self | slice]) -> tuple[int | slice, ...]:
+        ndim = len(key)
         if ndim > self.ndim:
             s = f"Expected ≤ {self.ndim} slice dimensions, got {ndim}"
             raise ValueError(s)
 
         # Append ':' to the end
         for _ in range(self.ndim - ndim):
-            lkey.append(slice(None))
+            key.append(slice(None))
 
         # Normalize key dimensions
-        lnkey: list[int | slice] = []
-        for i, dim in enumerate(lkey):
+        nkey = []
+        for i, dim in enumerate(key):
             match dim:
                 case int() as index:
-                    lnkey.append(self._norm_index(index, i))
+                    nkey.append(self._norm_index(index, i))
                 case logicvec() as v:
-                    lnkey.append(self._norm_index(v.to_uint(), i))
+                    nkey.append(self._norm_index(v.to_uint(), i))
                 case slice() as sl:
-                    lnkey.append(self._norm_slice(sl, i))
+                    nkey.append(self._norm_slice(sl, i))
                 case _:  # pragma: no cover
                     assert False
 
-        return tuple(lnkey)
+        return tuple(nkey)
 
 
 def _parse_str_lit(lit: str) -> PcList:
