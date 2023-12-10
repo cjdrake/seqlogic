@@ -12,8 +12,6 @@ from . import pcn
 from .logic import logic
 from .pcn import PcItem, PcList
 
-_Logic: TypeAlias = Union[logic, "logicvec"]
-
 # __getitem__ input key type
 _Key: TypeAlias = Union[int, "logicvec", slice, tuple[Union[int, "logicvec", slice], ...]]
 
@@ -50,11 +48,11 @@ class logicvec:
     def __len__(self) -> int:
         return self._shape[0]
 
-    def __iter__(self) -> Generator[_Logic, None, None]:
+    def __iter__(self) -> Generator[logic | Self, None, None]:
         for i in range(self._shape[0]):
             yield self.__getitem__(i)
 
-    def __getitem__(self, key: _Key) -> _Logic:
+    def __getitem__(self, key: _Key) -> logic | Self:
         if self._shape == (0,):
             raise IndexError("Cannot index an empty vector")
         return _sel(self, self._norm_key(key))
@@ -549,7 +547,7 @@ def uint2vec(num: int, size: int | None = None) -> logicvec:
     return logicvec(pcn.from_pcitems(pcitems))
 
 
-def cat(objs: Collection[int | _Logic], flatten: bool = False) -> logicvec:
+def cat(objs: Collection[int | logic | logicvec], flatten: bool = False) -> logicvec:
     """Join a sequence of logicvecs."""
     # Empty
     if len(objs) == 0:
@@ -596,12 +594,12 @@ def cat(objs: Collection[int | _Logic], flatten: bool = False) -> logicvec:
     return logicvec(PcList(size, bits), shape)
 
 
-def rep(v: _Logic, n: int, flatten: bool = False) -> logicvec:
+def rep(obj: int | logic | logicvec, n: int, flatten: bool = False) -> logicvec:
     """Repeat a logicvec n times."""
-    return cat([v] * n, flatten)
+    return cat([obj] * n, flatten)
 
 
-def _sel(v: logicvec, key: tuple[int | slice, ...]) -> _Logic:
+def _sel(v: logicvec, key: tuple[int | slice, ...]) -> logic | logicvec:
     assert 0 <= v.ndim == len(key)
 
     shape = v.shape[1:]

@@ -39,8 +39,7 @@ class SimVar:
     def __init__(self, value):
         """TODO(cjdrake): Write docstring."""
         self._value = value
-        self._next = None
-        self._state: State = State.INVALID
+        self._rst_next()
 
         # Reference to the event loop
         self._sim = _sim
@@ -50,29 +49,33 @@ class SimVar:
         """TODO(cjdrake): Write docstring."""
         return self._value
 
+    def _rst_next(self):
+        self._next_state = State.INVALID
+        self._next_value = None
+
     def _set_next(self, value):
         # Protect against double assignment in the same time slot
-        assert self._state is State.INVALID
-
-        self._next = value
+        assert self._next_state is State.INVALID
         if value != self._value:
-            self._state = State.DIRTY
+            self._next_state = State.DIRTY
         else:
-            self._state = State.CLEAN
+            self._next_state = State.CLEAN
+        self._next_value = value
 
+        # Notify the event loop
         _sim.notify(self)
 
     next = property(fset=_set_next)
 
     def dirty(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
-        return self._state is State.DIRTY
+        """Return True if the present state is dirty."""
+        return self._next_state is State.DIRTY
 
     def update(self):
-        """TODO(cjdrake): Write docstring."""
-        self._value = self._next
-        self._next = None
-        self._state = State.INVALID
+        """Update present state, and reset next state."""
+        assert not (self._next_state is State.INVALID or self._next_value is None)
+        self._value = self._next_value
+        self._rst_next()
 
 
 _SimQueueItem = tuple[int, Region, Coroutine, SimVar | None]

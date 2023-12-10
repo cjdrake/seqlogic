@@ -32,7 +32,7 @@ class _TraceSeqDetect(SimVar):
 
     def update(self):
         if self.dirty():
-            waves[self._sim.time()][self] = self._next
+            waves[self._sim.time()][self] = self._next_value
         super().update()
 
 

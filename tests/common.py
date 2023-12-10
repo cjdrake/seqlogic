@@ -24,14 +24,14 @@ class _TraceVar(SimVar):
 
     def update(self):
         if self.dirty():
-            waves[self._sim.time()][self] = self._next
+            waves[self._sim.time()][self] = self._next_value
         super().update()
 
     def negedge(self) -> bool:
-        return (self._value is logic.T) and (self._next is logic.F)
+        return (self._value is logic.T) and (self._next_value is logic.F)
 
     def posedge(self) -> bool:
-        return (self._value is logic.F) and (self._next is logic.T)
+        return (self._value is logic.F) and (self._next_value is logic.T)
 
 
 class _TraceVec(SimVar):
@@ -43,7 +43,7 @@ class _TraceVec(SimVar):
 
     def update(self):
         if self.dirty():
-            waves[self._sim.time()][self] = self._next
+            waves[self._sim.time()][self] = self._next_value
         super().update()
 
 

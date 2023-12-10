@@ -23,12 +23,11 @@ class _TraceVar(SimVar):
 
     def update(self):
         if self.dirty():
-            _waves_add(self._sim.time(), self, self._next)
+            _waves_add(self._sim.time(), self, self._next_value)
         super().update()
 
     def edge(self) -> bool:
-        assert self._value is not None and self._next is not None
-        return not self._value and self._next or self._value and not self._next
+        return not self._value and self._next_value or self._value and not self._next_value
 
 
 HELLO_OUT = """\
