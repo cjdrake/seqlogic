@@ -55,7 +55,7 @@ class SimVar:
 
     def _set_next(self, value):
         # Protect against double assignment in the same time slot
-        assert self._next_state is State.INVALID
+        assert self._next_state is State.INVALID and self._next_value is None
         if value != self._value:
             self._next_state = State.DIRTY
         else:
