@@ -78,7 +78,7 @@ class SimVar:
         self._rst_next()
 
 
-_SimQueueItem = tuple[int, Region, Coroutine, SimVar | None]
+_SimQueueItem: TypeAlias = tuple[int, Region, Coroutine, SimVar | None]
 
 
 class _SimQueue:
