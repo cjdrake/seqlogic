@@ -7,6 +7,7 @@ It might be useful to add to seqlogic library.
 from collections import defaultdict
 from collections.abc import Callable
 
+from seqlogic.hier import HierVar, Module
 from seqlogic.logic import logic
 from seqlogic.logicvec import logicvec, xes
 from seqlogic.sim import SimVar, notify, sleep
@@ -15,40 +16,48 @@ from seqlogic.sim import SimVar, notify, sleep
 waves = defaultdict(dict)
 
 
-class _TraceVar(SimVar):
+class TraceVar(SimVar, HierVar):
     """Variable that supports dumping to memory."""
 
-    def __init__(self):
-        super().__init__(value=logic.X)
+    def __init__(self, name: str, parent: Module | None):
+        """TODO(cjdrake): Write docstring."""
+        SimVar.__init__(self, value=logic.X)
+        HierVar.__init__(self, name, parent)
         waves[self._sim.time()][self] = self._value
 
     def update(self):
+        """TODO(cjdrake): Write docstring."""
         if self.dirty():
             waves[self._sim.time()][self] = self._next_value
-        super().update()
+        SimVar.update(self)
 
     def negedge(self) -> bool:
+        """TODO(cjdrake): Write docstring."""
         return (self._value is logic.T) and (self._next_value is logic.F)
 
     def posedge(self) -> bool:
+        """TODO(cjdrake): Write docstring."""
         return (self._value is logic.F) and (self._next_value is logic.T)
 
 
-class _TraceVec(SimVar):
+class TraceVec(SimVar, HierVar):
     """Variable that supports dumping to memory."""
 
-    def __init__(self, n: int):
-        super().__init__(value=xes((n,)))
+    def __init__(self, name: str, n: int, parent: Module | None):
+        """TODO(cjdrake): Write docstring."""
+        SimVar.__init__(self, value=xes((n,)))
+        HierVar.__init__(self, name, parent)
         waves[self._sim.time()][self] = self._value
 
     def update(self):
+        """TODO(cjdrake): Write docstring."""
         if self.dirty():
             waves[self._sim.time()][self] = self._next_value
-        super().update()
+        SimVar.update(self)
 
 
 async def reset_drv(
-    reset: _TraceVar, init: logic = logic.T, phase1_ticks: int = 1, phase2_ticks: int = 1
+    reset: TraceVar, init: logic = logic.T, phase1_ticks: int = 1, phase2_ticks: int = 1
 ):
     r"""
     Simulate a reset signal.
@@ -80,7 +89,7 @@ async def reset_drv(
 
 
 async def clock_drv(
-    clock: _TraceVar,
+    clock: TraceVar,
     init: logic = logic.F,
     shift_ticks: int = 0,
     phase1_ticks: int = 1,
@@ -127,9 +136,9 @@ async def clock_drv(
 async def dff_arn_drv(
     q: SimVar,
     d: Callable[[], logicvec],
-    reset_n: _TraceVar,
+    reset_n: TraceVar,
     reset_value: logicvec,
-    clock: _TraceVar,
+    clock: TraceVar,
 ):
     """D Flop Flop with asynchronous, negedge-triggered reset."""
     while True:

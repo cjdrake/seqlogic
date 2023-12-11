@@ -7,7 +7,7 @@ from seqlogic.enum import Enum
 from seqlogic.logic import logic
 from seqlogic.sim import Region, SimVar, get_loop, notify
 
-from .common import _TraceVar, clock_drv, dff_arn_drv, reset_drv, waves
+from .common import TraceVar, clock_drv, dff_arn_drv, reset_drv, waves
 
 loop = get_loop()
 
@@ -37,9 +37,9 @@ class _TraceSeqDetect(SimVar):
 
 
 async def _input_drv(
-    x: _TraceVar,
-    reset_n: _TraceVar,
-    clock: _TraceVar,
+    x: TraceVar,
+    reset_n: TraceVar,
+    clock: TraceVar,
 ):
     await notify(reset_n.negedge)
     x.next = logic.F
@@ -71,7 +71,7 @@ def test_fsm():
     ps = _TraceSeqDetect()
 
     # Inputs
-    x = _TraceVar()
+    x = TraceVar("x", parent=None)
 
     def ns() -> SeqDetect:
         match (ps.value, x.value):
@@ -99,9 +99,9 @@ def test_fsm():
                 return SeqDetect.XX  # pyright: ignore[reportGeneralTypeIssues]
 
     # Control Variables
-    reset_n = _TraceVar()
+    reset_n = TraceVar("reset_n", parent=None)
     reset_value = SeqDetect.A
-    clock = _TraceVar()
+    clock = TraceVar("clock", parent=None)
 
     # Schedule input
     loop.add_proc(_input_drv, Region(0), x, reset_n, clock)
