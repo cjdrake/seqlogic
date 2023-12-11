@@ -558,7 +558,7 @@ class PcList:
 
 
 def from_pcitems(pcitems: Iterable[PcItem] = ()) -> PcList:
-    """TODO(cjdrake): Write docstring."""
+    """Convert an iterable of PcItems to a PcList."""
     size = 0
     bits = 0
     for i, pcitem in enumerate(pcitems):
@@ -568,7 +568,7 @@ def from_pcitems(pcitems: Iterable[PcItem] = ()) -> PcList:
 
 
 def from_quads(quads: Iterable[int] = ()) -> PcList:
-    """TODO(cjdrake): Write docstring."""
+    """Convert an iterable of bytes (four PcItems each) to a PcList."""
     size = 0
     bits = 0
     for i, quad in enumerate(quads):
