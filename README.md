@@ -13,7 +13,7 @@ Sequential Logic is available on [PyPI](https://pypi.org):
 
     $ pip install seqlogic
 
-It supports Python 3.10+.
+It supports Python 3.11+.
 
 # Developing
 
