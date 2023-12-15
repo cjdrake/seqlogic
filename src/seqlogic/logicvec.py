@@ -2,6 +2,8 @@
 
 # pylint: disable = protected-access
 
+from __future__ import annotations
+
 import math
 import re
 from collections.abc import Collection, Generator
@@ -44,11 +46,13 @@ class logicvec:
     def __len__(self) -> int:
         return self._shape[0]
 
-    def __iter__(self) -> Generator[logic | Self, None, None]:
+    def __iter__(self) -> Generator[logic | logicvec, None, None]:
         for i in range(self._shape[0]):
             yield self.__getitem__(i)
 
-    def __getitem__(self, key: int | Self | slice | tuple[int | Self | slice, ...]) -> logic | Self:
+    def __getitem__(
+        self, key: int | Self | slice | tuple[int | logicvec | slice, ...]
+    ) -> logic | logicvec:
         if self._shape == (0,):
             raise IndexError("Cannot index an empty vector")
         match key:
@@ -67,33 +71,33 @@ class logicvec:
             case _:
                 return False
 
-    def __invert__(self) -> Self:
+    def __invert__(self) -> logicvec:
         return self.lnot()
 
-    def __or__(self, other: Self) -> Self:
+    def __or__(self, other: Self) -> logicvec:
         return self.lor(other)
 
-    def __and__(self, other: Self) -> Self:
+    def __and__(self, other: Self) -> logicvec:
         return self.land(other)
 
-    def __xor__(self, other: Self) -> Self:
+    def __xor__(self, other: Self) -> logicvec:
         return self.lxor(other)
 
-    def __lshift__(self, n: int) -> Self:
+    def __lshift__(self, n: int) -> logicvec:
         return self.lsh(n)[0]
 
-    def __rshift__(self, n: int) -> Self:
+    def __rshift__(self, n: int) -> logicvec:
         return self.rsh(n)[0]
 
-    def __add__(self, other: Self) -> Self:
+    def __add__(self, other: Self) -> logicvec:
         s, _, _ = self.add(other, ci=logic.F)
         return s
 
-    def __sub__(self, other: Self) -> Self:
+    def __sub__(self, other: logicvec) -> logicvec:
         s, _, _ = self.add(~other, ci=logic.T)
         return s
 
-    def __neg__(self) -> Self:
+    def __neg__(self) -> logicvec:
         s = []
         c = [logic.T]
         for i, x in enumerate((~self).flat):
@@ -111,7 +115,7 @@ class logicvec:
         """Return logicvec shape."""
         return self._shape
 
-    def reshape(self, shape: tuple[int, ...]) -> Self:
+    def reshape(self, shape: tuple[int, ...]) -> logicvec:
         """Return an equivalent logic_vector with modified shape."""
         if math.prod(shape) != self.size:
             s = f"Expected shape with size {self.size}, got {shape}"
@@ -134,7 +138,7 @@ class logicvec:
         for pcitem in self._pcs:
             yield logic(pcitem)
 
-    def flatten(self) -> Self:
+    def flatten(self) -> logicvec:
         """Return a vector with equal data, flattened to 1D shape."""
         return logicvec(self._pcs)
 
@@ -143,16 +147,16 @@ class logicvec:
             s = f"Expected shape {self._shape}, got {other.shape}"
             raise ValueError(s)
 
-    def lnot(self) -> Self:
+    def lnot(self) -> logicvec:
         """Return output of "lifted" NOT function."""
         return logicvec(self._pcs.lnot())
 
-    def lnor(self, other: Self) -> Self:
+    def lnor(self, other: Self) -> logicvec:
         """Return output of "lifted" NOR function."""
         self._check_shape(other)
         return logicvec(self._pcs.lnor(other.pcs))
 
-    def lor(self, other: Self) -> Self:
+    def lor(self, other: Self) -> logicvec:
         """Return output of "lifted" OR function."""
         self._check_shape(other)
         return logicvec(self._pcs.lor(other.pcs))
@@ -161,12 +165,12 @@ class logicvec:
         """Return unary "lifted" OR of bits."""
         return logic(self._pcs.ulor())
 
-    def lnand(self, other: Self) -> Self:
+    def lnand(self, other: Self) -> logicvec:
         """Return output of "lifted" NAND function."""
         self._check_shape(other)
         return logicvec(self._pcs.lnand(other.pcs))
 
-    def land(self, other: Self) -> Self:
+    def land(self, other: Self) -> logicvec:
         """Return output of "lifted" AND function."""
         self._check_shape(other)
         return logicvec(self._pcs.land(other.pcs))
@@ -175,12 +179,12 @@ class logicvec:
         """Return unary "lifted" AND of bits."""
         return logic(self._pcs.uland())
 
-    def lxnor(self, other: Self) -> Self:
+    def lxnor(self, other: Self) -> logicvec:
         """Return output of "lifted" XNOR function."""
         self._check_shape(other)
         return logicvec(self._pcs.lxnor(other.pcs))
 
-    def lxor(self, other: Self) -> Self:
+    def lxor(self, other: Self) -> logicvec:
         """Return output of "lifted" XOR function."""
         self._check_shape(other)
         return logicvec(self._pcs.lxor(other.pcs))
@@ -211,7 +215,7 @@ class logicvec:
             return -(self.lnot().to_uint() + 1)
         return self.to_uint()
 
-    def zext(self, n: int) -> Self:
+    def zext(self, n: int) -> logicvec:
         """Return vector zero extended by n bits.
 
         Zero extension is defined for 1-D vectors.
@@ -222,7 +226,7 @@ class logicvec:
             v = self.flatten()
         return cat([v, uint2vec(0, n)], flatten=True)
 
-    def sext(self, n: int) -> Self:
+    def sext(self, n: int) -> logicvec:
         """Return vector sign extended by n bits.
 
         Sign extension is defined for 1-D vectors.
@@ -234,7 +238,7 @@ class logicvec:
         sign = v[-1]
         return cat([v, rep(sign, n)], flatten=True)
 
-    def lsh(self, n: int, ci: Self | None = None) -> tuple[Self, Self]:
+    def lsh(self, n: int, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
         """Return vector left shifted by n bits.
 
         Left shift is defined for 1-D vectors.
@@ -253,7 +257,7 @@ class logicvec:
             raise ValueError(f"Expected ci to have shape ({n},)")
         return cat([ci, v[:-n]], flatten=True), v[-n:]
 
-    def rsh(self, n: int, ci: Self | None = None) -> tuple[Self, Self]:
+    def rsh(self, n: int, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
         """Return vector right shifted by n bits.
 
         Right shift is defined for 1-D vectors.
@@ -272,7 +276,7 @@ class logicvec:
             raise ValueError(f"Expected ci to have shape ({n},)")
         return cat([v[n:], ci], flatten=True), v[:n]
 
-    def arsh(self, n: int) -> tuple[Self, Self]:
+    def arsh(self, n: int) -> tuple[logicvec, logicvec]:
         """Return vector arithmetically right shifted by n bits.
 
         Arithmetic right shift is defined for 1-D vectors.
@@ -288,7 +292,7 @@ class logicvec:
         sign = v[-1]
         return cat([v[n:], rep(sign, n)], flatten=True), v[:n]
 
-    def add(self, other: Self, ci: object) -> tuple[Self, logic, logic]:
+    def add(self, other: logicvec, ci: object) -> tuple[logicvec, logic, logic]:
         """Return the sum of two vectors, carry out, and overflow.
 
         The implementation propagates Xes according to the
@@ -390,7 +394,7 @@ class logicvec:
             sl = slice(sl.start, sl.stop, 1)
         return sl
 
-    def _norm_key(self, key: list[int | Self | slice]) -> tuple[int | slice, ...]:
+    def _norm_key(self, key: list[int | logicvec | slice]) -> tuple[int | slice, ...]:
         ndim = len(key)
         if ndim > self.ndim:
             s = f"Expected ≤ {self.ndim} slice dimensions, got {ndim}"

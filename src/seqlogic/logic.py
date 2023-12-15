@@ -1,7 +1,8 @@
 """Logic Data Type."""
 
+from __future__ import annotations
+
 from enum import Enum
-from typing import Self
 
 from . import pcn
 from .pcn import PcItem
@@ -47,25 +48,25 @@ class logic(Enum):
     def __repr__(self) -> str:
         return self.__str__()
 
-    def __invert__(self) -> Self:
+    def __invert__(self) -> logic:
         return self.lnot()
 
-    def __or__(self, other: object) -> Self:
+    def __or__(self, other: object) -> logic:
         return self.lor(other)
 
-    def __ror__(self, other: object) -> Self:
+    def __ror__(self, other: object) -> logic:
         return self.lor(other)
 
-    def __and__(self, other: object) -> Self:
+    def __and__(self, other: object) -> logic:
         return self.land(other)
 
-    def __rand__(self, other: object) -> Self:
+    def __rand__(self, other: object) -> logic:
         return self.land(other)
 
-    def __xor__(self, other: object) -> Self:
+    def __xor__(self, other: object) -> logic:
         return self.lxor(other)
 
-    def __rxor__(self, other: object) -> Self:
+    def __rxor__(self, other: object) -> logic:
         return self.lxor(other)
 
     def _get_xs(self, other: object) -> tuple[PcItem, PcItem]:
@@ -78,42 +79,42 @@ class logic(Enum):
                 x1 = pcn.from_int[index]
         return x0, x1
 
-    def lnot(self) -> Self:
+    def lnot(self) -> logic:
         """Return output of "lifted" NOT function."""
         x = self.value
         return logic(pcn.lnot(x))
 
-    def lnor(self, other: object) -> Self:
+    def lnor(self, other: object) -> logic:
         """Return output of "lifted" NOR function."""
         x0, x1 = self._get_xs(other)
         return logic(pcn.lnor(x0, x1))
 
-    def lor(self, other: object) -> Self:
+    def lor(self, other: object) -> logic:
         """Return output of "lifted" OR function."""
         x0, x1 = self._get_xs(other)
         return logic(pcn.lor(x0, x1))
 
-    def lnand(self, other: object) -> Self:
+    def lnand(self, other: object) -> logic:
         """Return output of "lifted" NAND function."""
         x0, x1 = self._get_xs(other)
         return logic(pcn.lnand(x0, x1))
 
-    def land(self, other: object) -> Self:
+    def land(self, other: object) -> logic:
         """Return output of "lifted" AND function."""
         x0, x1 = self._get_xs(other)
         return logic(pcn.land(x0, x1))
 
-    def lxnor(self, other: object) -> Self:
+    def lxnor(self, other: object) -> logic:
         """Return output of "lifted" XNOR function."""
         x0, x1 = self._get_xs(other)
         return logic(pcn.lxnor(x0, x1))
 
-    def lxor(self, other: object) -> Self:
+    def lxor(self, other: object) -> logic:
         """Return output of "lifted" XOR function."""
         x0, x1 = self._get_xs(other)
         return logic(pcn.lxor(x0, x1))
 
-    def limplies(self, other: object) -> Self:
+    def limplies(self, other: object) -> logic:
         """Return output of "lifted" IMPLIES function."""
         p, q = self._get_xs(other)
         return logic(pcn.limplies(p, q))

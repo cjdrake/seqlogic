@@ -2,6 +2,8 @@
 
 # pylint: disable = protected-access
 
+from __future__ import annotations
+
 from collections.abc import Generator, Iterable
 from functools import cached_property
 from typing import NewType, Self
@@ -34,6 +36,31 @@ to_char = {
     ZERO: "0",
     ONE: "1",
     DC: "x",
+}
+
+from_hexchar = {
+    "0": 0b01_01_01_01,
+    "1": 0b01_01_01_10,
+    "2": 0b01_01_10_01,
+    "3": 0b01_01_10_10,
+    "4": 0b01_10_01_01,
+    "5": 0b01_10_01_10,
+    "6": 0b01_10_10_01,
+    "7": 0b01_10_10_10,
+    "8": 0b10_01_01_01,
+    "9": 0b10_01_01_10,
+    "a": 0b10_01_10_01,
+    "A": 0b10_01_10_01,
+    "b": 0b10_01_10_10,
+    "B": 0b10_01_10_10,
+    "c": 0b10_10_01_01,
+    "C": 0b10_10_01_01,
+    "d": 0b10_10_01_10,
+    "D": 0b10_10_01_10,
+    "e": 0b10_10_10_01,
+    "E": 0b10_10_10_01,
+    "f": 0b10_10_10_10,
+    "F": 0b10_10_10_10,
 }
 
 
@@ -344,7 +371,7 @@ class PcList:
         """Number of bits of data."""
         return _ITEM_BITS * self._num
 
-    def lnot(self) -> Self:
+    def lnot(self) -> PcList:
         """Return output of "lifted" NOT function."""
         x_0 = self._bit_mask[0]
         x_01 = x_0 << 1
@@ -357,7 +384,7 @@ class PcList:
 
         return PcList(self._num, y)
 
-    def lnor(self, other: Self) -> Self:
+    def lnor(self, other: Self) -> PcList:
         """Return output of "lifted" NOR function.
 
         y1 = x0[0] & x1[0]
@@ -381,7 +408,7 @@ class PcList:
 
         return PcList(self._num, y)
 
-    def lor(self, other: Self) -> Self:
+    def lor(self, other: Self) -> PcList:
         """Return output of "lifted" OR function.
 
         y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
@@ -410,7 +437,7 @@ class PcList:
             y = lor(y, x)
         return y
 
-    def lnand(self, other: Self) -> Self:
+    def lnand(self, other: Self) -> PcList:
         """Return output of "lifted" NAND function.
 
         y1 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
@@ -434,7 +461,7 @@ class PcList:
 
         return PcList(self._num, y)
 
-    def land(self, other: Self) -> Self:
+    def land(self, other: Self) -> PcList:
         """Return output of "lifted" AND function.
 
         y1 = x0[1] & x1[1]
@@ -463,7 +490,7 @@ class PcList:
             y = land(y, x)
         return y
 
-    def lxnor(self, other: Self) -> Self:
+    def lxnor(self, other: Self) -> PcList:
         """Return output of "lifted" XNOR function.
 
         y1 = x0[0] & x1[0] | x0[1] & x1[1]
@@ -487,7 +514,7 @@ class PcList:
 
         return PcList(self._num, y)
 
-    def lxor(self, other: Self) -> Self:
+    def lxor(self, other: Self) -> PcList:
         """Return output of "lifted" XOR function.
 
         y1 = x0[0] & x1[1] | x0[1] & x1[0]
@@ -575,29 +602,3 @@ def from_quads(quads: Iterable[int] = ()) -> PcList:
         size += 4
         bits |= quad << (4 * _ITEM_BITS * i)
     return PcList(size, bits)
-
-
-from_hexchar = {
-    "0": 0b01_01_01_01,
-    "1": 0b01_01_01_10,
-    "2": 0b01_01_10_01,
-    "3": 0b01_01_10_10,
-    "4": 0b01_10_01_01,
-    "5": 0b01_10_01_10,
-    "6": 0b01_10_10_01,
-    "7": 0b01_10_10_10,
-    "8": 0b10_01_01_01,
-    "9": 0b10_01_01_10,
-    "a": 0b10_01_10_01,
-    "A": 0b10_01_10_01,
-    "b": 0b10_01_10_10,
-    "B": 0b10_01_10_10,
-    "c": 0b10_10_01_01,
-    "C": 0b10_10_01_01,
-    "d": 0b10_10_01_10,
-    "D": 0b10_10_01_10,
-    "e": 0b10_10_10_01,
-    "E": 0b10_10_10_01,
-    "f": 0b10_10_10_10,
-    "F": 0b10_10_10_10,
-}
