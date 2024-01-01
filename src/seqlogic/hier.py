@@ -56,6 +56,7 @@ class HierVar(Hierarchy):
     """Design hierarchy leaf node."""
 
     def __init__(self, name: str, parent: Module):
+        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
     @property
