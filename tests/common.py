@@ -19,7 +19,7 @@ waves = defaultdict(dict)
 class TraceVar(SimVar, HierVar):
     """Variable that supports dumping to memory."""
 
-    def __init__(self, name: str, parent: Module | None):
+    def __init__(self, name: str, parent: Module):
         """TODO(cjdrake): Write docstring."""
         SimVar.__init__(self, value=logic.X)
         HierVar.__init__(self, name, parent)
@@ -43,7 +43,7 @@ class TraceVar(SimVar, HierVar):
 class TraceVec(SimVar, HierVar):
     """Variable that supports dumping to memory."""
 
-    def __init__(self, name: str, n: int, parent: Module | None):
+    def __init__(self, name: str, n: int, parent: Module):
         """TODO(cjdrake): Write docstring."""
         SimVar.__init__(self, value=xes((n,)))
         HierVar.__init__(self, name, parent)
