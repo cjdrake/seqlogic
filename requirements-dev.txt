@@ -1,10 +1,15 @@
 -r requirements.txt
 
+# Python Package Index
 build
 twine
 
+# Code Quality
 black
 flake8
 pylint
 pytest-cov
 pytest-profiling
+
+# Notebooks
+ipython

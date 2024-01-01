@@ -6,6 +6,10 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from collections.abc import Generator
 
+from vcd.writer import VCDWriter as VcdWriter
+
+from .sim import notify
+
 
 class Hierarchy(ABC):
     """Any hierarchical design element."""
@@ -41,6 +45,9 @@ class Hierarchy(ABC):
     def dump_waves(self, waves: defaultdict, pattern: str):
         """TODO(cjdrake): Write docstring."""
 
+    def dump_vcd(self, vcdw: VcdWriter, pattern: str):
+        """TODO(cjdrake): Write docstring."""
+
 
 class Module(Hierarchy):
     """Design hierarchy branch node."""
@@ -51,6 +58,8 @@ class Module(Hierarchy):
         self._children: list[Hierarchy] = []
         if parent is not None:
             parent.add_child(self)
+        # Processes
+        self._procs = set()
 
     @property
     def qualname(self) -> str:
@@ -79,6 +88,29 @@ class Module(Hierarchy):
             yield from child.iter_dfs()
         yield self
 
+    @property
+    def scope(self) -> str:
+        """Return the module's full name using dot separator syntax."""
+        if self.parent is None:
+            return self.name
+        assert isinstance(self._parent, Module)
+        return f"{self._parent.scope}.{self.name}"
+
+    @property
+    def procs(self):
+        """TODO(cjdrake): Write docstring."""
+        return self._procs
+
+    def connect(self, dst, src):
+        """TODO(cjdrake): Write docstring."""
+
+        async def proc():
+            while True:
+                await notify(src.changed)
+                dst.next = src.next
+
+        self._procs.add((proc, 0))
+
     def add_child(self, child: Hierarchy):
         """Add child module or variable."""
         self._children.append(child)
@@ -87,6 +119,11 @@ class Module(Hierarchy):
         """TODO(cjdrake): Write docstring."""
         for child in self._children:
             child.dump_waves(waves, pattern)
+
+    def dump_vcd(self, vcdw: VcdWriter, pattern: str):
+        """TODO(cjdrake): Write docstring."""
+        for child in self._children:
+            child.dump_vcd(vcdw, pattern)
 
 
 class HierVar(Hierarchy):

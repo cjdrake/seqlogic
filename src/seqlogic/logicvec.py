@@ -83,10 +83,10 @@ class logicvec:
     def __xor__(self, other: Self) -> logicvec:
         return self.lxor(other)
 
-    def __lshift__(self, n: int) -> logicvec:
+    def __lshift__(self, n: int | logicvec) -> logicvec:
         return self.lsh(n)[0]
 
-    def __rshift__(self, n: int) -> logicvec:
+    def __rshift__(self, n: int | logicvec) -> logicvec:
         return self.rsh(n)[0]
 
     def __add__(self, other: Self) -> logicvec:
@@ -238,7 +238,7 @@ class logicvec:
         sign = v[-1]
         return cat([v, rep(sign, n)], flatten=True)
 
-    def lsh(self, n: int, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
+    def lsh(self, n: int | logicvec, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
         """Return vector left shifted by n bits.
 
         Left shift is defined for 1-D vectors.
@@ -247,6 +247,19 @@ class logicvec:
         v = self
         if self.ndim != 1:
             v = self.flatten()
+        match n:
+            case int():
+                pass
+            case logicvec():
+                # TODO(cjdrake): Simplify
+                if n.countbits({logic.N}) > 0:
+                    return nulls((v.size,)), _empty
+                elif n.countbits({logic.X}) > 0:
+                    return xes((v.size,)), _empty
+                else:
+                    n = n.to_uint()
+            case _:
+                raise TypeError("Expected n to be int or logicvec")
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
@@ -257,7 +270,7 @@ class logicvec:
             raise ValueError(f"Expected ci to have shape ({n},)")
         return cat([ci, v[:-n]], flatten=True), v[-n:]
 
-    def rsh(self, n: int, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
+    def rsh(self, n: int | logicvec, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
         """Return vector right shifted by n bits.
 
         Right shift is defined for 1-D vectors.
@@ -266,6 +279,19 @@ class logicvec:
         v = self
         if self.ndim != 1:
             v = self.flatten()
+        match n:
+            case int():
+                pass
+            case logicvec():
+                # TODO(cjdrake): Simplify
+                if n.countbits({logic.N}) > 0:
+                    return nulls((v.size,)), _empty
+                elif n.countbits({logic.X}) > 0:
+                    return xes((v.size,)), _empty
+                else:
+                    n = n.to_uint()
+            case _:
+                raise TypeError("Expected n to be int or logicvec")
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
@@ -276,7 +302,7 @@ class logicvec:
             raise ValueError(f"Expected ci to have shape ({n},)")
         return cat([v[n:], ci], flatten=True), v[:n]
 
-    def arsh(self, n: int) -> tuple[logicvec, logicvec]:
+    def arsh(self, n: int | logicvec) -> tuple[logicvec, logicvec]:
         """Return vector arithmetically right shifted by n bits.
 
         Arithmetic right shift is defined for 1-D vectors.
@@ -285,6 +311,19 @@ class logicvec:
         v = self
         if self.ndim != 1:
             v = self.flatten()
+        match n:
+            case int():
+                pass
+            case logicvec():
+                # TODO(cjdrake): Simplify
+                if n.countbits({logic.N}) > 0:
+                    return nulls((v.size,)), _empty
+                elif n.countbits({logic.X}) > 0:
+                    return xes((v.size,)), _empty
+                else:
+                    n = n.to_uint()
+            case _:
+                raise TypeError("Expected n to be int or logicvec")
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:

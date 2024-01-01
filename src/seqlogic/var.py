@@ -3,10 +3,20 @@
 import re
 from collections import defaultdict
 
+from vcd.writer import VarValue
+
 from .hier import HierVar, Module
 from .logic import logic
-from .logicvec import F, T, xes
+from .logicvec import F, T, logicvec, xes
 from .sim import SimVar
+
+
+def vec2vcd(x: logicvec) -> VarValue:
+    """Convert value to VCD variable."""
+    bits = []
+    for i in range(x.size):
+        bits.append(str(x[i]))
+    return "".join(reversed(bits))
 
 
 class TraceVar(HierVar, SimVar):
@@ -17,6 +27,7 @@ class TraceVar(HierVar, SimVar):
         HierVar.__init__(self, name, parent)
         SimVar.__init__(self, value=init)
         self._waves_change = None
+        self._vcd_change = None
 
     def dump_waves(self, waves: defaultdict, pattern: str):
         """TODO(cjdrake): Write docstring."""
@@ -30,10 +41,30 @@ class TraceVar(HierVar, SimVar):
 
             self._waves_change = change
 
+    def dump_vcd(self, vcdw, pattern: str):
+        """TODO(cjdrake): Write docstring."""
+        assert isinstance(self._parent, Module)
+        if re.match(pattern, self.qualname):
+            var = vcdw.register_var(
+                scope=self._parent.scope,
+                name=self.name,
+                var_type="reg",
+                size=self._value.size,
+                init=vec2vcd(self._value),
+            )
+
+            def change():
+                t = self._sim.time()
+                vcdw.change(var, t, vec2vcd(self._next_value))
+
+            self._vcd_change = change
+
     def update(self):
         """TODO(cjdrake): Write docstring."""
         if self._waves_change and self.dirty():
             self._waves_change()
+        if self._vcd_change and self.dirty():
+            self._vcd_change()
         super().update()
 
 
