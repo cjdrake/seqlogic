@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Generator
+
+from .sim import notify
 
 
 class Hierarchy(ABC):
@@ -28,6 +31,14 @@ class Hierarchy(ABC):
     def qualname(self) -> str:
         """Return the design element's fully qualified name."""
 
+    @abstractmethod
+    def iter_bfs(self) -> Generator[Hierarchy, None, None]:
+        """Iterate through the design hierarchy in BFS order."""
+
+    @abstractmethod
+    def iter_dfs(self) -> Generator[Hierarchy, None, None]:
+        """Iterate through the design hierarchy in DFS order."""
+
 
 class Module(Hierarchy):
     """Design hierarchy branch node."""
@@ -35,6 +46,11 @@ class Module(Hierarchy):
     def __init__(self, name: str, parent: Module | None = None):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
+        self._children: list[Hierarchy] = []
+        if parent is not None:
+            parent.add_child(self)
+        # Processes
+        self._procs = set()
 
     @property
     def qualname(self) -> str:
@@ -45,11 +61,39 @@ class Module(Hierarchy):
             case List():
                 return f"{self._parent.qualname}[{self._name}]"
             case Dict():
-                return f"{self._parent.qualname}['{self._name}']"
+                return f"{self._parent.qualname}[{self._name}]"
             case Module():
                 return f"{self._parent.qualname}/{self._name}"
             case _:  # pragma: no cover
                 assert False
+
+    def iter_bfs(self) -> Generator[Hierarchy, None, None]:
+        """TODO(cjdrake): Write docstring."""
+        yield self
+        for child in self._children:
+            yield from child.iter_bfs()
+
+    def iter_dfs(self) -> Generator[Hierarchy, None, None]:
+        """TODO(cjdrake): Write docstring."""
+        for child in self._children:
+            yield from child.iter_dfs()
+        yield self
+
+    @property
+    def procs(self):
+        return self._procs
+
+    def connect(self, dst, src):
+        async def proc():
+            while True:
+                await notify(src.changed)
+                dst.next = src.next
+
+        self._procs.add((proc, 0))
+
+    def add_child(self, child: Hierarchy):
+        """TODO(cjdrake): Write docstring."""
+        self._children.append(child)
 
 
 class HierVar(Hierarchy):
@@ -58,6 +102,7 @@ class HierVar(Hierarchy):
     def __init__(self, name: str, parent: Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
+        parent.add_child(self)
 
     @property
     def qualname(self) -> str:
@@ -66,11 +111,19 @@ class HierVar(Hierarchy):
             case List():
                 return f"{self._parent.qualname}[{self._name}]"
             case Dict():
-                return f"{self._parent.qualname}['{self._name}']"
+                return f"{self._parent.qualname}[{self._name}]"
             case Module():
                 return f"{self._parent.qualname}/{self._name}"
             case _:  # pragma: no cover
                 assert False
+
+    def iter_bfs(self) -> Generator[HierVar, None, None]:
+        """TODO(cjdrake): Write docstring."""
+        yield self
+
+    def iter_dfs(self) -> Generator[HierVar, None, None]:
+        """TODO(cjdrake): Write docstring."""
+        yield self
 
 
 class List(Module, list):

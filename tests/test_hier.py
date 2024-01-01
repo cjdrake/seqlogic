@@ -24,6 +24,9 @@ def test_basic():
     assert y.name == "y"
     assert y.qualname == "/a/b/y"
 
+    assert list(a.iter_bfs()) == [a, w, b, x, y]
+    assert list(a.iter_dfs()) == [w, x, y, b, a]
+
 
 def test_list():
     """Test list naming."""
@@ -50,6 +53,6 @@ def test_dict():
 
     assert a.name == "a"
     assert a["w"].name == "w"
-    assert a["w"].qualname == "/top/a['w']"
+    assert a["w"].qualname == "/top/a[w]"
     assert a["b"].name == "b"
-    assert a["b"].qualname == "/top/a['b']"
+    assert a["b"].qualname == "/top/a[b]"
