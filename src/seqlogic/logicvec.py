@@ -573,7 +573,8 @@ def cat(objs: Collection[int | logic | logicvec], flatten: bool = False) -> logi
     size = len(fst.pcs)
     bits = fst.pcs.bits
 
-    for i, v in enumerate(rst, start=1):
+    pos = fst.pcs.nbits
+    for v in rst:
         if v.shape[0] != fst.shape[0]:
             regular = False
         if v.shape[1:] != fst.shape[1:]:
@@ -581,7 +582,8 @@ def cat(objs: Collection[int | logic | logicvec], flatten: bool = False) -> logi
             raise ValueError(s)
         dims.append(v.shape[0])
         size += len(v.pcs)
-        bits |= v.pcs.bits << (fst.pcs.nbits * i)
+        bits |= v.pcs.bits << pos
+        pos += v.pcs.nbits
 
     if not scalar and regular and not flatten:
         shape = (len(dims),) + fst.shape
