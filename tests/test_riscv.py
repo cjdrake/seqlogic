@@ -317,7 +317,9 @@ class SingleCycleCtlPath(Module):
         self.inst_opcode = Logic(name="inst_opcode", parent=self, shape=(7,))
         self.inst_funct3 = Logic(name="inst_funct3", parent=self, shape=(3,))
         self.inst_funct7 = Logic(name="inst_funct7", parent=self, shape=(7,))
-        self.alu_result_equal_zero = Logic(name="alu_result_equal_zero", parent=self, shape=(1,))
+        self.alu_result_equal_zero = TraceLogic(
+            name="alu_result_equal_zero", parent=self, shape=(1,)
+        )
         self.pc_wr_en = Logic(name="pc_wr_en", parent=self, shape=(1,))
         self.regfile_wr_en = Logic(name="regfile_wr_en", parent=self, shape=(1,))
         self.alu_op_a_sel = Logic(name="alu_op_a_sel", parent=self, shape=(1,))
@@ -964,6 +966,7 @@ def test_singlecycle2():
             top.reset: X,
             top.pc: xes((32,)),
             top.inst: xes((32,)),
+            top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: xes((1,)),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: xes((7,)),
             top.riscv_core.singlecycle_datapath.pc_plus_4: xes((32,)),
             top.riscv_core.singlecycle_datapath.immediate: xes((32,)),
@@ -971,6 +974,7 @@ def test_singlecycle2():
         },
         0: {
             top.reset: F,
+            top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: T,
         },
         # @(posedge reset)
         5: {
@@ -1013,6 +1017,7 @@ def test_singlecycle2():
         17: {
             top.pc: vec("32h0040_0010"),
             top.inst: vec("32h0020_0E13"),
+            top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: F,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0014"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0002"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0012"),
