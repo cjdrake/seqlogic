@@ -88,13 +88,12 @@ class Top(Module):
 
         # Submodules
         self.text_memory_bus = ExampleTextMemoryBus(name="text_memory_bus", parent=self)
-        self.data_memory_bus = ExampleDataMemoryBus(name="data_memory_bus", parent=self)
-        self.riscv_core = RiscvCore(name="riscv_core", parent=self)
-
-        # Processes
         self.connect(self.text_memory_bus.rd_addr, self.pc)
         self.connect(self.inst, self.text_memory_bus.rd_data)
 
+        self.data_memory_bus = ExampleDataMemoryBus(name="data_memory_bus", parent=self)
+
+        self.riscv_core = RiscvCore(name="riscv_core", parent=self)
         self.connect(self.bus_addr, self.riscv_core.bus_addr)
         self.connect(self.bus_wr_en, self.riscv_core.bus_wr_en)
         self.connect(self.bus_wr_be, self.riscv_core.bus_wr_be)
@@ -106,6 +105,7 @@ class Top(Module):
         self.connect(self.riscv_core.clock, self.clock)
         self.connect(self.riscv_core.reset, self.reset)
 
+        # Processes
         self._procs.add((self.proc_clock, TASK))
         self._procs.add((self.proc_reset, TASK))
 
@@ -143,10 +143,9 @@ class ExampleTextMemoryBus(Module):
 
         # Submodules
         self.text_memory = ExampleTextMemory("text_memory", parent=self)
-
-        # Processes
         self.connect(self.text, self.text_memory.rd_data)
 
+        # Processes
         self._procs.add((self.proc_rd_data, HW))
         self._procs.add((self.proc_text_memory_rd_addr, HW))
 
@@ -259,10 +258,6 @@ class RiscvCore(Module):
 
         # Submodules
         self.singlecycle_ctlpath = SingleCycleCtlPath(name="singlecycle_ctlpath", parent=self)
-        self.singlecycle_datapath = SingleCycleDataPath(name="singlecycle_datapath", parent=self)
-        self.data_memory_interface = DataMemoryInterface(name="data_memory_interface", parent=self)
-
-        # Processes
         self.connect(self.singlecycle_ctlpath.inst_opcode, self.inst_opcode)
         self.connect(self.singlecycle_ctlpath.inst_funct3, self.inst_funct3)
         self.connect(self.singlecycle_ctlpath.inst_funct7, self.inst_funct7)
@@ -277,6 +272,7 @@ class RiscvCore(Module):
         self.connect(self.alu_function, self.singlecycle_ctlpath.alu_function)
         self.connect(self.next_pc_sel, self.singlecycle_ctlpath.next_pc_sel)
 
+        self.singlecycle_datapath = SingleCycleDataPath(name="singlecycle_datapath", parent=self)
         self.connect(self.addr, self.singlecycle_datapath.data_mem_addr)
         self.connect(self.wr_data, self.singlecycle_datapath.data_mem_wr_data)
         self.connect(self.singlecycle_datapath.data_mem_rd_data, self.rd_data)
@@ -296,6 +292,7 @@ class RiscvCore(Module):
         self.connect(self.singlecycle_datapath.clock, self.clock)
         self.connect(self.singlecycle_datapath.reset, self.reset)
 
+        self.data_memory_interface = DataMemoryInterface(name="data_memory_interface", parent=self)
         self.connect(self.data_memory_interface.data_format, self.inst_funct3)
         self.connect(self.data_memory_interface.addr, self.addr)
         self.connect(self.data_memory_interface.wr_en, self.wr_en)
@@ -337,10 +334,6 @@ class SingleCycleCtlPath(Module):
 
         # Submodules
         self.singlecycle_control = SingleCycleControl(name="singlecycle_control", parent=self)
-        self.control_transfer = ControlTransfer(name="control_transfer", parent=self)
-        self.alu_control = AluControl(name="alu_control", parent=self)
-
-        # Processes
         self.connect(self.singlecycle_control.pc_wr_en, self.pc_wr_en)
         self.connect(self.singlecycle_control.regfile_wr_en, self.regfile_wr_en)
         self.connect(self.singlecycle_control.alu_op_a_sel, self.alu_op_a_sel)
@@ -353,10 +346,12 @@ class SingleCycleCtlPath(Module):
         self.connect(self.inst_opcode, self.singlecycle_control.inst_opcode)
         self.connect(self.take_branch, self.singlecycle_control.take_branch)
 
+        self.control_transfer = ControlTransfer(name="control_transfer", parent=self)
         self.connect(self.take_branch, self.control_transfer.take_branch)
         self.connect(self.control_transfer.inst_funct3, self.inst_funct3)
         self.connect(self.control_transfer.result_equal_zero, self.alu_result_equal_zero)
 
+        self.alu_control = AluControl(name="alu_control", parent=self)
         self.connect(self.alu_function, self.alu_control.alu_function)
         self.connect(self.alu_control.alu_op_type, self.alu_op_type)
         self.connect(self.alu_control.inst_funct3, self.inst_funct3)
@@ -463,21 +458,21 @@ class SingleCycleDataPath(Module):
 
         # Submodules
         self.adder_pc_plus_4 = Adder(name="adder_pc_plus_4", parent=self, width=32)
-        self.adder_pc_plus_immediate = Adder(name="adder_pc_plus_immediate", parent=self, width=32)
-        self.instruction_decoder = InstructionDecoder(name="instruction_decoder", parent=self)
-        self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
-        self.program_counter = Register(
-            name="program_counter", parent=self, width=32, init=vec("32h0040_0000")
-        )
-        self.regfile = Regfile(name="regfile", parent=self)
-
         self.connect(self.pc_plus_4, self.adder_pc_plus_4.result)
         self.connect(self.adder_pc_plus_4.op_b, self.pc)
 
+        self.adder_pc_plus_immediate = Adder(name="adder_pc_plus_immediate", parent=self, width=32)
         self.connect(self.pc_plus_immediate, self.adder_pc_plus_immediate.result)
         self.connect(self.adder_pc_plus_immediate.op_a, self.pc)
         self.connect(self.adder_pc_plus_immediate.op_b, self.immediate)
 
+        # TODO(cjdrake): alu
+        # TODO(cjdrake): mux_next_pc_sel
+        # TODO(cjdrake): mux_op_a
+        # TODO(cjdrake): mux_op_b
+        # TODO(cjdrake): mux_reg_writeback
+
+        self.instruction_decoder = InstructionDecoder(name="instruction_decoder", parent=self)
         self.connect(self.instruction_decoder.inst, self.inst)
         self.connect(self.inst_opcode, self.instruction_decoder.inst_opcode)
         self.connect(self.inst_funct3, self.instruction_decoder.inst_funct3)
@@ -486,13 +481,18 @@ class SingleCycleDataPath(Module):
         self.connect(self.inst_rs1, self.instruction_decoder.inst_rs1)
         self.connect(self.inst_rd, self.instruction_decoder.inst_rd)
 
+        self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
         self.connect(self.immediate, self.immediate_generator.immediate)
         self.connect(self.immediate_generator.inst, self.inst)
 
+        self.program_counter = Register(
+            name="program_counter", parent=self, width=32, init=vec("32h0040_0000")
+        )
         self.connect(self.pc, self.program_counter.q)
         self.connect(self.program_counter.clock, self.clock)
         self.connect(self.program_counter.reset, self.reset)
 
+        self.regfile = Regfile(name="regfile", parent=self)
         self.connect(self.rs1_data, self.regfile.rs1_data)
         self.connect(self.rs2_data, self.regfile.rs2_data)
         self.connect(self.regfile.wr_en, self.regfile_wr_en)
@@ -502,9 +502,10 @@ class SingleCycleDataPath(Module):
         self.connect(self.regfile.rd_data, self.rd_data)
         self.connect(self.regfile.clock, self.clock)
 
-        self._procs.add((self.proc_lit1, HW))
+        # Processes
+        self._procs.add((self.proc_lits, HW))
 
-    async def proc_lit1(self):
+    async def proc_lits(self):
         self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
 
 
@@ -670,6 +671,7 @@ class Register(Module):
         self.clock = Logic(name="clock", parent=self, shape=(1,))
         self.reset = Logic(name="reset", parent=self, shape=(1,))
 
+        # Processes
         self._procs.add((self.proc_q, TASK))
 
     async def proc_q(self):
