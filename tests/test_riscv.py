@@ -467,8 +467,7 @@ class SingleCycleCtlPath(Module):
         self.connect(self.data_mem_rd_en, self.singlecycle_control.data_mem_rd_en)
         self.connect(self.data_mem_wr_en, self.singlecycle_control.data_mem_wr_en)
         self.connect(self.reg_writeback_sel, self.singlecycle_control.reg_writeback_sel)
-        # self.connect(self.next_pc_sel, self.singlecycle_control.next_pc_sel)
-        self._procs.add((self.proc_foo, HW))
+        self.connect(self.next_pc_sel, self.singlecycle_control.next_pc_sel)
         self.connect(self.singlecycle_control.inst_opcode, self.inst_opcode)
         self.connect(self.singlecycle_control.take_branch, self.take_branch)
 
@@ -482,11 +481,6 @@ class SingleCycleCtlPath(Module):
         self.connect(self.alu_control.alu_op_type, self.alu_op_type)
         self.connect(self.alu_control.inst_funct3, self.inst_funct3)
         self.connect(self.alu_control.inst_funct7, self.inst_funct7)
-
-    async def proc_foo(self):
-        while True:
-            await notify(self.singlecycle_control.next_pc_sel.changed)
-            self.next_pc_sel.next = self.singlecycle_control.next_pc_sel.next
 
 
 class SingleCycleControl(Module):
