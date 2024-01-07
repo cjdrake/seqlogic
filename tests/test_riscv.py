@@ -459,17 +459,17 @@ class SingleCycleCtlPath(Module):
 
         # Submodules
         self.singlecycle_control = SingleCycleControl(name="singlecycle_control", parent=self)
-        self.connect(self.singlecycle_control.pc_wr_en, self.pc_wr_en)
-        self.connect(self.singlecycle_control.regfile_wr_en, self.regfile_wr_en)
-        self.connect(self.singlecycle_control.alu_op_a_sel, self.alu_op_a_sel)
-        self.connect(self.singlecycle_control.alu_op_b_sel, self.alu_op_b_sel)
-        self.connect(self.singlecycle_control.alu_op_type, self.alu_op_type)
-        self.connect(self.singlecycle_control.data_mem_rd_en, self.data_mem_rd_en)
-        self.connect(self.singlecycle_control.data_mem_wr_en, self.data_mem_wr_en)
-        self.connect(self.singlecycle_control.reg_writeback_sel, self.reg_writeback_sel)
-        self.connect(self.singlecycle_control.next_pc_sel, self.next_pc_sel)
-        self.connect(self.inst_opcode, self.singlecycle_control.inst_opcode)
-        self.connect(self.take_branch, self.singlecycle_control.take_branch)
+        self.connect(self.pc_wr_en, self.singlecycle_control.pc_wr_en)
+        self.connect(self.regfile_wr_en, self.singlecycle_control.regfile_wr_en)
+        self.connect(self.alu_op_a_sel, self.singlecycle_control.alu_op_a_sel)
+        self.connect(self.alu_op_b_sel, self.singlecycle_control.alu_op_b_sel)
+        self.connect(self.alu_op_type, self.singlecycle_control.alu_op_type)
+        self.connect(self.data_mem_rd_en, self.singlecycle_control.data_mem_rd_en)
+        self.connect(self.data_mem_wr_en, self.singlecycle_control.data_mem_wr_en)
+        self.connect(self.reg_writeback_sel, self.singlecycle_control.reg_writeback_sel)
+        self.connect(self.next_pc_sel, self.singlecycle_control.next_pc_sel)
+        self.connect(self.singlecycle_control.inst_opcode, self.inst_opcode)
+        self.connect(self.singlecycle_control.take_branch, self.take_branch)
 
         self.control_transfer = ControlTransfer(name="control_transfer", parent=self)
         self.connect(self.take_branch, self.control_transfer.take_branch)
@@ -1284,6 +1284,10 @@ def test_singlecycle2():
             top.reset: X,
             top.pc: xes((32,)),
             top.inst: xes((32,)),
+            # top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: xes((2,)),
+            # top.riscv_core.singlecycle_ctlpath.next_pc_sel: xes((2,)),
+            # top.riscv_core.next_pc_sel: xes((2,)),
+            # top.riscv_core.singlecycle_datapath.next_pc_sel: xes((2,)),
             top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: xes((1,)),
             top.riscv_core.singlecycle_ctlpath.take_branch: xes((1,)),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: xes((7,)),
@@ -1300,6 +1304,10 @@ def test_singlecycle2():
             top.reset: T,
             top.pc: vec("32h0040_0000"),
             top.inst: vec("32h0000_0093"),
+            # top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: vec("2b00"),
+            # top.riscv_core.singlecycle_ctlpath.next_pc_sel: vec("2b00"),
+            # top.riscv_core.next_pc_sel: vec("2b00"),
+            # top.riscv_core.singlecycle_datapath.next_pc_sel: vec("2b00"),
             top.riscv_core.singlecycle_ctlpath.take_branch: F,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0004"),
@@ -1347,6 +1355,10 @@ def test_singlecycle2():
         19: {
             top.pc: vec("32h0040_0014"),
             top.inst: vec("32h4DD1_9663"),
+            # top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: vec("2b01"),
+            # top.riscv_core.singlecycle_ctlpath.next_pc_sel: vec("2b01"),
+            # top.riscv_core.next_pc_sel: vec("2b01"),
+            # top.riscv_core.singlecycle_datapath.next_pc_sel: vec("2b01"),
             top.riscv_core.singlecycle_ctlpath.take_branch: F,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.BRANCH,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0018"),
