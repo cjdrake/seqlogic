@@ -403,9 +403,12 @@ class AluControl(Module):
         # State
         self.default_funct = Logic(name="default_funct", parent=self, shape=(5,))
         self.secondary_funct = Logic(name="seconary_funct", parent=self, shape=(5,))
-        self.op_funct = Logic(name="op_funct", parent=self, shape=(5,))
-        self.op_imm_funct = Logic(name="op_imm_funct", parent=self, shape=(5,))
         self.branch_funct = Logic(name="branch_funct", parent=self, shape=(5,))
+
+        # Processes
+
+    async def proc_alu_function(self):
+        pass
 
 
 class SingleCycleDataPath(Module):
@@ -835,8 +838,6 @@ def test_singlecycle1():
             top.riscv_core.singlecycle_ctlpath.alu_control.inst_funct7,
             top.riscv_core.singlecycle_ctlpath.alu_control.default_funct,
             top.riscv_core.singlecycle_ctlpath.alu_control.secondary_funct,
-            top.riscv_core.singlecycle_ctlpath.alu_control.op_funct,
-            top.riscv_core.singlecycle_ctlpath.alu_control.op_imm_funct,
             top.riscv_core.singlecycle_ctlpath.alu_control.branch_funct,
             top.riscv_core.singlecycle_datapath,
             top.riscv_core.singlecycle_datapath.data_mem_addr,
