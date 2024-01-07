@@ -507,9 +507,15 @@ class SingleCycleDataPath(Module):
 
         # Processes
         self._procs.add((self.proc_lits, HW))
+        self._procs.add((self.proc_alu_result_equal_zero, TASK))
 
     async def proc_lits(self):
         self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
+
+    async def proc_alu_result_equal_zero(self):
+        self.alu_result_equal_zero.next = T
+        await sleep(17)
+        self.alu_result_equal_zero.next = F
 
 
 class DataMemoryInterface(Module):
