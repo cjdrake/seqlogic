@@ -13,6 +13,7 @@ from collections import defaultdict
 
 from seqlogic.enum import Enum
 from seqlogic.hier import Dict, Module
+from seqlogic.logic import logic
 from seqlogic.logicvec import F, T, X, cat, logicvec, rep, uint2vec, vec, xes
 from seqlogic.sim import Region, get_loop, notify, sleep
 from seqlogic.var import Logic
@@ -508,17 +509,18 @@ class SingleCycleControl(Module):
     async def proc_next_pc_sel(self):
         while True:
             await notify(self.inst_opcode.changed, self.take_branch.changed)
-            if self.inst_opcode.next == Opcode.BRANCH:
-                if self.take_branch.next == T:
+            match self.inst_opcode.next:
+                case Opcode.BRANCH:
+                    if self.take_branch.next == T:
+                        self.next_pc_sel.next = CtlPc.PC_IMM
+                    else:
+                        self.next_pc_sel.next = CtlPc.PC4
+                case Opcode.JALR:
+                    self.next_pc_sel.next = CtlPc.RS1_IMM
+                case Opcode.JAL:
                     self.next_pc_sel.next = CtlPc.PC_IMM
-                else:
+                case _:
                     self.next_pc_sel.next = CtlPc.PC4
-            elif self.inst_opcode.next == Opcode.JALR:
-                self.next_pc_sel.next = CtlPc.RS1_IMM
-            elif self.inst_opcode.next == Opcode.JAL:
-                self.next_pc_sel.next = CtlPc.PC_IMM
-            else:
-                self.next_pc_sel.next = CtlPc.PC4
 
     async def proc_others(self):
         while True:
@@ -533,64 +535,65 @@ class SingleCycleControl(Module):
             self.data_mem_wr_en.next = F
             self.reg_writeback_sel.next = vec("3bxxx")
 
-            if self.inst_opcode.next == Opcode.LOAD:
-                self.regfile_wr_en.next = T
-                self.alu_op_a_sel.next = CtlAluA.RS1
-                self.alu_op_b_sel.next = CtlAluB.IMM
-                self.alu_op_type.next = CtlAlu.ADD
-                self.data_mem_rd_en.next = T
-                self.reg_writeback_sel.next = CtlWriteBack.DATA
-            elif self.inst_opcode.next == Opcode.MISC_MEM:
-                pass
-            elif self.inst_opcode.next == Opcode.OP_IMM:
-                self.regfile_wr_en.next = T
-                self.alu_op_a_sel.next = CtlAluA.RS1
-                self.alu_op_b_sel.next = CtlAluB.IMM
-                self.alu_op_type.next = CtlAlu.OP_IMM
-                self.reg_writeback_sel.next = CtlWriteBack.ALU
-            elif self.inst_opcode.next == Opcode.AUIPC:
-                self.regfile_wr_en.next = T
-                self.alu_op_a_sel.next = CtlAluA.PC
-                self.alu_op_b_sel.next = CtlAluB.IMM
-                self.alu_op_type.next = CtlAlu.ADD
-                self.reg_writeback_sel.next = CtlWriteBack.ALU
-            elif self.inst_opcode.next == Opcode.STORE:
-                self.alu_op_a_sel.next = CtlAluA.RS1
-                self.alu_op_b_sel.next = CtlAluB.IMM
-                self.alu_op_type.next = CtlAlu.ADD
-                self.data_mem_wr_en.next = T
-            elif self.inst_opcode.next == Opcode.OP:
-                self.regfile_wr_en.next = T
-                self.alu_op_a_sel.next = CtlAluA.RS1
-                self.alu_op_b_sel.next = CtlAluB.RS2
-                self.reg_writeback_sel.next = CtlWriteBack.ALU
-                self.alu_op_type.next = CtlAlu.OP
-            elif self.inst_opcode.next == Opcode.LUI:
-                self.regfile_wr_en.next = T
-                self.alu_op_a_sel.next = CtlAluA.RS1
-                self.alu_op_b_sel.next = CtlAluB.RS2
-                self.reg_writeback_sel.next = CtlWriteBack.IMM
-            elif self.inst_opcode.next == Opcode.BRANCH:
-                self.alu_op_a_sel.next = CtlAluA.RS1
-                self.alu_op_b_sel.next = CtlAluB.RS2
-                self.alu_op_type.next = CtlAlu.BRANCH
-            elif self.inst_opcode.next == Opcode.JALR:
-                self.regfile_wr_en.next = T
-                self.alu_op_a_sel.next = CtlAluA.RS1
-                self.alu_op_b_sel.next = CtlAluB.IMM
-                self.alu_op_type.next = CtlAlu.ADD
-                self.reg_writeback_sel.next = CtlWriteBack.PC4
-            elif self.inst_opcode.next == Opcode.JAL:
-                self.regfile_wr_en.next = T
-                self.alu_op_a_sel.next = CtlAluA.PC
-                self.alu_op_b_sel.next = CtlAluB.IMM
-                self.alu_op_type.next = CtlAlu.ADD
-                self.reg_writeback_sel.next = CtlWriteBack.PC4
-            else:
-                self.pc_wr_en.next = X
-                self.regfile_wr_en.next = X
-                self.data_mem_rd_en.next = X
-                self.data_mem_wr_en.next = X
+            match self.inst_opcode.next:
+                case Opcode.LOAD:
+                    self.regfile_wr_en.next = T
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self.alu_op_type.next = CtlAlu.ADD
+                    self.data_mem_rd_en.next = T
+                    self.reg_writeback_sel.next = CtlWriteBack.DATA
+                case Opcode.MISC_MEM:
+                    pass
+                case Opcode.OP_IMM:
+                    self.regfile_wr_en.next = T
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self.alu_op_type.next = CtlAlu.OP_IMM
+                    self.reg_writeback_sel.next = CtlWriteBack.ALU
+                case Opcode.AUIPC:
+                    self.regfile_wr_en.next = T
+                    self.alu_op_a_sel.next = CtlAluA.PC
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self.alu_op_type.next = CtlAlu.ADD
+                    self.reg_writeback_sel.next = CtlWriteBack.ALU
+                case Opcode.STORE:
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self.alu_op_type.next = CtlAlu.ADD
+                    self.data_mem_wr_en.next = T
+                case Opcode.OP:
+                    self.regfile_wr_en.next = T
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.RS2
+                    self.reg_writeback_sel.next = CtlWriteBack.ALU
+                    self.alu_op_type.next = CtlAlu.OP
+                case Opcode.LUI:
+                    self.regfile_wr_en.next = T
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.RS2
+                    self.reg_writeback_sel.next = CtlWriteBack.IMM
+                case Opcode.BRANCH:
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.RS2
+                    self.alu_op_type.next = CtlAlu.BRANCH
+                case Opcode.JALR:
+                    self.regfile_wr_en.next = T
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self.alu_op_type.next = CtlAlu.ADD
+                    self.reg_writeback_sel.next = CtlWriteBack.PC4
+                case Opcode.JAL:
+                    self.regfile_wr_en.next = T
+                    self.alu_op_a_sel.next = CtlAluA.PC
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self.alu_op_type.next = CtlAlu.ADD
+                    self.reg_writeback_sel.next = CtlWriteBack.PC4
+                case _:
+                    self.pc_wr_en.next = X
+                    self.regfile_wr_en.next = X
+                    self.data_mem_rd_en.next = X
+                    self.data_mem_wr_en.next = X
 
 
 class ControlTransfer(Module):
@@ -610,20 +613,21 @@ class ControlTransfer(Module):
     async def proc_take_branch(self):
         while True:
             await notify(self.inst_funct3.changed, self.result_equal_zero.changed)
-            if self.inst_funct3.next == Funct3Branch.EQ:
-                self.take_branch.next = ~(self.result_equal_zero.next)
-            elif self.inst_funct3.next == Funct3Branch.NE:
-                self.take_branch.next = self.result_equal_zero.next
-            elif self.inst_funct3.next == Funct3Branch.LT:
-                self.take_branch.next = ~(self.result_equal_zero.next)
-            elif self.inst_funct3.next == Funct3Branch.GE:
-                self.take_branch.next = self.result_equal_zero.next
-            elif self.inst_funct3.next == Funct3Branch.LTU:
-                self.take_branch.next = ~(self.result_equal_zero.next)
-            elif self.inst_funct3.next == Funct3Branch.GEU:
-                self.take_branch.next = self.result_equal_zero.next
-            else:
-                self.take_branch.next = X
+            match self.inst_funct3.next:
+                case Funct3Branch.EQ:
+                    self.take_branch.next = ~(self.result_equal_zero.next)
+                case Funct3Branch.NE:
+                    self.take_branch.next = self.result_equal_zero.next
+                case Funct3Branch.LT:
+                    self.take_branch.next = ~(self.result_equal_zero.next)
+                case Funct3Branch.GE:
+                    self.take_branch.next = self.result_equal_zero.next
+                case Funct3Branch.LTU:
+                    self.take_branch.next = ~(self.result_equal_zero.next)
+                case Funct3Branch.GEU:
+                    self.take_branch.next = self.result_equal_zero.next
+                case _:
+                    self.take_branch.next = X
 
 
 class AluControl(Module):
@@ -644,40 +648,87 @@ class AluControl(Module):
         self.branch_funct = Logic(name="branch_funct", parent=self, shape=(5,))
 
         # Processes
+        self._procs.add((self.proc_default_funct, HW))
+        self._procs.add((self.proc_secondary_funct, HW))
+        self._procs.add((self.proc_branch_funct, HW))
+        self._procs.add((self.proc_alu_function, HW))
 
-    # async def proc_default_funct(self):
-    #    while True:
-    #        await notify(self.inst_funct3.changed)
-    #        if self.inst_funct3.next == Funct3AluLogic.ADD_SUB:
-    #            self.default_funct.next = AluOp.ADD
-    #        elif self.inst_funct3.next == Funct3AluLogic.SLL:
-    #            self.default_funct.next = AluOp.SLL
-    #        elif self.inst_funct3.next == Funct3AluLogic.SLT:
-    #            self.default_funct.next = AluOp.SLT
-    #        elif self.inst_funct3.next == Funct3AluLogic.SLTU:
-    #            self.default_funct.next = AluOp.SLTU
-    #        elif self.inst_funct3.next == Funct3AluLogic.XOR:
-    #            self.default_funct.next = AluOp.XOR
-    #        elif self.inst_funct3.next == Funct3AluLogic.SHIFTR:
-    #            self.default_funct.next = AluOp.SRL
-    #        elif self.inst_funct3.next == Funct3AluLogic.OR:
-    #            self.default_funct.next = AluOp.OR
-    #        elif self.inst_funct3.next == Funct3AluLogic.AND:
-    #            self.default_funct.next = AluOp.AND
-    #        else:
-    #            self.default_funct.next = AluOp.X
+    async def proc_default_funct(self):
+        while True:
+            await notify(self.inst_funct3.changed)
+            match self.inst_funct3.next:
+                case Funct3AluLogic.ADD_SUB:
+                    self.default_funct.next = AluOp.ADD
+                case Funct3AluLogic.SLL:
+                    self.default_funct.next = AluOp.SLL
+                case Funct3AluLogic.SLT:
+                    self.default_funct.next = AluOp.SLT
+                case Funct3AluLogic.SLTU:
+                    self.default_funct.next = AluOp.SLTU
+                case Funct3AluLogic.XOR:
+                    self.default_funct.next = AluOp.XOR
+                case Funct3AluLogic.SHIFTR:
+                    self.default_funct.next = AluOp.SRL
+                case Funct3AluLogic.OR:
+                    self.default_funct.next = AluOp.OR
+                case Funct3AluLogic.AND:
+                    self.default_funct.next = AluOp.AND
+                case _:
+                    self.default_funct.next = AluOp.X
 
-    # async def proc_secondary_funct(self):
-    #    while True:
-    #        await notify(self.inst_funct3.changed)
+    async def proc_secondary_funct(self):
+        while True:
+            await notify(self.inst_funct3.changed)
+            match self.inst_funct3.next:
+                case Funct3AluLogic.ADD_SUB:
+                    self.secondary_funct.next = AluOp.SUB
+                case Funct3AluLogic.SHIFTR:
+                    self.secondary_funct.next = AluOp.SRA
+                case _:
+                    self.secondary_funct.next = AluOp.X
 
-    # async def proc_branch_funct(self):
-    #    while True:
-    #        await notify()
+    async def proc_branch_funct(self):
+        while True:
+            await notify(self.inst_funct3.changed)
+            match self.inst_funct3.next:
+                case Funct3Branch.EQ | Funct3Branch.NE:
+                    self.branch_funct.next = AluOp.SEQ
+                case Funct3Branch.LT | Funct3Branch.GE:
+                    self.branch_funct.next = AluOp.SLT
+                case Funct3Branch.LTU | Funct3Branch.GEU:
+                    self.branch_funct.next = AluOp.SLTU
+                case _:
+                    self.branch_funct.next = AluOp.X
 
-    # async def proc_alu_function(self):
-    #    while True:
-    #        await notify()
+    async def proc_alu_function(self):
+        while True:
+            await notify(
+                self.alu_op_type.changed,
+                self.inst_funct3.changed,
+                self.inst_funct7.changed,
+                self.secondary_funct.changed,
+                self.default_funct.changed,
+                self.branch_funct.changed,
+            )
+            match self.alu_op_type.next:
+                case CtlAlu.ADD:
+                    self.alu_function.next = AluOp.ADD
+                case CtlAlu.OP:
+                    if self.inst_funct7.next[5] is logic.T:
+                        self.alu_function.next = self.secondary_funct.next
+                    else:
+                        self.alu_function.next = self.default_funct.next
+                case CtlAlu.OP_IMM:
+                    if self.inst_funct7.next[5] is logic.T and self.inst_funct3.next[0:2] == vec(
+                        "2b01"
+                    ):
+                        self.alu_function.next = self.secondary_funct.next
+                    else:
+                        self.alu_function.next = self.default_funct.next
+                case CtlAlu.BRANCH:
+                    self.alu_function.next = self.branch_funct.next
+                case _:
+                    self.alu_function.next = AluOp.X
 
 
 class SingleCycleDataPath(Module):
