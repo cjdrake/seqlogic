@@ -370,7 +370,7 @@ class RiscvCore(Module):
         self.inst_opcode = Logic(name="inst_opcode", parent=self, shape=(7,))
         self.inst_funct3 = Logic(name="inst_funct3", parent=self, shape=(3,))
         self.inst_funct7 = Logic(name="inst_funct7", parent=self, shape=(7,))
-        self.next_pc_sel = Logic(name="next_pc_sel", parent=self, shape=(2,))
+        self.next_pc_sel = TraceLogic(name="next_pc_sel", parent=self, shape=(2,))
         self.alu_function = Logic(name="alu_function", parent=self, shape=(5,))
         self.alu_result_equal_zero = Logic(name="alu_result_equal_zero", parent=self, shape=(1,))
         self.addr = Logic(name="addr", parent=self, shape=(32,))
@@ -451,7 +451,7 @@ class SingleCycleCtlPath(Module):
         self.data_mem_wr_en = Logic(name="data_mem_wr_en", parent=self, shape=(1,))
         self.reg_writeback_sel = Logic(name="reg_writeback_sel", parent=self, shape=(3,))
         self.alu_function = Logic(name="alu_function", parent=self, shape=(5,))
-        self.next_pc_sel = Logic(name="next_pc_sel", parent=self, shape=(2,))
+        self.next_pc_sel = TraceLogic(name="next_pc_sel", parent=self, shape=(2,))
 
         # State
         self.take_branch = TraceLogic(name="take_branch", parent=self, shape=(1,))
@@ -467,7 +467,8 @@ class SingleCycleCtlPath(Module):
         self.connect(self.data_mem_rd_en, self.singlecycle_control.data_mem_rd_en)
         self.connect(self.data_mem_wr_en, self.singlecycle_control.data_mem_wr_en)
         self.connect(self.reg_writeback_sel, self.singlecycle_control.reg_writeback_sel)
-        self.connect(self.next_pc_sel, self.singlecycle_control.next_pc_sel)
+        # self.connect(self.next_pc_sel, self.singlecycle_control.next_pc_sel)
+        self._procs.add((self.proc_foo, HW))
         self.connect(self.singlecycle_control.inst_opcode, self.inst_opcode)
         self.connect(self.singlecycle_control.take_branch, self.take_branch)
 
@@ -481,6 +482,12 @@ class SingleCycleCtlPath(Module):
         self.connect(self.alu_control.alu_op_type, self.alu_op_type)
         self.connect(self.alu_control.inst_funct3, self.inst_funct3)
         self.connect(self.alu_control.inst_funct7, self.inst_funct7)
+
+    async def proc_foo(self):
+        while True:
+            await notify(self.singlecycle_control.next_pc_sel.changed)
+            unused_time = loop.time()
+            self.next_pc_sel.next = self.singlecycle_control.next_pc_sel.next
 
 
 class SingleCycleControl(Module):
@@ -509,6 +516,7 @@ class SingleCycleControl(Module):
     async def proc_next_pc_sel(self):
         while True:
             await notify(self.inst_opcode.changed, self.take_branch.changed)
+            unused_time = loop.time()
             match self.inst_opcode.next:
                 case Opcode.BRANCH:
                     if self.take_branch.next == T:
@@ -755,7 +763,7 @@ class SingleCycleDataPath(Module):
         self.alu_op_a_sel = Logic(name="alu_op_a_sel", parent=self, shape=(1,))
         self.alu_op_b_sel = Logic(name="alu_op_b_sel", parent=self, shape=(1,))
         self.reg_writeback_sel = Logic(name="reg_writeback_sel", parent=self, shape=(3,))
-        self.next_pc_sel = Logic(name="next_pc_sel", parent=self, shape=(2,))
+        self.next_pc_sel = TraceLogic(name="next_pc_sel", parent=self, shape=(2,))
         self.alu_function = Logic(name="alu_function", parent=self, shape=(5,))
 
         self.clock = Logic(name="clock", parent=self, shape=(1,))
@@ -1285,9 +1293,9 @@ def test_singlecycle2():
             top.pc: xes((32,)),
             top.inst: xes((32,)),
             top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: xes((2,)),
-            # top.riscv_core.singlecycle_ctlpath.next_pc_sel: xes((2,)),
-            # top.riscv_core.next_pc_sel: xes((2,)),
-            # top.riscv_core.singlecycle_datapath.next_pc_sel: xes((2,)),
+            top.riscv_core.singlecycle_ctlpath.next_pc_sel: xes((2,)),
+            top.riscv_core.next_pc_sel: xes((2,)),
+            top.riscv_core.singlecycle_datapath.next_pc_sel: xes((2,)),
             top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: xes((1,)),
             top.riscv_core.singlecycle_ctlpath.take_branch: xes((1,)),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: xes((7,)),
@@ -1305,9 +1313,9 @@ def test_singlecycle2():
             top.pc: vec("32h0040_0000"),
             top.inst: vec("32h0000_0093"),
             top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: vec("2b00"),
-            # top.riscv_core.singlecycle_ctlpath.next_pc_sel: vec("2b00"),
-            # top.riscv_core.next_pc_sel: vec("2b00"),
-            # top.riscv_core.singlecycle_datapath.next_pc_sel: vec("2b00"),
+            top.riscv_core.singlecycle_ctlpath.next_pc_sel: vec("2b00"),
+            top.riscv_core.next_pc_sel: vec("2b00"),
+            top.riscv_core.singlecycle_datapath.next_pc_sel: vec("2b00"),
             top.riscv_core.singlecycle_ctlpath.take_branch: F,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0004"),
@@ -1356,9 +1364,10 @@ def test_singlecycle2():
             top.pc: vec("32h0040_0014"),
             top.inst: vec("32h4DD1_9663"),
             # top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: vec("2b01"),
-            # top.riscv_core.singlecycle_ctlpath.next_pc_sel: vec("2b01"),
-            # top.riscv_core.next_pc_sel: vec("2b01"),
-            # top.riscv_core.singlecycle_datapath.next_pc_sel: vec("2b01"),
+            # WTF?
+            top.riscv_core.singlecycle_ctlpath.next_pc_sel: vec("2b01"),
+            top.riscv_core.next_pc_sel: vec("2b01"),
+            top.riscv_core.singlecycle_datapath.next_pc_sel: vec("2b01"),
             top.riscv_core.singlecycle_ctlpath.take_branch: F,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.BRANCH,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0018"),
