@@ -523,6 +523,7 @@ class SingleCycleControl(Module):
     async def proc_others(self):
         while True:
             await notify(self.inst_opcode.changed)
+
             self.pc_wr_en.next = T
             self.regfile_wr_en.next = F
             self.alu_op_a_sel.next = X
@@ -622,7 +623,7 @@ class ControlTransfer(Module):
             elif self.inst_funct3.next == Funct3Branch.GEU:
                 self.take_branch.next = self.result_equal_zero.next
             else:
-                self.take_branch.next = xes((1,))
+                self.take_branch.next = X
 
 
 class AluControl(Module):
@@ -644,8 +645,39 @@ class AluControl(Module):
 
         # Processes
 
-    async def proc_alu_function(self):
-        pass
+    # async def proc_default_funct(self):
+    #    while True:
+    #        await notify(self.inst_funct3.changed)
+    #        if self.inst_funct3.next == Funct3AluLogic.ADD_SUB:
+    #            self.default_funct.next = AluOp.ADD
+    #        elif self.inst_funct3.next == Funct3AluLogic.SLL:
+    #            self.default_funct.next = AluOp.SLL
+    #        elif self.inst_funct3.next == Funct3AluLogic.SLT:
+    #            self.default_funct.next = AluOp.SLT
+    #        elif self.inst_funct3.next == Funct3AluLogic.SLTU:
+    #            self.default_funct.next = AluOp.SLTU
+    #        elif self.inst_funct3.next == Funct3AluLogic.XOR:
+    #            self.default_funct.next = AluOp.XOR
+    #        elif self.inst_funct3.next == Funct3AluLogic.SHIFTR:
+    #            self.default_funct.next = AluOp.SRL
+    #        elif self.inst_funct3.next == Funct3AluLogic.OR:
+    #            self.default_funct.next = AluOp.OR
+    #        elif self.inst_funct3.next == Funct3AluLogic.AND:
+    #            self.default_funct.next = AluOp.AND
+    #        else:
+    #            self.default_funct.next = AluOp.X
+
+    # async def proc_secondary_funct(self):
+    #    while True:
+    #        await notify(self.inst_funct3.changed)
+
+    # async def proc_branch_funct(self):
+    #    while True:
+    #        await notify()
+
+    # async def proc_alu_function(self):
+    #    while True:
+    #        await notify()
 
 
 class SingleCycleDataPath(Module):
@@ -1211,7 +1243,6 @@ def test_singlecycle2():
         0: {
             top.reset: F,
             top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: T,
-            # top.riscv_core.singlecycle_ctlpath.control_transfer.take_branch: F,
         },
         # @(posedge reset)
         5: {
