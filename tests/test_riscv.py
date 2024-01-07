@@ -33,7 +33,7 @@ HW, TASK = 0, 1
 
 
 class Opcode(Enum):
-    """TODO(cjdrake): Write docstring."""
+    """Instruction opcodes."""
 
     LOAD = "7b000_0011"
     LOAD_FP = "7b000_0111"
@@ -50,16 +50,127 @@ class Opcode(Enum):
     JAL = "7b110_1111"
     SYSTEM = "7b111_0011"
 
+    X = "7bxxx_xxxx"
+
+
+class Funct3AluLogic(Enum):
+    """Interpretations of the "funct3" field."""
+
+    ADD_SUB = "3b000"
+    SLL = "3b001"
+    SLT = "3b010"
+    SLTU = "3b011"
+    XOR = "3b100"
+    SHIFTR = "3b101"
+    OR = "3b110"
+    AND = "3b111"
+
+    X = "3bxxx"
+
+
+class Funct3AluMul(Enum):
+    """Interpretations of the "funct3" field for extension M."""
+
+    MUL = "3b000"
+    MULH = "3b001"
+    MULHSU = "3b010"
+    MULHU = "3b011"
+    DIV = "3b100"
+    DIVU = "3b101"
+    REM = "3b110"
+    REMU = "3b111"
+
+    X = "3bxxx"
+
 
 class Funct3Branch(Enum):
+    """Interpretations of the "funct3" field for branches."""
+
+    EQ = "3b000"
+    NE = "3b001"
+    LT = "3b100"
+    GE = "3b101"
+    LTU = "3b110"
+    GEU = "3b111"
+
+    X = "3bxxx"
+
+
+class AluOp(Enum):
+    """ALU Operations."""
+
+    ADD = "5b0_0001"
+    SUB = "5b0_0010"
+    SLL = "5b0_0011"
+    SRL = "5b0_0100"
+    SRA = "5b0_0101"
+    SEQ = "5b0_0110"
+    SLT = "5b0_0111"
+    SLTU = "5b0_1000"
+    XOR = "5b0_1001"
+    OR = "5b0_1010"
+    AND = "5b0_1011"
+    MUL = "5b0_1100"
+    MULH = "5b0_1101"
+    MULHSU = "5b0_1110"
+    MULHU = "5b0_1111"
+    DIV = "5b1_0000"
+    DIVU = "5b1_0001"
+    REM = "5b1_0010"
+    REMU = "5b1_0011"
+
+    X = "5bx_xxxx"
+
+
+class CtlAlu(Enum):
+    """ALU op types."""
+
+    ADD = "2b00"
+    BRANCH = "2b01"
+    OP = "2b10"
+    OP_IMM = "2b11"
+
+    X = "2bxx"
+
+
+class CtlWriteBack(Enum):
+    """Register data sources."""
+
+    ALU = "3b000"
+    DATA = "3b001"
+    PC4 = "3b010"
+    IMM = "3b011"
+
+    X = "3bxxx"
+
+
+class CtlAluA(Enum):
+    """ALU 1st operand source."""
+
+    RS1 = "1b0"
+    PC = "1b1"
+
+    X = "1bx"
+
+
+class CtlAluB(Enum):
+    """ALU 2nd operand source."""
+
+    RS2 = "1b0"
+    IMM = "1b1"
+
+    X = "1bx"
+
+
+class CtlPc(Enum):
     """TODO(cjdrake): Write docstring."""
 
-    BRANCH_EQ = "3b000"
-    BRANCH_NE = "3b001"
-    BRANCH_LT = "3b100"
-    BRANCH_GE = "3b101"
-    BRANCH_LTU = "3b110"
-    BRANCH_GEU = "3b111"
+    PC4 = "2b00"
+    PC_IMM = "2b01"
+    RS1_IMM = "2b10"
+    PC4_BR = "2b11"
+
+    X = "2bxx"
 
 
 class TraceLogic(Logic):
@@ -390,6 +501,96 @@ class SingleCycleControl(Module):
         self.inst_opcode = Logic(name="inst_opcode", parent=self, shape=(7,))
         self.take_branch = Logic(name="take_branch", parent=self, shape=(1,))
 
+        # Processes
+        self._procs.add((self.proc_next_pc_sel, HW))
+        self._procs.add((self.proc_others, HW))
+
+    async def proc_next_pc_sel(self):
+        while True:
+            await notify(self.inst_opcode.changed, self.take_branch.changed)
+            if self.inst_opcode.next == Opcode.BRANCH:
+                if self.take_branch.next == T:
+                    self.next_pc_sel.next = CtlPc.PC_IMM
+                else:
+                    self.next_pc_sel.next = CtlPc.PC4
+            elif self.inst_opcode.next == Opcode.JALR:
+                self.next_pc_sel.next = CtlPc.RS1_IMM
+            elif self.inst_opcode.next == Opcode.JAL:
+                self.next_pc_sel.next = CtlPc.PC_IMM
+            else:
+                self.next_pc_sel.next = CtlPc.PC4
+
+    async def proc_others(self):
+        while True:
+            await notify(self.inst_opcode.changed)
+            self.pc_wr_en.next = T
+            self.regfile_wr_en.next = F
+            self.alu_op_a_sel.next = X
+            self.alu_op_b_sel.next = X
+            self.alu_op_type.next = vec("2bxx")
+            self.data_mem_rd_en.next = F
+            self.data_mem_wr_en.next = F
+            self.reg_writeback_sel.next = vec("3bxxx")
+
+            if self.inst_opcode.next == Opcode.LOAD:
+                self.regfile_wr_en.next = T
+                self.alu_op_a_sel.next = CtlAluA.RS1
+                self.alu_op_b_sel.next = CtlAluB.IMM
+                self.alu_op_type.next = CtlAlu.ADD
+                self.data_mem_rd_en.next = T
+                self.reg_writeback_sel.next = CtlWriteBack.DATA
+            elif self.inst_opcode.next == Opcode.MISC_MEM:
+                pass
+            elif self.inst_opcode.next == Opcode.OP_IMM:
+                self.regfile_wr_en.next = T
+                self.alu_op_a_sel.next = CtlAluA.RS1
+                self.alu_op_b_sel.next = CtlAluB.IMM
+                self.alu_op_type.next = CtlAlu.OP_IMM
+                self.reg_writeback_sel.next = CtlWriteBack.ALU
+            elif self.inst_opcode.next == Opcode.AUIPC:
+                self.regfile_wr_en.next = T
+                self.alu_op_a_sel.next = CtlAluA.PC
+                self.alu_op_b_sel.next = CtlAluB.IMM
+                self.alu_op_type.next = CtlAlu.ADD
+                self.reg_writeback_sel.next = CtlWriteBack.ALU
+            elif self.inst_opcode.next == Opcode.STORE:
+                self.alu_op_a_sel.next = CtlAluA.RS1
+                self.alu_op_b_sel.next = CtlAluB.IMM
+                self.alu_op_type.next = CtlAlu.ADD
+                self.data_mem_wr_en.next = T
+            elif self.inst_opcode.next == Opcode.OP:
+                self.regfile_wr_en.next = T
+                self.alu_op_a_sel.next = CtlAluA.RS1
+                self.alu_op_b_sel.next = CtlAluB.RS2
+                self.reg_writeback_sel.next = CtlWriteBack.ALU
+                self.alu_op_type.next = CtlAlu.OP
+            elif self.inst_opcode.next == Opcode.LUI:
+                self.regfile_wr_en.next = T
+                self.alu_op_a_sel.next = CtlAluA.RS1
+                self.alu_op_b_sel.next = CtlAluB.RS2
+                self.reg_writeback_sel.next = CtlWriteBack.IMM
+            elif self.inst_opcode.next == Opcode.BRANCH:
+                self.alu_op_a_sel.next = CtlAluA.RS1
+                self.alu_op_b_sel.next = CtlAluB.RS2
+                self.alu_op_type.next = CtlAlu.BRANCH
+            elif self.inst_opcode.next == Opcode.JALR:
+                self.regfile_wr_en.next = T
+                self.alu_op_a_sel.next = CtlAluA.RS1
+                self.alu_op_b_sel.next = CtlAluB.IMM
+                self.alu_op_type.next = CtlAlu.ADD
+                self.reg_writeback_sel.next = CtlWriteBack.PC4
+            elif self.inst_opcode.next == Opcode.JAL:
+                self.regfile_wr_en.next = T
+                self.alu_op_a_sel.next = CtlAluA.PC
+                self.alu_op_b_sel.next = CtlAluB.IMM
+                self.alu_op_type.next = CtlAlu.ADD
+                self.reg_writeback_sel.next = CtlWriteBack.PC4
+            else:
+                self.pc_wr_en.next = X
+                self.regfile_wr_en.next = X
+                self.data_mem_rd_en.next = X
+                self.data_mem_wr_en.next = X
+
 
 class ControlTransfer(Module):
     """TODO(cjdrake): Write docstring."""
@@ -408,17 +609,17 @@ class ControlTransfer(Module):
     async def proc_take_branch(self):
         while True:
             await notify(self.inst_funct3.changed, self.result_equal_zero.changed)
-            if self.inst_funct3.next == Funct3Branch.BRANCH_EQ:
+            if self.inst_funct3.next == Funct3Branch.EQ:
                 self.take_branch.next = ~(self.result_equal_zero.next)
-            elif self.inst_funct3.next == Funct3Branch.BRANCH_NE:
+            elif self.inst_funct3.next == Funct3Branch.NE:
                 self.take_branch.next = self.result_equal_zero.next
-            elif self.inst_funct3.next == Funct3Branch.BRANCH_LT:
+            elif self.inst_funct3.next == Funct3Branch.LT:
                 self.take_branch.next = ~(self.result_equal_zero.next)
-            elif self.inst_funct3.next == Funct3Branch.BRANCH_GE:
+            elif self.inst_funct3.next == Funct3Branch.GE:
                 self.take_branch.next = self.result_equal_zero.next
-            elif self.inst_funct3.next == Funct3Branch.BRANCH_LTU:
+            elif self.inst_funct3.next == Funct3Branch.LTU:
                 self.take_branch.next = ~(self.result_equal_zero.next)
-            elif self.inst_funct3.next == Funct3Branch.BRANCH_GEU:
+            elif self.inst_funct3.next == Funct3Branch.GEU:
                 self.take_branch.next = self.result_equal_zero.next
             else:
                 self.take_branch.next = xes((1,))
