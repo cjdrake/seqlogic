@@ -83,7 +83,7 @@ class Top(Module):
         self.pc = TraceLogic(name="pc", parent=self, shape=(32,))
         self.inst = TraceLogic(name="inst", parent=self, shape=(32,))
 
-        self.clock = TraceLogic(name="clock", parent=self, shape=(1,))
+        self.clock = Logic(name="clock", parent=self, shape=(1,))
         self.reset = TraceLogic(name="reset", parent=self, shape=(1,))
 
         # Submodules
@@ -952,7 +952,6 @@ def test_singlecycle2():
     exp = {
         # Initialize everything to X'es
         -1: {
-            top.clock: X,
             top.reset: X,
             top.pc: xes((32,)),
             top.inst: xes((32,)),
@@ -962,24 +961,10 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: xes((32,)),
         },
         0: {
-            top.clock: F,
             top.reset: F,
-        },
-        1: {
-            top.clock: T,
-        },
-        2: {
-            top.clock: F,
-        },
-        3: {
-            top.clock: T,
-        },
-        4: {
-            top.clock: F,
         },
         # @(posedge reset)
         5: {
-            top.clock: T,
             top.reset: T,
             top.pc: vec("32h0040_0000"),
             top.inst: vec("32h0000_0093"),
@@ -988,73 +973,43 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0000"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0000"),
         },
-        6: {
-            top.clock: F,
-        },
-        7: {
-            top.clock: T,
-        },
-        8: {
-            top.clock: F,
-        },
-        9: {
-            top.clock: T,
-        },
         # @(negedge reset)
         10: {
-            top.clock: F,
             top.reset: F,
         },
         # @(posedge clock)
         11: {
-            top.clock: T,
             top.pc: vec("32h0040_0004"),
             top.inst: vec("32h0000_0113"),
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0008"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0004"),
         },
-        12: {
-            top.clock: F,
-        },
         # @(posedge clock)
         13: {
-            top.clock: T,
             top.pc: vec("32h0040_0008"),
             top.inst: vec("32h0020_81B3"),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_000C"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0008"),
         },
-        14: {
-            top.clock: F,
-        },
         # @(posedge clock)
         15: {
-            top.clock: T,
             top.pc: vec("32h0040_000C"),
             top.inst: vec("32h0000_0E93"),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0010"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_000C"),
         },
-        16: {
-            top.clock: F,
-        },
         # @(posedge clock)
         17: {
-            top.clock: T,
             top.pc: vec("32h0040_0010"),
             top.inst: vec("32h0020_0E13"),
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0014"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0002"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0012"),
         },
-        18: {
-            top.clock: F,
-        },
         # @(posedge clock)
         19: {
-            top.clock: T,
             top.pc: vec("32h0040_0014"),
             top.inst: vec("32h4DD1_9663"),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.BRANCH,
@@ -1062,12 +1017,8 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_04CC"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_04E0"),
         },
-        20: {
-            top.clock: F,
-        },
         # @(posedge clock)
         21: {
-            top.clock: T,
             top.pc: vec("32h0040_0018"),
             top.inst: vec("32h0010_0093"),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
@@ -1075,24 +1026,15 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0001"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0019"),
         },
-        22: {
-            top.clock: F,
-        },
         # @(posedge clock)
         23: {
-            top.clock: T,
             top.pc: vec("32h0040_001C"),
             top.inst: vec("32h0010_0113"),
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0020"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_001D"),
         },
         # @(posedge clock)
-        24: {
-            top.clock: F,
-        },
-        # @(posedge clock)
         25: {
-            top.clock: T,
             top.pc: vec("32h0040_0020"),
             top.inst: vec("32h0020_81B3"),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP,
@@ -1100,12 +1042,8 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0000"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0020"),
         },
-        26: {
-            top.clock: F,
-        },
         # @(posedge clock)
         27: {
-            top.clock: T,
             top.pc: vec("32h0040_0024"),
             top.inst: vec("32h0020_0E93"),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
@@ -1113,12 +1051,8 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0002"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0026"),
         },
-        28: {
-            top.clock: F,
-        },
         # @(posedge clock)
         29: {
-            top.clock: T,
             top.pc: vec("32h0040_0028"),
             top.inst: vec("32h0030_0E13"),
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_002C"),
