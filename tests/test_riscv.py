@@ -1,5 +1,12 @@
 """
 TODO(cjdrake): Write docstring.
+
+This design is copied from: https://github.com/tilk/riscv-simple-sv
+
+Work In Progress
+The objective is to figure out seqlogic simulation style/semantics.
+I'm not presently interested in the details of RISC-V.
+It merely serves as a non-trivial example design.
 """
 
 from collections import defaultdict
