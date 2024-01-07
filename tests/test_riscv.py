@@ -790,6 +790,13 @@ class SingleCycleDataPath(Module):
         self.connect(self.adder_pc_plus_immediate.op_b, self.immediate)
 
         # TODO(cjdrake): alu
+        self.alu = Alu(name="alu", parent=self)
+        self.connect(self.alu_result, self.alu.result)
+        # self.connect(self.alu_result_equal_zero, self.alu.result_equal_zero)
+        self.connect(self.alu.alu_function, self.alu_function)
+        self.connect(self.alu.op_a, self.alu_op_a)
+        self.connect(self.alu.op_b, self.alu_op_b)
+
         # TODO(cjdrake): mux_next_pc_sel
         # TODO(cjdrake): mux_op_a
         # TODO(cjdrake): mux_op_b
@@ -982,6 +989,60 @@ class ImmedateGenerator(Module):
                 )
             else:
                 self.immediate.next = vec("32h0000_0000")
+
+
+class Alu(Module):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, name: str, parent: Module | None):
+        super().__init__(name, parent)
+
+        # Ports
+        self.result = Logic(name="result", parent=self, shape=(32,))
+        self.result_equal_zero = Logic(name="result_equal_zero", parent=self, shape=(1,))
+        self.alu_function = Logic(name="alu_function", parent=self, shape=(5,))
+        self.op_a = Logic(name="op_a", parent=self, shape=(32,))
+        self.op_b = Logic(name="op_b", parent=self, shape=(32,))
+
+        # Processes
+        self._procs.add((self.proc_result, HW))
+        self._procs.add((self.proc_result_equal_zero, HW))
+
+    async def proc_result(self):
+        await notify(self.alu_function.changed, self.op_a.changed, self.op_b.changed)
+        match self.alu_function.next:
+            case AluOp.ADD:
+                self.result.next = self.op_a.next + self.op_b.next
+            case AluOp.SUB:
+                self.result.next = self.op_a.next - self.op_b.next
+            # TODO(cjdrake): SLL, SRL, SRA, SEQ, SLT, SLTU
+            # case AluOp.SLL:
+            #    pass
+            # case AluOp.SRL:
+            #    pass
+            # case AluOp.SRA:
+            #    pass
+            # case AluOp.SEQ:
+            #    pass
+            # case AluOp.SLT:
+            #    pass
+            # case AluOp.SLTU:
+            #    pass
+            case AluOp.XOR:
+                self.result.next = self.op_a.next ^ self.op_b.next
+            case AluOp.OR:
+                self.result.next = self.op_a.next | self.op_b.next
+            case AluOp.AND:
+                self.result.next = self.op_a.next & self.op_b.next
+            case _:
+                self.result.next = vec("32h0000_0000")
+
+    async def proc_result_equal_zero(self):
+        await notify(self.result.changed)
+        if self.result.next == vec("32h0000_0000"):
+            self.result_equal_zero.next = T
+        else:
+            self.result_equal_zero.next = F
 
 
 class Register(Module):
@@ -1205,6 +1266,12 @@ def test_singlecycle1():
             top.riscv_core.singlecycle_datapath.adder_pc_plus_immediate.result,
             top.riscv_core.singlecycle_datapath.adder_pc_plus_immediate.op_a,
             top.riscv_core.singlecycle_datapath.adder_pc_plus_immediate.op_b,
+            top.riscv_core.singlecycle_datapath.alu,
+            top.riscv_core.singlecycle_datapath.alu.result,
+            top.riscv_core.singlecycle_datapath.alu.result_equal_zero,
+            top.riscv_core.singlecycle_datapath.alu.alu_function,
+            top.riscv_core.singlecycle_datapath.alu.op_a,
+            top.riscv_core.singlecycle_datapath.alu.op_b,
             top.riscv_core.singlecycle_datapath.instruction_decoder,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_funct7,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_rs2,
