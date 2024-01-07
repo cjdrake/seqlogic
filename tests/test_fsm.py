@@ -4,6 +4,7 @@ Demonstrate usage of an enum.
 """
 
 from seqlogic.enum import Enum
+from seqlogic.hier import Module
 from seqlogic.logic import logic
 from seqlogic.sim import Region, SimVar, get_loop, notify
 
@@ -70,8 +71,10 @@ def test_fsm():
     # State Variables
     ps = _TraceSeqDetect()
 
+    top = Module(name="top")
+
     # Inputs
-    x = TraceVar("x", parent=None)
+    x = TraceVar("x", parent=top)
 
     def ns() -> SeqDetect:
         match (ps.value, x.value):
@@ -99,9 +102,9 @@ def test_fsm():
                 return SeqDetect.XX  # pyright: ignore[reportGeneralTypeIssues]
 
     # Control Variables
-    reset_n = TraceVar("reset_n", parent=None)
+    reset_n = TraceVar("reset_n", parent=top)
     reset_value = SeqDetect.A
-    clock = TraceVar("clock", parent=None)
+    clock = TraceVar("clock", parent=top)
 
     # Schedule input
     loop.add_proc(_input_drv, Region(0), x, reset_n, clock)
