@@ -51,6 +51,17 @@ class Opcode(Enum):
     SYSTEM = "7b111_0011"
 
 
+class Funct3Branch(Enum):
+    """TODO(cjdrake): Write docstring."""
+
+    BRANCH_EQ = "3b000"
+    BRANCH_NE = "3b001"
+    BRANCH_LT = "3b100"
+    BRANCH_GE = "3b101"
+    BRANCH_LTU = "3b110"
+    BRANCH_GEU = "3b111"
+
+
 class TraceLogic(Logic):
     """Variable that supports dumping to memory."""
 
@@ -381,6 +392,8 @@ class SingleCycleControl(Module):
 
 
 class ControlTransfer(Module):
+    """TODO(cjdrake): Write docstring."""
+
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
 
@@ -388,6 +401,27 @@ class ControlTransfer(Module):
         self.take_branch = Logic(name="take_branch", parent=self, shape=(1,))
         self.inst_funct3 = Logic(name="inst_funct3", parent=self, shape=(3,))
         self.result_equal_zero = Logic(name="result_equal_zero", parent=self, shape=(1,))
+
+        # Processes
+        self._procs.add((self.proc_take_branch, HW))
+
+    async def proc_take_branch(self):
+        while True:
+            await notify(self.inst_funct3.changed, self.result_equal_zero.changed)
+            if self.inst_funct3.next == Funct3Branch.BRANCH_EQ:
+                self.take_branch.next = ~(self.result_equal_zero.next)
+            elif self.inst_funct3.next == Funct3Branch.BRANCH_NE:
+                self.take_branch.next = self.result_equal_zero.next
+            elif self.inst_funct3.next == Funct3Branch.BRANCH_LT:
+                self.take_branch.next = ~(self.result_equal_zero.next)
+            elif self.inst_funct3.next == Funct3Branch.BRANCH_GE:
+                self.take_branch.next = self.result_equal_zero.next
+            elif self.inst_funct3.next == Funct3Branch.BRANCH_LTU:
+                self.take_branch.next = ~(self.result_equal_zero.next)
+            elif self.inst_funct3.next == Funct3Branch.BRANCH_GEU:
+                self.take_branch.next = self.result_equal_zero.next
+            else:
+                self.take_branch.next = xes((1,))
 
 
 class AluControl(Module):
@@ -967,6 +1001,7 @@ def test_singlecycle2():
             top.pc: xes((32,)),
             top.inst: xes((32,)),
             top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: xes((1,)),
+            # top.riscv_core.singlecycle_ctlpath.control_transfer.take_branch: xes((1,)),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: xes((7,)),
             top.riscv_core.singlecycle_datapath.pc_plus_4: xes((32,)),
             top.riscv_core.singlecycle_datapath.immediate: xes((32,)),
@@ -975,6 +1010,7 @@ def test_singlecycle2():
         0: {
             top.reset: F,
             top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: T,
+            # top.riscv_core.singlecycle_ctlpath.control_transfer.take_branch: F,
         },
         # @(posedge reset)
         5: {
@@ -1018,6 +1054,7 @@ def test_singlecycle2():
             top.pc: vec("32h0040_0010"),
             top.inst: vec("32h0020_0E13"),
             top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: F,
+            # top.riscv_core.singlecycle_ctlpath.control_transfer.take_branch: T,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0014"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0002"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0012"),
@@ -1026,6 +1063,7 @@ def test_singlecycle2():
         19: {
             top.pc: vec("32h0040_0014"),
             top.inst: vec("32h4DD1_9663"),
+            # top.riscv_core.singlecycle_ctlpath.control_transfer.take_branch: F,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.BRANCH,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0018"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_04CC"),
@@ -1035,6 +1073,7 @@ def test_singlecycle2():
         21: {
             top.pc: vec("32h0040_0018"),
             top.inst: vec("32h0010_0093"),
+            # top.riscv_core.singlecycle_ctlpath.control_transfer.take_branch: T,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_001C"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0001"),
