@@ -342,7 +342,7 @@ class SingleCycleCtlPath(Module):
         self.next_pc_sel = Logic(name="next_pc_sel", parent=self, shape=(2,))
 
         # State
-        self.take_branch = Logic(name="take_branch", parent=self, shape=(1,))
+        self.take_branch = TraceLogic(name="take_branch", parent=self, shape=(1,))
         self.alu_op_type = Logic(name="alu_op_type", parent=self, shape=(2,))
 
         # Submodules
@@ -1001,7 +1001,7 @@ def test_singlecycle2():
             top.pc: xes((32,)),
             top.inst: xes((32,)),
             top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: xes((1,)),
-            # top.riscv_core.singlecycle_ctlpath.control_transfer.take_branch: xes((1,)),
+            top.riscv_core.singlecycle_ctlpath.take_branch: xes((1,)),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: xes((7,)),
             top.riscv_core.singlecycle_datapath.pc_plus_4: xes((32,)),
             top.riscv_core.singlecycle_datapath.immediate: xes((32,)),
@@ -1017,6 +1017,7 @@ def test_singlecycle2():
             top.reset: T,
             top.pc: vec("32h0040_0000"),
             top.inst: vec("32h0000_0093"),
+            top.riscv_core.singlecycle_ctlpath.take_branch: F,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0004"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0000"),
@@ -1054,7 +1055,7 @@ def test_singlecycle2():
             top.pc: vec("32h0040_0010"),
             top.inst: vec("32h0020_0E13"),
             top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: F,
-            # top.riscv_core.singlecycle_ctlpath.control_transfer.take_branch: T,
+            top.riscv_core.singlecycle_ctlpath.take_branch: T,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0014"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0002"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0012"),
@@ -1063,7 +1064,7 @@ def test_singlecycle2():
         19: {
             top.pc: vec("32h0040_0014"),
             top.inst: vec("32h4DD1_9663"),
-            # top.riscv_core.singlecycle_ctlpath.control_transfer.take_branch: F,
+            top.riscv_core.singlecycle_ctlpath.take_branch: F,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.BRANCH,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0018"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_04CC"),
@@ -1073,7 +1074,7 @@ def test_singlecycle2():
         21: {
             top.pc: vec("32h0040_0018"),
             top.inst: vec("32h0010_0093"),
-            # top.riscv_core.singlecycle_ctlpath.control_transfer.take_branch: T,
+            top.riscv_core.singlecycle_ctlpath.take_branch: T,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_001C"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0001"),
