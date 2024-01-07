@@ -55,16 +55,17 @@ class SimVar:
     def _rst_next(self):
         self._next_state = State.INVALID
         self._next_value = self._value
+        self.delta = False
 
     def _get_next(self):
         return self._next_value
 
     def _set_next(self, value):
-        # Protect against double assignment in the same time slot
         if value != self._value:
             self._next_state = State.DIRTY
         else:
             self._next_state = State.CLEAN
+        self.delta = value != self._next_value
         self._next_value = value
 
         # Notify the event loop
@@ -217,13 +218,15 @@ class Sim:
 
     def notify(self, var: SimVar):
         """Notify dependent tasks about a variable change."""
-        if var in self._deps and var.dirty():
+        if var in self._deps and var.delta:
             notifications = {e: set(self._deps[e]) for e in self._deps[var] if e()}
             for event, tasks in notifications.items():
                 for task in tasks:
                     self.call_soon(task, var)
                     self._prune(event, task)
                 self._prune(var, event)
+
+        var.delta = False
 
         # Add variable to update set
         self._valid_vars.add(var)

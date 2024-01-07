@@ -15,7 +15,7 @@ class Logic(HierVar, SimVar):
         SimVar.__init__(self, value=xes(shape))
 
     def changed(self) -> bool:
-        return self._next_value != self._value
+        return self.delta
 
     def posedge(self) -> bool:
         return self._value == F and self._next_value == T

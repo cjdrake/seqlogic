@@ -486,7 +486,6 @@ class SingleCycleCtlPath(Module):
     async def proc_foo(self):
         while True:
             await notify(self.singlecycle_control.next_pc_sel.changed)
-            unused_time = loop.time()
             self.next_pc_sel.next = self.singlecycle_control.next_pc_sel.next
 
 
@@ -516,7 +515,6 @@ class SingleCycleControl(Module):
     async def proc_next_pc_sel(self):
         while True:
             await notify(self.inst_opcode.changed, self.take_branch.changed)
-            unused_time = loop.time()
             match self.inst_opcode.next:
                 case Opcode.BRANCH:
                     if self.take_branch.next == T:
@@ -1363,11 +1361,6 @@ def test_singlecycle2():
         19: {
             top.pc: vec("32h0040_0014"),
             top.inst: vec("32h4DD1_9663"),
-            # top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: vec("2b01"),
-            # WTF?
-            top.riscv_core.singlecycle_ctlpath.next_pc_sel: vec("2b01"),
-            top.riscv_core.next_pc_sel: vec("2b01"),
-            top.riscv_core.singlecycle_datapath.next_pc_sel: vec("2b01"),
             top.riscv_core.singlecycle_ctlpath.take_branch: F,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.BRANCH,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0018"),
