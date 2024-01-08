@@ -1571,21 +1571,21 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.regfile_wr_en: X,
             top.riscv_core.singlecycle_datapath.alu_op_a_sel: X,
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: X,
-            # FUBAR
+            top.riscv_core.singlecycle_datapath.reg_writeback_sel: xes((3,)),
             top.riscv_core.singlecycle_datapath.next_pc_sel: xes((2,)),
+            top.riscv_core.singlecycle_datapath.alu_function: xes((5,)),
+            # FUBAR
+            top.riscv_core.singlecycle_datapath.wr_data: xes((32,)),  # WTF
+            top.riscv_core.singlecycle_datapath.inst_rs2: xes((5,)),
+            top.riscv_core.singlecycle_datapath.inst_rs1: xes((5,)),
+            top.riscv_core.singlecycle_datapath.inst_rd: xes((5,)),
             top.riscv_core.singlecycle_datapath.pc_plus_4: xes((32,)),
-            top.riscv_core.singlecycle_datapath.immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.pc_next: xes((32,)),
-            top.riscv_core.singlecycle_datapath.inst_rd: xes((5,)),
-            top.riscv_core.singlecycle_datapath.wr_data: xes((32,)),  # WTF
-            top.riscv_core.singlecycle_datapath.inst_rs1: xes((5,)),
-            top.riscv_core.singlecycle_datapath.inst_rs2: xes((5,)),
-            top.riscv_core.singlecycle_datapath.alu_function: xes((5,)),
             top.riscv_core.singlecycle_datapath.alu_op_a: xes((32,)),  # WTF
             top.riscv_core.singlecycle_datapath.alu_op_b: xes((32,)),  # WTF
-            top.riscv_core.singlecycle_datapath.reg_writeback_sel: xes((3,)),
             top.riscv_core.singlecycle_datapath.alu_result: xes((32,)),
+            top.riscv_core.singlecycle_datapath.immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: xes((7,)),
         },
         0: {
