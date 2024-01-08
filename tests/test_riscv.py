@@ -528,12 +528,12 @@ class SingleCycleControl(Module):
 
             self.pc_wr_en.next = T
             self.regfile_wr_en.next = F
-            self.alu_op_a_sel.next = X
-            self.alu_op_b_sel.next = X
-            self.alu_op_type.next = vec("2bxx")
+            self.alu_op_a_sel.next = F
+            self.alu_op_b_sel.next = F
+            self.alu_op_type.next = vec("2b00")
             self.data_mem_rd_en.next = F
             self.data_mem_wr_en.next = F
-            self.reg_writeback_sel.next = vec("3bxxx")
+            self.reg_writeback_sel.next = vec("3b000")
 
             match self.inst_opcode.next:
                 case Opcode.LOAD:
@@ -590,10 +590,10 @@ class SingleCycleControl(Module):
                     self.alu_op_type.next = CtlAlu.ADD
                     self.reg_writeback_sel.next = CtlWriteBack.PC4
                 case _:
-                    self.pc_wr_en.next = X
-                    self.regfile_wr_en.next = X
-                    self.data_mem_rd_en.next = X
-                    self.data_mem_wr_en.next = X
+                    self.pc_wr_en.next = F
+                    self.regfile_wr_en.next = F
+                    self.data_mem_rd_en.next = F
+                    self.data_mem_wr_en.next = F
 
 
 class ControlTransfer(Module):
@@ -1160,7 +1160,7 @@ class Multiplexer8(Module):
 
         # Ports
         self.out = Logic(name="out", parent=self, shape=(32,))
-        self.sel = Logic(name="sel", parent=self, shape=(3,))
+        self.sel = TraceLogic(name="sel", parent=self, shape=(3,))
         self.in0 = Logic(name="in0", parent=self, shape=(32,))
         self.in1 = Logic(name="in1", parent=self, shape=(32,))
         self.in2 = Logic(name="in2", parent=self, shape=(32,))
@@ -1244,7 +1244,7 @@ class RegFile(Module):
         # Ports
         self.wr_en = TraceLogic(name="wr_en", parent=self, shape=(1,))
         self.wr_addr = TraceLogic(name="wr_addr", parent=self, shape=(5,))
-        self.wr_data = Logic(name="wr_data", parent=self, shape=(32,))
+        self.wr_data = TraceLogic(name="wr_data", parent=self, shape=(32,))
         self.rs1_addr = TraceLogic(name="rs1_addr", parent=self, shape=(5,))
         self.rs1_data = Logic(name="rs1_data", parent=self, shape=(32,))
         self.rs2_addr = TraceLogic(name="rs2_addr", parent=self, shape=(5,))
@@ -1258,26 +1258,31 @@ class RegFile(Module):
             self.regs.append(reg)
 
         self._procs.add((self.proc_init, HW))
-        # self._procs.add((self.proc_wr_port, HW))
+        self._procs.add((self.proc_wr_port, HW))
         # self._procs.add((self.proc_rd_port1, HW))
         # self._procs.add((self.proc_rd_port2, HW))
 
     async def proc_init(self):
         self.regs[0].next = vec("32h0000_0000")
 
-    # async def proc_wr_port(self):
-    #    while True:
-    #        await notify(self.clock.posedge)
-    #        if self.wr_en == T and (self.wr_addr != vec("5b0_0000")):
-    #            self.regs
+    async def proc_wr_port(self):
+        while True:
+            await notify(self.clock.posedge)
+            if self.wr_en == T and (self.wr_addr != vec("5b0_0000")):
+                index = self.wr_addr.next.to_uint()
+                self.regs[index].next = self.wr_data.value
 
     # async def proc_rd_port1(self):
     #    while True:
-    #        await notify()
+    #        await notify(self.rs1_addr.changed)
+    #        index = self.rs1_addr.next.to_uint()
+    #        self.rs1_data.next = self.regs[index].next
 
     # async def proc_rd_port2(self):
     #    while True:
-    #        await notify()
+    #        await notify(self.rs2_addr.changed)
+    #        index = self.rs2_addr.next.to_uint()
+    #        self.rs2_data.next = self.regs[index].next
 
 
 class Adder(Module):
@@ -1570,11 +1575,14 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_wr_en: X,
             top.riscv_core.singlecycle_datapath.regfile.wr_en: X,
             top.riscv_core.singlecycle_datapath.regfile.wr_addr: xes((5,)),
+            # TODO(cjdrake): WTF
+            top.riscv_core.singlecycle_datapath.regfile.wr_data: xes((32,)),
             top.riscv_core.singlecycle_datapath.regfile.rs1_addr: xes((5,)),
             top.riscv_core.singlecycle_datapath.regfile.rs2_addr: xes((5,)),
             top.riscv_core.singlecycle_datapath.alu.alu_function: xes((5,)),
             # TODO(cjdrake): WTF
             top.riscv_core.singlecycle_datapath.alu.op_a: xes((32,)),
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.sel: xes((3,)),
         },
         0: {
             top.reset: F,
@@ -1601,6 +1609,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0000"),
             top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b0_0000"),
             top.riscv_core.singlecycle_datapath.alu.alu_function: vec("5b0_0001"),
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.sel: vec("3b000"),
         },
         # @(negedge reset)
         10: {
