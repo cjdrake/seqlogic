@@ -1039,7 +1039,7 @@ class Alu(Module):
         self.result = Logic(name="result", parent=self, shape=(32,))
         self.result_equal_zero = Logic(name="result_equal_zero", parent=self, shape=(1,))
         self.alu_function = TraceLogic(name="alu_function", parent=self, shape=(5,))
-        self.op_a = Logic(name="op_a", parent=self, shape=(32,))
+        self.op_a = TraceLogic(name="op_a", parent=self, shape=(32,))
         self.op_b = Logic(name="op_b", parent=self, shape=(32,))
 
         # Processes
@@ -1557,6 +1557,8 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.regfile.rs1_addr: xes((5,)),
             top.riscv_core.singlecycle_datapath.regfile.rs2_addr: xes((5,)),
             top.riscv_core.singlecycle_datapath.alu.alu_function: xes((5,)),
+            # TODO(cjdrake): WTF
+            top.riscv_core.singlecycle_datapath.alu.op_a: xes((32,)),
         },
         0: {
             top.reset: F,
