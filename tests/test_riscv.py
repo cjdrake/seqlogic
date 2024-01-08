@@ -762,7 +762,7 @@ class SingleCycleDataPath(Module):
         self.reset = Logic(name="reset", parent=self, shape=(1,))
 
         # State
-        self.rd_data = Logic(name="rd_data", parent=self, shape=(32,))
+        self.wr_data = Logic(name="wr_data", parent=self, shape=(32,))
         self.rs1_data = Logic(name="rs1_data", parent=self, shape=(32,))
         self.rs2_data = Logic(name="rs2_data", parent=self, shape=(32,))
         self.inst_rs2 = Logic(name="inst_rs2", parent=self, shape=(5,))
@@ -819,7 +819,7 @@ class SingleCycleDataPath(Module):
 
         # TODO(cjdrake): mux_reg_writeback
         self.mux_reg_writeback = Multiplexer8(name="mux_reg_writeback", parent=self)
-        self.connect(self.rd_data, self.mux_reg_writeback.out)
+        self.connect(self.wr_data, self.mux_reg_writeback.out)
         self.connect(self.mux_reg_writeback.sel, self.reg_writeback_sel)
         self.connect(self.mux_reg_writeback.in0, self.alu_result)
         self.connect(self.mux_reg_writeback.in1, self.data_mem_rd_data)
@@ -859,7 +859,7 @@ class SingleCycleDataPath(Module):
         self.connect(self.regfile.rd_addr, self.inst_rd)
         self.connect(self.regfile.rs1_addr, self.inst_rs1)
         self.connect(self.regfile.rs2_addr, self.inst_rs2)
-        self.connect(self.regfile.rd_data, self.rd_data)
+        self.connect(self.regfile.wr_data, self.wr_data)
         self.connect(self.regfile.clock, self.clock)
 
         # Processes
@@ -1245,7 +1245,7 @@ class RegFile(Module):
         self.rd_addr = TraceLogic(name="rd_addr", parent=self, shape=(5,))
         self.rs1_addr = TraceLogic(name="rs1_addr", parent=self, shape=(5,))
         self.rs2_addr = TraceLogic(name="rs2_addr", parent=self, shape=(5,))
-        self.rd_data = Logic(name="rd_data", parent=self, shape=(32,))
+        self.wr_data = Logic(name="wr_data", parent=self, shape=(32,))
         self.clock = Logic(name="clock", parent=self, shape=(1,))
 
 
@@ -1387,7 +1387,7 @@ def test_singlecycle1():
             top.riscv_core.singlecycle_datapath.alu_function,
             top.riscv_core.singlecycle_datapath.clock,
             top.riscv_core.singlecycle_datapath.reset,
-            top.riscv_core.singlecycle_datapath.rd_data,
+            top.riscv_core.singlecycle_datapath.wr_data,
             top.riscv_core.singlecycle_datapath.rs1_data,
             top.riscv_core.singlecycle_datapath.rs2_data,
             top.riscv_core.singlecycle_datapath.inst_rs2,
@@ -1466,7 +1466,7 @@ def test_singlecycle1():
             top.riscv_core.singlecycle_datapath.regfile.rd_addr,
             top.riscv_core.singlecycle_datapath.regfile.rs1_addr,
             top.riscv_core.singlecycle_datapath.regfile.rs2_addr,
-            top.riscv_core.singlecycle_datapath.regfile.rd_data,
+            top.riscv_core.singlecycle_datapath.regfile.wr_data,
             top.riscv_core.singlecycle_datapath.regfile.clock,
             top.riscv_core.data_memory_interface,
             top.riscv_core.data_memory_interface.data_format,
