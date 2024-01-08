@@ -763,8 +763,8 @@ class SingleCycleDataPath(Module):
 
         # State
         self.wr_data = TraceLogic(name="wr_data", parent=self, shape=(32,))
-        self.rs1_data = Logic(name="rs1_data", parent=self, shape=(32,))
-        self.rs2_data = Logic(name="rs2_data", parent=self, shape=(32,))
+        self.rs1_data = TraceLogic(name="rs1_data", parent=self, shape=(32,))
+        self.rs2_data = TraceLogic(name="rs2_data", parent=self, shape=(32,))
         self.inst_rs2 = TraceLogic(name="inst_rs2", parent=self, shape=(5,))
         self.inst_rs1 = TraceLogic(name="inst_rs1", parent=self, shape=(5,))
         self.inst_rd = TraceLogic(name="inst_rd", parent=self, shape=(5,))
@@ -876,6 +876,8 @@ class SingleCycleDataPath(Module):
         self.mux_reg_writeback.in5.next = vec("32h0000_0000")
         self.mux_reg_writeback.in6.next = vec("32h0000_0000")
         self.mux_reg_writeback.in7.next = vec("32h0000_0000")
+
+        self.data_mem_rd_data.next = vec("32h0000_0000")
 
     async def proc_alu_result_equal_zero(self):
         self.alu_result_equal_zero.next = T
@@ -1566,7 +1568,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: xes((1,)),
             top.riscv_core.singlecycle_ctlpath.take_branch: xes((1,)),
             top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: xes((2,)),
-            # Debugging here:
+            # Ports
             top.riscv_core.singlecycle_datapath.pc_wr_en: X,
             top.riscv_core.singlecycle_datapath.regfile_wr_en: X,
             top.riscv_core.singlecycle_datapath.alu_op_a_sel: X,
@@ -1574,8 +1576,10 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.reg_writeback_sel: xes((3,)),
             top.riscv_core.singlecycle_datapath.next_pc_sel: xes((2,)),
             top.riscv_core.singlecycle_datapath.alu_function: xes((5,)),
-            # FUBAR
+            # State
             top.riscv_core.singlecycle_datapath.wr_data: xes((32,)),  # WTF
+            top.riscv_core.singlecycle_datapath.rs1_data: xes((32,)),  # WTF
+            top.riscv_core.singlecycle_datapath.rs2_data: xes((32,)),  # WTF
             top.riscv_core.singlecycle_datapath.inst_rs2: xes((5,)),
             top.riscv_core.singlecycle_datapath.inst_rs1: xes((5,)),
             top.riscv_core.singlecycle_datapath.inst_rd: xes((5,)),
@@ -1584,7 +1588,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_next: xes((32,)),
             top.riscv_core.singlecycle_datapath.alu_op_a: xes((32,)),  # WTF
             top.riscv_core.singlecycle_datapath.alu_op_b: xes((32,)),  # WTF
-            top.riscv_core.singlecycle_datapath.alu_result: xes((32,)),
+            top.riscv_core.singlecycle_datapath.alu_result: xes((32,)),  # WTF
             top.riscv_core.singlecycle_datapath.immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: xes((7,)),
         },
@@ -1597,25 +1601,27 @@ def test_singlecycle2():
             top.reset: T,
             top.pc: vec("32h0040_0000"),
             top.inst: vec("32h0000_0093"),
-            top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: vec("2b00"),
-            top.riscv_core.singlecycle_ctlpath.next_pc_sel: vec("2b00"),
             top.riscv_core.next_pc_sel: vec("2b00"),
-            top.riscv_core.singlecycle_datapath.next_pc_sel: vec("2b00"),
+            top.riscv_core.singlecycle_ctlpath.next_pc_sel: vec("2b00"),
             top.riscv_core.singlecycle_ctlpath.take_branch: F,
-            top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
-            top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0004"),
-            top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0000"),
-            top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0000"),
-            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0004"),
+            top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: vec("2b00"),
+            # Ports
             top.riscv_core.singlecycle_datapath.pc_wr_en: T,
             top.riscv_core.singlecycle_datapath.regfile_wr_en: T,
-            top.riscv_core.singlecycle_datapath.inst_rd: vec("5b0_0001"),
-            top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0000"),
-            top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0000"),
-            top.riscv_core.singlecycle_datapath.alu_function: vec("5b0_0001"),
-            top.riscv_core.singlecycle_datapath.reg_writeback_sel: vec("3b000"),
             top.riscv_core.singlecycle_datapath.alu_op_a_sel: F,
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: T,
+            top.riscv_core.singlecycle_datapath.reg_writeback_sel: vec("3b000"),
+            top.riscv_core.singlecycle_datapath.next_pc_sel: vec("2b00"),
+            top.riscv_core.singlecycle_datapath.alu_function: vec("5b0_0001"),
+            # State
+            top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0000"),
+            top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0000"),
+            top.riscv_core.singlecycle_datapath.inst_rd: vec("5b0_0001"),
+            top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0004"),
+            top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0000"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0004"),
+            top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0000"),
+            top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
         },
         # @(negedge reset)
         10: {
