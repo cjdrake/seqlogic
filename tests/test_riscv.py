@@ -1060,8 +1060,11 @@ class Alu(Module):
             #    pass
             # case AluOp.SRA:
             #    pass
-            # case AluOp.SEQ:
-            #    pass
+            case AluOp.SEQ:
+                if self.op_a.next == self.op_b.next:
+                    self.result.next = cat([T, vec("31b000_0000_0000_0000_0000_0000_0000_0000")])
+                else:
+                    self.result.next = cat([F, vec("31b000_0000_0000_0000_0000_0000_0000_0000")])
             # case AluOp.SLT:
             #    pass
             # case AluOp.SLTU:
