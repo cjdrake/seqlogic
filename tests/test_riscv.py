@@ -297,11 +297,11 @@ class ExampleTextMemory(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.rd_addr = Logic("rd_addr", parent=self, shape=(14,))
-        self.rd_data = Logic("rd_data", parent=self, shape=(32,))
+        self.rd_addr = Logic(name="rd_addr", parent=self, shape=(14,))
+        self.rd_data = Logic(name="rd_data", parent=self, shape=(32,))
 
         # State
-        self.mem = Dict("mem", parent=self)
+        self.mem = Dict(name="mem", parent=self)
         for i in range(320):
             self.mem[i] = Logic(name=str(i), parent=self.mem, shape=(32,))
 
@@ -1254,37 +1254,64 @@ class RegFile(Module):
         self.clock = Logic(name="clock", parent=self, shape=(1,))
 
         # State
-        self.regs = List(name="regs", parent=self)
+        self.regs = Dict(name="regs", parent=self)
         for i in range(32):
-            reg = Logic(name=str(i), parent=self.regs, shape=(32,))
-            self.regs.append(reg)
+            self.regs[i] = Logic(name=str(i), parent=self.regs, shape=(32,))
 
-        self._procs.add((self.proc_init, HW))
-        self._procs.add((self.proc_wr_port, HW))
+        # self._procs.add((self.proc_init, HW))
+        # self._procs.add((self.proc_wr_port, HW))
         # self._procs.add((self.proc_rd_port1, HW))
         # self._procs.add((self.proc_rd_port2, HW))
 
-    async def proc_init(self):
-        self.regs[0].next = vec("32h0000_0000")
+    # async def proc_init(self):
+    #    self.regs[0].next = vec("32h0000_0000")
 
     async def proc_wr_port(self):
         while True:
             await notify(self.clock.posedge)
-            if self.wr_en == T and (self.wr_addr != vec("5b0_0000")):
-                index = self.wr_addr.next.to_uint()
-                self.regs[index].next = self.wr_data.value
+            t = loop.time()
+            if self.wr_en == T:
+                try:
+                    index = self.wr_addr.next.to_uint()
+                except ValueError:
+                    pass
+                else:
+                    if index == 0:
+                        pass
+                    else:
+                        self.regs[index].next = self.wr_data.value
 
-    # async def proc_rd_port1(self):
-    #    while True:
-    #        await notify(self.rs1_addr.changed)
-    #        index = self.rs1_addr.next.to_uint()
-    #        self.rs1_data.next = self.regs[index].next
+    async def proc_rd_port1(self):
+        # reg_changes = [reg.changed for reg in self.regs[1:]]
+        while True:
+            await notify(self.rs1_addr.changed)
+            t = loop.time()
+            try:
+                index = self.rs1_addr.next.to_uint()
+            except ValueError:
+                self.rs1_data.next = xes((32,))
+            else:
+                if index == 0:
+                    self.rs1_data.next = vec("32h0000_0000")
+                else:
+                    # self.rs1_data.next = self.regs[index].value
+                    self.rs1_data.next = vec("32h0000_0000")
 
-    # async def proc_rd_port2(self):
-    #    while True:
-    #        await notify(self.rs2_addr.changed)
-    #        index = self.rs2_addr.next.to_uint()
-    #        self.rs2_data.next = self.regs[index].next
+    async def proc_rd_port2(self):
+        # reg_changes = [reg.changed for reg in self.regs[1:]]
+        while True:
+            await notify(self.rs2_addr.changed)
+            t = loop.time()
+            try:
+                index = self.rs2_addr.next.to_uint()
+            except ValueError:
+                self.rs2_data.next = xes((32,))
+            else:
+                if index == 0:
+                    self.rs2_data.next = vec("32h0000_0000")
+                else:
+                    # self.rs2_data.next = self.regs[index].value
+                    self.rs2_data.next = vec("32h0000_0000")
 
 
 class Adder(Module):
