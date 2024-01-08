@@ -825,6 +825,8 @@ class SingleCycleDataPath(Module):
             name="program_counter", parent=self, width=32, init=vec("32h0040_0000")
         )
         self.connect(self.pc, self.program_counter.q)
+        self.connect(self.program_counter.en, self.pc_wr_en)
+        self.connect(self.program_counter.d, self.pc_next)
         self.connect(self.program_counter.clock, self.clock)
         self.connect(self.program_counter.reset, self.reset)
 
@@ -1131,29 +1133,12 @@ class Register(Module):
         self._procs.add((self.proc_q, TASK))
 
     async def proc_q(self):
-        await notify(self.reset.posedge)
-        self.q.next = vec("32h0040_0000")
-        await notify(self.reset.negedge)
-        await notify(self.clock.posedge)
-        self.q.next = vec("32h0040_0004")
-        await notify(self.clock.posedge)
-        self.q.next = vec("32h0040_0008")
-        await notify(self.clock.posedge)
-        self.q.next = vec("32h0040_000C")
-        await notify(self.clock.posedge)
-        self.q.next = vec("32h0040_0010")
-        await notify(self.clock.posedge)
-        self.q.next = vec("32h0040_0014")
-        await notify(self.clock.posedge)
-        self.q.next = vec("32h0040_0018")
-        await notify(self.clock.posedge)
-        self.q.next = vec("32h0040_001C")
-        await notify(self.clock.posedge)
-        self.q.next = vec("32h0040_0020")
-        await notify(self.clock.posedge)
-        self.q.next = vec("32h0040_0024")
-        await notify(self.clock.posedge)
-        self.q.next = vec("32h0040_0028")
+        while True:
+            await notify(self.clock.posedge, self.reset.posedge)
+            if self.reset.next == T:
+                self.q.next = self.init
+            elif self.en.next == T:
+                self.q.next = self.d.next
 
 
 class Regfile(Module):
