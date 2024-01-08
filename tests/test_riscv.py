@@ -1075,8 +1075,11 @@ class Multiplexer2(Module):
             await notify(self.sel.changed, self.in0.changed, self.in1.changed)
             if self.sel.next == F:
                 self.out.next = self.in0.next
-            else:
+            elif self.sel.next == T:
                 self.sel.next = self.in1.next
+            else:
+                # TODO(cjdrake): FIXME
+                self.sel.next = vec("32h0000_0000")
 
 
 class Multiplexer4(Module):
@@ -1109,8 +1112,13 @@ class Multiplexer4(Module):
                 self.out.next = self.in0.next
             elif self.sel.next == vec("2b01"):
                 self.out.next = self.in1.next
+            elif self.sel.next == vec("2b10"):
+                self.out.next = self.in2.next
+            elif self.sel.next == vec("2b11"):
+                self.out.next = self.in3.next
             else:
-                self.out.next = vec("32h0000_0000")
+                # TODO(cjdrake): FIXME
+                self.sel.next = vec("32h0000_0000")
 
 
 class Multiplexer8(Module):
@@ -1130,6 +1138,42 @@ class Multiplexer8(Module):
         self.in5 = Logic(name="in5", parent=self, shape=(32,))
         self.in6 = Logic(name="in6", parent=self, shape=(32,))
         self.in7 = Logic(name="in7", parent=self, shape=(32,))
+
+        # Processes
+        self._procs.add((self.proc_out, HW))
+
+    async def proc_out(self):
+        while True:
+            await notify(
+                self.sel.changed,
+                self.in0.changed,
+                self.in1.changed,
+                self.in2.changed,
+                self.in3.changed,
+                self.in4.changed,
+                self.in5.changed,
+                self.in6.changed,
+                self.in7.changed,
+            )
+            if self.sel.next == vec("3b000"):
+                self.out.next = self.in0.next
+            elif self.sel.next == vec("3b001"):
+                self.out.next = self.in1.next
+            elif self.sel.next == vec("3b010"):
+                self.out.next = self.in2.next
+            elif self.sel.next == vec("3b011"):
+                self.out.next = self.in3.next
+            elif self.sel.next == vec("3b100"):
+                self.out.next = self.in4.next
+            elif self.sel.next == vec("3b101"):
+                self.out.next = self.in5.next
+            elif self.sel.next == vec("3b110"):
+                self.out.next = self.in6.next
+            elif self.sel.next == vec("3b111"):
+                self.out.next = self.in7.next
+            else:
+                # TODO(cjdrake): FIXME
+                self.sel.next = vec("32h0000_0000")
 
 
 class Register(Module):
