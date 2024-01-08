@@ -775,7 +775,7 @@ class SingleCycleDataPath(Module):
 
         self.alu_op_a = Logic(name="alu_op_a", parent=self, shape=(32,))
         self.alu_op_b = Logic(name="alu_op_b", parent=self, shape=(32,))
-        self.alu_result = Logic(name="alu_result", parent=self, shape=(32,))
+        self.alu_result = TraceLogic(name="alu_result", parent=self, shape=(32,))
 
         self.immediate = TraceLogic(name="immediate", parent=self, shape=(32,))
 
@@ -1040,7 +1040,7 @@ class Alu(Module):
         self.result_equal_zero = Logic(name="result_equal_zero", parent=self, shape=(1,))
         self.alu_function = TraceLogic(name="alu_function", parent=self, shape=(5,))
         self.op_a = TraceLogic(name="op_a", parent=self, shape=(32,))
-        self.op_b = Logic(name="op_b", parent=self, shape=(32,))
+        self.op_b = TraceLogic(name="op_b", parent=self, shape=(32,))
 
         # Processes
         self._procs.add((self.proc_result, HW))
@@ -1582,7 +1582,9 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.alu.alu_function: xes((5,)),
             # TODO(cjdrake): WTF
             top.riscv_core.singlecycle_datapath.alu.op_a: xes((32,)),
+            top.riscv_core.singlecycle_datapath.alu.op_b: xes((32,)),
             top.riscv_core.singlecycle_datapath.mux_reg_writeback.sel: xes((3,)),
+            top.riscv_core.singlecycle_datapath.alu_result: xes((32,)),
         },
         0: {
             top.reset: F,
