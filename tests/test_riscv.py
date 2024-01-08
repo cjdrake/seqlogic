@@ -792,7 +792,7 @@ class SingleCycleDataPath(Module):
 
         self.alu = Alu(name="alu", parent=self)
         self.connect(self.alu_result, self.alu.result)
-        self.connect(self.alu_result_equal_zero, self.alu.result_equal_zero)
+        # self.connect(self.alu_result_equal_zero, self.alu.result_equal_zero)
         self.connect(self.alu.alu_function, self.alu_function)
         self.connect(self.alu.op_a, self.alu_op_a)
         self.connect(self.alu.op_b, self.alu_op_b)
@@ -802,7 +802,7 @@ class SingleCycleDataPath(Module):
         self.connect(self.mux_next_pc.sel, self.next_pc_sel)
         self.connect(self.mux_next_pc.in0, self.pc_plus_4)
         self.connect(self.mux_next_pc.in1, self.pc_plus_immediate)
-        # self.connect(self.mux_next_pc.in2, ...)
+        # TODO(cjdrake): Connect in2 port
         # .in3 (32'h0000_0000)
 
         self.mux_op_a = Multiplexer2(name="mux_op_a", parent=self)
@@ -864,23 +864,23 @@ class SingleCycleDataPath(Module):
 
         # Processes
         self._procs.add((self.proc_lits, HW))
-        # self._procs.add((self.proc_alu_result_equal_zero, TASK))
+        self._procs.add((self.proc_alu_result_equal_zero, TASK))
 
     async def proc_lits(self):
         self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
         # mux_next_pc.{in2, in3}
         self.mux_next_pc.in2.next = vec("32h0000_0000")
         self.mux_next_pc.in3.next = vec("32h0000_0000")
-        # mux_reg_writeback
+        # mux_reg_writeback.{in4, in5, in6, in7}
         self.mux_reg_writeback.in4.next = vec("32h0000_0000")
         self.mux_reg_writeback.in5.next = vec("32h0000_0000")
         self.mux_reg_writeback.in6.next = vec("32h0000_0000")
         self.mux_reg_writeback.in7.next = vec("32h0000_0000")
 
-    # async def proc_alu_result_equal_zero(self):
-    #    self.alu_result_equal_zero.next = T
-    #    await sleep(17)
-    #    self.alu_result_equal_zero.next = F
+    async def proc_alu_result_equal_zero(self):
+        self.alu_result_equal_zero.next = T
+        await sleep(17)
+        self.alu_result_equal_zero.next = F
 
 
 class DataMemoryInterface(Module):
