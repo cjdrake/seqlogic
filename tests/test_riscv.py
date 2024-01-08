@@ -12,7 +12,7 @@ It merely serves as a non-trivial example design.
 from collections import defaultdict
 
 from seqlogic.enum import Enum
-from seqlogic.hier import Dict, List, Module
+from seqlogic.hier import Dict, Module
 from seqlogic.logic import logic
 from seqlogic.logicvec import F, T, X, cat, logicvec, rep, uint2vec, vec, xes
 from seqlogic.sim import Region, get_loop, notify, sleep
