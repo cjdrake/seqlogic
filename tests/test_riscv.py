@@ -1248,6 +1248,22 @@ class RegFile(Module):
         self.wr_data = Logic(name="wr_data", parent=self, shape=(32,))
         self.clock = Logic(name="clock", parent=self, shape=(1,))
 
+        # self._procs.add((self.proc_wr_port, HW))
+        # self._procs.add((self.proc_rd_port1, HW))
+        # self._procs.add((self.proc_rd_port2, HW))
+
+    # async def proc_wr_port(self):
+    #    while True:
+    #        await notify()
+
+    # async def proc_rd_port1(self):
+    #    while True:
+    #        await notify()
+
+    # async def proc_rd_port2(self):
+    #    while True:
+    #        await notify()
+
 
 class Adder(Module):
     """TODO(cjdrake): Write docstring."""
