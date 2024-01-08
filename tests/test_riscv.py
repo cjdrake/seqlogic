@@ -751,7 +751,7 @@ class SingleCycleDataPath(Module):
         self.alu_result_equal_zero = Logic(name="alu_result_equal_zero", parent=self, shape=(1,))
 
         self.pc_wr_en = TraceLogic(name="pc_wr_en", parent=self, shape=(1,))
-        self.regfile_wr_en = Logic(name="regfile_wr_en", parent=self, shape=(1,))
+        self.regfile_wr_en = TraceLogic(name="regfile_wr_en", parent=self, shape=(1,))
         self.alu_op_a_sel = Logic(name="alu_op_a_sel", parent=self, shape=(1,))
         self.alu_op_b_sel = Logic(name="alu_op_b_sel", parent=self, shape=(1,))
         self.reg_writeback_sel = Logic(name="reg_writeback_sel", parent=self, shape=(3,))
@@ -1532,7 +1532,8 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.pc_next: xes((32,)),
-            top.riscv_core.singlecycle_datapath.pc_wr_en: xes((1,)),
+            top.riscv_core.singlecycle_datapath.pc_wr_en: X,
+            top.riscv_core.singlecycle_datapath.regfile_wr_en: X,
         },
         0: {
             top.reset: F,
@@ -1554,6 +1555,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0000"),
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0004"),
             top.riscv_core.singlecycle_datapath.pc_wr_en: T,
+            top.riscv_core.singlecycle_datapath.regfile_wr_en: T,
         },
         # @(negedge reset)
         10: {
@@ -1606,6 +1608,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_04CC"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_04E0"),
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0018"),
+            top.riscv_core.singlecycle_datapath.regfile_wr_en: F,
         },
         # @(posedge clock)
         21: {
@@ -1617,6 +1620,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0001"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0019"),
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_001C"),
+            top.riscv_core.singlecycle_datapath.regfile_wr_en: T,
         },
         # @(posedge clock)
         23: {
