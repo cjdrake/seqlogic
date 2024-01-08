@@ -12,7 +12,7 @@ It merely serves as a non-trivial example design.
 from collections import defaultdict
 
 from seqlogic.enum import Enum
-from seqlogic.hier import Dict, Module
+from seqlogic.hier import Dict, List, Module
 from seqlogic.logic import logic
 from seqlogic.logicvec import F, T, X, cat, logicvec, rep, uint2vec, vec, xes
 from seqlogic.sim import Region, get_loop, notify, sleep
@@ -863,10 +863,10 @@ class SingleCycleDataPath(Module):
         self.connect(self.regfile.clock, self.clock)
 
         # Processes
-        self._procs.add((self.proc_lits, HW))
+        self._procs.add((self.proc_init, HW))
         self._procs.add((self.proc_alu_result_equal_zero, TASK))
 
-    async def proc_lits(self):
+    async def proc_init(self):
         self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
         # mux_next_pc.{in2, in3}
         self.mux_next_pc.in2.next = vec("32h0000_0000")
@@ -1251,13 +1251,25 @@ class RegFile(Module):
         self.rs2_data = Logic(name="rs2_data", parent=self, shape=(32,))
         self.clock = Logic(name="clock", parent=self, shape=(1,))
 
+        # State
+        self.regs = List(name="regs", parent=self)
+        for i in range(32):
+            reg = Logic(name=str(i), parent=self.regs, shape=(32,))
+            self.regs.append(reg)
+
+        self._procs.add((self.proc_init, HW))
         # self._procs.add((self.proc_wr_port, HW))
         # self._procs.add((self.proc_rd_port1, HW))
         # self._procs.add((self.proc_rd_port2, HW))
 
+    async def proc_init(self):
+        self.regs[0].next = vec("32h0000_0000")
+
     # async def proc_wr_port(self):
     #    while True:
-    #        await notify()
+    #        await notify(self.clock.posedge)
+    #        if self.wr_en == T and (self.wr_addr != vec("5b0_0000")):
+    #            self.regs
 
     # async def proc_rd_port1(self):
     #    while True:
@@ -1487,6 +1499,10 @@ def test_singlecycle1():
             top.riscv_core.singlecycle_datapath.regfile.rs2_addr,
             top.riscv_core.singlecycle_datapath.regfile.rs2_data,
             top.riscv_core.singlecycle_datapath.regfile.clock,
+            top.riscv_core.singlecycle_datapath.regfile.regs,
+        ]
+        + [top.riscv_core.singlecycle_datapath.regfile.regs[i] for i in range(32)]
+        + [
             top.riscv_core.data_memory_interface,
             top.riscv_core.data_memory_interface.data_format,
             top.riscv_core.data_memory_interface.addr,
