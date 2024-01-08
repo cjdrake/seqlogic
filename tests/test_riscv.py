@@ -852,7 +852,7 @@ class SingleCycleDataPath(Module):
         self.connect(self.program_counter.clock, self.clock)
         self.connect(self.program_counter.reset, self.reset)
 
-        self.regfile = Regfile(name="regfile", parent=self)
+        self.regfile = RegFile(name="regfile", parent=self)
         self.connect(self.rs1_data, self.regfile.rs1_data)
         self.connect(self.rs2_data, self.regfile.rs2_data)
         self.connect(self.regfile.wr_en, self.regfile_wr_en)
@@ -1232,7 +1232,7 @@ class Register(Module):
                 self.q.next = self.d.next
 
 
-class Regfile(Module):
+class RegFile(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
@@ -1243,7 +1243,7 @@ class Regfile(Module):
         self.rs2_data = Logic(name="rs2_data", parent=self, shape=(32,))
         self.wr_en = TraceLogic(name="wr_en", parent=self, shape=(1,))
         self.rd_addr = TraceLogic(name="rd_addr", parent=self, shape=(5,))
-        self.rs1_addr = Logic(name="rs1_addr", parent=self, shape=(5,))
+        self.rs1_addr = TraceLogic(name="rs1_addr", parent=self, shape=(5,))
         self.rs2_addr = Logic(name="rs2_addr", parent=self, shape=(5,))
         self.rd_data = Logic(name="rd_data", parent=self, shape=(32,))
         self.clock = Logic(name="clock", parent=self, shape=(1,))
@@ -1535,6 +1535,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_wr_en: X,
             top.riscv_core.singlecycle_datapath.regfile.wr_en: X,
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: xes((5,)),
+            top.riscv_core.singlecycle_datapath.regfile.rs1_addr: xes((5,)),
             # self.connect(self.regfile.rd_addr, self.inst_rd)
             # self.connect(self.regfile.rs1_addr, self.inst_rs1)
             # self.connect(self.regfile.rs2_addr, self.inst_rs2)
@@ -1562,6 +1563,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_wr_en: T,
             top.riscv_core.singlecycle_datapath.regfile.wr_en: T,
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: vec("5b0_0001"),
+            top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0000"),
         },
         # @(negedge reset)
         10: {
@@ -1585,6 +1587,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0008"),
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_000C"),
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: vec("5b0_0011"),
+            top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0001"),
         },
         # @(posedge clock)
         15: {
@@ -1595,6 +1598,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_000C"),
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0010"),
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: vec("5b1_1101"),
+            top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0000"),
         },
         # @(posedge clock)
         17: {
@@ -1620,6 +1624,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0018"),
             top.riscv_core.singlecycle_datapath.regfile.wr_en: F,
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: vec("5b0_1100"),
+            top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0011"),
         },
         # @(posedge clock)
         21: {
@@ -1633,6 +1638,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_001C"),
             top.riscv_core.singlecycle_datapath.regfile.wr_en: T,
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: vec("5b0_0001"),
+            top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0000"),
         },
         # @(posedge clock)
         23: {
@@ -1653,6 +1659,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0020"),
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0024"),
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: vec("5b0_0011"),
+            top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0001"),
         },
         # @(posedge clock)
         27: {
@@ -1664,6 +1671,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0026"),
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0028"),
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: vec("5b1_1101"),
+            top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0000"),
         },
         # @(posedge clock)
         29: {
