@@ -1038,7 +1038,7 @@ class Alu(Module):
         # Ports
         self.result = Logic(name="result", parent=self, shape=(32,))
         self.result_equal_zero = Logic(name="result_equal_zero", parent=self, shape=(1,))
-        self.alu_function = Logic(name="alu_function", parent=self, shape=(5,))
+        self.alu_function = TraceLogic(name="alu_function", parent=self, shape=(5,))
         self.op_a = Logic(name="op_a", parent=self, shape=(32,))
         self.op_b = Logic(name="op_b", parent=self, shape=(32,))
 
@@ -1553,6 +1553,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: xes((5,)),
             top.riscv_core.singlecycle_datapath.regfile.rs1_addr: xes((5,)),
             top.riscv_core.singlecycle_datapath.regfile.rs2_addr: xes((5,)),
+            top.riscv_core.singlecycle_datapath.alu.alu_function: xes((5,)),
         },
         0: {
             top.reset: F,
@@ -1578,6 +1579,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0000"),
             top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b0_0000"),
+            top.riscv_core.singlecycle_datapath.alu.alu_function: vec("5b0_0001"),
         },
         # @(negedge reset)
         10: {
@@ -1643,6 +1645,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: vec("5b0_1100"),
             top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0011"),
             top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b1_1101"),
+            top.riscv_core.singlecycle_datapath.alu.alu_function: vec("5b0_0110"),
         },
         # @(posedge clock)
         21: {
@@ -1658,6 +1661,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.regfile.rd_addr: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.regfile.rs1_addr: vec("5b0_0000"),
             top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b0_0001"),
+            top.riscv_core.singlecycle_datapath.alu.alu_function: vec("5b0_0001"),
         },
         # @(posedge clock)
         23: {
