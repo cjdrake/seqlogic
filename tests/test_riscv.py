@@ -792,7 +792,7 @@ class SingleCycleDataPath(Module):
 
         self.alu = Alu(name="alu", parent=self)
         self.connect(self.alu_result, self.alu.result)
-        # self.connect(self.alu_result_equal_zero, self.alu.result_equal_zero)
+        self.connect(self.alu_result_equal_zero, self.alu.result_equal_zero)
         self.connect(self.alu.alu_function, self.alu_function)
         self.connect(self.alu.op_a, self.alu_op_a)
         self.connect(self.alu.op_b, self.alu_op_b)
@@ -811,8 +811,24 @@ class SingleCycleDataPath(Module):
         self.connect(self.mux_op_a.in0, self.rs1_data)
         self.connect(self.mux_op_a.in1, self.pc)
 
-        # TODO(cjdrake): mux_op_b
+        self.mux_op_b = Multiplexer2(name="mux_op_b", parent=self)
+        self.connect(self.alu_op_b, self.mux_op_b.out)
+        self.connect(self.mux_op_b.sel, self.alu_op_b_sel)
+        self.connect(self.mux_op_b.in0, self.rs2_data)
+        self.connect(self.mux_op_b.in1, self.immediate)
+
         # TODO(cjdrake): mux_reg_writeback
+        self.mux_reg_writeback = Multiplexer8(name="mux_reg_writeback", parent=self)
+        self.connect(self.rd_data, self.mux_reg_writeback.out)
+        self.connect(self.mux_reg_writeback.sel, self.reg_writeback_sel)
+        self.connect(self.mux_reg_writeback.in0, self.alu_result)
+        self.connect(self.mux_reg_writeback.in1, self.data_mem_rd_data)
+        self.connect(self.mux_reg_writeback.in2, self.pc_plus_4)
+        self.connect(self.mux_reg_writeback.in3, self.immediate)
+        # .in4(32'h0000_0000)
+        # .in5(32'h0000_0000)
+        # .in6(32'h0000_0000)
+        # .in7(32'h0000_0000)
 
         self.instruction_decoder = InstructionDecoder(name="instruction_decoder", parent=self)
         self.connect(self.instruction_decoder.inst, self.inst)
@@ -848,17 +864,23 @@ class SingleCycleDataPath(Module):
 
         # Processes
         self._procs.add((self.proc_lits, HW))
-        self._procs.add((self.proc_alu_result_equal_zero, TASK))
+        # self._procs.add((self.proc_alu_result_equal_zero, TASK))
 
     async def proc_lits(self):
         self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
+        # mux_next_pc.{in2, in3}
         self.mux_next_pc.in2.next = vec("32h0000_0000")
         self.mux_next_pc.in3.next = vec("32h0000_0000")
+        # mux_reg_writeback
+        self.mux_reg_writeback.in4.next = vec("32h0000_0000")
+        self.mux_reg_writeback.in5.next = vec("32h0000_0000")
+        self.mux_reg_writeback.in6.next = vec("32h0000_0000")
+        self.mux_reg_writeback.in7.next = vec("32h0000_0000")
 
-    async def proc_alu_result_equal_zero(self):
-        self.alu_result_equal_zero.next = T
-        await sleep(17)
-        self.alu_result_equal_zero.next = F
+    # async def proc_alu_result_equal_zero(self):
+    #    self.alu_result_equal_zero.next = T
+    #    await sleep(17)
+    #    self.alu_result_equal_zero.next = F
 
 
 class DataMemoryInterface(Module):
@@ -1404,6 +1426,22 @@ def test_singlecycle1():
             top.riscv_core.singlecycle_datapath.mux_op_a.sel,
             top.riscv_core.singlecycle_datapath.mux_op_a.in0,
             top.riscv_core.singlecycle_datapath.mux_op_a.in1,
+            top.riscv_core.singlecycle_datapath.mux_op_b,
+            top.riscv_core.singlecycle_datapath.mux_op_b.out,
+            top.riscv_core.singlecycle_datapath.mux_op_b.sel,
+            top.riscv_core.singlecycle_datapath.mux_op_b.in0,
+            top.riscv_core.singlecycle_datapath.mux_op_b.in1,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.out,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.sel,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.in0,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.in1,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.in2,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.in3,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.in4,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.in5,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.in6,
+            top.riscv_core.singlecycle_datapath.mux_reg_writeback.in7,
             top.riscv_core.singlecycle_datapath.instruction_decoder,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_funct7,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_rs2,
