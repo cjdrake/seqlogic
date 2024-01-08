@@ -750,7 +750,7 @@ class SingleCycleDataPath(Module):
         self.inst_funct7 = Logic(name="inst_funct7", parent=self, shape=(7,))
         self.alu_result_equal_zero = Logic(name="alu_result_equal_zero", parent=self, shape=(1,))
 
-        self.pc_wr_en = Logic(name="pc_wr_en", parent=self, shape=(1,))
+        self.pc_wr_en = TraceLogic(name="pc_wr_en", parent=self, shape=(1,))
         self.regfile_wr_en = Logic(name="regfile_wr_en", parent=self, shape=(1,))
         self.alu_op_a_sel = Logic(name="alu_op_a_sel", parent=self, shape=(1,))
         self.alu_op_b_sel = Logic(name="alu_op_b_sel", parent=self, shape=(1,))
@@ -1435,6 +1435,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.pc_next: xes((32,)),
+            top.riscv_core.singlecycle_datapath.pc_wr_en: xes((1,)),
         },
         0: {
             top.reset: F,
@@ -1455,6 +1456,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0000"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0000"),
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0004"),
+            top.riscv_core.singlecycle_datapath.pc_wr_en: T,
         },
         # @(negedge reset)
         10: {
