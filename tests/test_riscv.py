@@ -756,7 +756,7 @@ class SingleCycleDataPath(Module):
         self.alu_op_b_sel = TraceLogic(name="alu_op_b_sel", parent=self, shape=(1,))
         self.reg_writeback_sel = Logic(name="reg_writeback_sel", parent=self, shape=(3,))
         self.next_pc_sel = TraceLogic(name="next_pc_sel", parent=self, shape=(2,))
-        self.alu_function = Logic(name="alu_function", parent=self, shape=(5,))
+        self.alu_function = TraceLogic(name="alu_function", parent=self, shape=(5,))
 
         self.clock = Logic(name="clock", parent=self, shape=(1,))
         self.reset = Logic(name="reset", parent=self, shape=(1,))
@@ -1038,7 +1038,7 @@ class Alu(Module):
         # Ports
         self.result = Logic(name="result", parent=self, shape=(32,))
         self.result_equal_zero = Logic(name="result_equal_zero", parent=self, shape=(1,))
-        self.alu_function = TraceLogic(name="alu_function", parent=self, shape=(5,))
+        self.alu_function = Logic(name="alu_function", parent=self, shape=(5,))
         self.op_a = TraceLogic(name="op_a", parent=self, shape=(32,))
         self.op_b = TraceLogic(name="op_b", parent=self, shape=(32,))
 
@@ -1579,7 +1579,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.wr_data: xes((32,)),
             top.riscv_core.singlecycle_datapath.inst_rs1: xes((5,)),
             top.riscv_core.singlecycle_datapath.inst_rs2: xes((5,)),
-            top.riscv_core.singlecycle_datapath.alu.alu_function: xes((5,)),
+            top.riscv_core.singlecycle_datapath.alu_function: xes((5,)),
             # TODO(cjdrake): WTF
             top.riscv_core.singlecycle_datapath.alu.op_a: xes((32,)),
             top.riscv_core.singlecycle_datapath.alu.op_b: xes((32,)),
@@ -1612,7 +1612,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0000"),
             top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0000"),
-            top.riscv_core.singlecycle_datapath.alu.alu_function: vec("5b0_0001"),
+            top.riscv_core.singlecycle_datapath.alu_function: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.mux_reg_writeback.sel: vec("3b000"),
             top.riscv_core.singlecycle_datapath.alu_op_a_sel: F,
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: T,
@@ -1683,7 +1683,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b0_1100"),
             top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0011"),
             top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b1_1101"),
-            top.riscv_core.singlecycle_datapath.alu.alu_function: vec("5b0_0110"),
+            top.riscv_core.singlecycle_datapath.alu_function: vec("5b0_0110"),
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: F,
         },
         # @(posedge clock)
@@ -1700,7 +1700,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0000"),
             top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0001"),
-            top.riscv_core.singlecycle_datapath.alu.alu_function: vec("5b0_0001"),
+            top.riscv_core.singlecycle_datapath.alu_function: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: T,
         },
         # @(posedge clock)
