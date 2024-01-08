@@ -789,7 +789,6 @@ class SingleCycleDataPath(Module):
         self.connect(self.adder_pc_plus_immediate.op_a, self.pc)
         self.connect(self.adder_pc_plus_immediate.op_b, self.immediate)
 
-        # TODO(cjdrake): alu
         self.alu = Alu(name="alu", parent=self)
         self.connect(self.alu_result, self.alu.result)
         # self.connect(self.alu_result_equal_zero, self.alu.result_equal_zero)
@@ -797,7 +796,14 @@ class SingleCycleDataPath(Module):
         self.connect(self.alu.op_a, self.alu_op_a)
         self.connect(self.alu.op_b, self.alu_op_b)
 
-        # TODO(cjdrake): mux_next_pc_sel
+        self.mux_next_pc = Multiplexer4(name="mux_next_pc", parent=self)
+        self.connect(self.pc_next, self.mux_next_pc.out)
+        self.connect(self.mux_next_pc.sel, self.next_pc_sel)
+        self.connect(self.mux_next_pc.in0, self.pc_plus_4)
+        self.connect(self.mux_next_pc.in1, self.pc_plus_immediate)
+        # self.connect(self.mux_next_pc.in2, ...)
+        # self.connect(self.mux_next_pc.in3, ...)
+
         # TODO(cjdrake): mux_op_a
         # TODO(cjdrake): mux_op_b
         # TODO(cjdrake): mux_reg_writeback
@@ -838,6 +844,8 @@ class SingleCycleDataPath(Module):
 
     async def proc_lits(self):
         self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
+        self.mux_next_pc.in2.next = vec("32h0000_0000")
+        self.mux_next_pc.in3.next = vec("32h0000_0000")
 
     async def proc_alu_result_equal_zero(self):
         self.alu_result_equal_zero.next = T
@@ -1043,6 +1051,49 @@ class Alu(Module):
             self.result_equal_zero.next = T
         else:
             self.result_equal_zero.next = F
+
+
+class Multiplexer2(Module):
+    def __init__(self, name: str, parent: Module | None):
+        super().__init__(name, parent)
+
+        # Ports
+        self.out = Logic(name="out", parent=self, shape=(32,))
+        self.sel = Logic(name="sel", parent=self, shape=(1,))
+        self.in0 = Logic(name="in0", parent=self, shape=(32,))
+        self.in1 = Logic(name="in1", parent=self, shape=(32,))
+
+
+class Multiplexer4(Module):
+    def __init__(self, name: str, parent: Module | None):
+        super().__init__(name, parent)
+
+        # Ports
+        self.out = Logic(name="out", parent=self, shape=(32,))
+        self.sel = Logic(name="sel", parent=self, shape=(2,))
+        self.in0 = Logic(name="in0", parent=self, shape=(32,))
+        self.in1 = Logic(name="in1", parent=self, shape=(32,))
+        self.in2 = Logic(name="in2", parent=self, shape=(32,))
+        self.in3 = Logic(name="in3", parent=self, shape=(32,))
+
+
+class Multiplexer8(Module):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, name: str, parent: Module | None):
+        super().__init__(name, parent)
+
+        # Ports
+        self.out = Logic(name="out", parent=self, shape=(32,))
+        self.sel = Logic(name="sel", parent=self, shape=(3,))
+        self.in0 = Logic(name="in0", parent=self, shape=(32,))
+        self.in1 = Logic(name="in1", parent=self, shape=(32,))
+        self.in2 = Logic(name="in2", parent=self, shape=(32,))
+        self.in3 = Logic(name="in3", parent=self, shape=(32,))
+        self.in4 = Logic(name="in4", parent=self, shape=(32,))
+        self.in5 = Logic(name="in5", parent=self, shape=(32,))
+        self.in6 = Logic(name="in6", parent=self, shape=(32,))
+        self.in7 = Logic(name="in7", parent=self, shape=(32,))
 
 
 class Register(Module):
@@ -1272,6 +1323,13 @@ def test_singlecycle1():
             top.riscv_core.singlecycle_datapath.alu.alu_function,
             top.riscv_core.singlecycle_datapath.alu.op_a,
             top.riscv_core.singlecycle_datapath.alu.op_b,
+            top.riscv_core.singlecycle_datapath.mux_next_pc,
+            top.riscv_core.singlecycle_datapath.mux_next_pc.out,
+            top.riscv_core.singlecycle_datapath.mux_next_pc.sel,
+            top.riscv_core.singlecycle_datapath.mux_next_pc.in0,
+            top.riscv_core.singlecycle_datapath.mux_next_pc.in1,
+            top.riscv_core.singlecycle_datapath.mux_next_pc.in2,
+            top.riscv_core.singlecycle_datapath.mux_next_pc.in3,
             top.riscv_core.singlecycle_datapath.instruction_decoder,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_funct7,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_rs2,
