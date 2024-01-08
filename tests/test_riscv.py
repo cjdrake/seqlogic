@@ -782,6 +782,7 @@ class SingleCycleDataPath(Module):
         # Submodules
         self.adder_pc_plus_4 = Adder(name="adder_pc_plus_4", parent=self, width=32)
         self.connect(self.pc_plus_4, self.adder_pc_plus_4.result)
+        # .op_a(32'h0000_0004)
         self.connect(self.adder_pc_plus_4.op_b, self.pc)
 
         self.adder_pc_plus_immediate = Adder(name="adder_pc_plus_immediate", parent=self, width=32)
@@ -802,9 +803,14 @@ class SingleCycleDataPath(Module):
         self.connect(self.mux_next_pc.in0, self.pc_plus_4)
         self.connect(self.mux_next_pc.in1, self.pc_plus_immediate)
         # self.connect(self.mux_next_pc.in2, ...)
-        # self.connect(self.mux_next_pc.in3, ...)
+        # .in3 (32'h0000_0000)
 
-        # TODO(cjdrake): mux_op_a
+        self.mux_op_a = Multiplexer2(name="mux_op_a", parent=self)
+        self.connect(self.alu_op_a, self.mux_op_a.out)
+        self.connect(self.mux_op_a.sel, self.alu_op_a_sel)
+        self.connect(self.mux_op_a.in0, self.rs1_data)
+        self.connect(self.mux_op_a.in1, self.pc)
+
         # TODO(cjdrake): mux_op_b
         # TODO(cjdrake): mux_reg_writeback
 
@@ -1393,6 +1399,11 @@ def test_singlecycle1():
             top.riscv_core.singlecycle_datapath.mux_next_pc.in1,
             top.riscv_core.singlecycle_datapath.mux_next_pc.in2,
             top.riscv_core.singlecycle_datapath.mux_next_pc.in3,
+            top.riscv_core.singlecycle_datapath.mux_op_a,
+            top.riscv_core.singlecycle_datapath.mux_op_a.out,
+            top.riscv_core.singlecycle_datapath.mux_op_a.sel,
+            top.riscv_core.singlecycle_datapath.mux_op_a.in0,
+            top.riscv_core.singlecycle_datapath.mux_op_a.in1,
             top.riscv_core.singlecycle_datapath.instruction_decoder,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_funct7,
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_rs2,
