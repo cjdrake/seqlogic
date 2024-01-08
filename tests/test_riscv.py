@@ -765,7 +765,7 @@ class SingleCycleDataPath(Module):
         self.wr_data = TraceLogic(name="wr_data", parent=self, shape=(32,))
         self.rs1_data = Logic(name="rs1_data", parent=self, shape=(32,))
         self.rs2_data = Logic(name="rs2_data", parent=self, shape=(32,))
-        self.inst_rs2 = Logic(name="inst_rs2", parent=self, shape=(5,))
+        self.inst_rs2 = TraceLogic(name="inst_rs2", parent=self, shape=(5,))
         self.inst_rs1 = TraceLogic(name="inst_rs1", parent=self, shape=(5,))
         self.inst_rd = TraceLogic(name="inst_rd", parent=self, shape=(5,))
 
@@ -1247,7 +1247,7 @@ class RegFile(Module):
         self.wr_data = Logic(name="wr_data", parent=self, shape=(32,))
         self.rs1_addr = Logic(name="rs1_addr", parent=self, shape=(5,))
         self.rs1_data = Logic(name="rs1_data", parent=self, shape=(32,))
-        self.rs2_addr = TraceLogic(name="rs2_addr", parent=self, shape=(5,))
+        self.rs2_addr = Logic(name="rs2_addr", parent=self, shape=(5,))
         self.rs2_data = Logic(name="rs2_data", parent=self, shape=(32,))
         self.clock = Logic(name="clock", parent=self, shape=(1,))
 
@@ -1578,7 +1578,7 @@ def test_singlecycle2():
             # TODO(cjdrake): WTF
             top.riscv_core.singlecycle_datapath.wr_data: xes((32,)),
             top.riscv_core.singlecycle_datapath.inst_rs1: xes((5,)),
-            top.riscv_core.singlecycle_datapath.regfile.rs2_addr: xes((5,)),
+            top.riscv_core.singlecycle_datapath.inst_rs2: xes((5,)),
             top.riscv_core.singlecycle_datapath.alu.alu_function: xes((5,)),
             # TODO(cjdrake): WTF
             top.riscv_core.singlecycle_datapath.alu.op_a: xes((32,)),
@@ -1611,7 +1611,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.regfile_wr_en: T,
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0000"),
-            top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b0_0000"),
+            top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0000"),
             top.riscv_core.singlecycle_datapath.alu.alu_function: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.mux_reg_writeback.sel: vec("3b000"),
             top.riscv_core.singlecycle_datapath.alu_op_a_sel: F,
@@ -1640,7 +1640,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_000C"),
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b0_0011"),
             top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0001"),
-            top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b0_0010"),
+            top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0010"),
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: F,
         },
         # @(posedge clock)
@@ -1653,7 +1653,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0010"),
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b1_1101"),
             top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0000"),
-            top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b0_0000"),
+            top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0000"),
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: T,
         },
         # @(posedge clock)
@@ -1667,7 +1667,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0012"),
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0014"),
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b1_1100"),
-            top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b0_0010"),
+            top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0010"),
         },
         # @(posedge clock)
         19: {
@@ -1682,7 +1682,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.regfile_wr_en: F,
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b0_1100"),
             top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0011"),
-            top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b1_1101"),
+            top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b1_1101"),
             top.riscv_core.singlecycle_datapath.alu.alu_function: vec("5b0_0110"),
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: F,
         },
@@ -1699,7 +1699,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.regfile_wr_en: T,
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0000"),
-            top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b0_0001"),
+            top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.alu.alu_function: vec("5b0_0001"),
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: T,
         },
@@ -1723,7 +1723,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0024"),
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b0_0011"),
             top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0001"),
-            top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b0_0010"),
+            top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0010"),
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: F,
         },
         # @(posedge clock)
@@ -1748,7 +1748,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_002B"),
             top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_002C"),
             top.riscv_core.singlecycle_datapath.inst_rd: vec("5b1_1100"),
-            top.riscv_core.singlecycle_datapath.regfile.rs2_addr: vec("5b0_0011"),
+            top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0011"),
         },
     }
     assert waves == exp
