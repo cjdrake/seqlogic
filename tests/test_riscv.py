@@ -1056,6 +1056,8 @@ class Alu(Module):
 
 
 class Multiplexer2(Module):
+    """TODO(cjdrake): Write docstring."""
+
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
 
@@ -1064,6 +1066,17 @@ class Multiplexer2(Module):
         self.sel = Logic(name="sel", parent=self, shape=(1,))
         self.in0 = Logic(name="in0", parent=self, shape=(32,))
         self.in1 = Logic(name="in1", parent=self, shape=(32,))
+
+        # Processes
+        self._procs.add((self.proc_out, HW))
+
+    async def proc_out(self):
+        while True:
+            await notify(self.sel.changed, self.in0.changed, self.in1.changed)
+            if self.sel.next == F:
+                self.out.next = self.in0.next
+            else:
+                self.sel.next = self.in1.next
 
 
 class Multiplexer4(Module):
@@ -1085,7 +1098,13 @@ class Multiplexer4(Module):
 
     async def proc_out(self):
         while True:
-            await notify(self.sel.changed, self.in0.changed, self.in1.changed)
+            await notify(
+                self.sel.changed,
+                self.in0.changed,
+                self.in1.changed,
+                self.in2.changed,
+                self.in3.changed,
+            )
             if self.sel.next == vec("2b00"):
                 self.out.next = self.in0.next
             elif self.sel.next == vec("2b01"):
