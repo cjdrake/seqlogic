@@ -771,7 +771,7 @@ class SingleCycleDataPath(Module):
 
         self.pc_plus_4 = TraceLogic(name="pc_plus_4", parent=self, shape=(32,))
         self.pc_plus_immediate = TraceLogic(name="pc_plus_immediate", parent=self, shape=(32,))
-        self.pc_next = Logic(name="pc_next", parent=self, shape=(32,))
+        self.pc_next = TraceLogic(name="pc_next", parent=self, shape=(32,))
 
         self.alu_op_a = Logic(name="alu_op_a", parent=self, shape=(32,))
         self.alu_op_b = Logic(name="alu_op_b", parent=self, shape=(32,))
@@ -1065,6 +1065,8 @@ class Multiplexer2(Module):
 
 
 class Multiplexer4(Module):
+    """TODO(cjdrake): Write docstring."""
+
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
 
@@ -1075,6 +1077,19 @@ class Multiplexer4(Module):
         self.in1 = Logic(name="in1", parent=self, shape=(32,))
         self.in2 = Logic(name="in2", parent=self, shape=(32,))
         self.in3 = Logic(name="in3", parent=self, shape=(32,))
+
+        # Processes
+        self._procs.add((self.proc_out, HW))
+
+    async def proc_out(self):
+        while True:
+            await notify(self.sel.changed, self.in0.changed, self.in1.changed)
+            if self.sel.next == vec("2b00"):
+                self.out.next = self.in0.next
+            elif self.sel.next == vec("2b01"):
+                self.out.next = self.in1.next
+            else:
+                self.out.next = vec("32h0000_0000")
 
 
 class Multiplexer8(Module):
@@ -1419,6 +1434,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_4: xes((32,)),
             top.riscv_core.singlecycle_datapath.immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: xes((32,)),
+            top.riscv_core.singlecycle_datapath.pc_next: xes((32,)),
         },
         0: {
             top.reset: F,
@@ -1438,6 +1454,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0004"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0000"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0000"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0004"),
         },
         # @(negedge reset)
         10: {
@@ -1449,6 +1466,7 @@ def test_singlecycle2():
             top.inst: vec("32h0000_0113"),
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0008"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0004"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0008"),
         },
         # @(posedge clock)
         13: {
@@ -1457,6 +1475,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_000C"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0008"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_000C"),
         },
         # @(posedge clock)
         15: {
@@ -1465,6 +1484,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: Opcode.OP_IMM,
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0010"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_000C"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0010"),
         },
         # @(posedge clock)
         17: {
@@ -1475,6 +1495,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0014"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0002"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0012"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0014"),
         },
         # @(posedge clock)
         19: {
@@ -1485,6 +1506,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0018"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_04CC"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_04E0"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0018"),
         },
         # @(posedge clock)
         21: {
@@ -1495,6 +1517,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_001C"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0001"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0019"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_001C"),
         },
         # @(posedge clock)
         23: {
@@ -1502,6 +1525,7 @@ def test_singlecycle2():
             top.inst: vec("32h0010_0113"),
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0020"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_001D"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0020"),
         },
         # @(posedge clock)
         25: {
@@ -1511,6 +1535,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0024"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0000"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0020"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0024"),
         },
         # @(posedge clock)
         27: {
@@ -1520,6 +1545,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_0028"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0002"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_0026"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_0028"),
         },
         # @(posedge clock)
         29: {
@@ -1528,6 +1554,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.pc_plus_4: vec("32h0040_002C"),
             top.riscv_core.singlecycle_datapath.immediate: vec("32h0000_0003"),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: vec("32h0040_002B"),
+            top.riscv_core.singlecycle_datapath.pc_next: vec("32h0040_002C"),
         },
     }
     assert waves == exp
