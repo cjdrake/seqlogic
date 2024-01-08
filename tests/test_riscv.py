@@ -754,7 +754,7 @@ class SingleCycleDataPath(Module):
         self.regfile_wr_en = TraceLogic(name="regfile_wr_en", parent=self, shape=(1,))
         self.alu_op_a_sel = TraceLogic(name="alu_op_a_sel", parent=self, shape=(1,))
         self.alu_op_b_sel = TraceLogic(name="alu_op_b_sel", parent=self, shape=(1,))
-        self.reg_writeback_sel = Logic(name="reg_writeback_sel", parent=self, shape=(3,))
+        self.reg_writeback_sel = TraceLogic(name="reg_writeback_sel", parent=self, shape=(3,))
         self.next_pc_sel = TraceLogic(name="next_pc_sel", parent=self, shape=(2,))
         self.alu_function = TraceLogic(name="alu_function", parent=self, shape=(5,))
 
@@ -773,8 +773,8 @@ class SingleCycleDataPath(Module):
         self.pc_plus_immediate = TraceLogic(name="pc_plus_immediate", parent=self, shape=(32,))
         self.pc_next = TraceLogic(name="pc_next", parent=self, shape=(32,))
 
-        self.alu_op_a = Logic(name="alu_op_a", parent=self, shape=(32,))
-        self.alu_op_b = Logic(name="alu_op_b", parent=self, shape=(32,))
+        self.alu_op_a = TraceLogic(name="alu_op_a", parent=self, shape=(32,))
+        self.alu_op_b = TraceLogic(name="alu_op_b", parent=self, shape=(32,))
         self.alu_result = TraceLogic(name="alu_result", parent=self, shape=(32,))
 
         self.immediate = TraceLogic(name="immediate", parent=self, shape=(32,))
@@ -1039,8 +1039,8 @@ class Alu(Module):
         self.result = Logic(name="result", parent=self, shape=(32,))
         self.result_equal_zero = Logic(name="result_equal_zero", parent=self, shape=(1,))
         self.alu_function = Logic(name="alu_function", parent=self, shape=(5,))
-        self.op_a = TraceLogic(name="op_a", parent=self, shape=(32,))
-        self.op_b = TraceLogic(name="op_b", parent=self, shape=(32,))
+        self.op_a = Logic(name="op_a", parent=self, shape=(32,))
+        self.op_b = Logic(name="op_b", parent=self, shape=(32,))
 
         # Processes
         self._procs.add((self.proc_result, HW))
@@ -1160,7 +1160,7 @@ class Multiplexer8(Module):
 
         # Ports
         self.out = Logic(name="out", parent=self, shape=(32,))
-        self.sel = TraceLogic(name="sel", parent=self, shape=(3,))
+        self.sel = Logic(name="sel", parent=self, shape=(3,))
         self.in0 = Logic(name="in0", parent=self, shape=(32,))
         self.in1 = Logic(name="in1", parent=self, shape=(32,))
         self.in2 = Logic(name="in2", parent=self, shape=(32,))
@@ -1566,27 +1566,27 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_ctlpath.alu_result_equal_zero: xes((1,)),
             top.riscv_core.singlecycle_ctlpath.take_branch: xes((1,)),
             top.riscv_core.singlecycle_ctlpath.singlecycle_control.next_pc_sel: xes((2,)),
+            # Debugging here:
+            top.riscv_core.singlecycle_datapath.pc_wr_en: X,
+            top.riscv_core.singlecycle_datapath.regfile_wr_en: X,
+            top.riscv_core.singlecycle_datapath.alu_op_a_sel: X,
+            top.riscv_core.singlecycle_datapath.alu_op_b_sel: X,
+            # FUBAR
             top.riscv_core.singlecycle_datapath.next_pc_sel: xes((2,)),
             top.riscv_core.singlecycle_datapath.pc_plus_4: xes((32,)),
             top.riscv_core.singlecycle_datapath.immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.pc_plus_immediate: xes((32,)),
             top.riscv_core.singlecycle_datapath.pc_next: xes((32,)),
-            top.riscv_core.singlecycle_datapath.pc_wr_en: X,
-            top.riscv_core.singlecycle_datapath.regfile_wr_en: X,
             top.riscv_core.singlecycle_datapath.inst_rd: xes((5,)),
-            top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: xes((7,)),
-            # TODO(cjdrake): WTF
-            top.riscv_core.singlecycle_datapath.wr_data: xes((32,)),
+            top.riscv_core.singlecycle_datapath.wr_data: xes((32,)),  # WTF
             top.riscv_core.singlecycle_datapath.inst_rs1: xes((5,)),
             top.riscv_core.singlecycle_datapath.inst_rs2: xes((5,)),
             top.riscv_core.singlecycle_datapath.alu_function: xes((5,)),
-            # TODO(cjdrake): WTF
-            top.riscv_core.singlecycle_datapath.alu.op_a: xes((32,)),
-            top.riscv_core.singlecycle_datapath.alu.op_b: xes((32,)),
-            top.riscv_core.singlecycle_datapath.mux_reg_writeback.sel: xes((3,)),
+            top.riscv_core.singlecycle_datapath.alu_op_a: xes((32,)),  # WTF
+            top.riscv_core.singlecycle_datapath.alu_op_b: xes((32,)),  # WTF
+            top.riscv_core.singlecycle_datapath.reg_writeback_sel: xes((3,)),
             top.riscv_core.singlecycle_datapath.alu_result: xes((32,)),
-            top.riscv_core.singlecycle_datapath.alu_op_a_sel: X,
-            top.riscv_core.singlecycle_datapath.alu_op_b_sel: X,
+            top.riscv_core.singlecycle_datapath.instruction_decoder.inst_opcode: xes((7,)),
         },
         0: {
             top.reset: F,
@@ -1613,7 +1613,7 @@ def test_singlecycle2():
             top.riscv_core.singlecycle_datapath.inst_rs1: vec("5b0_0000"),
             top.riscv_core.singlecycle_datapath.inst_rs2: vec("5b0_0000"),
             top.riscv_core.singlecycle_datapath.alu_function: vec("5b0_0001"),
-            top.riscv_core.singlecycle_datapath.mux_reg_writeback.sel: vec("3b000"),
+            top.riscv_core.singlecycle_datapath.reg_writeback_sel: vec("3b000"),
             top.riscv_core.singlecycle_datapath.alu_op_a_sel: F,
             top.riscv_core.singlecycle_datapath.alu_op_b_sel: T,
         },
