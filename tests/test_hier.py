@@ -50,6 +50,6 @@ def test_dict():
 
     assert a.name == "a"
     assert a["w"].name == "w"
-    assert a["w"].qualname == "/top/a['w']"
+    assert a["w"].qualname == "/top/a[w]"
     assert a["b"].name == "b"
-    assert a["b"].qualname == "/top/a['b']"
+    assert a["b"].qualname == "/top/a[b]"

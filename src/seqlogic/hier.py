@@ -45,7 +45,7 @@ class Module(Hierarchy):
             case List():
                 return f"{self._parent.qualname}[{self._name}]"
             case Dict():
-                return f"{self._parent.qualname}['{self._name}']"
+                return f"{self._parent.qualname}[{self._name}]"
             case Module():
                 return f"{self._parent.qualname}/{self._name}"
             case _:  # pragma: no cover
@@ -66,7 +66,7 @@ class HierVar(Hierarchy):
             case List():
                 return f"{self._parent.qualname}[{self._name}]"
             case Dict():
-                return f"{self._parent.qualname}['{self._name}']"
+                return f"{self._parent.qualname}[{self._name}]"
             case Module():
                 return f"{self._parent.qualname}/{self._name}"
             case _:  # pragma: no cover
