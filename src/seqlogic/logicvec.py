@@ -651,3 +651,10 @@ def ones(shape: tuple[int, ...]) -> logicvec:
 def xes(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with Xes."""
     return _consts(shape, pcn.DC)
+
+
+# One bit values
+N = nulls((1,))
+F = zeros((1,))
+T = ones((1,))
+X = xes((1,))
