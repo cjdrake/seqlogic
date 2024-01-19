@@ -24,6 +24,9 @@ def test_basic():
     assert y.name == "y"
     assert y.qualname == "/a/b/y"
 
+    assert list(a.iter_bfs()) == [a, w, b, x, y]
+    assert list(a.iter_dfs()) == [w, x, y, b, a]
+
 
 def test_list():
     """Test list naming."""
