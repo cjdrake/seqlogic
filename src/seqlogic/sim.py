@@ -205,12 +205,6 @@ class Sim:
         self._deps.add_edge(var, event)
         self._deps.add_edge(event, self._task)
 
-    def _prune(self, u, v):
-        """Prune (u, v) from the dependency graph."""
-        self._deps.remove_edge(u, v)
-        if self._deps.in_degree(v) == 0:
-            self._deps.remove_node(v)
-
     def notify(self, var: SimVar):
         """Notify dependent tasks about a variable change."""
         if var in self._deps and var.dirty():
@@ -218,8 +212,8 @@ class Sim:
             for event, tasks in notifications.items():
                 for task in tasks:
                     self.call_soon(task, var)
-                    self._prune(event, task)
-                self._prune(var, event)
+                    self._deps.remove_edge(event, task)
+                self._deps.remove_edge(var, event)
 
         # Add variable to update set
         self._valid_vars.add(var)
