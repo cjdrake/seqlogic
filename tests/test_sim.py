@@ -58,8 +58,9 @@ def test_hello(capsys):
     assert capsys.readouterr().out == HELLO_OUT
 
 
-def test_vars():
+def test_vars_run():
     """Test generic variable functionality."""
+    waves.clear()
     loop.reset()
 
     a = _TraceVar()
@@ -121,6 +122,60 @@ def test_vars():
 
     assert waves == exp
 
+
+def test_vars_iter():
+    """Test generic variable functionality."""
+    waves.clear()
     loop.reset()
-    for t in loop.iter(until=50):
-        assert waves[t] == exp[t]
+
+    a = _TraceVar()
+    b = _TraceVar()
+    c = _TraceVar()
+
+    async def run_a():
+        while True:
+            await sleep(5)
+            a.next = not a.value
+
+    async def run_b():
+        i = 0
+        while True:
+            await notify(a.edge)
+            # Dirty next state
+            if i % 2 == 0:
+                b.next = not b.value
+            # Clean next state
+            else:
+                b.next = b.value
+            i += 1
+
+    async def run_c():
+        i = 0
+        while True:
+            await notify(a.edge)
+            if i % 3 == 0:
+                c.next = not c.value
+            i += 1
+
+    loop.add_proc(run_a, Region(1))
+    loop.add_proc(run_b, Region(0))
+    loop.add_proc(run_c, Region(0))
+
+    # Expected sim output
+    exp = {
+        -1: {a: False, b: False, c: False},
+        5: {a: True, b: True, c: True},
+        10: {a: False},
+        15: {a: True, b: False},
+        20: {a: False, c: False},
+        25: {a: True, b: True},
+        30: {a: False},
+        35: {a: True, b: False, c: True},
+        40: {a: False},
+        45: {a: True, b: True},
+    }
+
+    for _ in loop.iter(until=50):
+        pass
+
+    assert waves == exp
