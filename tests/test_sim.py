@@ -95,6 +95,20 @@ def test_vars():
     loop.add_proc(run_b, Region(0))
     loop.add_proc(run_c, Region(0))
 
+    # Expected sim output
+    exp = {
+        -1: {a: False, b: False, c: False},
+        5: {a: True, b: True, c: True},
+        10: {a: False},
+        15: {a: True, b: False},
+        20: {a: False, c: False},
+        25: {a: True, b: True},
+        30: {a: False},
+        35: {a: True, b: False, c: True},
+        40: {a: False},
+        45: {a: True, b: True},
+    }
+
     # Event loop not started yet
     assert not loop.started
 
@@ -105,47 +119,8 @@ def test_vars():
     # Absolute run limit
     loop.run(until=50)
 
-    exp = {
-        -1: {
-            a: False,
-            b: False,
-            c: False,
-        },
-        5: {
-            a: True,
-            b: True,
-            c: True,
-        },
-        10: {
-            a: False,
-        },
-        15: {
-            a: True,
-            b: False,
-        },
-        20: {
-            a: False,
-            c: False,
-        },
-        25: {
-            a: True,
-            b: True,
-        },
-        30: {
-            a: False,
-        },
-        35: {
-            a: True,
-            b: False,
-            c: True,
-        },
-        40: {
-            a: False,
-        },
-        45: {
-            a: True,
-            b: True,
-        },
-    }
-
     assert waves == exp
+
+    loop.reset()
+    for t in loop.iter(until=50):
+        assert waves[t] == exp[t]

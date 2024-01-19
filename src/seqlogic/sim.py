@@ -281,6 +281,47 @@ class Sim:
                 except StopIteration:
                     pass
 
+    def iter(self, ticks: int | None = None, until: int | None = None):
+        """Iterate the simulation.
+
+        Until:
+        1. We hit the runlimit, OR
+        2. There are no tasks left in the queue
+        """
+        limit = self._limit(ticks, until)
+
+        # Start the simulation
+        if not self._started:
+            self._start()
+
+        while self._queue:
+            # Peek at when next event is scheduled
+            time, region, _, _ = self._queue.peek()
+
+            # Protect against time traveling tasks
+            assert time >= self._time
+
+            # Next task scheduled: same time slot, different region
+            if time == self._time and region != self._region:
+                self._region = region
+            # Next task scheduled: future time slot
+            elif time > self._time:
+                # Update all simulation state
+                self._update_vars()
+                yield self._time
+                # Exit if we hit the run limit
+                if limit is not None and time >= limit:
+                    return
+                # Otherwise, advance
+                self._time = time
+
+            # Resume execution
+            for _, _, self._task, var in self._queue.pop_region():
+                try:
+                    self._task.send(var)
+                except StopIteration:
+                    pass
+
     def _update_vars(self):
         """Prepare variables to enter the next time slot."""
         while self._valid_vars:
