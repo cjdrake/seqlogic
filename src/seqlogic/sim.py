@@ -10,12 +10,9 @@ https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 
 import heapq
 from collections.abc import Awaitable, Callable, Coroutine, Generator
-from enum import Enum
 from typing import NewType, TypeAlias
 
 import networkx as nx
-
-_Event: TypeAlias = Callable[[], bool]
 
 Region = NewType("Region", int)
 
@@ -25,21 +22,13 @@ _INIT_REGION = Region(-1)
 _START_TIME = 0
 
 
-class State(Enum):
-    """Simulation variable state."""
-
-    INVALID = 0b00
-    CLEAN = 0b01
-    DIRTY = 0b11
-
-
 class SimVar:
     """The simulation component of a variable."""
 
     def __init__(self, value):
         """TODO(cjdrake): Write docstring."""
-        self._value = value
-        self._rst_next()
+        self._value = self._next_value = value
+        self._changed = False
 
         # Reference to the event loop
         self._sim = _sim
@@ -52,33 +41,29 @@ class SimVar:
 
     value = property(fget=_get_value, fset=_set_value)
 
-    def _rst_next(self):
-        self._next_state = State.INVALID
-        self._next_value = None
-
     def _get_next(self):
         return self._next_value
 
     def _set_next(self, value):
-        if value != self._value:
-            self._next_state = State.DIRTY
-        else:
-            self._next_state = State.CLEAN
+        self._changed = value != self._next_value
         self._next_value = value
 
         # Notify the event loop
-        _sim.notify(self)
+        _sim.touch(self)
 
     next = property(fget=_get_next, fset=_set_next)
 
+    def changed(self) -> bool:
+        return self._changed
+
     def dirty(self) -> bool:
         """Return True if the present state is dirty."""
-        return self._next_state is State.DIRTY
+        return self._next_value != self._value
 
     def update(self):
         """Update present state, and reset next state."""
         self._value = self._next_value
-        self._rst_next()
+        self._changed = False
 
 
 _SimQueueItem: TypeAlias = tuple[int, Region, Coroutine, SimVar | None]
@@ -149,7 +134,7 @@ class Sim:
         # Dynamic event dependencies
         self._deps = nx.DiGraph()
         # Postponed actions
-        self._valid_vars: set[SimVar] = set()
+        self._touched_vars: set[SimVar] = set()
         # Processes
         self._procs = []
 
@@ -166,7 +151,7 @@ class Sim:
         self._queue.clear()
         self._task = None
         self._deps.clear()
-        self._valid_vars.clear()
+        self._touched_vars.clear()
 
     def reset(self):
         """Reset the simulation state."""
@@ -202,15 +187,15 @@ class Sim:
         """Add a process to run at start of simulation."""
         self._procs.append((proc, region, args, kwargs))
 
-    def add_event(self, event: _Event):
+    def add_event(self, event: Callable[[], bool]):
         """Add a conditional var => task dependency."""
         var = event.__self__
         self._deps.add_edge(var, event)
         self._deps.add_edge(event, self._task)
 
-    def notify(self, var: SimVar):
+    def touch(self, var: SimVar):
         """Notify dependent tasks about a variable change."""
-        if var in self._deps and var.dirty():
+        if var in self._deps:
             notifications = {e: set(self._deps[e]) for e in self._deps[var] if e()}
             for event, tasks in notifications.items():
                 for task in tasks:
@@ -219,7 +204,7 @@ class Sim:
                 self._deps.remove_edge(var, event)
 
         # Add variable to update set
-        self._valid_vars.add(var)
+        self._touched_vars.add(var)
 
     def _limit(self, ticks: int | None, until: int | None) -> int | None:
         """Determine the run limit."""
@@ -327,8 +312,9 @@ class Sim:
 
     def _update_vars(self):
         """Prepare variables to enter the next time slot."""
-        while self._valid_vars:
-            self._valid_vars.pop().update()
+        while self._touched_vars:
+            var = self._touched_vars.pop()
+            var.update()
 
 
 _sim = Sim()
@@ -340,7 +326,7 @@ async def sleep(delay: int):
     await _SimAwaitable()
 
 
-async def notify(*events: _Event) -> SimVar:
+async def notify(*events: Callable[[], bool]) -> SimVar:
     """Suspend the task, and wake up after an event notification."""
     for event in events:
         _sim.add_event(event)
