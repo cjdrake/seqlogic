@@ -270,7 +270,9 @@ class Sim:
                 except StopIteration:
                     pass
 
-    def iter(self, ticks: int | None = None, until: int | None = None):
+    def iter(
+        self, ticks: int | None = None, until: int | None = None
+    ) -> Generator[int, None, None]:
         """Iterate the simulation.
 
         Until:
