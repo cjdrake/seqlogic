@@ -44,18 +44,22 @@ class SimVar:
         # Reference to the event loop
         self._sim = _sim
 
-    @property
-    def value(self):
-        """TODO(cjdrake): Write docstring."""
+    def _get_value(self):
         return self._value
+
+    def _set_value(self, value):
+        self._value = value
+
+    value = property(fget=_get_value, fset=_set_value)
 
     def _rst_next(self):
         self._next_state = State.INVALID
         self._next_value = None
 
+    def _get_next(self):
+        return self._next_value
+
     def _set_next(self, value):
-        # Protect against double assignment in the same time slot
-        assert self._next_state is State.INVALID and self._next_value is None
         if value != self._value:
             self._next_state = State.DIRTY
         else:
@@ -65,7 +69,7 @@ class SimVar:
         # Notify the event loop
         _sim.notify(self)
 
-    next = property(fset=_set_next)
+    next = property(fget=_get_next, fset=_set_next)
 
     def dirty(self) -> bool:
         """Return True if the present state is dirty."""
@@ -73,7 +77,6 @@ class SimVar:
 
     def update(self):
         """Update present state, and reset next state."""
-        assert not (self._next_state is State.INVALID or self._next_value is None)
         self._value = self._next_value
         self._rst_next()
 
