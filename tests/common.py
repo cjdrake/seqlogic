@@ -7,57 +7,17 @@ It might be useful to add to seqlogic library.
 from collections import defaultdict
 from collections.abc import Callable
 
-from seqlogic.hier import HierVar, Module
 from seqlogic.logic import logic
-from seqlogic.logicvec import logicvec, xes
+from seqlogic.logicvec import logicvec
 from seqlogic.sim import SimVar, notify, sleep
+from seqlogic.var import LogicVar
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
 
 
-class TraceVar(SimVar, HierVar):
-    """Variable that supports dumping to memory."""
-
-    def __init__(self, name: str, parent: Module):
-        """TODO(cjdrake): Write docstring."""
-        SimVar.__init__(self, value=logic.X)
-        HierVar.__init__(self, name, parent)
-        waves[self._sim.time()][self] = self._value
-
-    def update(self):
-        """TODO(cjdrake): Write docstring."""
-        if self.dirty():
-            waves[self._sim.time()][self] = self._next_value
-        SimVar.update(self)
-
-    def negedge(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
-        return (self._value is logic.T) and (self._next_value is logic.F)
-
-    def posedge(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
-        return (self._value is logic.F) and (self._next_value is logic.T)
-
-
-class TraceVec(SimVar, HierVar):
-    """Variable that supports dumping to memory."""
-
-    def __init__(self, name: str, n: int, parent: Module):
-        """TODO(cjdrake): Write docstring."""
-        SimVar.__init__(self, value=xes((n,)))
-        HierVar.__init__(self, name, parent)
-        waves[self._sim.time()][self] = self._value
-
-    def update(self):
-        """TODO(cjdrake): Write docstring."""
-        if self.dirty():
-            waves[self._sim.time()][self] = self._next_value
-        SimVar.update(self)
-
-
 async def reset_drv(
-    reset: TraceVar, init: logic = logic.T, phase1_ticks: int = 1, phase2_ticks: int = 1
+    reset: LogicVar, init: logic = logic.T, phase1_ticks: int = 1, phase2_ticks: int = 1
 ):
     r"""
     Simulate a reset signal.
@@ -89,7 +49,7 @@ async def reset_drv(
 
 
 async def clock_drv(
-    clock: TraceVar,
+    clock: LogicVar,
     init: logic = logic.F,
     shift_ticks: int = 0,
     phase1_ticks: int = 1,
@@ -136,9 +96,9 @@ async def clock_drv(
 async def dff_arn_drv(
     q: SimVar,
     d: Callable[[], logicvec],
-    reset_n: TraceVar,
+    reset_n: LogicVar,
     reset_value: logicvec,
-    clock: TraceVar,
+    clock: LogicVar,
 ):
     """D Flop Flop with asynchronous, negedge-triggered reset."""
     while True:

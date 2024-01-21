@@ -3,12 +3,15 @@
 Demonstrate usage of an enum.
 """
 
+from collections import defaultdict
+
 from seqlogic.enum import Enum
 from seqlogic.hier import Module
 from seqlogic.logic import logic
-from seqlogic.sim import Region, SimVar, get_loop, notify
+from seqlogic.sim import Region, get_loop, notify
+from seqlogic.var import LogicVar, TraceVar
 
-from .common import TraceVar, clock_drv, dff_arn_drv, reset_drv, waves
+from .common import clock_drv, dff_arn_drv, reset_drv
 
 loop = get_loop()
 
@@ -24,23 +27,18 @@ class SeqDetect(Enum):
     XX = "2bxx"
 
 
-class _TraceSeqDetect(SimVar):
-    """Variable that supports dumping to memory."""
+class EnumVar(TraceVar):
+    """TODO(cjdrake): Write docstring."""
 
-    def __init__(self):
-        super().__init__(value=SeqDetect.XX)
-        waves[self._sim.time()][self] = self._value
-
-    def update(self):
-        if self.dirty():
-            waves[self._sim.time()][self] = self._next_value
-        super().update()
+    def __init__(self, name: str, parent: Module):
+        """TODO(cjdrake): Write docstring."""
+        super().__init__(name, parent, SeqDetect.XX)
 
 
 async def _input_drv(
-    x: TraceVar,
-    reset_n: TraceVar,
-    clock: TraceVar,
+    x: LogicVar,
+    reset_n: LogicVar,
+    clock: LogicVar,
 ):
     await notify(reset_n.negedge)
     x.next = logic.F
@@ -66,15 +64,15 @@ async def _input_drv(
 def test_fsm():
     """Test a 3-bit LFSR."""
     loop.reset()
-    waves.clear()
-
-    # State Variables
-    ps = _TraceSeqDetect()
 
     top = Module(name="top")
+    clock = LogicVar(name="clock", parent=top)
+    reset_n = LogicVar(name="reset_n", parent=top)
+    ps = EnumVar(name="ps", parent=top)
+    x = LogicVar(name="x", parent=top)
 
-    # Inputs
-    x = TraceVar("x", parent=top)
+    waves = defaultdict(dict)
+    top.dump_waves(waves, r".*")
 
     def ns() -> SeqDetect:
         match (ps.value, x.value):
@@ -101,16 +99,11 @@ def test_fsm():
             case _:
                 return SeqDetect.XX  # pyright: ignore[reportGeneralTypeIssues]
 
-    # Control Variables
-    reset_n = TraceVar("reset_n", parent=top)
-    reset_value = SeqDetect.A
-    clock = TraceVar("clock", parent=top)
-
     # Schedule input
     loop.add_proc(_input_drv, Region(0), x, reset_n, clock)
 
     # Schedule LFSR
-    loop.add_proc(dff_arn_drv, Region(0), ps, ns, reset_n, reset_value, clock)
+    loop.add_proc(dff_arn_drv, Region(0), ps, ns, reset_n, SeqDetect.A, clock)
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose

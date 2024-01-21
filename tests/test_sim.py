@@ -14,7 +14,7 @@ def _waves_add(time, var, val):
     waves[time][var] = val
 
 
-class _TraceVar(SimVar):
+class _BoolVar(SimVar):
     """Variable that supports dumping to memory."""
 
     def __init__(self):
@@ -63,9 +63,9 @@ def test_vars_run():
     waves.clear()
     loop.reset()
 
-    a = _TraceVar()
-    b = _TraceVar()
-    c = _TraceVar()
+    a = _BoolVar()
+    b = _BoolVar()
+    c = _BoolVar()
 
     async def run_a():
         while True:
@@ -128,9 +128,9 @@ def test_vars_iter():
     waves.clear()
     loop.reset()
 
-    a = _TraceVar()
-    b = _TraceVar()
-    c = _TraceVar()
+    a = _BoolVar()
+    b = _BoolVar()
+    c = _BoolVar()
 
     async def run_a():
         while True:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from collections.abc import Generator
 
 
@@ -36,6 +37,9 @@ class Hierarchy(ABC):
     @abstractmethod
     def iter_dfs(self) -> Generator[Hierarchy, None, None]:
         """Iterate through the design hierarchy in DFS order."""
+
+    def dump_waves(self, waves: defaultdict, pattern: str):
+        """TODO(cjdrake): Write docstring."""
 
 
 class Module(Hierarchy):
@@ -78,6 +82,11 @@ class Module(Hierarchy):
     def add_child(self, child: Hierarchy):
         """Add child module or variable."""
         self._children.append(child)
+
+    def dump_waves(self, waves: defaultdict, pattern: str):
+        """TODO(cjdrake): Write docstring."""
+        for child in self._children:
+            child.dump_waves(waves, pattern)
 
 
 class HierVar(Hierarchy):

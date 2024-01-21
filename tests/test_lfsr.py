@@ -1,12 +1,14 @@
 """Example LFSR implementation."""
 
+from collections import defaultdict
 
 from seqlogic.hier import Module
 from seqlogic.logic import logic
 from seqlogic.logicvec import cat, logicvec, vec
 from seqlogic.sim import Region, get_loop
+from seqlogic.var import LogicVar, LogicVec
 
-from .common import TraceVar, TraceVec, clock_drv, dff_arn_drv, reset_drv, waves
+from .common import clock_drv, dff_arn_drv, reset_drv
 
 loop = get_loop()
 
@@ -18,18 +20,19 @@ class Top(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name="top", parent=None)
         # Control
-        self.reset_n = TraceVar("reset_n", parent=self)
-        self.clock = TraceVar("clock", parent=self)
+        self.reset_n = LogicVar(name="reset_n", parent=self)
+        self.clock = LogicVar(name="clock", parent=self)
         # State
-        self.q = TraceVec("q", 3, parent=self)
+        self.q = LogicVec(name="q", parent=self, shape=(3,))
 
 
 def test_lfsr():
     """Test a 3-bit LFSR."""
     loop.reset()
-    waves.clear()
 
     top = Top()
+    waves = defaultdict(dict)
+    top.dump_waves(waves, r".*")
 
     assert top.q.name == "q"
     assert top.q.qualname == "/top/q"
