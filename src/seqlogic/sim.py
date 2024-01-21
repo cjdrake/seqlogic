@@ -54,6 +54,7 @@ class SimVar:
     next = property(fget=_get_next, fset=_set_next)
 
     def changed(self) -> bool:
+        """Return True if the variable has changed."""
         return self._changed
 
     def dirty(self) -> bool:
