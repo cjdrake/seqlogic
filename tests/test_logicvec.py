@@ -609,7 +609,7 @@ def test_cat():
     assert cat([False, True, False, True]) == vec("4b1010")
 
     with pytest.raises(TypeError):
-        cat(["invalid"])  # pyright: ignore[reportGeneralTypeIssues]
+        cat(["invalid"])  # pyright: ignore[reportArgumentType]
 
     v = cat([vec("2b00"), vec("2b01"), vec("2b10"), vec("2b11")], flatten=True)
     assert v == vec("8b11100100")
@@ -663,7 +663,7 @@ def test_slicing():
     with pytest.raises(IndexError):
         v[-5]
     with pytest.raises(TypeError):
-        v["invalid"]  # pyright: ignore[reportGeneralTypeIssues]
+        v["invalid"]  # pyright: ignore[reportArgumentType]
 
     assert v == v[:]
     assert v == v[0:4]
@@ -713,7 +713,7 @@ def test_slicing():
     with pytest.raises(ValueError):
         v[0, 0, 0, 0]
     with pytest.raises(TypeError):
-        v["invalid"]  # pyright: ignore[reportGeneralTypeIssues]
+        v["invalid"]  # pyright: ignore[reportArgumentType]
 
 
 def test_countbits():

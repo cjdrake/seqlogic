@@ -1,6 +1,5 @@
 """Test seqlogic.enum module."""
 
-
 import pytest
 
 from seqlogic.enum import Enum
@@ -41,7 +40,7 @@ def test_enum_error():
         class InvalidType(Enum):
             FOO = 42
 
-        _ = InvalidType()  # pyright: ignore[reportGeneralTypeIssues]
+        _ = InvalidType()  # pyright: ignore[reportCallIssue]
 
     with pytest.raises(ValueError):
         _ = Color("2b11")

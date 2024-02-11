@@ -50,7 +50,7 @@ def test_hello(capsys):
 
     # Invalid run limit
     with pytest.raises(TypeError):
-        loop.run("Invalid argument type")  # pyright: ignore[reportGeneralTypeIssues]
+        loop.run("Invalid argument type")  # pyright: ignore[reportArgumentType]
 
     # Run until no events left
     loop.run()

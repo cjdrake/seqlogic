@@ -77,27 +77,27 @@ def test_fsm():
     def ns() -> SeqDetect:
         match (ps.value, x.value):
             case (SeqDetect.A, logic.F):
-                return SeqDetect.A  # pyright: ignore[reportGeneralTypeIssues]
+                return SeqDetect.A  # pyright: ignore[reportReturnType]
             case (SeqDetect.A, logic.T):
-                return SeqDetect.B  # pyright: ignore[reportGeneralTypeIssues]
+                return SeqDetect.B  # pyright: ignore[reportReturnType]
 
             case (SeqDetect.B, logic.F):
-                return SeqDetect.A  # pyright: ignore[reportGeneralTypeIssues]
+                return SeqDetect.A  # pyright: ignore[reportReturnType]
             case (SeqDetect.B, logic.T):
-                return SeqDetect.C  # pyright: ignore[reportGeneralTypeIssues]
+                return SeqDetect.C  # pyright: ignore[reportReturnType]
 
             case (SeqDetect.C, logic.F):
-                return SeqDetect.A  # pyright: ignore[reportGeneralTypeIssues]
+                return SeqDetect.A  # pyright: ignore[reportReturnType]
             case (SeqDetect.C, logic.T):
-                return SeqDetect.D  # pyright: ignore[reportGeneralTypeIssues]
+                return SeqDetect.D  # pyright: ignore[reportReturnType]
 
             case (SeqDetect.D, logic.F):
-                return SeqDetect.A  # pyright: ignore[reportGeneralTypeIssues]
+                return SeqDetect.A  # pyright: ignore[reportReturnType]
             case (SeqDetect.D, logic.T):
-                return SeqDetect.D  # pyright: ignore[reportGeneralTypeIssues]
+                return SeqDetect.D  # pyright: ignore[reportReturnType]
 
             case _:
-                return SeqDetect.XX  # pyright: ignore[reportGeneralTypeIssues]
+                return SeqDetect.XX  # pyright: ignore[reportReturnType]
 
     # Schedule input
     loop.add_proc(_input_drv, Region(0), x, reset_n, clock)
