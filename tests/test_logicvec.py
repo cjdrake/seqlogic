@@ -326,11 +326,11 @@ def test_parse_str_literal():
 
     # Valid input
     v = vec("4bx1_0X")
-    assert v.pcs.bits == 0b11_10_01_00
+    assert v.cube.data == 0b11_10_01_00
     v = vec("64hFeDc_Ba98_7654_3210")
-    assert v.pcs.bits == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
+    assert v.cube.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
     v = vec("64hfEdC_bA98_7654_3210")
-    assert v.pcs.bits == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
+    assert v.cube.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
 
 
 def test_uint2vec():
@@ -368,10 +368,10 @@ def test_empty():
 
     # Test properties
     assert v.shape == (0,)
-    assert v.pcs.bits == 0
+    assert v.cube.data == 0
     assert v.ndim == 1
     assert v.size == 0
-    assert v.pcs.nbits == 0
+    assert v.cube.nbits == 0
     assert list(v.flat) == []  # pylint: disable = use-implicit-booleaness-not-comparison
 
     assert v.flatten() == v
@@ -408,10 +408,10 @@ def test_scalar():
 
     # Test properties
     assert v0.shape == (1,)
-    assert v0.pcs.bits == logic.F.value
+    assert v0.cube.data == logic.F.value
     assert v0.ndim == 1
     assert v0.size == 1
-    assert v0.pcs.nbits == 2
+    assert v0.cube.nbits == 2
     assert list(v0.flat) == [logic.F]
 
     assert v0.flatten() == v0
@@ -461,10 +461,10 @@ def test_rank1_str():
 
     # Test properties
     assert v.shape == (8,)
-    assert v.pcs.bits == data
+    assert v.cube.data == data
     assert v.ndim == 1
     assert v.size == 8
-    assert v.pcs.nbits == 16
+    assert v.cube.nbits == 16
     assert list(v.flat) == xs
 
     assert v.flatten() == v
@@ -517,10 +517,10 @@ def test_rank1_logic():
 
     # Test properties
     assert v1.shape == (4,)
-    assert v1.pcs.bits == 0b11100100
+    assert v1.cube.data == 0b11100100
     assert v1.ndim == 1
     assert v1.size == 4
-    assert v1.pcs.nbits == 8
+    assert v1.cube.nbits == 8
     assert list(v1.flat) == xs
 
     # Test __str__ and __repr__

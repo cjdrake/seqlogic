@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator, Iterable
+from collections.abc import Iterable
 from functools import cached_property
 from typing import NewType
 
@@ -18,9 +18,6 @@ ONE = PcItem(0b10)
 NULL = PcItem(ZERO & ONE)
 DC = PcItem(ZERO | ONE)  # "Don't Care"
 
-_OR_IDENT = ZERO
-_AND_IDENT = ONE
-_XOR_IDENT = ZERO
 
 from_int = (ZERO, ONE)
 
@@ -337,41 +334,38 @@ def limplies(p: PcItem, q: PcItem) -> PcItem:
     return PcItem(y)
 
 
-class PcList:
-    """Positional Cube (PC) List."""
+class Cube:
+    """N-dimensional cube."""
 
-    def __init__(self, num: int, bits: int):
+    def __init__(self, n: int, data: int):
         """TODO(cjdrake): Write docstring."""
-        self._num = num
-        assert 0 <= bits < (1 << self.nbits)
-        self._bits = bits
+        self._n = n
+        assert 0 <= data < (1 << self.nbits)
+        self._data = data
 
-    def __getitem__(self, key: int) -> PcItem:
+    def __getitem__(self, key: int) -> Cube:
         match key:
-            case int() as index:
-                index = self._norm_index(index)
-                return PcItem((self._bits >> (_ITEM_BITS * index)) & _ITEM_MASK)
+            case int() as i:
+                i = self._norm_index(i)
+                d = (self._data >> (_ITEM_BITS * i)) & _ITEM_MASK
+                return Cube(1, d)
             case _:
                 raise TypeError("Expected key to be an int")
 
     def __len__(self) -> int:
-        return self._num
-
-    def __iter__(self) -> Generator[PcItem, None, None]:
-        for i in range(self._num):
-            yield self.__getitem__(i)
+        return self._n
 
     @property
-    def bits(self):
+    def data(self) -> int:
         """TODO(cjdrake): Write docstring."""
-        return self._bits
+        return self._data
 
     @cached_property
-    def nbits(self):
+    def nbits(self) -> int:
         """Number of bits of data."""
-        return _ITEM_BITS * self._num
+        return _ITEM_BITS * self._n
 
-    def lnot(self) -> PcList:
+    def lnot(self) -> Cube:
         """Return output of "lifted" NOT function."""
         x_0 = self._bit_mask[0]
         x_01 = x_0 << 1
@@ -382,15 +376,15 @@ class PcList:
         y1 = x_01
         y = y1 | y0
 
-        return PcList(self._num, y)
+        return Cube(self._n, y)
 
-    def lnor(self, other: PcList) -> PcList:
+    def lnor(self, other: Cube) -> Cube:
         """Return output of "lifted" NOR function.
 
         y1 = x0[0] & x1[0]
         y0 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
         """
-        assert self._num == len(other)
+        assert self._n == len(other)
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -406,15 +400,15 @@ class PcList:
         y1 = x0_01 & x1_01
         y = y1 | y0
 
-        return PcList(self._num, y)
+        return Cube(self._n, y)
 
-    def lor(self, other: PcList) -> PcList:
+    def lor(self, other: Cube) -> Cube:
         """Return output of "lifted" OR function.
 
         y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
         y0 = x0[0] & x1[0]
         """
-        assert self._num == len(other)
+        assert self._n == len(other)
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -428,22 +422,22 @@ class PcList:
         y1 = x0_01 & x1_1 | x0_1 & x1_01 | x0_1 & x1_1
         y = y1 | y0
 
-        return PcList(self._num, y)
+        return Cube(self._n, y)
 
-    def ulor(self) -> PcItem:
+    def ulor(self) -> Cube:
         """Return unary "lifted" OR of bits."""
-        y = _OR_IDENT
+        y = Cube(1, 0b01)
         for x in self:
-            y = lor(y, x)
+            y = y.lor(x)
         return y
 
-    def lnand(self, other: PcList) -> PcList:
+    def lnand(self, other: Cube) -> Cube:
         """Return output of "lifted" NAND function.
 
         y1 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
         y0 = x0[1] & x1[1]
         """
-        assert self._num == len(other)
+        assert self._n == len(other)
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -459,15 +453,15 @@ class PcList:
         y1 = x0_01 & x1_01 | x0_01 & x1_1 | x0_1 & x1_01
         y = y1 | y0
 
-        return PcList(self._num, y)
+        return Cube(self._n, y)
 
-    def land(self, other: PcList) -> PcList:
+    def land(self, other: Cube) -> Cube:
         """Return output of "lifted" AND function.
 
         y1 = x0[1] & x1[1]
         y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
         """
-        assert self._num == len(other)
+        assert self._n == len(other)
 
         x0_0 = self._bit_mask[0]
         x0_1 = self._bit_mask[1]
@@ -481,22 +475,22 @@ class PcList:
         y1 = x0_1 & x1_1
         y = y1 | y0
 
-        return PcList(self._num, y)
+        return Cube(self._n, y)
 
-    def uland(self) -> PcItem:
+    def uland(self) -> Cube:
         """Return unary "lifted" AND of bits."""
-        y = _AND_IDENT
+        y = Cube(1, 0b10)
         for x in self:
-            y = land(y, x)
+            y = y.land(x)
         return y
 
-    def lxnor(self, other: PcList) -> PcList:
+    def lxnor(self, other: Cube) -> Cube:
         """Return output of "lifted" XNOR function.
 
         y1 = x0[0] & x1[0] | x0[1] & x1[1]
         y0 = x0[0] & x1[1] | x0[1] & x1[0]
         """
-        assert self._num == len(other)
+        assert self._n == len(other)
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -512,15 +506,15 @@ class PcList:
         y1 = x0_01 & x1_01 | x0_1 & x1_1
         y = y1 | y0
 
-        return PcList(self._num, y)
+        return Cube(self._n, y)
 
-    def lxor(self, other: PcList) -> PcList:
+    def lxor(self, other: Cube) -> Cube:
         """Return output of "lifted" XOR function.
 
         y1 = x0[0] & x1[1] | x0[1] & x1[0]
         y0 = x0[0] & x1[0] | x0[1] & x1[1]
         """
-        assert self._num == len(other)
+        assert self._n == len(other)
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -536,17 +530,17 @@ class PcList:
         y1 = x0_01 & x1_1 | x0_1 & x1_01
         y = y1 | y0
 
-        return PcList(self._num, y)
+        return Cube(self._n, y)
 
-    def ulxor(self) -> PcItem:
+    def ulxor(self) -> Cube:
         """Return unary "lifted" XOR of bits."""
-        y = _XOR_IDENT
+        y = Cube(1, 0b01)
         for x in self:
-            y = lxor(y, x)
+            y = y.lxor(x)
         return y
 
     def _norm_index(self, index: int) -> int:
-        lo, hi = -self._num, self._num
+        lo, hi = -self._n, self._n
         if not lo <= index < hi:
             s = f"Expected index in [{lo}, {hi}), got {index}"
             raise IndexError(s)
@@ -574,31 +568,31 @@ class PcList:
         F(n) = (4^n - 1) / 3
         """
         zero_mask = 0
-        for i in range(self._num):
+        for i in range(self._n):
             zero_mask |= ZERO << (_ITEM_BITS * i)
         one_mask = zero_mask << 1
         return zero_mask, one_mask
 
     @cached_property
     def _bit_mask(self) -> tuple[int, int]:
-        return self._bits & self._mask[0], self._bits & self._mask[1]
+        return self._data & self._mask[0], self._data & self._mask[1]
 
 
-def from_pcitems(pcitems: Iterable[PcItem] = ()) -> PcList:
+def from_pcitems(xs: Iterable[PcItem] = ()) -> Cube:
     """Convert an iterable of PcItems to a PcList."""
     size = 0
-    bits = 0
-    for i, pcitem in enumerate(pcitems):
+    data = 0
+    for i, x in enumerate(xs):
         size += 1
-        bits |= pcitem << (_ITEM_BITS * i)
-    return PcList(size, bits)
+        data |= x << (_ITEM_BITS * i)
+    return Cube(size, data)
 
 
-def from_quads(quads: Iterable[int] = ()) -> PcList:
+def from_quads(xs: Iterable[int] = ()) -> Cube:
     """Convert an iterable of bytes (four PcItems each) to a PcList."""
     size = 0
-    bits = 0
-    for i, quad in enumerate(quads):
+    data = 0
+    for i, x in enumerate(xs):
         size += 4
-        bits |= quad << (4 * _ITEM_BITS * i)
-    return PcList(size, bits)
+        data |= x << (4 * _ITEM_BITS * i)
+    return Cube(size, data)
