@@ -4,7 +4,8 @@ from .logicvec import _parse_str_lit, logicvec
 
 # PyLint is confused by MetaClass behavior
 # pylint: disable = no-value-for-parameter
-# pyright: reportGeneralTypeIssues=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportCallIssue=false
 
 
 class _EnumMeta(type):
