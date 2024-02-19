@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Generator, Iterable
 from functools import cached_property
-from typing import NewType, Self
+from typing import NewType
 
 PcItem = NewType("PcItem", int)
 
@@ -384,7 +384,7 @@ class PcList:
 
         return PcList(self._num, y)
 
-    def lnor(self, other: Self) -> PcList:
+    def lnor(self, other: PcList) -> PcList:
         """Return output of "lifted" NOR function.
 
         y1 = x0[0] & x1[0]
@@ -408,7 +408,7 @@ class PcList:
 
         return PcList(self._num, y)
 
-    def lor(self, other: Self) -> PcList:
+    def lor(self, other: PcList) -> PcList:
         """Return output of "lifted" OR function.
 
         y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
@@ -437,7 +437,7 @@ class PcList:
             y = lor(y, x)
         return y
 
-    def lnand(self, other: Self) -> PcList:
+    def lnand(self, other: PcList) -> PcList:
         """Return output of "lifted" NAND function.
 
         y1 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
@@ -461,7 +461,7 @@ class PcList:
 
         return PcList(self._num, y)
 
-    def land(self, other: Self) -> PcList:
+    def land(self, other: PcList) -> PcList:
         """Return output of "lifted" AND function.
 
         y1 = x0[1] & x1[1]
@@ -490,7 +490,7 @@ class PcList:
             y = land(y, x)
         return y
 
-    def lxnor(self, other: Self) -> PcList:
+    def lxnor(self, other: PcList) -> PcList:
         """Return output of "lifted" XNOR function.
 
         y1 = x0[0] & x1[0] | x0[1] & x1[1]
@@ -514,7 +514,7 @@ class PcList:
 
         return PcList(self._num, y)
 
-    def lxor(self, other: Self) -> PcList:
+    def lxor(self, other: PcList) -> PcList:
         """Return output of "lifted" XOR function.
 
         y1 = x0[0] & x1[1] | x0[1] & x1[0]
