@@ -8,7 +8,6 @@ import math
 import re
 from collections.abc import Collection, Generator
 from functools import cached_property
-from typing import Self
 
 from . import pcn
 from .logic import logic
@@ -51,7 +50,7 @@ class logicvec:
             yield self.__getitem__(i)
 
     def __getitem__(
-        self, key: int | Self | slice | tuple[int | logicvec | slice, ...]
+        self, key: int | logicvec | slice | tuple[int | logicvec | slice, ...]
     ) -> logic | logicvec:
         if self._shape == (0,):
             raise IndexError("Cannot index an empty vector")
@@ -74,13 +73,13 @@ class logicvec:
     def __invert__(self) -> logicvec:
         return self.lnot()
 
-    def __or__(self, other: Self) -> logicvec:
+    def __or__(self, other: logicvec) -> logicvec:
         return self.lor(other)
 
-    def __and__(self, other: Self) -> logicvec:
+    def __and__(self, other: logicvec) -> logicvec:
         return self.land(other)
 
-    def __xor__(self, other: Self) -> logicvec:
+    def __xor__(self, other: logicvec) -> logicvec:
         return self.lxor(other)
 
     def __lshift__(self, n: int | logicvec) -> logicvec:
@@ -89,7 +88,7 @@ class logicvec:
     def __rshift__(self, n: int | logicvec) -> logicvec:
         return self.rsh(n)[0]
 
-    def __add__(self, other: Self) -> logicvec:
+    def __add__(self, other: logicvec) -> logicvec:
         s, _, _ = self.add(other, ci=logic.F)
         return s
 
@@ -142,7 +141,7 @@ class logicvec:
         """Return a vector with equal data, flattened to 1D shape."""
         return logicvec(self._pcs)
 
-    def _check_shape(self, other: Self):
+    def _check_shape(self, other: logicvec):
         if self._shape != other.shape:
             s = f"Expected shape {self._shape}, got {other.shape}"
             raise ValueError(s)
@@ -151,12 +150,12 @@ class logicvec:
         """Return output of "lifted" NOT function."""
         return logicvec(self._pcs.lnot())
 
-    def lnor(self, other: Self) -> logicvec:
+    def lnor(self, other: logicvec) -> logicvec:
         """Return output of "lifted" NOR function."""
         self._check_shape(other)
         return logicvec(self._pcs.lnor(other.pcs))
 
-    def lor(self, other: Self) -> logicvec:
+    def lor(self, other: logicvec) -> logicvec:
         """Return output of "lifted" OR function."""
         self._check_shape(other)
         return logicvec(self._pcs.lor(other.pcs))
@@ -165,12 +164,12 @@ class logicvec:
         """Return unary "lifted" OR of bits."""
         return logic(self._pcs.ulor())
 
-    def lnand(self, other: Self) -> logicvec:
+    def lnand(self, other: logicvec) -> logicvec:
         """Return output of "lifted" NAND function."""
         self._check_shape(other)
         return logicvec(self._pcs.lnand(other.pcs))
 
-    def land(self, other: Self) -> logicvec:
+    def land(self, other: logicvec) -> logicvec:
         """Return output of "lifted" AND function."""
         self._check_shape(other)
         return logicvec(self._pcs.land(other.pcs))
@@ -179,12 +178,12 @@ class logicvec:
         """Return unary "lifted" AND of bits."""
         return logic(self._pcs.uland())
 
-    def lxnor(self, other: Self) -> logicvec:
+    def lxnor(self, other: logicvec) -> logicvec:
         """Return output of "lifted" XNOR function."""
         self._check_shape(other)
         return logicvec(self._pcs.lxnor(other.pcs))
 
-    def lxor(self, other: Self) -> logicvec:
+    def lxor(self, other: logicvec) -> logicvec:
         """Return output of "lifted" XOR function."""
         self._check_shape(other)
         return logicvec(self._pcs.lxor(other.pcs))
