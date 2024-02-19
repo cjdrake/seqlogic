@@ -132,7 +132,7 @@ class Sim:
         self._task_region: dict[Coroutine, Region] = {}
         # Dynamic event dependencies
         self._var2tasks: dict[SimVar, set[Coroutine]] = defaultdict(set)
-        self._triggers: dict[tuple[SimVar, Coroutine], Callable[[], bool]] = dict()
+        self._triggers: dict[SimVar, dict[Coroutine, Callable[[], bool]]] = defaultdict(dict)
         # Postponed actions
         self._touched_vars: set[SimVar] = set()
         # Processes
@@ -193,15 +193,15 @@ class Sim:
         assert self._task is not None
         var = event.__self__
         self._var2tasks[var].add(self._task)
-        self._triggers[(var, self._task)] = event
+        self._triggers[var][self._task] = event
 
     def touch(self, var: SimVar):
         """Notify dependent tasks about a variable change."""
-        tasks = [task for task in self._var2tasks[var] if self._triggers[(var, task)]()]
+        tasks = [task for task in self._var2tasks[var] if self._triggers[var][task]()]
         for task in tasks:
             self.call_soon(task, var)
             self._var2tasks[var].remove(task)
-            del self._triggers[(var, task)]
+            del self._triggers[var][task]
 
         # Add variable to update set
         self._touched_vars.add(var)
