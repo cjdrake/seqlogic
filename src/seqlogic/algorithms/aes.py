@@ -5,8 +5,7 @@ See https://csrc.nist.gov/pubs/fips/197/final for details.
 
 from collections import deque
 
-from ..logic import logic
-from ..logicvec import cat, logicvec, rep, uint2vec
+from ..logicvec import T, cat, logicvec, rep, uint2vec
 
 NB = 4
 
@@ -146,7 +145,7 @@ def _rowxcol(row: logicvec, col: logicvec) -> logicvec:
     y = uint2vec(0, _BYTE_BITS)
     for i in range(4):
         for j in range(4):
-            if row[i, j] is logic.T:
+            if row[i, j] == T:
                 y ^= xtime(col[3 - i], j)
 
     return y

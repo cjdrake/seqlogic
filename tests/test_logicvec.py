@@ -4,13 +4,12 @@
 
 import pytest
 
-from seqlogic.logic import logic
-from seqlogic.logicvec import cat, nulls, ones, rep, uint2vec, vec, xes, zeros
+from seqlogic.logicvec import F, N, T, X, cat, nulls, ones, rep, uint2vec, vec, xes, zeros
 
 
 def test_not():
     """Test logicvec NOT function."""
-    x = vec([logic.N, logic.F, logic.T, logic.X])
+    x = vec([N, F, T, X])
     assert str(~x) == "vec(4bx01X)"
 
 
@@ -58,62 +57,62 @@ def test_xor():
 
 def test_uor():
     """Test logicvec unary OR method."""
-    assert vec("2bXX").ulor() is logic.N
-    assert vec("2b0X").ulor() is logic.N
-    assert vec("2b1X").ulor() is logic.N
-    assert vec("2bxX").ulor() is logic.N
-    assert vec("2bX0").ulor() is logic.N
-    assert vec("2b00").ulor() is logic.F
-    assert vec("2b10").ulor() is logic.T
-    assert vec("2bx0").ulor() is logic.X
-    assert vec("2bX1").ulor() is logic.N
-    assert vec("2b01").ulor() is logic.T
-    assert vec("2b11").ulor() is logic.T
-    assert vec("2bx1").ulor() is logic.T
-    assert vec("2bXx").ulor() is logic.N
-    assert vec("2b0x").ulor() is logic.X
-    assert vec("2b1x").ulor() is logic.T
-    assert vec("2bxx").ulor() is logic.X
+    assert vec("2bXX").ulor() == N
+    assert vec("2b0X").ulor() == N
+    assert vec("2b1X").ulor() == N
+    assert vec("2bxX").ulor() == N
+    assert vec("2bX0").ulor() == N
+    assert vec("2b00").ulor() == F
+    assert vec("2b10").ulor() == T
+    assert vec("2bx0").ulor() == X
+    assert vec("2bX1").ulor() == N
+    assert vec("2b01").ulor() == T
+    assert vec("2b11").ulor() == T
+    assert vec("2bx1").ulor() == T
+    assert vec("2bXx").ulor() == N
+    assert vec("2b0x").ulor() == X
+    assert vec("2b1x").ulor() == T
+    assert vec("2bxx").ulor() == X
 
 
 def test_uand():
     """Test logicvec unary and method."""
-    assert vec("2bXX").uland() is logic.N
-    assert vec("2b0X").uland() is logic.N
-    assert vec("2b1X").uland() is logic.N
-    assert vec("2bxX").uland() is logic.N
-    assert vec("2bX0").uland() is logic.N
-    assert vec("2b00").uland() is logic.F
-    assert vec("2b10").uland() is logic.F
-    assert vec("2bx0").uland() is logic.F
-    assert vec("2bX1").uland() is logic.N
-    assert vec("2b01").uland() is logic.F
-    assert vec("2b11").uland() is logic.T
-    assert vec("2bx1").uland() is logic.X
-    assert vec("2bXx").uland() is logic.N
-    assert vec("2b0x").uland() is logic.F
-    assert vec("2b1x").uland() is logic.X
-    assert vec("2bxx").uland() is logic.X
+    assert vec("2bXX").uland() == N
+    assert vec("2b0X").uland() == N
+    assert vec("2b1X").uland() == N
+    assert vec("2bxX").uland() == N
+    assert vec("2bX0").uland() == N
+    assert vec("2b00").uland() == F
+    assert vec("2b10").uland() == F
+    assert vec("2bx0").uland() == F
+    assert vec("2bX1").uland() == N
+    assert vec("2b01").uland() == F
+    assert vec("2b11").uland() == T
+    assert vec("2bx1").uland() == X
+    assert vec("2bXx").uland() == N
+    assert vec("2b0x").uland() == F
+    assert vec("2b1x").uland() == X
+    assert vec("2bxx").uland() == X
 
 
 def test_uxor():
     """Test logicvec unary xor method."""
-    assert vec("2bXX").ulxor() is logic.N
-    assert vec("2b0X").ulxor() is logic.N
-    assert vec("2b1X").ulxor() is logic.N
-    assert vec("2bxX").ulxor() is logic.N
-    assert vec("2bX0").ulxor() is logic.N
-    assert vec("2b00").ulxor() is logic.F
-    assert vec("2b10").ulxor() is logic.T
-    assert vec("2bx0").ulxor() is logic.X
-    assert vec("2bX1").ulxor() is logic.N
-    assert vec("2b01").ulxor() is logic.T
-    assert vec("2b11").ulxor() is logic.F
-    assert vec("2bx1").ulxor() is logic.X
-    assert vec("2bXx").ulxor() is logic.N
-    assert vec("2b0x").ulxor() is logic.X
-    assert vec("2b1x").ulxor() is logic.X
-    assert vec("2bxx").ulxor() is logic.X
+    assert vec("2bXX").ulxor() == N
+    assert vec("2b0X").ulxor() == N
+    assert vec("2b1X").ulxor() == N
+    assert vec("2bxX").ulxor() == N
+    assert vec("2bX0").ulxor() == N
+    assert vec("2b00").ulxor() == F
+    assert vec("2b10").ulxor() == T
+    assert vec("2bx0").ulxor() == X
+    assert vec("2bX1").ulxor() == N
+    assert vec("2b01").ulxor() == T
+    assert vec("2b11").ulxor() == F
+    assert vec("2bx1").ulxor() == X
+    assert vec("2bXx").ulxor() == N
+    assert vec("2b0x").ulxor() == X
+    assert vec("2b1x").ulxor() == X
+    assert vec("2bxx").ulxor() == X
 
 
 def test_zext():
@@ -198,38 +197,38 @@ def test_arsh():
 
 
 ADD_VALS = [
-    ("2b00", "2b00", logic.F, "2b00", logic.F, logic.F),
-    ("2b00", "2b01", 0, "2b01", logic.F, logic.F),
-    ("2b00", "2b10", logic.F, "2b10", logic.F, logic.F),
-    ("2b00", "2b11", 0, "2b11", logic.F, logic.F),
-    ("2b01", "2b00", logic.F, "2b01", logic.F, logic.F),
-    ("2b01", "2b01", 0, "2b10", logic.F, logic.T),  # overflow
-    ("2b01", "2b10", logic.F, "2b11", logic.F, logic.F),
-    ("2b01", "2b11", 0, "2b00", logic.T, logic.F),
-    ("2b10", "2b00", logic.F, "2b10", logic.F, logic.F),
-    ("2b10", "2b01", 0, "2b11", logic.F, logic.F),
-    ("2b10", "2b10", logic.F, "2b00", logic.T, logic.T),  # overflow
-    ("2b10", "2b11", 0, "2b01", logic.T, logic.T),  # overflow
-    ("2b11", "2b00", logic.F, "2b11", logic.F, logic.F),
-    ("2b11", "2b01", 0, "2b00", logic.T, logic.F),
-    ("2b11", "2b10", logic.F, "2b01", logic.T, logic.T),  # overflow
-    ("2b11", "2b11", 0, "2b10", logic.T, logic.F),
-    ("2b00", "2b00", logic.T, "2b01", logic.F, logic.F),
-    ("2b00", "2b01", 1, "2b10", logic.F, logic.T),  # overflow
-    ("2b00", "2b10", logic.T, "2b11", logic.F, logic.F),
-    ("2b00", "2b11", 1, "2b00", logic.T, logic.F),
-    ("2b01", "2b00", logic.T, "2b10", logic.F, logic.T),  # overflow
-    ("2b01", "2b01", 1, "2b11", logic.F, logic.T),  # overflow
-    ("2b01", "2b10", logic.T, "2b00", logic.T, logic.F),
-    ("2b01", "2b11", 1, "2b01", logic.T, logic.F),
-    ("2b10", "2b00", logic.T, "2b11", logic.F, logic.F),
-    ("2b10", "2b01", 1, "2b00", logic.T, logic.F),
-    ("2b10", "2b10", logic.T, "2b01", logic.T, logic.T),  # overflow
-    ("2b10", "2b11", 1, "2b10", logic.T, logic.F),
-    ("2b11", "2b00", logic.T, "2b00", logic.T, logic.F),
-    ("2b11", "2b01", 1, "2b01", logic.T, logic.F),
-    ("2b11", "2b10", logic.T, "2b10", logic.T, logic.F),
-    ("2b11", "2b11", 1, "2b11", logic.T, logic.F),
+    ("2b00", "2b00", F, "2b00", F, F),
+    ("2b00", "2b01", 0, "2b01", F, F),
+    ("2b00", "2b10", F, "2b10", F, F),
+    ("2b00", "2b11", 0, "2b11", F, F),
+    ("2b01", "2b00", F, "2b01", F, F),
+    ("2b01", "2b01", 0, "2b10", F, T),  # overflow
+    ("2b01", "2b10", F, "2b11", F, F),
+    ("2b01", "2b11", 0, "2b00", T, F),
+    ("2b10", "2b00", F, "2b10", F, F),
+    ("2b10", "2b01", 0, "2b11", F, F),
+    ("2b10", "2b10", F, "2b00", T, T),  # overflow
+    ("2b10", "2b11", 0, "2b01", T, T),  # overflow
+    ("2b11", "2b00", F, "2b11", F, F),
+    ("2b11", "2b01", 0, "2b00", T, F),
+    ("2b11", "2b10", F, "2b01", T, T),  # overflow
+    ("2b11", "2b11", 0, "2b10", T, F),
+    ("2b00", "2b00", T, "2b01", F, F),
+    ("2b00", "2b01", 1, "2b10", F, T),  # overflow
+    ("2b00", "2b10", T, "2b11", F, F),
+    ("2b00", "2b11", 1, "2b00", T, F),
+    ("2b01", "2b00", T, "2b10", F, T),  # overflow
+    ("2b01", "2b01", 1, "2b11", F, T),  # overflow
+    ("2b01", "2b10", T, "2b00", T, F),
+    ("2b01", "2b11", 1, "2b01", T, F),
+    ("2b10", "2b00", T, "2b11", F, F),
+    ("2b10", "2b01", 1, "2b00", T, F),
+    ("2b10", "2b10", T, "2b01", T, T),  # overflow
+    ("2b10", "2b11", 1, "2b10", T, F),
+    ("2b11", "2b00", T, "2b00", T, F),
+    ("2b11", "2b01", 1, "2b01", T, F),
+    ("2b11", "2b10", T, "2b10", T, F),
+    ("2b11", "2b11", 1, "2b11", T, F),
 ]
 
 
@@ -401,18 +400,18 @@ def test_empty():
 
 def test_scalar():
     """Test scalar (vector w/ one element)."""
-    vn = vec(logic.N)
+    vn = N
     v0 = vec(0)
     v1 = vec(1)
-    vx = vec(logic.X)
+    vx = X
 
     # Test properties
     assert v0.shape == (1,)
-    assert v0.cube.data == logic.F.value
+    assert v0.cube.data == 0b01
     assert v0.ndim == 1
     assert v0.size == 1
     assert v0.cube.nbits == 2
-    assert list(v0.flat) == [logic.F]
+    assert list(v0.flat) == [F]
 
     assert v0.flatten() == v0
 
@@ -426,10 +425,10 @@ def test_scalar():
     assert len(v0) == 1
 
     # Test __iter__
-    assert list(v0) == [logic.F]
+    assert list(v0) == [F]
 
     # Test __getitem__
-    assert v0[0] is logic.F
+    assert v0[0] == F
 
     # Test __eq__
     assert v0 == vec(0)
@@ -452,12 +451,7 @@ def test_rank1_str():
     """Test vec rank1 string input."""
     v = vec("8bx10X_x10X")
     data = 0b11100100_11100100
-    xs = [
-        logic.N,
-        logic.F,
-        logic.T,
-        logic.X,
-    ] * 2
+    xs = [N, F, T, X] * 2
 
     # Test properties
     assert v.shape == (8,)
@@ -479,10 +473,10 @@ def test_rank1_str():
     assert list(v) == xs
 
     # Test __getitem__
-    assert v[0] is logic.N
-    assert v[1] is logic.F
-    assert v[6] is logic.T
-    assert v[7] is logic.X
+    assert v[0] == N
+    assert v[1] == F
+    assert v[6] == T
+    assert v[7] == X
 
     # Test __eq__
     assert v == vec("8bx10X_x10X")
@@ -509,8 +503,8 @@ def test_rank1_str():
 
 def test_rank1_logic():
     """Test vec function w/ rank1 logic input."""
-    xs = [logic.N, logic.F, logic.T, logic.X]
-    v1 = vec(xs)
+    xs = [N, F, T, X]
+    v1 = vec("4bx10X")
     v2 = vec([0, 1, 0, 1])
     with pytest.raises(TypeError):
         _ = vec([0, "invalid"])
@@ -703,12 +697,12 @@ def test_slicing():
     assert v[0, 0, :-3] == vec("1b0")
     assert v[0, 0, :-4] == vec()
 
-    assert v[0, 0, 0] == logic.F
-    assert v[0, vec("2b00"), 0] == logic.F
-    assert v[-4, -4, -4] == logic.F
-    assert v[3, 3, 3] == logic.T
-    assert v[3, vec("2b11"), 3] == logic.T
-    assert v[-1, -1, -1] == logic.T
+    assert v[0, 0, 0] == F
+    assert v[0, vec("2b00"), 0] == F
+    assert v[-4, -4, -4] == F
+    assert v[3, 3, 3] == T
+    assert v[3, vec("2b11"), 3] == T
+    assert v[-1, -1, -1] == T
 
     with pytest.raises(ValueError):
         v[0, 0, 0, 0]
@@ -719,27 +713,27 @@ def test_slicing():
 def test_countbits():
     """Test logicvec countbits methods."""
     v = vec("8bx10X_x10X")
-    assert v.countbits({logic.F, logic.T}) == 4
-    assert v.countbits({logic.N, logic.X}) == 4
+    assert v.cube.count_known == 4
+    assert v.cube.count_unknown == 4
 
-    assert vec("4b0000").countones() == 0
-    assert vec("4b0001").countones() == 1
-    assert vec("4b0011").countones() == 2
-    assert vec("4b0111").countones() == 3
-    assert vec("4b1111").countones() == 4
+    assert vec("4b0000").cube.count_ones == 0
+    assert vec("4b0001").cube.count_ones == 1
+    assert vec("4b0011").cube.count_ones == 2
+    assert vec("4b0111").cube.count_ones == 3
+    assert vec("4b1111").cube.count_ones == 4
 
-    assert not vec("4b0000").onehot()
-    assert vec("4b1000").onehot()
-    assert vec("4b0001").onehot()
-    assert not vec("4b1001").onehot()
-    assert not vec("4b1101").onehot()
+    assert not vec("4b0000").cube.onehot
+    assert vec("4b1000").cube.onehot
+    assert vec("4b0001").cube.onehot
+    assert not vec("4b1001").cube.onehot
+    assert not vec("4b1101").cube.onehot
 
-    assert vec("4b0000").onehot0()
-    assert vec("4b1000").onehot0()
-    assert not vec("4b1010").onehot0()
-    assert not vec("4b1011").onehot0()
+    assert vec("4b0000").cube.onehot0
+    assert vec("4b1000").cube.onehot0
+    assert not vec("4b1010").cube.onehot0
+    assert not vec("4b1011").cube.onehot0
 
-    assert not vec("4b0000").isunknown()
-    assert not vec("4b1111").isunknown()
-    assert vec("4b0x01").isunknown()
-    assert vec("4b01X1").isunknown()
+    assert not vec("4b0000").cube.has_unknown
+    assert not vec("4b1111").cube.has_unknown
+    assert vec("4b0x01").cube.has_unknown
+    assert vec("4b01X1").cube.has_unknown

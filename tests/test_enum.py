@@ -3,7 +3,7 @@
 import pytest
 
 from seqlogic.enum import Enum
-from seqlogic.logic import logic
+from seqlogic.logicvec import F, T
 
 # pylint: disable = no-value-for-parameter
 
@@ -29,8 +29,8 @@ def test_basic():
 
 def test_logicvec():
     """Test behaviors of logicvec subclass."""
-    assert Color.GREEN[0] is logic.T
-    assert Color.GREEN[1] is logic.F
+    assert Color.GREEN[0] == T
+    assert Color.GREEN[1] == F
 
 
 def test_enum_error():

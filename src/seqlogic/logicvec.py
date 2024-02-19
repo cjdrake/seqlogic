@@ -10,7 +10,6 @@ from collections.abc import Collection, Generator
 from functools import cached_property
 
 from . import pcn
-from .logic import logic
 from .pcn import Cube, PcItem
 
 _NUM_RE = re.compile(
@@ -45,13 +44,13 @@ class logicvec:
     def __len__(self) -> int:
         return self._shape[0]
 
-    def __iter__(self) -> Generator[logic | logicvec, None, None]:
+    def __iter__(self) -> Generator[logicvec, None, None]:
         for i in range(self._shape[0]):
             yield self.__getitem__(i)
 
     def __getitem__(
         self, key: int | logicvec | slice | tuple[int | logicvec | slice, ...]
-    ) -> logic | logicvec:
+    ) -> logicvec:
         if self._shape == (0,):
             raise IndexError("Cannot index an empty vector")
         match key:
@@ -89,20 +88,13 @@ class logicvec:
         return self.rsh(n)[0]
 
     def __add__(self, other: logicvec) -> logicvec:
-        s, _, _ = self.add(other, ci=logic.F)
-        return s
+        return logicvec(self._cube.__add__(other.cube))
 
     def __sub__(self, other: logicvec) -> logicvec:
-        s, _, _ = self.add(~other, ci=logic.T)
-        return s
+        return logicvec(self._cube.__sub__(other.cube))
 
     def __neg__(self) -> logicvec:
-        s = []
-        c = [logic.T]
-        for i, x in enumerate((~self).flat):
-            s.append(x ^ c[i])
-            c.append(x & c[i])
-        return logicvec(pcn.from_pcitems(x.value for x in s))
+        return logicvec(self._cube.__neg__())
 
     @property
     def cube(self) -> Cube:
@@ -132,10 +124,10 @@ class logicvec:
         return len(self._cube)
 
     @property
-    def flat(self) -> Generator[logic, None, None]:
-        """Return a flat iterator to the logic items."""
+    def flat(self) -> Generator[logicvec, None, None]:
+        """Return a flat iterator to the items."""
         for x in self._cube:
-            yield logic(x.data)
+            yield _d2v[x.data]
 
     def flatten(self) -> logicvec:
         """Return a vector with equal data, flattened to 1D shape."""
@@ -160,9 +152,9 @@ class logicvec:
         self._check_shape(other)
         return logicvec(self._cube.lor(other.cube))
 
-    def ulor(self) -> logic:
+    def ulor(self) -> logicvec:
         """Return unary "lifted" OR of bits."""
-        return logic(self._cube.ulor().data)
+        return logicvec(self._cube.ulor())
 
     def lnand(self, other: logicvec) -> logicvec:
         """Return output of "lifted" NAND function."""
@@ -174,9 +166,9 @@ class logicvec:
         self._check_shape(other)
         return logicvec(self._cube.land(other.cube))
 
-    def uland(self) -> logic:
+    def uland(self) -> logicvec:
         """Return unary "lifted" AND of bits."""
-        return logic(self._cube.uland().data)
+        return logicvec(self._cube.uland())
 
     def lxnor(self, other: logicvec) -> logicvec:
         """Return output of "lifted" XNOR function."""
@@ -188,31 +180,17 @@ class logicvec:
         self._check_shape(other)
         return logicvec(self._cube.lxor(other.cube))
 
-    def ulxor(self) -> logic:
+    def ulxor(self) -> logicvec:
         """Return unary "lifted" XOR of bits."""
-        return logic(self._cube.ulxor().data)
+        return logicvec(self._cube.ulxor())
 
     def to_uint(self) -> int:
         """Convert vector to unsigned integer."""
-        y = 0
-        for i, x in enumerate(self.flat):
-            match x:
-                case logic.F:
-                    pass
-                case logic.T:
-                    y |= 1 << i
-                case _:
-                    raise ValueError("Cannot convert unknown to uint")
-        return y
+        return self._cube.to_uint()
 
     def to_int(self) -> int:
         """Convert vector to signed integer."""
-        if self._shape == (0,):
-            return 0
-        sign = logic(self._cube[-1].data)
-        if sign is logic.T:
-            return -(self.lnot().to_uint() + 1)
-        return self.to_uint()
+        return self._cube.to_int()
 
     def zext(self, n: int) -> logicvec:
         """Return vector zero extended by n bits.
@@ -223,7 +201,7 @@ class logicvec:
         v = self
         if self.ndim != 1:
             v = self.flatten()
-        return cat([v, uint2vec(0, n)], flatten=True)
+        return logicvec(v.cube.zext(n))
 
     def sext(self, n: int) -> logicvec:
         """Return vector sign extended by n bits.
@@ -234,8 +212,7 @@ class logicvec:
         v = self
         if self.ndim != 1:
             v = self.flatten()
-        sign = v[-1]
-        return cat([v, rep(sign, n)], flatten=True)
+        return logicvec(v.cube.sext(n))
 
     def lsh(self, n: int | logicvec, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
         """Return vector left shifted by n bits.
@@ -250,11 +227,10 @@ class logicvec:
             case int():
                 pass
             case logicvec():
-                # TODO(cjdrake): Simplify
-                if n.countbits({logic.N}) > 0:
-                    return nulls((v.size,)), _empty
-                elif n.countbits({logic.X}) > 0:
-                    return xes((v.size,)), _empty
+                if n.cube.has_null:
+                    return nulls((v.size,)), E
+                elif n.cube.has_dc:
+                    return xes((v.size,)), E
                 else:
                     n = n.to_uint()
             case _:
@@ -262,12 +238,13 @@ class logicvec:
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return v, _empty
+            return v, E
         if ci is None:
             ci = uint2vec(0, n)
         elif ci.shape != (n,):
             raise ValueError(f"Expected ci to have shape ({n},)")
-        return cat([ci, v[:-n]], flatten=True), v[-n:]
+        y, co = self._cube.lsh(n, ci.cube)
+        return logicvec(y), logicvec(co)
 
     def rsh(self, n: int | logicvec, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
         """Return vector right shifted by n bits.
@@ -282,11 +259,10 @@ class logicvec:
             case int():
                 pass
             case logicvec():
-                # TODO(cjdrake): Simplify
-                if n.countbits({logic.N}) > 0:
-                    return nulls((v.size,)), _empty
-                elif n.countbits({logic.X}) > 0:
-                    return xes((v.size,)), _empty
+                if n.cube.has_null:
+                    return nulls((v.size,)), E
+                elif n.cube.has_dc:
+                    return xes((v.size,)), E
                 else:
                     n = n.to_uint()
             case _:
@@ -294,12 +270,13 @@ class logicvec:
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return v, _empty
+            return v, E
         if ci is None:
             ci = uint2vec(0, n)
         elif ci.shape != (n,):
             raise ValueError(f"Expected ci to have shape ({n},)")
-        return cat([v[n:], ci], flatten=True), v[:n]
+        y, co = self._cube.rsh(n, ci.cube)
+        return logicvec(y), logicvec(co)
 
     def arsh(self, n: int | logicvec) -> tuple[logicvec, logicvec]:
         """Return vector arithmetically right shifted by n bits.
@@ -314,11 +291,10 @@ class logicvec:
             case int():
                 pass
             case logicvec():
-                # TODO(cjdrake): Simplify
-                if n.countbits({logic.N}) > 0:
-                    return nulls((v.size,)), _empty
-                elif n.countbits({logic.X}) > 0:
-                    return xes((v.size,)), _empty
+                if n.cube.has_null:
+                    return nulls((v.size,)), E
+                elif n.cube.has_dc:
+                    return xes((v.size,)), E
                 else:
                     n = n.to_uint()
             case _:
@@ -326,52 +302,23 @@ class logicvec:
         if not 0 <= n <= v.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
         if n == 0:
-            return v, _empty
-        sign = v[-1]
-        return cat([v[n:], rep(sign, n)], flatten=True), v[:n]
+            return v, E
+        y, co = self._cube.arsh(n)
+        return logicvec(y), logicvec(co)
 
-    def add(self, other: logicvec, ci: object) -> tuple[logicvec, logic, logic]:
+    def add(self, other: logicvec, ci: object) -> tuple[logicvec, logicvec, logicvec]:
         """Return the sum of two vectors, carry out, and overflow.
 
         The implementation propagates Xes according to the
         ripple carry addition algorithm.
         """
         match ci:
-            case logic():
+            case logicvec():
                 pass
             case _:
-                ci = (logic.F, logic.T)[bool(ci)]
-        s = []
-        c = [ci]
-        for i, (a, b) in enumerate(zip(self.flat, other.flat)):
-            s.append(a ^ b ^ c[i])
-            c.append(a & b | a & c[i] | b & c[i])
-        co = c[-1]
-        ovf = c[-2] ^ c[-1] if self.size else logic.F
-        return logicvec(pcn.from_pcitems(x.value for x in s)), co, ovf
-
-    def countbits(self, ctl: Collection[logic]) -> int:
-        """Return the number of bits in the ctl set."""
-        return sum(1 for x in self.flat if x in ctl)
-
-    def countones(self) -> int:
-        """Return the number of ones in the vector."""
-        return self.countbits({logic.T})
-
-    def onehot(self) -> bool:
-        """Return True if the vector has exactly one hot bit."""
-        return self.countones() == 1
-
-    def onehot0(self) -> bool:
-        """Return True if the vector has at most one hot bit."""
-        return self.countones() <= 1
-
-    def isunknown(self) -> bool:
-        """Return True if the vector contains at least one Null or X bit."""
-        for x in self.flat:
-            if x in {logic.N, logic.X}:
-                return True
-        return False
+                ci = (F, T)[bool(ci)]
+        s, co, ovf = self._cube.add(other.cube, ci.cube)
+        return logicvec(s), logicvec(co), logicvec(ovf)
 
     def _to_lit(self) -> str:
         prefix = f"{self.size}b"
@@ -379,7 +326,7 @@ class logicvec:
         for i, x in enumerate(self.flat):
             if i % 4 == 0 and i != 0:
                 chars.append("_")
-            chars.append(str(x))
+            chars.append(pcn.to_char[PcItem(x.cube.data)])
         return prefix + "".join(reversed(chars))
 
     def _str(self, indent: str) -> str:
@@ -389,7 +336,7 @@ class logicvec:
             return "[]"
         # Scalar
         if self._shape == (1,):
-            return f"[{logic(self._cube[0].data)}]"
+            return "[" + pcn.to_char[PcItem(self._cube.data)] + "]"
         # 1D Vector
         if self.ndim == 1:
             return self._to_lit()
@@ -484,14 +431,12 @@ def _parse_str_lit(lit: str) -> Cube:
         raise ValueError(f"Expected str literal, got {lit}")
 
 
-def _rank1(fst: logic, rst) -> logicvec:
-    pcitems = [fst.value]
+def _rank1(fst: PcItem, rst) -> logicvec:
+    pcitems = [fst]
     for x in rst:
         match x:
             case 0 | 1:
                 pcitems.append(pcn.from_int[x])
-            case logic():
-                pcitems.append(x.value)
             case _:
                 raise TypeError("Expected item to be logic, or in (0, 1)")
     return logicvec(pcn.from_pcitems(pcitems))
@@ -500,7 +445,7 @@ def _rank1(fst: logic, rst) -> logicvec:
 def _rank2(fst: logicvec, rst) -> logicvec:
     shape = (len(rst) + 1,) + fst.shape
     size = len(fst.cube)
-    bits = fst.cube.data
+    data = fst.cube.data
     for i, v in enumerate(rst, start=1):
         match v:
             case str() as lit:
@@ -508,15 +453,15 @@ def _rank2(fst: logicvec, rst) -> logicvec:
                 if len(cube) != fst.size:
                     s = f"Expected str literal to have size {fst.size}, got {len(cube)}"
                     raise TypeError(s)
-                bits |= cube.data << (fst.cube.nbits * i)
+                data |= cube.data << (fst.cube.nbits * i)
             case logicvec() if v.shape == fst.shape:
-                bits |= v.cube.data << (fst.cube.nbits * i)
+                data |= v.cube.data << (fst.cube.nbits * i)
             case _:
                 s = ",".join(str(dim) for dim in fst.shape)
                 s = f"Expected item to be str or logicvec[{s}]"
                 raise TypeError(s)
         size += len(fst.cube)
-    return logicvec(Cube(size, bits), shape)
+    return logicvec(Cube(size, data), shape)
 
 
 def vec(obj=None) -> logicvec:
@@ -524,22 +469,16 @@ def vec(obj=None) -> logicvec:
     match obj:
         # Empty
         case None:
-            return _empty
+            return E
         # Rank 0 int
         case 0 | 1 as x:
             return logicvec(pcn.from_pcitems([pcn.from_int[x]]))
-        # Rank 0 Logic
-        case logic() as x:
-            return logicvec(pcn.from_pcitems([x.value]))
         # Rank 1 str
         case str() as lit:
             return logicvec(_parse_str_lit(lit))
         # Rank 1 [0 | 1, ...]
         case [0 | 1 as x, *rst]:
-            return _rank1(logic(pcn.from_int[x]), rst)
-        # Rank 1 [logic(), ...]
-        case [logic() as x, *rst]:
-            return _rank1(x, rst)
+            return _rank1(pcn.from_int[x], rst)
         # Rank 2 str
         case [str() as lit, *rst]:
             return _rank2(logicvec(_parse_str_lit(lit)), rst)
@@ -582,11 +521,11 @@ def uint2vec(num: int, size: int | None = None) -> logicvec:
     return logicvec(pcn.from_pcitems(pcitems))
 
 
-def cat(objs: Collection[int | logic | logicvec], flatten: bool = False) -> logicvec:
+def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
     """Join a sequence of logicvecs."""
     # Empty
     if len(objs) == 0:
-        return _empty
+        return E
 
     # Convert inputs
     vs: list[logicvec] = []
@@ -594,8 +533,6 @@ def cat(objs: Collection[int | logic | logicvec], flatten: bool = False) -> logi
         match obj:
             case 0 | 1 as x:
                 vs.append(logicvec(pcn.from_pcitems([pcn.from_int[x]])))
-            case logic() as x:
-                vs.append(logicvec(pcn.from_pcitems([x.value])))
             case logicvec() as v:
                 vs.append(v)
             case _:
@@ -631,39 +568,39 @@ def cat(objs: Collection[int | logic | logicvec], flatten: bool = False) -> logi
     return logicvec(Cube(size, data), shape)
 
 
-def rep(obj: int | logic | logicvec, n: int, flatten: bool = False) -> logicvec:
+def rep(obj: int | logicvec, n: int, flatten: bool = False) -> logicvec:
     """Repeat a logicvec n times."""
     return cat([obj] * n, flatten)
 
 
-def _sel(v: logicvec, key: tuple[int | slice, ...]) -> logic | logicvec:
+def _sel(v: logicvec, key: tuple[int | slice, ...]) -> logicvec:
     assert 0 <= v.ndim == len(key)
 
     shape = v.shape[1:]
-    num = math.prod(shape)
-    nbits = 2 * num
+    n = math.prod(shape)
+    nbits = 2 * n
     mask = (1 << nbits) - 1
 
-    def f(bits: int, n: int) -> int:
-        return (bits >> (nbits * n)) & mask
+    def f(data: int, i: int) -> int:
+        return (data >> (nbits * i)) & mask
 
     match key[0]:
-        case int() as index:
-            bits = f(v.cube.data, index)
+        case int() as i:
+            data = f(v.cube.data, i)
             if shape:
-                return _sel(logicvec(Cube(num, bits), shape), key[1:])
-            return logic(bits)
+                return _sel(logicvec(Cube(n, data), shape), key[1:])
+            return logicvec(Cube(1, data))
         case slice() as sl:
-            filt = [f(v.cube.data, i) for i in range(sl.start, sl.stop, sl.step)]
+            datas = (f(v.cube.data, i) for i in range(sl.start, sl.stop, sl.step))
             if shape:
-                return cat([_sel(logicvec(Cube(num, bits), shape), key[1:]) for bits in filt])
-            return cat([logic(bits) for bits in filt])
+                return cat([_sel(logicvec(Cube(n, data), shape), key[1:]) for data in datas])
+            return cat([logicvec(Cube(1, data)) for data in datas])
         case _:  # pragma: no cover
             assert False
 
 
 # The empty vector is a singleton
-_empty = logicvec(pcn.from_pcitems())
+E = logicvec(Cube(0, 0))
 
 
 def _consts(shape: tuple[int, ...], x: PcItem) -> logicvec:
@@ -696,3 +633,5 @@ N = nulls((1,))
 F = zeros((1,))
 T = ones((1,))
 X = xes((1,))
+
+_d2v = {v.cube.data: v for v in [N, F, T, X]}

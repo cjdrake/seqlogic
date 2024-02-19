@@ -1,7 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic.hier import List, Module
-from seqlogic.logic import logic
 from seqlogic.logicvec import T, cat, xes
 from seqlogic.sim import notify
 from seqlogic.var import Logic, LogicVec
@@ -46,7 +45,7 @@ class DataMemory(Module):
                 i = self.addr.value.to_uint()
                 parts = []
                 for j in range(4):
-                    if self.wr_be.value[j] is logic.T:
+                    if self.wr_be.value[j] == T:
                         v = self.wr_data.value
                     else:
                         v = self.mem[i].value
