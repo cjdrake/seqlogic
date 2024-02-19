@@ -7,12 +7,10 @@ Credit to David Beazley's "Build Your Own Async" tutorial for inspiration:
 https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 """
 
-
 import heapq
+from collections import defaultdict
 from collections.abc import Awaitable, Callable, Coroutine, Generator
 from typing import NewType, TypeAlias
-
-import networkx as nx
 
 Region = NewType("Region", int)
 
@@ -133,7 +131,8 @@ class Sim:
         self._task: Coroutine | None = None
         self._task_region: dict[Coroutine, Region] = {}
         # Dynamic event dependencies
-        self._deps = nx.DiGraph()
+        self._var2tasks: dict[SimVar, set[Coroutine]] = defaultdict(set)
+        self._triggers: dict[tuple[SimVar, Coroutine], Callable[[], bool]] = dict()
         # Postponed actions
         self._touched_vars: set[SimVar] = set()
         # Processes
@@ -151,7 +150,8 @@ class Sim:
         self._region = _INIT_REGION
         self._queue.clear()
         self._task = None
-        self._deps.clear()
+        self._var2tasks.clear()
+        self._triggers.clear()
         self._touched_vars.clear()
 
     def reset(self):
@@ -190,19 +190,18 @@ class Sim:
 
     def add_event(self, event: Callable[[], bool]):
         """Add a conditional var => task dependency."""
+        assert self._task is not None
         var = event.__self__
-        self._deps.add_edge(var, event)
-        self._deps.add_edge(event, self._task)
+        self._var2tasks[var].add(self._task)
+        self._triggers[(var, self._task)] = event
 
     def touch(self, var: SimVar):
         """Notify dependent tasks about a variable change."""
-        if var in self._deps:
-            notifications = {e: set(self._deps[e]) for e in self._deps[var] if e()}
-            for event, tasks in notifications.items():
-                for task in tasks:
-                    self.call_soon(task, var)
-                    self._deps.remove_edge(event, task)
-                self._deps.remove_edge(var, event)
+        tasks = [task for task in self._var2tasks[var] if self._triggers[(var, task)]()]
+        for task in tasks:
+            self.call_soon(task, var)
+            self._var2tasks[var].remove(task)
+            del self._triggers[(var, task)]
 
         # Add variable to update set
         self._touched_vars.add(var)

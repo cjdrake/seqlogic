@@ -5,7 +5,7 @@ description = "Sequential Logic"
 readme = "README.md"
 
 requires-python = ">=3.11"
-dependencies = ["networkx"]
+dependencies = []
 
 [project.urls]
 Repository = "https://github.com/cjdrake/seqlogic.git"
