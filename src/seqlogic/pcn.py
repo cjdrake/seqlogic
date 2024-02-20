@@ -679,26 +679,40 @@ class Cube:
         return y, co
 
     def add(self, other: Cube, ci: object) -> tuple[Cube, Cube, Cube]:
-        """Return the sum of two vectors, carry out, and overflow.
-
-        The implementation propagates Xes according to the
-        ripple carry addition algorithm.
-        """
+        """Return the sum of two vectors, carry out, and overflow."""
         match ci:
             case Cube():
                 pass
             case _:
                 ci = (F, T)[bool(ci)]
 
-        s = []
-        c = [ci]
-        for i, (a, b) in enumerate(zip(self, other)):
-            s.append(a ^ b ^ c[i])
-            c.append(a & b | a & c[i] | b & c[i])
+        # Rename for readability
+        n, a, b = self._n, self, other
 
-        co = c[-1]
-        ovf = c[-2] ^ c[-1] if self._n else F
-        return from_pcitems(x.data for x in s), co, ovf
+        if a.has_null or b.has_null or ci.has_null:
+            return Cube(n, _fill(NULL, n)), N, N
+        elif a.has_dc or b.has_dc or ci.has_dc:
+            return Cube(n, _fill(DC, n)), X, X
+
+        s = a.to_uint() + b.to_uint() + ci.to_uint()
+
+        data = 0
+        for i in range(n):
+            data |= from_int[s & 1] << (2 * i)
+            s >>= 1
+
+        # Carry out is True if there is leftover sum data
+        co = (F, T)[s != 0]
+
+        s = Cube(n, data)
+
+        # Overflow is true if sign A matches sign B, and mismatches sign S
+        aa = a[-1]
+        bb = b[-1]
+        ss = s[-1]
+        ovf = ~aa & ~bb & ss | aa & bb & ~ss
+
+        return s, co, ovf
 
     def _count(self, byte_cnt: dict[int, int], item: PcItem):
         y = 0
