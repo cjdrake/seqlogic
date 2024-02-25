@@ -343,11 +343,11 @@ class PcVec:
     def __len__(self) -> int:
         return self._n
 
-    def __iter__(self) -> Generator[PcVec, None, None]:
+    def __iter__(self) -> Generator[PcVec[1], None, None]:
         for i in range(self._n):
             yield self.__getitem__(i)
 
-    def __getitem__(self, key: int | slice) -> PcVec:
+    def __getitem__(self, key: int | slice) -> PcVec[1]:
         match key:
             case int() as i:
                 i = self._norm_index(i)
@@ -359,6 +359,9 @@ class PcVec:
                 return PcVec(n, d)
             case _:
                 raise TypeError("Expected key to be an int")
+
+    def __class_getitem__(cls, key: int):
+        pass
 
     def __bool__(self) -> bool:
         return self.to_uint() != 0
@@ -467,7 +470,7 @@ class PcVec:
 
         return PcVec(self._n, y)
 
-    def ulor(self) -> PcVec:
+    def ulor(self) -> PcVec[1]:
         """Return unary "lifted" OR of bits."""
         y = F
         for x in self:
@@ -520,7 +523,7 @@ class PcVec:
 
         return PcVec(self._n, y)
 
-    def uland(self) -> PcVec:
+    def uland(self) -> PcVec[1]:
         """Return unary "lifted" AND of bits."""
         y = T
         for x in self:
@@ -575,7 +578,7 @@ class PcVec:
 
         return PcVec(self._n, y)
 
-    def ulxor(self) -> PcVec:
+    def ulxor(self) -> PcVec[1]:
         """Return unary "lifted" XOR of bits."""
         y = F
         for x in self:
@@ -635,7 +638,7 @@ class PcVec:
         prefix = _fill(sign, n)
         return PcVec(self._n + n, self.data | (prefix << self.nbits))
 
-    def lsh(self, n: int, ci: PcVec | None = None) -> tuple[PcVec, PcVec]:
+    def lsh(self, n: int, ci: PcVec[1] | None = None) -> tuple[PcVec, PcVec]:
         """Left shift by n bits."""
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
@@ -649,7 +652,7 @@ class PcVec:
         y = PcVec(self._n, ci.data | (temp.data << ci.nbits))
         return y, co
 
-    def rsh(self, n: int, ci: PcVec | None = None) -> tuple[PcVec, PcVec]:
+    def rsh(self, n: int, ci: PcVec[1] | None = None) -> tuple[PcVec, PcVec]:
         """Right shift by n bits."""
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
