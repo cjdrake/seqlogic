@@ -348,7 +348,7 @@ class PcVec:
     def __len__(self) -> int:
         return self._n
 
-    def __getitem__(self, key: int | slice) -> PcVec[1]:
+    def __getitem__(self, key: int | slice) -> PcVec:
         match key:
             case int() as i:
                 d = self._get_item(self._norm_index(i))
@@ -367,7 +367,7 @@ class PcVec:
             yield self.__getitem__(i)
 
     def __str__(self) -> str:
-        return "".join(to_char[self._get_item(i)] for i in range(self._n - 1, -1, -1))
+        return "".join(to_char[self._get_item(i)] for i in range(self._n))
 
     def __repr__(self) -> str:
         return self.__str__()
