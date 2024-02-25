@@ -331,8 +331,8 @@ def limplies(p: int, q: int) -> int:
     return y
 
 
-class Cube:
-    """N-dimensional cube."""
+class PcVec:
+    """TODO(cjdrake): Write docstring."""
 
     def __init__(self, n: int, data: int):
         """TODO(cjdrake): Write docstring."""
@@ -343,20 +343,20 @@ class Cube:
     def __len__(self) -> int:
         return self._n
 
-    def __iter__(self) -> Generator[Cube, None, None]:
+    def __iter__(self) -> Generator[PcVec, None, None]:
         for i in range(self._n):
             yield self.__getitem__(i)
 
-    def __getitem__(self, key: int | slice) -> Cube:
+    def __getitem__(self, key: int | slice) -> PcVec:
         match key:
             case int() as i:
                 i = self._norm_index(i)
                 d = self._get_item(i)
-                return _d2c[d]
+                return PcVec(1, d)
             case slice() as sl:
                 sl = self._norm_slice(sl)
                 n, d = self._get_slice(sl)
-                return Cube(n, d)
+                return PcVec(n, d)
             case _:
                 raise TypeError("Expected key to be an int")
 
@@ -366,31 +366,31 @@ class Cube:
     def __int__(self) -> int:
         return self.to_int()
 
-    def __invert__(self) -> Cube:
+    def __invert__(self) -> PcVec:
         return self.lnot()
 
-    def __or__(self, other: Cube) -> Cube:
+    def __or__(self, other: PcVec) -> PcVec:
         return self.lor(other)
 
-    def __and__(self, other: Cube) -> Cube:
+    def __and__(self, other: PcVec) -> PcVec:
         return self.land(other)
 
-    def __xor__(self, other: Cube) -> Cube:
+    def __xor__(self, other: PcVec) -> PcVec:
         return self.lxor(other)
 
-    def __lshift__(self, n: int) -> Cube:
+    def __lshift__(self, n: int) -> PcVec:
         return self.lsh(n)[0]
 
-    def __rshift__(self, n: int) -> Cube:
+    def __rshift__(self, n: int) -> PcVec:
         return self.rsh(n)[0]
 
-    def __add__(self, other: Cube) -> Cube:
+    def __add__(self, other: PcVec) -> PcVec:
         return self.add(other, ci=F)[0]
 
-    def __sub__(self, other: Cube) -> Cube:
+    def __sub__(self, other: PcVec) -> PcVec:
         return self.add(~other, ci=T)[0]
 
-    def __neg__(self) -> Cube:
+    def __neg__(self) -> PcVec:
         s = []
         c = [T]
         for i, x in enumerate(~self):
@@ -408,7 +408,7 @@ class Cube:
         """Number of bits of data."""
         return _ITEM_BITS * self._n
 
-    def lnot(self) -> Cube:
+    def lnot(self) -> PcVec:
         """Return output of "lifted" NOT function."""
         x_0 = self._bit_mask[0]
         x_01 = x_0 << 1
@@ -419,9 +419,9 @@ class Cube:
         y1 = x_01
         y = y1 | y0
 
-        return Cube(self._n, y)
+        return PcVec(self._n, y)
 
-    def lnor(self, other: Cube) -> Cube:
+    def lnor(self, other: PcVec) -> PcVec:
         """Return output of "lifted" NOR function.
 
         y1 = x0[0] & x1[0]
@@ -443,9 +443,9 @@ class Cube:
         y1 = x0_01 & x1_01
         y = y1 | y0
 
-        return Cube(self._n, y)
+        return PcVec(self._n, y)
 
-    def lor(self, other: Cube) -> Cube:
+    def lor(self, other: PcVec) -> PcVec:
         """Return output of "lifted" OR function.
 
         y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
@@ -465,16 +465,16 @@ class Cube:
         y1 = x0_01 & x1_1 | x0_1 & x1_01 | x0_1 & x1_1
         y = y1 | y0
 
-        return Cube(self._n, y)
+        return PcVec(self._n, y)
 
-    def ulor(self) -> Cube:
+    def ulor(self) -> PcVec:
         """Return unary "lifted" OR of bits."""
         y = F
         for x in self:
             y = y.lor(x)
         return y
 
-    def lnand(self, other: Cube) -> Cube:
+    def lnand(self, other: PcVec) -> PcVec:
         """Return output of "lifted" NAND function.
 
         y1 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
@@ -496,9 +496,9 @@ class Cube:
         y1 = x0_01 & x1_01 | x0_01 & x1_1 | x0_1 & x1_01
         y = y1 | y0
 
-        return Cube(self._n, y)
+        return PcVec(self._n, y)
 
-    def land(self, other: Cube) -> Cube:
+    def land(self, other: PcVec) -> PcVec:
         """Return output of "lifted" AND function.
 
         y1 = x0[1] & x1[1]
@@ -518,16 +518,16 @@ class Cube:
         y1 = x0_1 & x1_1
         y = y1 | y0
 
-        return Cube(self._n, y)
+        return PcVec(self._n, y)
 
-    def uland(self) -> Cube:
+    def uland(self) -> PcVec:
         """Return unary "lifted" AND of bits."""
         y = T
         for x in self:
             y = y.land(x)
         return y
 
-    def lxnor(self, other: Cube) -> Cube:
+    def lxnor(self, other: PcVec) -> PcVec:
         """Return output of "lifted" XNOR function.
 
         y1 = x0[0] & x1[0] | x0[1] & x1[1]
@@ -549,9 +549,9 @@ class Cube:
         y1 = x0_01 & x1_01 | x0_1 & x1_1
         y = y1 | y0
 
-        return Cube(self._n, y)
+        return PcVec(self._n, y)
 
-    def lxor(self, other: Cube) -> Cube:
+    def lxor(self, other: PcVec) -> PcVec:
         """Return output of "lifted" XOR function.
 
         y1 = x0[0] & x1[1] | x0[1] & x1[0]
@@ -573,9 +573,9 @@ class Cube:
         y1 = x0_01 & x1_1 | x0_1 & x1_01
         y = y1 | y0
 
-        return Cube(self._n, y)
+        return PcVec(self._n, y)
 
-    def ulxor(self) -> Cube:
+    def ulxor(self) -> PcVec:
         """Return unary "lifted" XOR of bits."""
         y = F
         for x in self:
@@ -583,7 +583,7 @@ class Cube:
         return y
 
     def to_uint(self) -> int:
-        """Convert cube to unsigned integer."""
+        """Convert to unsigned integer."""
         y = 0
 
         i = 0
@@ -616,7 +616,7 @@ class Cube:
         return y
 
     def to_int(self) -> int:
-        """Convert cube to signed integer."""
+        """Convert to signed integer."""
         if self._n == 0:
             return 0
         sign = self._get_item(self._n - 1)
@@ -624,47 +624,47 @@ class Cube:
             return -(self.lnot().to_uint() + 1)
         return self.to_uint()
 
-    def zext(self, n: int) -> Cube:
-        """Return cube zero extended by n bits."""
+    def zext(self, n: int) -> PcVec:
+        """Zero extend by n bits."""
         prefix = _fill(ZERO, n)
-        return Cube(self._n + n, self.data | (prefix << self.nbits))
+        return PcVec(self._n + n, self.data | (prefix << self.nbits))
 
-    def sext(self, n: int) -> Cube:
-        """Return cube sign extended by n bits."""
+    def sext(self, n: int) -> PcVec:
+        """Sign extend by n bits."""
         sign = self._get_item(self._n - 1)
         prefix = _fill(sign, n)
-        return Cube(self._n + n, self.data | (prefix << self.nbits))
+        return PcVec(self._n + n, self.data | (prefix << self.nbits))
 
-    def lsh(self, n: int, ci: Cube | None = None) -> tuple[Cube, Cube]:
-        """Return cube left shifted by n bits."""
+    def lsh(self, n: int, ci: PcVec | None = None) -> tuple[PcVec, PcVec]:
+        """Left shift by n bits."""
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
             return self, E
         if ci is None:
-            ci = Cube(n, _fill(ZERO, n))
+            ci = PcVec(n, _fill(ZERO, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         temp, co = self[:-n], self[-n:]
-        y = Cube(self._n, ci.data | (temp.data << ci.nbits))
+        y = PcVec(self._n, ci.data | (temp.data << ci.nbits))
         return y, co
 
-    def rsh(self, n: int, ci: Cube | None = None) -> tuple[Cube, Cube]:
-        """Return cube right shifted by n bits."""
+    def rsh(self, n: int, ci: PcVec | None = None) -> tuple[PcVec, PcVec]:
+        """Right shift by n bits."""
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
             return self, E
         if ci is None:
-            ci = Cube(n, _fill(ZERO, n))
+            ci = PcVec(n, _fill(ZERO, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         co, temp = self[:n], self[n:]
-        y = Cube(self._n, temp.data | (ci.data << temp.nbits))
+        y = PcVec(self._n, temp.data | (ci.data << temp.nbits))
         return y, co
 
-    def arsh(self, n: int) -> tuple[Cube, Cube]:
-        """Return cube arithmetically right shifted by n bits."""
+    def arsh(self, n: int) -> tuple[PcVec, PcVec]:
+        """Arithmetically right shift by n bits."""
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
@@ -672,13 +672,13 @@ class Cube:
         sign = self._get_item(self._n - 1)
         prefix = _fill(sign, n)
         co, temp = self[:n], self[n:]
-        y = Cube(self._n, temp.data | (prefix << temp.nbits))
+        y = PcVec(self._n, temp.data | (prefix << temp.nbits))
         return y, co
 
-    def add(self, other: Cube, ci: object) -> tuple[Cube, Cube, Cube]:
+    def add(self, other: PcVec, ci: object) -> tuple[PcVec, PcVec, PcVec]:
         """Return the sum of two vectors, carry out, and overflow."""
         match ci:
-            case Cube():
+            case PcVec():
                 pass
             case _:
                 ci = (F, T)[bool(ci)]
@@ -687,9 +687,9 @@ class Cube:
         n, a, b = self._n, self, other
 
         if a.has_null or b.has_null or ci.has_null:
-            return Cube(n, _fill(NULL, n)), N, N
+            return PcVec(n, _fill(NULL, n)), N, N
         elif a.has_dc or b.has_dc or ci.has_dc:
-            return Cube(n, _fill(DC, n)), X, X
+            return PcVec(n, _fill(DC, n)), X, X
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
 
@@ -701,7 +701,7 @@ class Cube:
         # Carry out is True if there is leftover sum data
         co = (F, T)[s != 0]
 
-        s = Cube(n, data)
+        s = PcVec(n, data)
 
         # Overflow is true if sign A matches sign B, and mismatches sign S
         aa = a[-1]
@@ -851,36 +851,34 @@ def _fill(x: int, n: int) -> int:
     return data
 
 
-def from_pcitems(xs: Iterable[int] = ()) -> Cube:
+def from_pcitems(xs: Iterable[int] = ()) -> PcVec:
     """Convert an iterable of PcItems to a PcList."""
     size = 0
     data = 0
     for i, x in enumerate(xs):
         size += 1
         data |= x << (_ITEM_BITS * i)
-    return Cube(size, data)
+    return PcVec(size, data)
 
 
-def from_quads(xs: Iterable[int] = ()) -> Cube:
+def from_quads(xs: Iterable[int] = ()) -> PcVec:
     """Convert an iterable of bytes (four PcItems each) to a PcList."""
     size = 0
     data = 0
     for i, x in enumerate(xs):
         size += 4
         data |= x << (4 * _ITEM_BITS * i)
-    return Cube(size, data)
+    return PcVec(size, data)
 
 
 # Empty
-E = Cube(0, 0)
+E = PcVec(0, 0)
 
 # One bit values
-N = Cube(1, NULL)
-F = Cube(1, ZERO)
-T = Cube(1, ONE)
-X = Cube(1, DC)
-
-_d2c = {c.data: c for c in [N, F, T, X]}
+N = PcVec(1, NULL)
+F = PcVec(1, ZERO)
+T = PcVec(1, ONE)
+X = PcVec(1, DC)
 
 _byte_cnt_nulls = {
     0b00_00_00_00: 4,

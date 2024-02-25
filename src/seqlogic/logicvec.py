@@ -10,7 +10,7 @@ from collections.abc import Collection, Generator
 from functools import cached_property
 
 from . import pcn
-from .pcn import Cube
+from .pcn import PcVec
 
 _NUM_RE = re.compile(
     r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[X01x_]+))|"
@@ -25,7 +25,7 @@ class logicvec:
     Use the factory functions instead.
     """
 
-    def __init__(self, cube: Cube, shape: tuple[int, ...] | None = None):
+    def __init__(self, cube: PcVec, shape: tuple[int, ...] | None = None):
         """TODO(cjdrake): Write docstring."""
         self._cube = cube
         if shape is None:
@@ -97,7 +97,7 @@ class logicvec:
         return logicvec(self._cube.__neg__())
 
     @property
-    def cube(self) -> Cube:
+    def cube(self) -> PcVec:
         """Return logicvec data."""
         return self._cube
 
@@ -405,7 +405,7 @@ class logicvec:
         return tuple(nkey)
 
 
-def _parse_str_lit(lit: str) -> Cube:
+def _parse_str_lit(lit: str) -> PcVec:
     if m := _NUM_RE.match(lit):
         # Binary
         if m.group("BinSize"):
@@ -461,7 +461,7 @@ def _rank2(fst: logicvec, rst) -> logicvec:
                 s = f"Expected item to be str or logicvec[{s}]"
                 raise TypeError(s)
         size += len(fst.cube)
-    return logicvec(Cube(size, data), shape)
+    return logicvec(PcVec(size, data), shape)
 
 
 def vec(obj=None) -> logicvec:
@@ -565,7 +565,7 @@ def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
     else:
         shape = (sum(dims),) + fst.shape[1:]
 
-    return logicvec(Cube(size, data), shape)
+    return logicvec(PcVec(size, data), shape)
 
 
 def rep(obj: int | logicvec, n: int, flatten: bool = False) -> logicvec:
@@ -588,19 +588,19 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> logicvec:
         case int() as i:
             data = f(v.cube.data, i)
             if shape:
-                return _sel(logicvec(Cube(n, data), shape), key[1:])
-            return logicvec(Cube(1, data))
+                return _sel(logicvec(PcVec(n, data), shape), key[1:])
+            return logicvec(PcVec(1, data))
         case slice() as sl:
             datas = (f(v.cube.data, i) for i in range(sl.start, sl.stop, sl.step))
             if shape:
-                return cat([_sel(logicvec(Cube(n, data), shape), key[1:]) for data in datas])
-            return cat([logicvec(Cube(1, data)) for data in datas])
+                return cat([_sel(logicvec(PcVec(n, data), shape), key[1:]) for data in datas])
+            return cat([logicvec(PcVec(1, data)) for data in datas])
         case _:  # pragma: no cover
             assert False
 
 
 # The empty vector is a singleton
-E = logicvec(Cube(0, 0))
+E = logicvec(PcVec(0, 0))
 
 
 def _consts(shape: tuple[int, ...], x: int) -> logicvec:
