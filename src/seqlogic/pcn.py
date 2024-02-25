@@ -336,32 +336,35 @@ class PcVec:
 
     def __init__(self, n: int, data: int):
         """TODO(cjdrake): Write docstring."""
+        if n < 0:
+            raise ValueError(f"Expected n ≥ 0, got {n}")
         self._n = n
-        assert 0 <= data < (1 << self.nbits)
+
+        a, b = 0, 1 << self.nbits
+        if not a <= data < b:
+            raise ValueError(f"Expected data in [{a}, {b}), got {data}")
         self._data = data
 
     def __len__(self) -> int:
         return self._n
 
-    def __iter__(self) -> Generator[PcVec[1], None, None]:
-        for i in range(self._n):
-            yield self.__getitem__(i)
-
     def __getitem__(self, key: int | slice) -> PcVec[1]:
         match key:
             case int() as i:
-                i = self._norm_index(i)
-                d = self._get_item(i)
+                d = self._get_item(self._norm_index(i))
                 return PcVec(1, d)
             case slice() as sl:
-                sl = self._norm_slice(sl)
-                n, d = self._get_slice(sl)
+                n, d = self._get_items(*self._norm_slice(sl))
                 return PcVec(n, d)
             case _:
-                raise TypeError("Expected key to be an int")
+                raise TypeError("Expected key to be int or slice")
 
     def __class_getitem__(cls, key: int):
         pass
+
+    def __iter__(self) -> Generator[PcVec[1], None, None]:
+        for i in range(self._n):
+            yield self.__getitem__(i)
 
     def __bool__(self) -> bool:
         return self.to_uint() != 0
@@ -783,41 +786,41 @@ class PcVec:
         return self.count_unknown > 0
 
     def _norm_index(self, index: int) -> int:
-        lo, hi = -self._n, self._n
-        if not lo <= index < hi:
-            s = f"Expected index in [{lo}, {hi}), got {index}"
+        a, b = -self._n, self._n
+        if not a <= index < b:
+            s = f"Expected index in [{a}, {b}), got {index}"
             raise IndexError(s)
         # Normalize negative start index
         if index < 0:
-            index += hi
+            return index + self._n
         return index
 
-    def _norm_slice(self, sl: slice) -> slice:
-        lo, hi = -self._n, self._n
-        # Normalize start
-        if sl.start is None:
-            sl = slice(0, sl.stop, sl.step)
-        elif sl.start < lo:
-            sl = slice(lo, sl.stop, sl.step)
-        if sl.start < 0:
-            sl = slice(sl.start + hi, sl.stop, sl.step)
-        # Normalize stop
-        if sl.stop is None or sl.stop > hi:
-            sl = slice(sl.start, hi, sl.step)
-        elif sl.stop < 0:
-            sl = slice(sl.start, sl.stop + hi, sl.step)
-        # Do not support step
-        assert sl.step is None
-        return sl
+    def _norm_slice(self, sl: slice) -> tuple[int, int]:
+        if sl.step is not None:
+            raise ValueError("Slice step is not supported")
+        a, b = -self._n, self._n
+        # Normalize start index
+        start = sl.start
+        if start is None or start < a:
+            start = a
+        if start < 0:
+            start += self._n
+        # Normalize stop index
+        stop = sl.stop
+        if stop is None or stop > b:
+            stop = b
+        if stop < 0:
+            stop += self._n
+        return start, stop
 
     def _get_item(self, i: int) -> int:
         return (self._data >> (_ITEM_BITS * i)) & _ITEM_MASK
 
-    def _get_slice(self, sl: slice) -> tuple[int, int]:
-        n = sl.stop - sl.start
+    def _get_items(self, i: int, j: int) -> tuple[int, int]:
+        n = j - i
         nbits = _ITEM_BITS * n
         mask = (1 << nbits) - 1
-        return n, (self._data >> (_ITEM_BITS * sl.start)) & mask
+        return n, (self._data >> (_ITEM_BITS * i)) & mask
 
     @cached_property
     def _mask(self) -> tuple[int, int]:
