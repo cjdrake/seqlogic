@@ -630,13 +630,13 @@ class PcVec:
     def zext(self, n: int) -> PcVec:
         """Zero extend by n bits."""
         prefix = _fill(ZERO, n)
-        return PcVec(self._n + n, self.data | (prefix << self.nbits))
+        return PcVec(self._n + n, self._data | (prefix << self.nbits))
 
     def sext(self, n: int) -> PcVec:
         """Sign extend by n bits."""
         sign = self._get_item(self._n - 1)
         prefix = _fill(sign, n)
-        return PcVec(self._n + n, self.data | (prefix << self.nbits))
+        return PcVec(self._n + n, self._data | (prefix << self.nbits))
 
     def lsh(self, n: int, ci: PcVec[1] | None = None) -> tuple[PcVec, PcVec]:
         """Left shift by n bits."""
