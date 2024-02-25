@@ -592,30 +592,20 @@ class PcVec:
         """Convert to unsigned integer."""
         y = 0
 
-        i = 0
-        n, data = self._n, self._data
-        while n >= 8:
-            try:
-                y |= _wyde_uint[data & _WYDE_MASK] << i
-            except KeyError as e:
-                raise ValueError("Cannot convert unknown to uint") from e
-            n -= 8
+        if self.has_unknown():
+            raise ValueError("Cannot convert unknown to uint")
+
+        i, data = 0, self._data
+        while i <= (self._n - 8):
+            y |= _wyde_uint[data & _WYDE_MASK] << i
             data >>= 16
             i += 8
-        while n >= 4:
-            try:
-                y |= _byte_uint[data & _BYTE_MASK] << i
-            except KeyError as e:
-                raise ValueError("Cannot convert unknown to uint") from e
-            n -= 4
+        while i <= (self._n - 4):
+            y |= _byte_uint[data & _BYTE_MASK] << i
             data >>= 8
             i += 4
-        while n > 0:
-            try:
-                y |= _item_uint[data & _ITEM_MASK] << i
-            except KeyError as e:
-                raise ValueError("Cannot convert unknown to uint") from e
-            n -= 1
+        while i <= (self._n - 1):
+            y |= _item_uint[data & _ITEM_MASK] << i
             data >>= 2
             i += 1
 
@@ -651,8 +641,8 @@ class PcVec:
             ci = PcVec(n, _fill(ZERO, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
-        temp, co = self[:-n], self[-n:]
-        y = PcVec(self._n, ci.data | (temp.data << ci.nbits))
+        sh, co = self[:-n], self[-n:]
+        y = PcVec(self._n, ci.data | (sh.data << ci.nbits))
         return y, co
 
     def rsh(self, n: int, ci: PcVec[1] | None = None) -> tuple[PcVec, PcVec]:
@@ -665,8 +655,8 @@ class PcVec:
             ci = PcVec(n, _fill(ZERO, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
-        co, temp = self[:n], self[n:]
-        y = PcVec(self._n, temp.data | (ci.data << temp.nbits))
+        co, sh = self[:n], self[n:]
+        y = PcVec(self._n, sh.data | (ci.data << sh.nbits))
         return y, co
 
     def arsh(self, n: int) -> tuple[PcVec, PcVec]:
@@ -676,25 +666,19 @@ class PcVec:
         if n == 0:
             return self, E
         sign = self._get_item(self._n - 1)
-        prefix = _fill(sign, n)
-        co, temp = self[:n], self[n:]
-        y = PcVec(self._n, temp.data | (prefix << temp.nbits))
+        ci_data = _fill(sign, n)
+        co, sh = self[:n], self[n:]
+        y = PcVec(self._n, sh.data | (ci_data << sh.nbits))
         return y, co
 
-    def add(self, other: PcVec, ci: object) -> tuple[PcVec, PcVec, PcVec]:
+    def add(self, other: PcVec, ci: PcVec[1]) -> tuple[PcVec, PcVec[1], PcVec[1]]:
         """Return the sum of two vectors, carry out, and overflow."""
-        match ci:
-            case PcVec():
-                pass
-            case _:
-                ci = (F, T)[bool(ci)]
-
         # Rename for readability
         n, a, b = self._n, self, other
 
         if a.has_null() or b.has_null() or ci.has_null():
             return PcVec(n, _fill(NULL, n)), N, N
-        elif a.has_dc() or b.has_dc() or ci.has_dc():
+        if a.has_dc() or b.has_dc() or ci.has_dc():
             return PcVec(n, _fill(DC, n)), X, X
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
