@@ -433,7 +433,7 @@ class PcVec:
         y1 = x0[0] & x1[0]
         y0 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
         """
-        assert self._n == len(other)
+        self._check_len(other)
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -457,7 +457,7 @@ class PcVec:
         y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
         y0 = x0[0] & x1[0]
         """
-        assert self._n == len(other)
+        self._check_len(other)
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -486,7 +486,7 @@ class PcVec:
         y1 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
         y0 = x0[1] & x1[1]
         """
-        assert self._n == len(other)
+        self._check_len(other)
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -510,7 +510,7 @@ class PcVec:
         y1 = x0[1] & x1[1]
         y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
         """
-        assert self._n == len(other)
+        self._check_len(other)
 
         x0_0 = self._bit_mask[0]
         x0_1 = self._bit_mask[1]
@@ -539,7 +539,7 @@ class PcVec:
         y1 = x0[0] & x1[0] | x0[1] & x1[1]
         y0 = x0[0] & x1[1] | x0[1] & x1[0]
         """
-        assert self._n == len(other)
+        self._check_len(other)
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -563,7 +563,7 @@ class PcVec:
         y1 = x0[0] & x1[1] | x0[1] & x1[0]
         y0 = x0[0] & x1[0] | x0[1] & x1[1]
         """
-        assert self._n == len(other)
+        self._check_len(other)
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -716,6 +716,11 @@ class PcVec:
         ovf = ~aa & ~bb & ss | aa & bb & ~ss
 
         return s, co, ovf
+
+    def _check_len(self, other: PcVec):
+        if self._n != other._n:
+            s = f"Expected n = {self._n}, got {other._n}"
+            raise ValueError(s)
 
     def _count(self, byte_cnt: dict[int, int], item: int) -> int:
         y = 0
