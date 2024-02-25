@@ -1,6 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic.hier import Dict, Module
+from seqlogic import Module
+from seqlogic.hier import Dict
 from seqlogic.sim import notify
 from seqlogic.var import LogicVec
 

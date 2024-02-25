@@ -1,5 +1,6 @@
 [flake8]
-ignore = D105
+
 max-line-length = 100
-per-file-ignores =
-    src/seqlogic/__init__.py:F401
+
+# D105: Missing docstring in magic method
+ignore = D105

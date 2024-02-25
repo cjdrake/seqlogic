@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic.hier import Module
+from seqlogic import Module
 from seqlogic.var import Logic, LogicVec
 
 from ..common.alu_control import AluControl

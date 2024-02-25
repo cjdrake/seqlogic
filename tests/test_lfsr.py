@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 
-from seqlogic.hier import Module
+from seqlogic import Module
 from seqlogic.logic import logic
 from seqlogic.logicvec import cat, logicvec, vec
 from seqlogic.sim import Region, get_loop

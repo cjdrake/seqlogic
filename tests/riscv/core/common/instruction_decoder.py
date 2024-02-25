@@ -1,6 +1,6 @@
 """TODO(cjdrake): Add docstring."""
 
-from seqlogic.hier import Module
+from seqlogic import Module
 from seqlogic.sim import notify
 from seqlogic.var import LogicVec
 

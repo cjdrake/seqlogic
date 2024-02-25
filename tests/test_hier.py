@@ -1,7 +1,7 @@
 """Test hierarchy module."""
 
-
-from seqlogic.hier import Dict, HierVar, List, Module
+from seqlogic import Module
+from seqlogic.hier import Dict, HierVar, List
 
 
 def test_basic():
