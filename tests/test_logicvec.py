@@ -714,27 +714,27 @@ def test_slicing():
 def test_countbits():
     """Test logicvec countbits methods."""
     v = vec("8bx10X_x10X")
-    assert v._w.count_known == 4
-    assert v._w.count_unknown == 4
+    assert v._w.count_known() == 4
+    assert v._w.count_unknown() == 4
 
-    assert vec("4b0000")._w.count_ones == 0
-    assert vec("4b0001")._w.count_ones == 1
-    assert vec("4b0011")._w.count_ones == 2
-    assert vec("4b0111")._w.count_ones == 3
-    assert vec("4b1111")._w.count_ones == 4
+    assert vec("4b0000")._w.count_ones() == 0
+    assert vec("4b0001")._w.count_ones() == 1
+    assert vec("4b0011")._w.count_ones() == 2
+    assert vec("4b0111")._w.count_ones() == 3
+    assert vec("4b1111")._w.count_ones() == 4
 
-    assert not vec("4b0000")._w.onehot
-    assert vec("4b1000")._w.onehot
-    assert vec("4b0001")._w.onehot
-    assert not vec("4b1001")._w.onehot
-    assert not vec("4b1101")._w.onehot
+    assert not vec("4b0000")._w.onehot()
+    assert vec("4b1000")._w.onehot()
+    assert vec("4b0001")._w.onehot()
+    assert not vec("4b1001")._w.onehot()
+    assert not vec("4b1101")._w.onehot()
 
-    assert vec("4b0000")._w.onehot0
-    assert vec("4b1000")._w.onehot0
-    assert not vec("4b1010")._w.onehot0
-    assert not vec("4b1011")._w.onehot0
+    assert vec("4b0000")._w.onehot0()
+    assert vec("4b1000")._w.onehot0()
+    assert not vec("4b1010")._w.onehot0()
+    assert not vec("4b1011")._w.onehot0()
 
-    assert not vec("4b0000")._w.has_unknown
-    assert not vec("4b1111")._w.has_unknown
-    assert vec("4b0x01")._w.has_unknown
-    assert vec("4b01X1")._w.has_unknown
+    assert not vec("4b0000")._w.has_unknown()
+    assert not vec("4b1111")._w.has_unknown()
+    assert vec("4b0x01")._w.has_unknown()
+    assert vec("4b01X1")._w.has_unknown()

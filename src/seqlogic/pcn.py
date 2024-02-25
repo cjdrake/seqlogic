@@ -692,9 +692,9 @@ class PcVec:
         # Rename for readability
         n, a, b = self._n, self, other
 
-        if a.has_null or b.has_null or ci.has_null:
+        if a.has_null() or b.has_null() or ci.has_null():
             return PcVec(n, _fill(NULL, n)), N, N
-        elif a.has_dc or b.has_dc or ci.has_dc:
+        elif a.has_dc() or b.has_dc() or ci.has_dc():
             return PcVec(n, _fill(DC, n)), X, X
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
@@ -717,73 +717,64 @@ class PcVec:
 
         return s, co, ovf
 
-    def _count(self, byte_cnt: dict[int, int], item: int):
+    def _count(self, byte_cnt: dict[int, int], item: int) -> int:
         y = 0
+
         n, data = self._n, self._data
         while n >= 4:
             y += byte_cnt[data & _BYTE_MASK]
             n -= 4
             data >>= 8
-        while n > 0:
-            y += int((data & _ITEM_MASK) == item)
+        while n >= 1:
+            y += (data & _ITEM_MASK) == item
             n -= 1
             data >>= 2
+
         return y
 
-    @cached_property
     def count_nulls(self) -> int:
         """TODO(cjdrake): Write docstring."""
         return self._count(_byte_cnt_nulls, NULL)
 
-    @cached_property
     def count_zeros(self) -> int:
         """TODO(cjdrake): Write docstring."""
         return self._count(_byte_cnt_zeros, ZERO)
 
-    @cached_property
     def count_ones(self) -> int:
         """TODO(cjdrake): Write docstring."""
         return self._count(_byte_cnt_ones, ONE)
 
-    @cached_property
     def count_dcs(self) -> int:
         """TODO(cjdrake): Write docstring."""
         return self._count(_byte_cnt_dcs, DC)
 
-    @cached_property
     def count_known(self) -> int:
         """TODO(cjdrake): Write docstring."""
-        return self.count_zeros + self.count_ones
+        return self.count_zeros() + self.count_ones()
 
-    @cached_property
     def count_unknown(self) -> int:
         """TODO(cjdrake): Write docstring."""
-        return self.count_nulls + self.count_dcs
+        return self.count_nulls() + self.count_dcs()
 
-    @cached_property
     def onehot(self) -> bool:
         """TODO(cjdrake): Write docstring."""
-        return self.count_ones == 1
+        return not self.has_unknown() and self.count_ones() == 1
 
-    @cached_property
     def onehot0(self) -> bool:
         """TODO(cjdrake): Write docstring."""
-        return self.count_ones <= 1
+        return not self.has_unknown() and self.count_ones() <= 1
 
-    @cached_property
     def has_null(self) -> bool:
         """TODO(cjdrake): Write docstring."""
-        return self.count_nulls > 0
+        return self.count_nulls() != 0
 
-    @cached_property
     def has_dc(self) -> bool:
         """TODO(cjdrake): Write docstring."""
-        return self.count_dcs > 0
+        return self.count_dcs() != 0
 
-    @cached_property
     def has_unknown(self) -> bool:
         """TODO(cjdrake): Write docstring."""
-        return self.count_unknown > 0
+        return self.has_null() or self.has_dc()
 
     def _norm_index(self, index: int) -> int:
         a, b = -self._n, self._n
@@ -859,22 +850,22 @@ def _fill(x: int, n: int) -> int:
 
 def from_pcitems(xs: Iterable[int] = ()) -> PcVec:
     """Convert an iterable of PcItems to a PcList."""
-    size = 0
+    n = 0
     data = 0
     for i, x in enumerate(xs):
-        size += 1
+        n += 1
         data |= x << (_ITEM_BITS * i)
-    return PcVec(size, data)
+    return PcVec(n, data)
 
 
 def from_quads(xs: Iterable[int] = ()) -> PcVec:
     """Convert an iterable of bytes (four PcItems each) to a PcList."""
-    size = 0
+    n = 0
     data = 0
     for i, x in enumerate(xs):
-        size += 4
+        n += 4
         data |= x << (4 * _ITEM_BITS * i)
-    return PcVec(size, data)
+    return PcVec(n, data)
 
 
 # Empty
