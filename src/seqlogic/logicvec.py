@@ -10,7 +10,7 @@ from collections.abc import Collection, Generator
 from functools import cached_property
 
 from . import pcn
-from .pcn import Cube, PcItem
+from .pcn import Cube
 
 _NUM_RE = re.compile(
     r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[X01x_]+))|"
@@ -326,7 +326,7 @@ class logicvec:
         for i, x in enumerate(self.flat):
             if i % 4 == 0 and i != 0:
                 chars.append("_")
-            chars.append(pcn.to_char[PcItem(x.cube.data)])
+            chars.append(pcn.to_char[x.cube.data])
         return prefix + "".join(reversed(chars))
 
     def _str(self, indent: str) -> str:
@@ -336,7 +336,7 @@ class logicvec:
             return "[]"
         # Scalar
         if self._shape == (1,):
-            return "[" + pcn.to_char[PcItem(self._cube.data)] + "]"
+            return "[" + pcn.to_char[self._cube.data] + "]"
         # 1D Vector
         if self.ndim == 1:
             return self._to_lit()
@@ -431,7 +431,7 @@ def _parse_str_lit(lit: str) -> Cube:
         raise ValueError(f"Expected str literal, got {lit}")
 
 
-def _rank1(fst: PcItem, rst) -> logicvec:
+def _rank1(fst: int, rst) -> logicvec:
     pcitems = [fst]
     for x in rst:
         match x:
@@ -603,7 +603,7 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> logicvec:
 E = logicvec(Cube(0, 0))
 
 
-def _consts(shape: tuple[int, ...], x: PcItem) -> logicvec:
+def _consts(shape: tuple[int, ...], x: int) -> logicvec:
     num = math.prod(shape)
     return logicvec(pcn.from_pcitems([x] * num), shape)
 

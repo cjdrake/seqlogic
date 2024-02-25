@@ -5,7 +5,6 @@ from __future__ import annotations
 from enum import Enum
 
 from . import pcn
-from .pcn import PcItem
 
 
 class logic(Enum):
@@ -69,7 +68,7 @@ class logic(Enum):
     def __rxor__(self, other: object) -> logic:
         return self.lxor(other)
 
-    def _get_xs(self, other: object) -> tuple[PcItem, PcItem]:
+    def _get_xs(self, other: object) -> tuple[int, int]:
         x0 = self.value
         match other:
             case logic():

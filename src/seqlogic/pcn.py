@@ -6,17 +6,14 @@ from __future__ import annotations
 
 from collections.abc import Generator, Iterable
 from functools import cached_property
-from typing import NewType
-
-PcItem = NewType("PcItem", int)
 
 _ITEM_BITS = 2
 _ITEM_MASK = 0b11
 
-ZERO = PcItem(0b01)
-ONE = PcItem(0b10)
-NULL = PcItem(ZERO & ONE)
-DC = PcItem(ZERO | ONE)  # "Don't Care"
+NULL = 0b00
+ZERO = 0b01
+ONE = 0b10
+DC = 0b11  # "Don't Care"
 
 
 from_int = (ZERO, ONE)
@@ -61,7 +58,7 @@ from_hexchar = {
 }
 
 
-def lnot(x: PcItem) -> PcItem:
+def lnot(x: int) -> int:
     """Return output of "lifted" NOT function.
 
     f(x) -> y:
@@ -76,10 +73,10 @@ def lnot(x: PcItem) -> PcItem:
     y_0, y_1 = x_1, x_0
     y = (y_1 << 1) | y_0
 
-    return PcItem(y)
+    return y
 
 
-def lnor(x0: PcItem, x1: PcItem) -> PcItem:
+def lnor(x0: int, x1: int) -> int:
     """Return output of "lifted" NOR function.
 
     f(x0, x1) -> y:
@@ -112,10 +109,10 @@ def lnor(x0: PcItem, x1: PcItem) -> PcItem:
     y_1 = x0_0 & x1_0
     y = (y_1 << 1) | y_0
 
-    return PcItem(y)
+    return y
 
 
-def lor(x0: PcItem, x1: PcItem) -> PcItem:
+def lor(x0: int, x1: int) -> int:
     """Return output of "lifted" OR function.
 
     f(x0, x1) -> y:
@@ -148,10 +145,10 @@ def lor(x0: PcItem, x1: PcItem) -> PcItem:
     y_1 = x0_0 & x1_1 | x0_1 & x1_0 | x0_1 & x1_1
     y = (y_1 << 1) | y_0
 
-    return PcItem(y)
+    return y
 
 
-def lnand(x0: PcItem, x1: PcItem) -> PcItem:
+def lnand(x0: int, x1: int) -> int:
     """Return output of "lifted" NAND function.
 
     f(x0, x1) -> y:
@@ -184,10 +181,10 @@ def lnand(x0: PcItem, x1: PcItem) -> PcItem:
     y_1 = x0_0 & x1_0 | x0_0 & x1_1 | x0_1 & x1_0
     y = (y_1 << 1) | y_0
 
-    return PcItem(y)
+    return y
 
 
-def land(x0: PcItem, x1: PcItem) -> PcItem:
+def land(x0: int, x1: int) -> int:
     """Return output of "lifted" AND function.
 
     f(x0, x1) -> y:
@@ -220,10 +217,10 @@ def land(x0: PcItem, x1: PcItem) -> PcItem:
     y_1 = x0_1 & x1_1
     y = (y_1 << 1) | y_0
 
-    return PcItem(y)
+    return y
 
 
-def lxnor(x0: PcItem, x1: PcItem) -> PcItem:
+def lxnor(x0: int, x1: int) -> int:
     """Return output of "lifted" XNOR function.
 
     f(x0, x1) -> y:
@@ -256,10 +253,10 @@ def lxnor(x0: PcItem, x1: PcItem) -> PcItem:
     y_1 = x0_0 & x1_0 | x0_1 & x1_1
     y = (y_1 << 1) | y_0
 
-    return PcItem(y)
+    return y
 
 
-def lxor(x0: PcItem, x1: PcItem) -> PcItem:
+def lxor(x0: int, x1: int) -> int:
     """Return output of "lifted" XOR function.
 
     f(x0, x1) -> y:
@@ -292,10 +289,10 @@ def lxor(x0: PcItem, x1: PcItem) -> PcItem:
     y_1 = x0_0 & x1_1 | x0_1 & x1_0
     y = (y_1 << 1) | y_0
 
-    return PcItem(y)
+    return y
 
 
-def limplies(p: PcItem, q: PcItem) -> PcItem:
+def limplies(p: int, q: int) -> int:
     """Return output of "lifted" IMPLIES function.
 
     f(p, q) -> y:
@@ -331,7 +328,7 @@ def limplies(p: PcItem, q: PcItem) -> PcItem:
     y_1 = p_0 & q_0 | p_0 & q_1 | p_1 & q_1
     y = (y_1 << 1) | y_0
 
-    return PcItem(y)
+    return y
 
 
 class Cube:
@@ -714,7 +711,7 @@ class Cube:
 
         return s, co, ovf
 
-    def _count(self, byte_cnt: dict[int, int], item: PcItem):
+    def _count(self, byte_cnt: dict[int, int], item: int):
         y = 0
         n, data = self._n, self._data
         while n >= 4:
@@ -854,7 +851,7 @@ def _fill(x: int, n: int) -> int:
     return data
 
 
-def from_pcitems(xs: Iterable[PcItem] = ()) -> Cube:
+def from_pcitems(xs: Iterable[int] = ()) -> Cube:
     """Convert an iterable of PcItems to a PcList."""
     size = 0
     data = 0
