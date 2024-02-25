@@ -366,6 +366,12 @@ class PcVec:
         for i in range(self._n):
             yield self.__getitem__(i)
 
+    def __str__(self) -> str:
+        return "".join(to_char[self._get_item(i)] for i in range(self._n - 1, -1, -1))
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
     def __bool__(self) -> bool:
         return self.to_uint() != 0
 
@@ -394,15 +400,10 @@ class PcVec:
         return self.add(other, ci=F)[0]
 
     def __sub__(self, other: PcVec) -> PcVec:
-        return self.add(~other, ci=T)[0]
+        return self.sub(other)[0]
 
     def __neg__(self) -> PcVec:
-        s = []
-        c = [T]
-        for i, x in enumerate(~self):
-            s.append(x ^ c[i])
-            c.append(x & c[i])
-        return from_pcitems(x.data for x in s)
+        return self.neg()[0]
 
     @property
     def data(self) -> int:
@@ -672,7 +673,7 @@ class PcVec:
         return y, co
 
     def add(self, other: PcVec, ci: PcVec[1]) -> tuple[PcVec, PcVec[1], PcVec[1]]:
-        """Return the sum of two vectors, carry out, and overflow."""
+        """Twos complement addition."""
         # Rename for readability
         n, a, b = self._n, self, other
 
@@ -700,6 +701,15 @@ class PcVec:
         ovf = ~aa & ~bb & ss | aa & bb & ~ss
 
         return s, co, ovf
+
+    def sub(self, other: PcVec) -> tuple[PcVec, PcVec[1], PcVec[1]]:
+        """Twos complement subtraction."""
+        return self.add(other.lnot(), ci=T)
+
+    def neg(self) -> tuple[PcVec, PcVec[1], PcVec[1]]:
+        """Twos complement negation."""
+        zero = PcVec(self._n, _fill(ZERO, self._n))
+        return zero.sub(self)
 
     def _check_len(self, other: PcVec):
         if self._n != other._n:
