@@ -113,7 +113,7 @@ class logicvec:
         """Number of dimensions."""
         return len(self._shape)
 
-    @cached_property
+    @property
     def size(self) -> int:
         """Number of elements in the vector."""
         return len(self._w)
