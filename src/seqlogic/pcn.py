@@ -334,6 +334,9 @@ def limplies(p: int, q: int) -> int:
 class PcVec:
     """TODO(cjdrake): Write docstring."""
 
+    def __class_getitem__(cls, key: int):
+        pass
+
     def __init__(self, n: int, data: int):
         """TODO(cjdrake): Write docstring."""
         if n < 0:
@@ -359,9 +362,6 @@ class PcVec:
             case _:
                 raise TypeError("Expected key to be int or slice")
 
-    def __class_getitem__(cls, key: int):
-        pass
-
     def __iter__(self) -> Generator[PcVec[1], None, None]:
         for i in range(self._n):
             yield self.__getitem__(i)
@@ -378,6 +378,21 @@ class PcVec:
     def __int__(self) -> int:
         return self.to_int()
 
+    # Comparison
+    def _eq(self, other: PcVec) -> bool:
+        return self._n == other._n and self._data == other._data
+
+    def __eq__(self, other) -> bool:
+        match other:
+            case PcVec():
+                return self._eq(other)
+            case _:
+                return False
+
+    def __hash__(self):
+        return hash(self._n) ^ hash(self._data)
+
+    # Bitwise Arithmetic
     def __invert__(self) -> PcVec:
         return self.lnot()
 
@@ -621,6 +636,16 @@ class PcVec:
             return -(self.lnot().to_uint() + 1)
         return self.to_uint()
 
+    def ult(self, other: PcVec) -> bool:
+        """Unsigned less than."""
+        self._check_len(other)
+        return self.to_uint() < other.to_uint()
+
+    def slt(self, other: PcVec) -> bool:
+        """Signed less than."""
+        self._check_len(other)
+        return self.to_int() < other.to_int()
+
     def zext(self, n: int) -> PcVec:
         """Zero extend by n bits."""
         prefix = _fill(ZERO, n)
@@ -643,7 +668,7 @@ class PcVec:
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         sh, co = self[:-n], self[-n:]
-        y = PcVec(self._n, ci.data | (sh.data << ci.nbits))
+        y = PcVec(self._n, ci._data | (sh._data << ci.nbits))
         return y, co
 
     def rsh(self, n: int, ci: PcVec[1] | None = None) -> tuple[PcVec, PcVec]:
@@ -657,7 +682,7 @@ class PcVec:
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         co, sh = self[:n], self[n:]
-        y = PcVec(self._n, sh.data | (ci.data << sh.nbits))
+        y = PcVec(self._n, sh._data | (ci._data << sh.nbits))
         return y, co
 
     def arsh(self, n: int) -> tuple[PcVec, PcVec]:
@@ -669,7 +694,7 @@ class PcVec:
         sign = self._get_item(self._n - 1)
         ci_data = _fill(sign, n)
         co, sh = self[:n], self[n:]
-        y = PcVec(self._n, sh.data | (ci_data << sh.nbits))
+        y = PcVec(self._n, sh._data | (ci_data << sh.nbits))
         return y, co
 
     def add(self, other: PcVec, ci: PcVec[1]) -> tuple[PcVec, PcVec[1], PcVec[1]]:
