@@ -7,6 +7,8 @@ from __future__ import annotations
 from collections.abc import Generator, Iterable
 from functools import cached_property
 
+from .util import clog2
+
 _ITEM_BITS = 2
 _ITEM_MASK = 0b11
 
@@ -872,8 +874,60 @@ def _fill(x: int, n: int) -> int:
     return data
 
 
+def uint2vec(num: int, n: int) -> PcVec:
+    """Convert a nonnegative int to a PcVec."""
+    if num < 0:
+        raise ValueError(f"Expected num ≥ 0, got {num}")
+
+    # Compute required number of bits
+    req_n = clog2(num + 1)
+    if n < req_n:
+        s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
+        raise ValueError(s)
+
+    data = 0
+    i = 0
+    r = num
+
+    while r >= 1:
+        data |= from_int[r & 1] << (2 * i)
+        i += 1
+        r >>= 1
+
+    v = PcVec(i, data).zext(n - i)
+    return v
+
+
+def int2vec(num: int, n: int) -> PcVec:
+    """Convert an int to a PcVec."""
+    neg = num < 0
+
+    # Compute required number of bits
+    if neg:
+        req_n = clog2(-num) + 1
+    else:
+        req_n = clog2(num + 1) + 1
+    if n < req_n:
+        s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
+        raise ValueError(s)
+
+    data = 0
+    i = 0
+    r = abs(num)
+
+    while r >= 1:
+        data |= from_int[r & 1] << (2 * i)
+        i += 1
+        r >>= 1
+
+    v = PcVec(i, data).zext(n - i)
+    if neg:
+        return v.neg()[0]
+    return v
+
+
 def from_pcitems(xs: Iterable[int] = ()) -> PcVec:
-    """Convert an iterable of PcItems to a PcList."""
+    """Convert an iterable of PcItems to a PcVec."""
     n = 0
     data = 0
     for i, x in enumerate(xs):
@@ -883,7 +937,7 @@ def from_pcitems(xs: Iterable[int] = ()) -> PcVec:
 
 
 def from_quads(xs: Iterable[int] = ()) -> PcVec:
-    """Convert an iterable of bytes (four PcItems each) to a PcList."""
+    """Convert an iterable of bytes (four PcItems each) to a PcVec."""
     n = 0
     data = 0
     for i, x in enumerate(xs):
