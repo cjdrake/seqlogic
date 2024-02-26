@@ -433,7 +433,7 @@ def _rank1(fst: int, rst) -> logicvec:
             case 0 | 1:
                 pcitems.append(pcn.from_int[x])
             case _:
-                raise TypeError("Expected item to be logic, or in (0, 1)")
+                raise TypeError("Expected item to be in (0, 1)")
     return logicvec(pcn.from_pcitems(pcitems))
 
 

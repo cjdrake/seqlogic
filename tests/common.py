@@ -7,18 +7,15 @@ It might be useful to add to seqlogic library.
 from collections import defaultdict
 from collections.abc import Callable
 
-from seqlogic.logic import logic
-from seqlogic.logicvec import logicvec
+from seqlogic.logicvec import F, T, logicvec
 from seqlogic.sim import SimVar, notify, sleep
-from seqlogic.var import LogicVar
+from seqlogic.var import Logic
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
 
 
-async def reset_drv(
-    reset: LogicVar, init: logic = logic.T, phase1_ticks: int = 1, phase2_ticks: int = 1
-):
+async def reset_drv(reset: Logic, init: logicvec = T, phase1_ticks: int = 1, phase2_ticks: int = 1):
     r"""
     Simulate a reset signal.
 
@@ -49,8 +46,8 @@ async def reset_drv(
 
 
 async def clock_drv(
-    clock: LogicVar,
-    init: logic = logic.F,
+    clock: Logic,
+    init: logicvec = F,
     shift_ticks: int = 0,
     phase1_ticks: int = 1,
     phase2_ticks: int = 1,
@@ -96,9 +93,9 @@ async def clock_drv(
 async def dff_arn_drv(
     q: SimVar,
     d: Callable[[], logicvec],
-    reset_n: LogicVar,
+    reset_n: Logic,
     reset_value: logicvec,
-    clock: LogicVar,
+    clock: Logic,
 ):
     """D Flop Flop with asynchronous, negedge-triggered reset."""
     while True:
@@ -106,5 +103,5 @@ async def dff_arn_drv(
         assert var in {reset_n, clock}
         if var is reset_n:
             q.next = reset_value
-        elif var is clock and reset_n.value is logic.T:
+        elif var is clock and reset_n.value == T:
             q.next = d()

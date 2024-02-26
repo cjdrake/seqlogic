@@ -3,10 +3,9 @@
 from collections import defaultdict
 
 from seqlogic import Module
-from seqlogic.logic import logic
-from seqlogic.logicvec import cat, logicvec, vec
+from seqlogic.logicvec import F, T, X, cat, logicvec, vec
 from seqlogic.sim import Region, get_loop
-from seqlogic.var import LogicVar, LogicVec
+from seqlogic.var import Logic, LogicVec
 
 from .common import clock_drv, dff_arn_drv, reset_drv
 
@@ -20,8 +19,8 @@ class Top(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name="top", parent=None)
         # Control
-        self.reset_n = LogicVar(name="reset_n", parent=self)
-        self.clock = LogicVar(name="clock", parent=self)
+        self.reset_n = Logic(name="reset_n", parent=self)
+        self.clock = Logic(name="clock", parent=self)
         # State
         self.q = LogicVec(name="q", parent=self, shape=(3,))
 
@@ -48,9 +47,9 @@ def test_lfsr():
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(reset_drv, Region(1), top.reset_n, init=logic.T, phase1_ticks=6, phase2_ticks=10)
+    loop.add_proc(reset_drv, Region(1), top.reset_n, init=T, phase1_ticks=6, phase2_ticks=10)
     loop.add_proc(
-        clock_drv, Region(1), top.clock, init=logic.F, shift_ticks=5, phase1_ticks=5, phase2_ticks=5
+        clock_drv, Region(1), top.clock, init=F, shift_ticks=5, phase1_ticks=5, phase2_ticks=5
     )
 
     loop.run(until=100)
@@ -58,93 +57,93 @@ def test_lfsr():
     exp = {
         # Initialize everything to X'es
         -1: {
-            top.reset_n: logic.X,
-            top.clock: logic.X,
+            top.reset_n: X,
+            top.clock: X,
             top.q: vec("3bxxx"),
         },
         0: {
-            top.reset_n: logic.T,
-            top.clock: logic.F,
+            top.reset_n: T,
+            top.clock: F,
         },
         # clock.posedge; reset_n = 1
         # q = xxx
         5: {
-            top.clock: logic.T,
+            top.clock: T,
         },
         # reset_n.negedge
         # q = reset_value
         6: {
-            top.reset_n: logic.F,
+            top.reset_n: F,
             top.q: vec("3b100"),
         },
         10: {
-            top.clock: logic.F,
+            top.clock: F,
         },
         # clock.posedge; reset_n = 0
         15: {
-            top.clock: logic.T,
+            top.clock: T,
         },
         # reset_n.posedge
         16: {
-            top.reset_n: logic.T,
+            top.reset_n: T,
         },
         20: {
-            top.clock: logic.F,
+            top.clock: F,
         },
         # clock.posedge; reset_n = 1
         # q = 001
         25: {
-            top.clock: logic.T,
+            top.clock: T,
             top.q: vec("3b001"),
         },
         30: {
-            top.clock: logic.F,
+            top.clock: F,
         },
         35: {
-            top.clock: logic.T,
+            top.clock: T,
             top.q: vec("3b011"),
         },
         40: {
-            top.clock: logic.F,
+            top.clock: F,
         },
         45: {
-            top.clock: logic.T,
+            top.clock: T,
             top.q: vec("3b111"),
         },
         50: {
-            top.clock: logic.F,
+            top.clock: F,
         },
         55: {
-            top.clock: logic.T,
+            top.clock: T,
             top.q: vec("3b110"),
         },
         60: {
-            top.clock: logic.F,
+            top.clock: F,
         },
         65: {
-            top.clock: logic.T,
+            top.clock: T,
             top.q: vec("3b101"),
         },
         70: {
-            top.clock: logic.F,
+            top.clock: F,
         },
         75: {
-            top.clock: logic.T,
+            top.clock: T,
             top.q: vec("3b010"),
         },
         80: {
-            top.clock: logic.F,
+            top.clock: F,
         },
         # Repeat cycle
         85: {
-            top.clock: logic.T,
+            top.clock: T,
             top.q: vec("3b100"),
         },
         90: {
-            top.clock: logic.F,
+            top.clock: F,
         },
         95: {
-            top.clock: logic.T,
+            top.clock: T,
             top.q: vec("3b001"),
         },
     }

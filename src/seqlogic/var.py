@@ -6,7 +6,6 @@ from collections import defaultdict
 from vcd.writer import VarValue
 
 from .hier import HierVar, Module
-from .logic import logic
 from .logicvec import F, T, logicvec, xes
 from .sim import SimVar
 
@@ -66,22 +65,6 @@ class TraceVar(HierVar, SimVar):
         if self._vcd_change and self.dirty():
             self._vcd_change()
         super().update()
-
-
-class LogicVar(TraceVar):
-    """TODO(cjdrake): Write docstring."""
-
-    def __init__(self, name: str, parent: Module):
-        """TODO(cjdrake): Write docstring."""
-        super().__init__(name, parent, init=logic.X)
-
-    def posedge(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
-        return (self._value is logic.F) and (self._next_value is logic.T)
-
-    def negedge(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
-        return (self._value is logic.T) and (self._next_value is logic.F)
 
 
 class LogicVec(TraceVar):
