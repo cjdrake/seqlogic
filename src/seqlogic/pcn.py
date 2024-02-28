@@ -650,11 +650,19 @@ class PcVec:
 
     def zext(self, n: int) -> PcVec:
         """Zero extend by n bits."""
+        if n < 0:
+            raise ValueError(f"Expected n ≥ 0, got {n}")
+        if n == 0:
+            return self
         prefix = _fill(ZERO, n)
         return PcVec(self._n + n, self._data | (prefix << self.nbits))
 
     def sext(self, n: int) -> PcVec:
         """Sign extend by n bits."""
+        if n < 0:
+            raise ValueError(f"Expected n ≥ 0, got {n}")
+        if n == 0:
+            return self
         sign = self._get_item(self._n - 1)
         prefix = _fill(sign, n)
         return PcVec(self._n + n, self._data | (prefix << self.nbits))
