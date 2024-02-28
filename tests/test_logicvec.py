@@ -338,7 +338,7 @@ def test_uint2vec():
     with pytest.raises(ValueError):
         uint2vec(-1)
 
-    assert str(uint2vec(0)) == "vec([0])"
+    assert str(uint2vec(0)) == "vec([])"
     assert str(uint2vec(1)) == "vec([1])"
     assert str(uint2vec(2)) == "vec(2b10)"
     assert str(uint2vec(3)) == "vec(2b11)"

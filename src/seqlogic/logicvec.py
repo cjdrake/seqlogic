@@ -489,31 +489,13 @@ def vec(obj=None) -> logicvec:
 
 
 def uint2vec(num: int, size: int | None = None) -> logicvec:
-    """Convert a nonnegative int to a logic_vector."""
-    if num < 0:
-        raise ValueError(f"Expected num ≥ 0, got {num}")
+    """Convert nonnegative int to logic_vector."""
+    return logicvec(pcn.uint2vec(num, size))
 
-    pcitems = []
-    if num == 0:
-        index = 1
-        pcitems.append(pcn.ZERO)
-    else:
-        index = 0
-        while num:
-            pcitems.append(pcn.from_int[num & 1])
-            index += 1
-            num >>= 1
 
-    if size is None:
-        size = index
-    else:
-        if size < index:
-            s = f"Overflow: num = {num} requires length ≥ {index}, got {size}"
-            raise ValueError(s)
-        for _ in range(index, size):
-            pcitems.append(pcn.ZERO)
-
-    return logicvec(pcn.from_pcitems(pcitems))
+def int2vec(num: int, size: int | None = None) -> logicvec:
+    """Convert int to logic_vector."""
+    return logicvec(pcn.int2vec(num, size))
 
 
 def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:

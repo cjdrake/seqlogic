@@ -882,16 +882,21 @@ def _fill(x: int, n: int) -> int:
     return data
 
 
-def uint2vec(num: int, n: int) -> PcVec:
-    """Convert a nonnegative int to a PcVec."""
+def uint2vec(num: int, n: int | None = None) -> PcVec:
+    """Convert nonnegative int to PcVec.
+
+    Args:
+        num: A nonnegative integer
+        n: Optional output length
+
+    Returns:
+        A PcVec instance
+
+    Raises:
+        ValueError: If num is negative or overflows the output length.
+    """
     if num < 0:
         raise ValueError(f"Expected num ≥ 0, got {num}")
-
-    # Compute required number of bits
-    req_n = clog2(num + 1)
-    if n < req_n:
-        s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
-        raise ValueError(s)
 
     data = 0
     i = 0
@@ -902,22 +907,31 @@ def uint2vec(num: int, n: int) -> PcVec:
         i += 1
         r >>= 1
 
-    v = PcVec(i, data).zext(n - i)
-    return v
-
-
-def int2vec(num: int, n: int) -> PcVec:
-    """Convert an int to a PcVec."""
-    neg = num < 0
-
     # Compute required number of bits
-    if neg:
-        req_n = clog2(-num) + 1
-    else:
-        req_n = clog2(num + 1) + 1
-    if n < req_n:
+    req_n = clog2(num + 1)
+    if n is None:
+        n = req_n
+    elif n < req_n:
         s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
         raise ValueError(s)
+
+    return PcVec(i, data).zext(n - i)
+
+
+def int2vec(num: int, n: int | None = None) -> PcVec:
+    """Convert int to PcVec.
+
+    Args:
+        num: An integer
+        n: Optional output length
+
+    Returns:
+        A PcVec instance
+
+    Raises:
+        ValueError: If num overflows the output length.
+    """
+    neg = num < 0
 
     data = 0
     i = 0
@@ -927,6 +941,17 @@ def int2vec(num: int, n: int) -> PcVec:
         data |= from_int[r & 1] << (2 * i)
         i += 1
         r >>= 1
+
+    # Compute required number of bits
+    if neg:
+        req_n = clog2(-num) + 1
+    else:
+        req_n = clog2(num + 1) + 1
+    if n is None:
+        n = req_n
+    elif n < req_n:
+        s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
+        raise ValueError(s)
 
     v = PcVec(i, data).zext(n - i)
     return v.neg()[0] if neg else v
