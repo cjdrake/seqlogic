@@ -903,7 +903,7 @@ def uint2vec(num: int, n: int | None = None) -> PcVec:
     r = num
 
     while r >= 1:
-        data |= from_int[r & 1] << (2 * i)
+        data |= from_int[r & 1] << (_ITEM_BITS * i)
         i += 1
         r >>= 1
 
@@ -938,7 +938,7 @@ def int2vec(num: int, n: int | None = None) -> PcVec:
     r = abs(num)
 
     while r >= 1:
-        data |= from_int[r & 1] << (2 * i)
+        data |= from_int[r & 1] << (_ITEM_BITS * i)
         i += 1
         r >>= 1
 
