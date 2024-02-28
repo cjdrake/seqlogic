@@ -929,9 +929,7 @@ def int2vec(num: int, n: int) -> PcVec:
         r >>= 1
 
     v = PcVec(i, data).zext(n - i)
-    if neg:
-        return v.neg()[0]
-    return v
+    return v.neg()[0] if neg else v
 
 
 def from_pcitems(xs: Iterable[int] = ()) -> PcVec:
