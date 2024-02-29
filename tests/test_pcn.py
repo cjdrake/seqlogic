@@ -2,7 +2,238 @@
 
 import pytest
 
-from seqlogic.pcn import int2vec, uint2vec
+from seqlogic.pcn import (
+    from_char,
+    int2vec,
+    land,
+    limplies,
+    lnand,
+    lnor,
+    lnot,
+    lor,
+    lxnor,
+    lxor,
+    uint2vec,
+)
+
+LNOT = {
+    "X": "X",
+    "0": "1",
+    "1": "0",
+    "x": "x",
+}
+
+
+def test_lnot():
+    """Test seqlogic.pcn.lnot function."""
+    for x, y in LNOT.items():
+        x = from_char[x]
+        y = from_char[y]
+        assert lnot(x) == y
+
+
+LNOR = {
+    "XX": "X",
+    "X0": "X",
+    "X1": "X",
+    "Xx": "X",
+    "0X": "X",
+    "00": "1",
+    "01": "0",
+    "0x": "x",
+    "1X": "X",
+    "10": "0",
+    "11": "0",
+    "1x": "0",
+    "xX": "X",
+    "x0": "x",
+    "x1": "0",
+    "xx": "x",
+}
+
+
+def test_lnor():
+    """Test seqlogic.pcn.lnor function."""
+    for xs, y in LNOR.items():
+        x0 = from_char[xs[0]]
+        x1 = from_char[xs[1]]
+        y = from_char[y]
+        assert lnor(x0, x1) == y
+
+
+LOR = {
+    "XX": "X",
+    "X0": "X",
+    "X1": "X",
+    "Xx": "X",
+    "0X": "X",
+    "00": "0",
+    "01": "1",
+    "0x": "x",
+    "1X": "X",
+    "10": "1",
+    "11": "1",
+    "1x": "1",
+    "xX": "X",
+    "x0": "x",
+    "x1": "1",
+    "xx": "x",
+}
+
+
+def test_lor():
+    """Test seqlogic.pcn.lor function."""
+    for xs, y in LOR.items():
+        x0 = from_char[xs[0]]
+        x1 = from_char[xs[1]]
+        y = from_char[y]
+        assert lor(x0, x1) == y
+
+
+LNAND = {
+    "XX": "X",
+    "X0": "X",
+    "X1": "X",
+    "Xx": "X",
+    "0X": "X",
+    "00": "1",
+    "01": "1",
+    "0x": "1",
+    "1X": "X",
+    "10": "1",
+    "11": "0",
+    "1x": "x",
+    "xX": "X",
+    "x0": "1",
+    "x1": "x",
+    "xx": "x",
+}
+
+
+def test_lnand():
+    """Test seqlogic.pcn.lnand function."""
+    for xs, y in LNAND.items():
+        x0 = from_char[xs[0]]
+        x1 = from_char[xs[1]]
+        y = from_char[y]
+        assert lnand(x0, x1) == y
+
+
+LAND = {
+    "XX": "X",
+    "X0": "X",
+    "X1": "X",
+    "Xx": "X",
+    "0X": "X",
+    "00": "0",
+    "01": "0",
+    "0x": "0",
+    "1X": "X",
+    "10": "0",
+    "11": "1",
+    "1x": "x",
+    "xX": "X",
+    "x0": "0",
+    "x1": "x",
+    "xx": "x",
+}
+
+
+def test_land():
+    """Test seqlogic.pcn.land function."""
+    for xs, y in LAND.items():
+        x0 = from_char[xs[0]]
+        x1 = from_char[xs[1]]
+        y = from_char[y]
+        assert land(x0, x1) == y
+
+
+LXNOR = {
+    "XX": "X",
+    "X0": "X",
+    "X1": "X",
+    "Xx": "X",
+    "0X": "X",
+    "00": "1",
+    "01": "0",
+    "0x": "x",
+    "1X": "X",
+    "10": "0",
+    "11": "1",
+    "1x": "x",
+    "xX": "X",
+    "x0": "x",
+    "x1": "x",
+    "xx": "x",
+}
+
+
+def test_lxnor():
+    """Test seqlogic.pcn.lnand function."""
+    for xs, y in LXNOR.items():
+        x0 = from_char[xs[0]]
+        x1 = from_char[xs[1]]
+        y = from_char[y]
+        assert lxnor(x0, x1) == y
+
+
+LXOR = {
+    "XX": "X",
+    "X0": "X",
+    "X1": "X",
+    "Xx": "X",
+    "0X": "X",
+    "00": "0",
+    "01": "1",
+    "0x": "x",
+    "1X": "X",
+    "10": "1",
+    "11": "0",
+    "1x": "x",
+    "xX": "X",
+    "x0": "x",
+    "x1": "x",
+    "xx": "x",
+}
+
+
+def test_lxor():
+    """Test seqlogic.pcn.land function."""
+    for xs, y in LXOR.items():
+        x0 = from_char[xs[0]]
+        x1 = from_char[xs[1]]
+        y = from_char[y]
+        assert lxor(x0, x1) == y
+
+
+LIMPLIES = {
+    "XX": "X",
+    "X0": "X",
+    "X1": "X",
+    "Xx": "X",
+    "0X": "X",
+    "00": "1",
+    "01": "1",
+    "0x": "1",
+    "1X": "X",
+    "10": "0",
+    "11": "1",
+    "1x": "x",
+    "xX": "X",
+    "x0": "x",
+    "x1": "1",
+    "xx": "x",
+}
+
+
+def test_limplies():
+    """Test seqlogic.pcn.limplies function."""
+    for xs, y in LIMPLIES.items():
+        x0 = from_char[xs[0]]
+        x1 = from_char[xs[1]]
+        y = from_char[y]
+        assert limplies(x0, x1) == y
+
 
 UINT2VEC_VALS = {
     0: "",
