@@ -2,8 +2,9 @@
 
 import pytest
 
+from seqlogic import pcn
 from seqlogic.pcn import (
-    from_char,
+    PcVec,
     int2vec,
     land,
     limplies,
@@ -27,9 +28,10 @@ LNOT = {
 def test_lnot():
     """Test seqlogic.pcn.lnot function."""
     for x, y in LNOT.items():
-        x = from_char[x]
-        y = from_char[y]
+        x = pcn.from_char[x]
+        y = pcn.from_char[y]
         assert lnot(x) == y
+        assert ~PcVec(1, x) == PcVec(1, y)
 
 
 LNOR = {
@@ -55,10 +57,11 @@ LNOR = {
 def test_lnor():
     """Test seqlogic.pcn.lnor function."""
     for xs, y in LNOR.items():
-        x0 = from_char[xs[0]]
-        x1 = from_char[xs[1]]
-        y = from_char[y]
+        x0 = pcn.from_char[xs[0]]
+        x1 = pcn.from_char[xs[1]]
+        y = pcn.from_char[y]
         assert lnor(x0, x1) == y
+        assert ~(PcVec(1, x0) | PcVec(1, x1)) == PcVec(1, y)
 
 
 LOR = {
@@ -84,10 +87,11 @@ LOR = {
 def test_lor():
     """Test seqlogic.pcn.lor function."""
     for xs, y in LOR.items():
-        x0 = from_char[xs[0]]
-        x1 = from_char[xs[1]]
-        y = from_char[y]
+        x0 = pcn.from_char[xs[0]]
+        x1 = pcn.from_char[xs[1]]
+        y = pcn.from_char[y]
         assert lor(x0, x1) == y
+        assert PcVec(1, x0) | PcVec(1, x1) == PcVec(1, y)
 
 
 LNAND = {
@@ -113,10 +117,11 @@ LNAND = {
 def test_lnand():
     """Test seqlogic.pcn.lnand function."""
     for xs, y in LNAND.items():
-        x0 = from_char[xs[0]]
-        x1 = from_char[xs[1]]
-        y = from_char[y]
+        x0 = pcn.from_char[xs[0]]
+        x1 = pcn.from_char[xs[1]]
+        y = pcn.from_char[y]
         assert lnand(x0, x1) == y
+        assert ~(PcVec(1, x0) & PcVec(1, x1)) == PcVec(1, y)
 
 
 LAND = {
@@ -142,10 +147,11 @@ LAND = {
 def test_land():
     """Test seqlogic.pcn.land function."""
     for xs, y in LAND.items():
-        x0 = from_char[xs[0]]
-        x1 = from_char[xs[1]]
-        y = from_char[y]
+        x0 = pcn.from_char[xs[0]]
+        x1 = pcn.from_char[xs[1]]
+        y = pcn.from_char[y]
         assert land(x0, x1) == y
+        assert PcVec(1, x0) & PcVec(1, x1) == PcVec(1, y)
 
 
 LXNOR = {
@@ -171,10 +177,11 @@ LXNOR = {
 def test_lxnor():
     """Test seqlogic.pcn.lnand function."""
     for xs, y in LXNOR.items():
-        x0 = from_char[xs[0]]
-        x1 = from_char[xs[1]]
-        y = from_char[y]
+        x0 = pcn.from_char[xs[0]]
+        x1 = pcn.from_char[xs[1]]
+        y = pcn.from_char[y]
         assert lxnor(x0, x1) == y
+        assert ~(PcVec(1, x0) ^ PcVec(1, x1)) == PcVec(1, y)
 
 
 LXOR = {
@@ -200,10 +207,11 @@ LXOR = {
 def test_lxor():
     """Test seqlogic.pcn.land function."""
     for xs, y in LXOR.items():
-        x0 = from_char[xs[0]]
-        x1 = from_char[xs[1]]
-        y = from_char[y]
+        x0 = pcn.from_char[xs[0]]
+        x1 = pcn.from_char[xs[1]]
+        y = pcn.from_char[y]
         assert lxor(x0, x1) == y
+        assert PcVec(1, x0) ^ PcVec(1, x1) == PcVec(1, y)
 
 
 LIMPLIES = {
@@ -229,9 +237,9 @@ LIMPLIES = {
 def test_limplies():
     """Test seqlogic.pcn.limplies function."""
     for xs, y in LIMPLIES.items():
-        x0 = from_char[xs[0]]
-        x1 = from_char[xs[1]]
-        y = from_char[y]
+        x0 = pcn.from_char[xs[0]]
+        x1 = pcn.from_char[xs[1]]
+        y = pcn.from_char[y]
         assert limplies(x0, x1) == y
 
 

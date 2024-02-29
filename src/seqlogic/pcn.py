@@ -61,7 +61,7 @@ from_hexchar = {
 
 
 def lnot(x: int) -> int:
-    """Return output of "lifted" NOT function.
+    """Lifted NOT function.
 
     f(x) -> y:
         N => N | 00 => 00
@@ -79,7 +79,7 @@ def lnot(x: int) -> int:
 
 
 def lnor(x0: int, x1: int) -> int:
-    """Return output of "lifted" NOR function.
+    """Lifted NOR function.
 
     f(x0, x1) -> y:
         0 0 => 0
@@ -115,7 +115,7 @@ def lnor(x0: int, x1: int) -> int:
 
 
 def lor(x0: int, x1: int) -> int:
-    """Return output of "lifted" OR function.
+    """Lifted OR function.
 
     f(x0, x1) -> y:
         0 0 => 0
@@ -151,7 +151,7 @@ def lor(x0: int, x1: int) -> int:
 
 
 def lnand(x0: int, x1: int) -> int:
-    """Return output of "lifted" NAND function.
+    """Lifted NAND function.
 
     f(x0, x1) -> y:
         0 0 => 1
@@ -187,7 +187,7 @@ def lnand(x0: int, x1: int) -> int:
 
 
 def land(x0: int, x1: int) -> int:
-    """Return output of "lifted" AND function.
+    """Lifted AND function.
 
     f(x0, x1) -> y:
         0 0 => 0
@@ -223,7 +223,7 @@ def land(x0: int, x1: int) -> int:
 
 
 def lxnor(x0: int, x1: int) -> int:
-    """Return output of "lifted" XNOR function.
+    """Lifted XNOR function.
 
     f(x0, x1) -> y:
         0 0 => 1
@@ -259,7 +259,7 @@ def lxnor(x0: int, x1: int) -> int:
 
 
 def lxor(x0: int, x1: int) -> int:
-    """Return output of "lifted" XOR function.
+    """Lifted XOR function.
 
     f(x0, x1) -> y:
         0 0 => 0
@@ -295,7 +295,7 @@ def lxor(x0: int, x1: int) -> int:
 
 
 def limplies(p: int, q: int) -> int:
-    """Return output of "lifted" IMPLIES function.
+    """Lifted IMPLIES function.
 
     f(p, q) -> y:
         0 0 => 1
