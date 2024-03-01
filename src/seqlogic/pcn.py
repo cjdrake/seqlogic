@@ -337,7 +337,7 @@ class PcVec:
     """TODO(cjdrake): Write docstring."""
 
     def __class_getitem__(cls, key: int):
-        pass
+        pass  # pragma: no cover
 
     def __init__(self, n: int, data: int):
         """TODO(cjdrake): Write docstring."""

@@ -1,5 +1,7 @@
 """Test seqlogic.pcn module."""
 
+# pylint: disable = pointless-statement
+
 import pytest
 
 from seqlogic import pcn
@@ -388,3 +390,40 @@ def test_int2vec():
         int2vec(3, 2)
     with pytest.raises(ValueError):
         int2vec(4, 3)
+
+
+def test_pcvec_basic():
+    """Test seqlogic.pcn.PcVec basic functionality."""
+    # n is non-negative
+    with pytest.raises(ValueError):
+        PcVec(-1, 42)
+
+    # data in [0, 2**nbits)
+    with pytest.raises(ValueError):
+        PcVec(4, -1)
+    with pytest.raises(ValueError):
+        PcVec(4, 2 ** (2 * 4))
+
+    v = PcVec(4, 0b11_10_01_00)
+    assert len(v) == 4
+
+    assert v[3] == PcVec(1, 0b11)
+    assert v[2] == PcVec(1, 0b10)
+    assert v[1] == PcVec(1, 0b01)
+    assert v[0] == PcVec(1, 0b00)
+
+    assert v[0:1] == PcVec(1, 0b00)
+    assert v[0:2] == PcVec(2, 0b01_00)
+    assert v[0:3] == PcVec(3, 0b10_01_00)
+    assert v[0:4] == PcVec(4, 0b11_10_01_00)
+    assert v[1:2] == PcVec(1, 0b01)
+    assert v[1:3] == PcVec(2, 0b10_01)
+    assert v[1:4] == PcVec(3, 0b11_10_01)
+    assert v[2:3] == PcVec(1, 0b10)
+    assert v[2:4] == PcVec(2, 0b11_10)
+    assert v[3:4] == PcVec(1, 0b11)
+
+    with pytest.raises(TypeError):
+        v["invalid"]  # pyright: ignore[reportArgumentType]
+
+    assert list(v) == [PcVec(1, 0b00), PcVec(1, 0b01), PcVec(1, 0b10), PcVec(1, 0b11)]
