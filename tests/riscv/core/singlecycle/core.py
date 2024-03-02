@@ -1,7 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Module
-from seqlogic.var import Bit, Bits
+from seqlogic import Bit, Bits, Module
 
 from ..common.data_memory_interface import DataMemoryInterface
 from .ctl_path import CtlPath

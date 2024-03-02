@@ -7,9 +7,9 @@ It might be useful to add to seqlogic library.
 from collections import defaultdict
 from collections.abc import Callable
 
+from seqlogic import Bit
 from seqlogic.logicvec import F, T, logicvec
 from seqlogic.sim import SimVar, notify, sleep
-from seqlogic.var import Bit
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
