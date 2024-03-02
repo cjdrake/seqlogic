@@ -582,6 +582,13 @@ class PcVec:
             y = y.lxor(x)
         return y
 
+    def ulxnor(self) -> PcVec[1]:
+        """Unary lifted XNOR reduction."""
+        y = T
+        for x in self:
+            y = y.lxnor(x)
+        return y
+
     def to_uint(self) -> int:
         """Convert to unsigned integer."""
         y = 0
