@@ -67,7 +67,7 @@ class TraceVar(HierVar, SimVar):
         super().update()
 
 
-class LogicVec(TraceVar):
+class Bits(TraceVar):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module, shape: tuple[int, ...]):
@@ -78,7 +78,7 @@ class LogicVec(TraceVar):
 # TODO(cjdrake): Create a generic type for enums
 
 
-class Bit(LogicVec):
+class Bit(Bits):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module):

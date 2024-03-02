@@ -4,7 +4,7 @@ from seqlogic import Module
 from seqlogic.logicvec import vec, xes
 from seqlogic.sim import notify
 from seqlogic.util import clog2
-from seqlogic.var import LogicVec
+from seqlogic.var import Bits
 
 from ..misc import COMBI
 
@@ -19,16 +19,16 @@ class Mux8(Module):
         self._width = width
 
         # Ports
-        self.out = LogicVec(name="out", parent=self, shape=(width,))
-        self.sel = LogicVec(name="sel", parent=self, shape=(clog2(8),))
-        self.in0 = LogicVec(name="in0", parent=self, shape=(width,))
-        self.in1 = LogicVec(name="in1", parent=self, shape=(width,))
-        self.in2 = LogicVec(name="in2", parent=self, shape=(width,))
-        self.in3 = LogicVec(name="in3", parent=self, shape=(width,))
-        self.in4 = LogicVec(name="in4", parent=self, shape=(width,))
-        self.in5 = LogicVec(name="in5", parent=self, shape=(width,))
-        self.in6 = LogicVec(name="in6", parent=self, shape=(width,))
-        self.in7 = LogicVec(name="in7", parent=self, shape=(width,))
+        self.out = Bits(name="out", parent=self, shape=(width,))
+        self.sel = Bits(name="sel", parent=self, shape=(clog2(8),))
+        self.in0 = Bits(name="in0", parent=self, shape=(width,))
+        self.in1 = Bits(name="in1", parent=self, shape=(width,))
+        self.in2 = Bits(name="in2", parent=self, shape=(width,))
+        self.in3 = Bits(name="in3", parent=self, shape=(width,))
+        self.in4 = Bits(name="in4", parent=self, shape=(width,))
+        self.in5 = Bits(name="in5", parent=self, shape=(width,))
+        self.in6 = Bits(name="in6", parent=self, shape=(width,))
+        self.in7 = Bits(name="in7", parent=self, shape=(width,))
 
         # Processes
         self._procs.add((self.proc_out, COMBI))

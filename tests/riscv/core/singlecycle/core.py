@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Module
-from seqlogic.var import Bit, LogicVec
+from seqlogic.var import Bit, Bits
 
 from ..common.data_memory_interface import DataMemoryInterface
 from .ctl_path import CtlPath
@@ -16,15 +16,15 @@ class Core(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.bus_addr = LogicVec(name="bus_addr", parent=self, shape=(32,))
+        self.bus_addr = Bits(name="bus_addr", parent=self, shape=(32,))
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
-        self.bus_wr_be = LogicVec(name="bus_wr_be", parent=self, shape=(4,))
-        self.bus_wr_data = LogicVec(name="bus_wr_data", parent=self, shape=(32,))
+        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, shape=(4,))
+        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, shape=(32,))
         self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
-        self.bus_rd_data = LogicVec(name="bus_rd_data", parent=self, shape=(32,))
+        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, shape=(32,))
 
-        self.pc = LogicVec(name="pc", parent=self, shape=(32,))
-        self.inst = LogicVec(name="inst", parent=self, shape=(32,))
+        self.pc = Bits(name="pc", parent=self, shape=(32,))
+        self.inst = Bits(name="inst", parent=self, shape=(32,))
 
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
@@ -34,18 +34,18 @@ class Core(Module):
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
         self.alu_op_a_sel = Bit(name="alu_op_a_sel", parent=self)
         self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
-        self.reg_writeback_sel = LogicVec(name="reg_writeback_sel", parent=self, shape=(3,))
-        self.inst_opcode = LogicVec(name="inst_opcode", parent=self, shape=(7,))
-        self.inst_funct3 = LogicVec(name="inst_funct3", parent=self, shape=(3,))
-        self.inst_funct7 = LogicVec(name="inst_funct7", parent=self, shape=(7,))
-        self.next_pc_sel = LogicVec(name="next_pc_sel", parent=self, shape=(2,))
-        self.alu_function = LogicVec(name="alu_function", parent=self, shape=(5,))
+        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, shape=(3,))
+        self.inst_opcode = Bits(name="inst_opcode", parent=self, shape=(7,))
+        self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
+        self.inst_funct7 = Bits(name="inst_funct7", parent=self, shape=(7,))
+        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, shape=(2,))
+        self.alu_function = Bits(name="alu_function", parent=self, shape=(5,))
         self.alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
-        self.addr = LogicVec(name="addr", parent=self, shape=(32,))
+        self.addr = Bits(name="addr", parent=self, shape=(32,))
         self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_data = LogicVec(name="wr_data", parent=self, shape=(32,))
+        self.wr_data = Bits(name="wr_data", parent=self, shape=(32,))
         self.rd_en = Bit(name="rd_en", parent=self)
-        self.rd_data = LogicVec(name="rd_data", parent=self, shape=(32,))
+        self.rd_data = Bits(name="rd_data", parent=self, shape=(32,))
 
         # Submodules
         self.ctlpath = CtlPath(name="ctlpath", parent=self)

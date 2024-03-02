@@ -4,7 +4,7 @@ from seqlogic import Module
 from seqlogic.hier import List
 from seqlogic.logicvec import T, xes, zeros
 from seqlogic.sim import notify
-from seqlogic.var import Bit, LogicVec
+from seqlogic.var import Bit, Bits
 
 from ..misc import COMBI, FLOP, TASK
 
@@ -20,18 +20,18 @@ class RegFile(Module):
 
         # Ports
         self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_addr = LogicVec(name="wr_addr", parent=self, shape=(5,))
-        self.wr_data = LogicVec(name="wr_data", parent=self, shape=(32,))
-        self.rs1_addr = LogicVec(name="rs1_addr", parent=self, shape=(5,))
-        self.rs1_data = LogicVec(name="rs1_data", parent=self, shape=(32,))
-        self.rs2_addr = LogicVec(name="rs2_addr", parent=self, shape=(5,))
-        self.rs2_data = LogicVec(name="rs2_data", parent=self, shape=(32,))
+        self.wr_addr = Bits(name="wr_addr", parent=self, shape=(5,))
+        self.wr_data = Bits(name="wr_data", parent=self, shape=(32,))
+        self.rs1_addr = Bits(name="rs1_addr", parent=self, shape=(5,))
+        self.rs1_data = Bits(name="rs1_data", parent=self, shape=(32,))
+        self.rs2_addr = Bits(name="rs2_addr", parent=self, shape=(5,))
+        self.rs2_data = Bits(name="rs2_data", parent=self, shape=(32,))
         self.clock = Bit(name="clock", parent=self)
 
         # State
         self.regs = List(name="regs", parent=self)
         for i in range(NUM):
-            reg = LogicVec(name=str(i), parent=self.regs, shape=(32,))
+            reg = Bits(name=str(i), parent=self.regs, shape=(32,))
             self.regs.append(reg)
 
         self._procs.add((self.proc_init, TASK))

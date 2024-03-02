@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import cat, rep, vec, xes
 from seqlogic.sim import notify
-from seqlogic.var import Bit, LogicVec
+from seqlogic.var import Bit, Bits
 
 from ..misc import COMBI
 
@@ -16,24 +16,24 @@ class DataMemoryInterface(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.data_format = LogicVec(name="data_format", parent=self, shape=(3,))
+        self.data_format = Bits(name="data_format", parent=self, shape=(3,))
 
-        self.addr = LogicVec(name="addr", parent=self, shape=(32,))
+        self.addr = Bits(name="addr", parent=self, shape=(32,))
         self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_data = LogicVec(name="wr_data", parent=self, shape=(32,))
+        self.wr_data = Bits(name="wr_data", parent=self, shape=(32,))
         self.rd_en = Bit(name="rd_en", parent=self)
-        self.rd_data = LogicVec(name="rd_data", parent=self, shape=(32,))
+        self.rd_data = Bits(name="rd_data", parent=self, shape=(32,))
 
-        self.bus_addr = LogicVec(name="bus_addr", parent=self, shape=(32,))
+        self.bus_addr = Bits(name="bus_addr", parent=self, shape=(32,))
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
-        self.bus_wr_be = LogicVec(name="bus_wr_be", parent=self, shape=(4,))
-        self.bus_wr_data = LogicVec(name="bus_wr_data", parent=self, shape=(32,))
+        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, shape=(4,))
+        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, shape=(32,))
         self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
-        self.bus_rd_data = LogicVec(name="bus_rd_data", parent=self, shape=(32,))
+        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, shape=(32,))
 
         # State
-        self.position_fix = LogicVec(name="position_fix", parent=self, shape=(32,))
-        self.sign_fix = LogicVec(name="sign_fix", parent=self, shape=(32,))
+        self.position_fix = Bits(name="position_fix", parent=self, shape=(32,))
+        self.sign_fix = Bits(name="sign_fix", parent=self, shape=(32,))
 
         self.connect(self.bus_addr, self.addr)
         self.connect(self.bus_wr_en, self.wr_en)

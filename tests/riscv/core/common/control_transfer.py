@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import X
 from seqlogic.sim import notify
-from seqlogic.var import Bit, LogicVec
+from seqlogic.var import Bit, Bits
 
 from ..misc import COMBI
 from .constants import Funct3Branch
@@ -18,7 +18,7 @@ class ControlTransfer(Module):
 
         # Ports
         self.take_branch = Bit(name="take_branch", parent=self)
-        self.inst_funct3 = LogicVec(name="inst_funct3", parent=self, shape=(3,))
+        self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
 
         # Processes

@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import F, cat, vec, zeros
 from seqlogic.sim import notify
-from seqlogic.var import Bit, LogicVec
+from seqlogic.var import Bit, Bits
 
 from ..common.adder import Adder
 from ..common.alu import Alu
@@ -24,59 +24,59 @@ class DataPath(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
-        self.data_mem_addr = LogicVec(name="data_mem_addr", parent=self, shape=(32,))
-        self.data_mem_wr_data = LogicVec(name="data_mem_wr_data", parent=self, shape=(32,))
-        self.data_mem_rd_data = LogicVec(name="data_mem_rd_data", parent=self, shape=(32,))
+        self.data_mem_addr = Bits(name="data_mem_addr", parent=self, shape=(32,))
+        self.data_mem_wr_data = Bits(name="data_mem_wr_data", parent=self, shape=(32,))
+        self.data_mem_rd_data = Bits(name="data_mem_rd_data", parent=self, shape=(32,))
 
-        self.inst = LogicVec(name="inst", parent=self, shape=(32,))
-        self.pc = LogicVec(name="pc", parent=self, shape=(32,))
+        self.inst = Bits(name="inst", parent=self, shape=(32,))
+        self.pc = Bits(name="pc", parent=self, shape=(32,))
 
         # Instruction decode
-        self.inst_funct7 = LogicVec(name="inst_funct7", parent=self, shape=(7,))
-        self.inst_rs2 = LogicVec(name="inst_rs2", parent=self, shape=(5,))
-        self.inst_rs1 = LogicVec(name="inst_rs1", parent=self, shape=(5,))
-        self.inst_funct3 = LogicVec(name="inst_funct3", parent=self, shape=(3,))
-        self.inst_rd = LogicVec(name="inst_rd", parent=self, shape=(5,))
-        self.inst_opcode = LogicVec(name="inst_opcode", parent=self, shape=(7,))
+        self.inst_funct7 = Bits(name="inst_funct7", parent=self, shape=(7,))
+        self.inst_rs2 = Bits(name="inst_rs2", parent=self, shape=(5,))
+        self.inst_rs1 = Bits(name="inst_rs1", parent=self, shape=(5,))
+        self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
+        self.inst_rd = Bits(name="inst_rd", parent=self, shape=(5,))
+        self.inst_opcode = Bits(name="inst_opcode", parent=self, shape=(7,))
 
         # Immedate generate
-        self.immediate = LogicVec(name="immediate", parent=self, shape=(32,))
+        self.immediate = Bits(name="immediate", parent=self, shape=(32,))
 
         # PC + 4
-        self.pc_plus_4 = LogicVec(name="pc_plus_4", parent=self, shape=(32,))
+        self.pc_plus_4 = Bits(name="pc_plus_4", parent=self, shape=(32,))
 
         # PC + Immediate
-        self.pc_plus_immediate = LogicVec(name="pc_plus_immediate", parent=self, shape=(32,))
+        self.pc_plus_immediate = Bits(name="pc_plus_immediate", parent=self, shape=(32,))
 
         # Control signals
         self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
         self.alu_op_a_sel = Bit(name="alu_op_a_sel", parent=self)
         self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
-        self.alu_function = LogicVec(name="alu_function", parent=self, shape=(5,))
-        self.reg_writeback_sel = LogicVec(name="reg_writeback_sel", parent=self, shape=(3,))
-        self.next_pc_sel = LogicVec(name="next_pc_sel", parent=self, shape=(2,))
+        self.alu_function = Bits(name="alu_function", parent=self, shape=(5,))
+        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, shape=(3,))
+        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, shape=(2,))
 
         # Select ALU Ops
-        self.alu_op_a = LogicVec(name="alu_op_a", parent=self, shape=(32,))
-        self.alu_op_b = LogicVec(name="alu_op_b", parent=self, shape=(32,))
+        self.alu_op_a = Bits(name="alu_op_a", parent=self, shape=(32,))
+        self.alu_op_b = Bits(name="alu_op_b", parent=self, shape=(32,))
 
         # ALU Outputs
-        self.alu_result = LogicVec(name="alu_result", parent=self, shape=(32,))
+        self.alu_result = Bits(name="alu_result", parent=self, shape=(32,))
         self.alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
 
         # Next PC
-        self.pc_next = LogicVec(name="pc_next", parent=self, shape=(32,))
+        self.pc_next = Bits(name="pc_next", parent=self, shape=(32,))
 
         # Regfile Write Data
-        self.wr_data = LogicVec(name="wr_data", parent=self, shape=(32,))
+        self.wr_data = Bits(name="wr_data", parent=self, shape=(32,))
 
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
 
         # State
-        self.rs1_data = LogicVec(name="rs1_data", parent=self, shape=(32,))
-        self.rs2_data = LogicVec(name="rs2_data", parent=self, shape=(32,))
+        self.rs1_data = Bits(name="rs1_data", parent=self, shape=(32,))
+        self.rs2_data = Bits(name="rs2_data", parent=self, shape=(32,))
 
         self.connect(self.data_mem_addr, self.alu_result)
         self.connect(self.data_mem_wr_data, self.rs2_data)

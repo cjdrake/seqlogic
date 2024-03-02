@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import F, cat, rep, vec, zeros
 from seqlogic.sim import notify
-from seqlogic.var import LogicVec
+from seqlogic.var import Bits
 
 from ..misc import COMBI
 from .constants import Opcode
@@ -17,8 +17,8 @@ class ImmedateGenerator(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.immediate = LogicVec(name="immediate", parent=self, shape=(32,))
-        self.inst = LogicVec(name="inst", parent=self, shape=(32,))
+        self.immediate = Bits(name="immediate", parent=self, shape=(32,))
+        self.inst = Bits(name="inst", parent=self, shape=(32,))
 
         # Processes
         self._procs.add((self.proc_out, COMBI))

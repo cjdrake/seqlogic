@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import xes
 from seqlogic.sim import notify
-from seqlogic.var import LogicVec
+from seqlogic.var import Bits
 
 from ..misc import COMBI
 from .constants import TEXT_BASE, TEXT_BITS, TEXT_SIZE
@@ -18,11 +18,11 @@ class TextMemoryBus(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.rd_addr = LogicVec(name="rd_addr", parent=self, shape=(32,))
-        self.rd_data = LogicVec(name="rd_data", parent=self, shape=(32,))
+        self.rd_addr = Bits(name="rd_addr", parent=self, shape=(32,))
+        self.rd_data = Bits(name="rd_data", parent=self, shape=(32,))
 
         # State
-        self.text = LogicVec(name="text", parent=self, shape=(32,))
+        self.text = Bits(name="text", parent=self, shape=(32,))
 
         # Submodules
         self.text_memory = TextMemory("text_memory", parent=self)

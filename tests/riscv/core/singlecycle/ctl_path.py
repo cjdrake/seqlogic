@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Module
-from seqlogic.var import Bit, LogicVec
+from seqlogic.var import Bit, Bits
 
 from ..common.alu_control import AluControl
 from ..common.control_transfer import ControlTransfer
@@ -16,9 +16,9 @@ class CtlPath(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.inst_opcode = LogicVec(name="inst_opcode", parent=self, shape=(7,))
-        self.inst_funct3 = LogicVec(name="inst_funct3", parent=self, shape=(3,))
-        self.inst_funct7 = LogicVec(name="inst_funct7", parent=self, shape=(7,))
+        self.inst_opcode = Bits(name="inst_opcode", parent=self, shape=(7,))
+        self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
+        self.inst_funct7 = Bits(name="inst_funct7", parent=self, shape=(7,))
         self.alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
         self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
@@ -26,13 +26,13 @@ class CtlPath(Module):
         self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
         self.data_mem_rd_en = Bit(name="data_mem_rd_en", parent=self)
         self.data_mem_wr_en = Bit(name="data_mem_wr_en", parent=self)
-        self.reg_writeback_sel = LogicVec(name="reg_writeback_sel", parent=self, shape=(3,))
-        self.alu_function = LogicVec(name="alu_function", parent=self, shape=(5,))
-        self.next_pc_sel = LogicVec(name="next_pc_sel", parent=self, shape=(2,))
+        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, shape=(3,))
+        self.alu_function = Bits(name="alu_function", parent=self, shape=(5,))
+        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, shape=(2,))
 
         # State
         self.take_branch = Bit(name="take_branch", parent=self)
-        self.alu_op_type = LogicVec(name="alu_op_type", parent=self, shape=(2,))
+        self.alu_op_type = Bits(name="alu_op_type", parent=self, shape=(2,))
 
         # Submodules
         self.control = Control(name="control", parent=self)

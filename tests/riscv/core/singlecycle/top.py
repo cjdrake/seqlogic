@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import vec
 from seqlogic.sim import sleep
-from seqlogic.var import Bit, LogicVec
+from seqlogic.var import Bit, Bits
 
 from ..common.data_memory_bus import DataMemoryBus
 from ..common.text_memory_bus import TextMemoryBus
@@ -19,15 +19,15 @@ class Top(Module):
         super().__init__(name, parent=None)
 
         # Ports
-        self.bus_addr = LogicVec(name="bus_addr", parent=self, shape=(32,))
+        self.bus_addr = Bits(name="bus_addr", parent=self, shape=(32,))
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
-        self.bus_wr_be = LogicVec(name="bus_wr_be", parent=self, shape=(4,))
-        self.bus_wr_data = LogicVec(name="bus_wr_data", parent=self, shape=(32,))
+        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, shape=(4,))
+        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, shape=(32,))
         self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
-        self.bus_rd_data = LogicVec(name="bus_rd_data", parent=self, shape=(32,))
+        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, shape=(32,))
 
-        self.pc = LogicVec(name="pc", parent=self, shape=(32,))
-        self.inst = LogicVec(name="inst", parent=self, shape=(32,))
+        self.pc = Bits(name="pc", parent=self, shape=(32,))
+        self.inst = Bits(name="inst", parent=self, shape=(32,))
 
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)

@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import F, T, logicvec
 from seqlogic.sim import notify
-from seqlogic.var import Bit, LogicVec
+from seqlogic.var import Bit, Bits
 
 from ..misc import FLOP
 
@@ -19,9 +19,9 @@ class Register(Module):
         self.init = init
 
         # Ports
-        self.q = LogicVec(name="q", parent=self, shape=(width,))
+        self.q = Bits(name="q", parent=self, shape=(width,))
         self.en = Bit(name="en", parent=self)
-        self.d = LogicVec(name="d", parent=self, shape=(width,))
+        self.d = Bits(name="d", parent=self, shape=(width,))
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
 

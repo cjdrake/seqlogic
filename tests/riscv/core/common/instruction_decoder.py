@@ -2,7 +2,7 @@
 
 from seqlogic import Module
 from seqlogic.sim import notify
-from seqlogic.var import LogicVec
+from seqlogic.var import Bits
 
 from ..misc import COMBI
 
@@ -15,13 +15,13 @@ class InstructionDecoder(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.inst_funct7 = LogicVec(name="inst_funct7", parent=self, shape=(7,))
-        self.inst_rs2 = LogicVec(name="inst_rs2", parent=self, shape=(5,))
-        self.inst_rs1 = LogicVec(name="inst_rs1", parent=self, shape=(5,))
-        self.inst_funct3 = LogicVec(name="inst_funct3", parent=self, shape=(3,))
-        self.inst_rd = LogicVec(name="inst_rd", parent=self, shape=(5,))
-        self.inst_opcode = LogicVec(name="inst_opcode", parent=self, shape=(7,))
-        self.inst = LogicVec(name="inst", parent=self, shape=(32,))
+        self.inst_funct7 = Bits(name="inst_funct7", parent=self, shape=(7,))
+        self.inst_rs2 = Bits(name="inst_rs2", parent=self, shape=(5,))
+        self.inst_rs1 = Bits(name="inst_rs1", parent=self, shape=(5,))
+        self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
+        self.inst_rd = Bits(name="inst_rd", parent=self, shape=(5,))
+        self.inst_opcode = Bits(name="inst_opcode", parent=self, shape=(7,))
+        self.inst = Bits(name="inst", parent=self, shape=(32,))
 
         # Processes
         self._procs.add((self.proc_out, COMBI))

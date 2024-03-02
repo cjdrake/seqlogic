@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.hier import Dict
 from seqlogic.sim import notify
-from seqlogic.var import LogicVec
+from seqlogic.var import Bits
 
 from ..misc import COMBI
 
@@ -18,13 +18,13 @@ class TextMemory(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.rd_addr = LogicVec(name="rd_addr", parent=self, shape=(14,))
-        self.rd_data = LogicVec(name="rd_data", parent=self, shape=(32,))
+        self.rd_addr = Bits(name="rd_addr", parent=self, shape=(14,))
+        self.rd_data = Bits(name="rd_data", parent=self, shape=(32,))
 
         # State
         self.mem = Dict(name="mem", parent=self)
         for i in range(NUM):
-            self.mem[i] = LogicVec(name=str(i), parent=self.mem, shape=(32,))
+            self.mem[i] = Bits(name=str(i), parent=self.mem, shape=(32,))
 
         # Processes
         self._procs.add((self.proc_rd_data, COMBI))

@@ -4,7 +4,7 @@ from seqlogic import Module
 from seqlogic.logicvec import vec, xes
 from seqlogic.sim import notify
 from seqlogic.util import clog2
-from seqlogic.var import LogicVec
+from seqlogic.var import Bits
 
 from ..misc import COMBI
 
@@ -19,12 +19,12 @@ class Mux4(Module):
         self._width = width
 
         # Ports
-        self.out = LogicVec(name="out", parent=self, shape=(width,))
-        self.sel = LogicVec(name="sel", parent=self, shape=(clog2(4),))
-        self.in0 = LogicVec(name="in0", parent=self, shape=(width,))
-        self.in1 = LogicVec(name="in1", parent=self, shape=(width,))
-        self.in2 = LogicVec(name="in2", parent=self, shape=(width,))
-        self.in3 = LogicVec(name="in3", parent=self, shape=(width,))
+        self.out = Bits(name="out", parent=self, shape=(width,))
+        self.sel = Bits(name="sel", parent=self, shape=(clog2(4),))
+        self.in0 = Bits(name="in0", parent=self, shape=(width,))
+        self.in1 = Bits(name="in1", parent=self, shape=(width,))
+        self.in2 = Bits(name="in2", parent=self, shape=(width,))
+        self.in3 = Bits(name="in3", parent=self, shape=(width,))
 
         # Processes
         self._procs.add((self.proc_out, COMBI))

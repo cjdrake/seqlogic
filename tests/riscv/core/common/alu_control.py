@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import T, vec
 from seqlogic.sim import notify
-from seqlogic.var import LogicVec
+from seqlogic.var import Bits
 
 from ..misc import COMBI
 from .constants import AluOp, CtlAlu, Funct3AluLogic, Funct3Branch
@@ -17,15 +17,15 @@ class AluControl(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.alu_function = LogicVec(name="alu_function", parent=self, shape=(5,))
-        self.alu_op_type = LogicVec(name="alu_op_type", parent=self, shape=(2,))
-        self.inst_funct3 = LogicVec(name="inst_funct3", parent=self, shape=(3,))
-        self.inst_funct7 = LogicVec(name="inst_funct7", parent=self, shape=(7,))
+        self.alu_function = Bits(name="alu_function", parent=self, shape=(5,))
+        self.alu_op_type = Bits(name="alu_op_type", parent=self, shape=(2,))
+        self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
+        self.inst_funct7 = Bits(name="inst_funct7", parent=self, shape=(7,))
 
         # State
-        self.default_funct = LogicVec(name="default_funct", parent=self, shape=(5,))
-        self.secondary_funct = LogicVec(name="seconary_funct", parent=self, shape=(5,))
-        self.branch_funct = LogicVec(name="branch_funct", parent=self, shape=(5,))
+        self.default_funct = Bits(name="default_funct", parent=self, shape=(5,))
+        self.secondary_funct = Bits(name="seconary_funct", parent=self, shape=(5,))
+        self.branch_funct = Bits(name="branch_funct", parent=self, shape=(5,))
 
         # Processes
         self._procs.add((self.proc_default_funct, COMBI))

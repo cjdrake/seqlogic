@@ -2,7 +2,7 @@
 
 from seqlogic import Module
 from seqlogic.sim import notify
-from seqlogic.var import LogicVec
+from seqlogic.var import Bits
 
 from ..misc import COMBI
 
@@ -19,9 +19,9 @@ class Adder(Module):
         self.width = width
 
         # Ports
-        self.result = LogicVec(name="result", parent=self, shape=(width,))
-        self.op_a = LogicVec(name="op_a", parent=self, shape=(width,))
-        self.op_b = LogicVec(name="op_b", parent=self, shape=(width,))
+        self.result = Bits(name="result", parent=self, shape=(width,))
+        self.op_a = Bits(name="op_a", parent=self, shape=(width,))
+        self.op_b = Bits(name="op_b", parent=self, shape=(width,))
 
         # Processes
         self._procs.add((self.proc_out, COMBI))
