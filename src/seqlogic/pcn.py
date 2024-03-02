@@ -433,7 +433,7 @@ class PcVec:
         return _ITEM_BITS * self._n
 
     def lnot(self) -> PcVec:
-        """Return output of "lifted" NOT function."""
+        """Lifted NOT function."""
         x_0 = self._bit_mask[0]
         x_01 = x_0 << 1
         x_1 = self._bit_mask[1]
@@ -446,11 +446,7 @@ class PcVec:
         return PcVec(self._n, y)
 
     def lnor(self, other: PcVec) -> PcVec:
-        """Return output of "lifted" NOR function.
-
-        y1 = x0[0] & x1[0]
-        y0 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
-        """
+        """Lifted NOR function."""
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -470,11 +466,7 @@ class PcVec:
         return PcVec(self._n, y)
 
     def lor(self, other: PcVec) -> PcVec:
-        """Return output of "lifted" OR function.
-
-        y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
-        y0 = x0[0] & x1[0]
-        """
+        """Lifted OR function."""
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -492,18 +484,14 @@ class PcVec:
         return PcVec(self._n, y)
 
     def ulor(self) -> PcVec[1]:
-        """Return unary "lifted" OR of bits."""
+        """Unary lifted OR reduction."""
         y = F
         for x in self:
             y = y.lor(x)
         return y
 
     def lnand(self, other: PcVec) -> PcVec:
-        """Return output of "lifted" NAND function.
-
-        y1 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
-        y0 = x0[1] & x1[1]
-        """
+        """Lifted NAND function."""
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -523,11 +511,7 @@ class PcVec:
         return PcVec(self._n, y)
 
     def land(self, other: PcVec) -> PcVec:
-        """Return output of "lifted" AND function.
-
-        y1 = x0[1] & x1[1]
-        y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
-        """
+        """Lifted AND function."""
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -545,18 +529,14 @@ class PcVec:
         return PcVec(self._n, y)
 
     def uland(self) -> PcVec[1]:
-        """Return unary "lifted" AND of bits."""
+        """Unary lifted AND reduction."""
         y = T
         for x in self:
             y = y.land(x)
         return y
 
     def lxnor(self, other: PcVec) -> PcVec:
-        """Return output of "lifted" XNOR function.
-
-        y1 = x0[0] & x1[0] | x0[1] & x1[1]
-        y0 = x0[0] & x1[1] | x0[1] & x1[0]
-        """
+        """Lifted XNOR function."""
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -576,11 +556,7 @@ class PcVec:
         return PcVec(self._n, y)
 
     def lxor(self, other: PcVec) -> PcVec:
-        """Return output of "lifted" XOR function.
-
-        y1 = x0[0] & x1[1] | x0[1] & x1[0]
-        y0 = x0[0] & x1[0] | x0[1] & x1[1]
-        """
+        """Lifted XOR function."""
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -600,7 +576,7 @@ class PcVec:
         return PcVec(self._n, y)
 
     def ulxor(self) -> PcVec[1]:
-        """Return unary "lifted" XOR of bits."""
+        """Unary lifted XOR reduction."""
         y = F
         for x in self:
             y = y.lxor(x)
