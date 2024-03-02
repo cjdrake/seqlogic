@@ -9,7 +9,7 @@ from seqlogic import Module
 from seqlogic.enum import Enum
 from seqlogic.logicvec import F, T, X
 from seqlogic.sim import Region, get_loop, notify
-from seqlogic.var import Logic, TraceVar
+from seqlogic.var import Bit, TraceVar
 
 from .common import clock_drv, dff_arn_drv, reset_drv
 
@@ -36,9 +36,9 @@ class EnumVar(TraceVar):
 
 
 async def _input_drv(
-    x: Logic,
-    reset_n: Logic,
-    clock: Logic,
+    x: Bit,
+    reset_n: Bit,
+    clock: Bit,
 ):
     await notify(reset_n.negedge)
     x.next = F
@@ -66,10 +66,10 @@ def test_fsm():
     loop.reset()
 
     top = Module(name="top")
-    clock = Logic(name="clock", parent=top)
-    reset_n = Logic(name="reset_n", parent=top)
+    clock = Bit(name="clock", parent=top)
+    reset_n = Bit(name="reset_n", parent=top)
     ps = EnumVar(name="ps", parent=top)
-    x = Logic(name="x", parent=top)
+    x = Bit(name="x", parent=top)
 
     waves = defaultdict(dict)
     top.dump_waves(waves, r".*")

@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import F, cat, vec, zeros
 from seqlogic.sim import notify
-from seqlogic.var import Logic, LogicVec
+from seqlogic.var import Bit, LogicVec
 
 from ..common.adder import Adder
 from ..common.alu import Alu
@@ -49,10 +49,10 @@ class DataPath(Module):
         self.pc_plus_immediate = LogicVec(name="pc_plus_immediate", parent=self, shape=(32,))
 
         # Control signals
-        self.pc_wr_en = Logic(name="pc_wr_en", parent=self)
-        self.regfile_wr_en = Logic(name="regfile_wr_en", parent=self)
-        self.alu_op_a_sel = Logic(name="alu_op_a_sel", parent=self)
-        self.alu_op_b_sel = Logic(name="alu_op_b_sel", parent=self)
+        self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
+        self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
+        self.alu_op_a_sel = Bit(name="alu_op_a_sel", parent=self)
+        self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
         self.alu_function = LogicVec(name="alu_function", parent=self, shape=(5,))
         self.reg_writeback_sel = LogicVec(name="reg_writeback_sel", parent=self, shape=(3,))
         self.next_pc_sel = LogicVec(name="next_pc_sel", parent=self, shape=(2,))
@@ -63,7 +63,7 @@ class DataPath(Module):
 
         # ALU Outputs
         self.alu_result = LogicVec(name="alu_result", parent=self, shape=(32,))
-        self.alu_result_equal_zero = Logic(name="alu_result_equal_zero", parent=self)
+        self.alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
 
         # Next PC
         self.pc_next = LogicVec(name="pc_next", parent=self, shape=(32,))
@@ -71,8 +71,8 @@ class DataPath(Module):
         # Regfile Write Data
         self.wr_data = LogicVec(name="wr_data", parent=self, shape=(32,))
 
-        self.clock = Logic(name="clock", parent=self)
-        self.reset = Logic(name="reset", parent=self)
+        self.clock = Bit(name="clock", parent=self)
+        self.reset = Bit(name="reset", parent=self)
 
         # State
         self.rs1_data = LogicVec(name="rs1_data", parent=self, shape=(32,))

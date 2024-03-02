@@ -5,7 +5,7 @@ from collections import defaultdict
 from seqlogic import Module
 from seqlogic.logicvec import F, T, X, cat, logicvec, vec
 from seqlogic.sim import Region, get_loop
-from seqlogic.var import Logic, LogicVec
+from seqlogic.var import Bit, LogicVec
 
 from .common import clock_drv, dff_arn_drv, reset_drv
 
@@ -19,8 +19,8 @@ class Top(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name="top", parent=None)
         # Control
-        self.reset_n = Logic(name="reset_n", parent=self)
-        self.clock = Logic(name="clock", parent=self)
+        self.reset_n = Bit(name="reset_n", parent=self)
+        self.clock = Bit(name="clock", parent=self)
         # State
         self.q = LogicVec(name="q", parent=self, shape=(3,))
 

@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import F, T, xes, zeros
 from seqlogic.sim import notify
-from seqlogic.var import Logic, LogicVec
+from seqlogic.var import Bit, LogicVec
 
 from ..misc import COMBI
 from .constants import AluOp
@@ -18,7 +18,7 @@ class Alu(Module):
 
         # Ports
         self.result = LogicVec(name="result", parent=self, shape=(32,))
-        self.result_equal_zero = Logic(name="result_equal_zero", parent=self)
+        self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
         self.alu_function = LogicVec(name="alu_function", parent=self, shape=(5,))
         self.op_a = LogicVec(name="op_a", parent=self, shape=(32,))
         self.op_b = LogicVec(name="op_b", parent=self, shape=(32,))

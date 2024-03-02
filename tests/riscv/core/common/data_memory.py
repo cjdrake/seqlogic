@@ -4,7 +4,7 @@ from seqlogic import Module
 from seqlogic.hier import List
 from seqlogic.logicvec import T, cat, xes
 from seqlogic.sim import notify
-from seqlogic.var import Logic, LogicVec
+from seqlogic.var import Bit, LogicVec
 
 from ..misc import COMBI, FLOP
 
@@ -21,13 +21,13 @@ class DataMemory(Module):
         # Ports
         self.addr = LogicVec(name="addr", parent=self, shape=(15,))
 
-        self.wr_en = Logic(name="wr_en", parent=self)
+        self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_be = LogicVec(name="wr_be", parent=self, shape=(4,))
         self.wr_data = LogicVec(name="wr_data", parent=self, shape=(32,))
 
         self.rd_data = LogicVec(name="rd_data", parent=self, shape=(32,))
 
-        self.clock = Logic(name="clock", parent=self)
+        self.clock = Bit(name="clock", parent=self)
 
         # State
         self.mem = List(name="mem", parent=self)

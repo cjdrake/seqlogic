@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import F, T, X, xes
 from seqlogic.sim import notify
-from seqlogic.var import Logic, LogicVec
+from seqlogic.var import Bit, LogicVec
 
 from ..misc import COMBI
 from .constants import DATA_BASE, DATA_SIZE
@@ -20,18 +20,18 @@ class DataMemoryBus(Module):
         # Ports
         self.addr = LogicVec(name="addr", parent=self, shape=(32,))
 
-        self.wr_en = Logic(name="wr_en", parent=self)
+        self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_be = LogicVec(name="wr_be", parent=self, shape=(4,))
         self.wr_data = LogicVec(name="wr_data", parent=self, shape=(32,))
 
-        self.rd_en = Logic(name="rd_en", parent=self)
+        self.rd_en = Bit(name="rd_en", parent=self)
         self.rd_data = LogicVec(name="rd_data", parent=self, shape=(32,))
 
-        self.clock = Logic(name="clock", parent=self)
+        self.clock = Bit(name="clock", parent=self)
 
         # State
         self.data = LogicVec(name="data", parent=self, shape=(32,))
-        self.is_data = Logic(name="is_data", parent=self)
+        self.is_data = Bit(name="is_data", parent=self)
 
         # Submodules
         self.data_memory = DataMemory("data_memory", parent=self)

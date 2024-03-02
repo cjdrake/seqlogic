@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import F, T, vec
 from seqlogic.sim import notify
-from seqlogic.var import Logic, LogicVec
+from seqlogic.var import Bit, LogicVec
 
 from ..common.constants import CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Opcode
 from ..misc import COMBI
@@ -17,17 +17,17 @@ class Control(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.pc_wr_en = Logic(name="pc_wr_en", parent=self)
-        self.regfile_wr_en = Logic(name="regfile_wr_en", parent=self)
-        self.alu_op_a_sel = Logic(name="alu_op_a_sel", parent=self)
-        self.alu_op_b_sel = Logic(name="alu_op_b_sel", parent=self)
+        self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
+        self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
+        self.alu_op_a_sel = Bit(name="alu_op_a_sel", parent=self)
+        self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
         self.alu_op_type = LogicVec(name="alu_op_type", parent=self, shape=(2,))
-        self.data_mem_rd_en = Logic(name="data_mem_rd_en", parent=self)
-        self.data_mem_wr_en = Logic(name="data_mem_wr_en", parent=self)
+        self.data_mem_rd_en = Bit(name="data_mem_rd_en", parent=self)
+        self.data_mem_wr_en = Bit(name="data_mem_wr_en", parent=self)
         self.reg_writeback_sel = LogicVec(name="reg_writeback_sel", parent=self, shape=(3,))
         self.next_pc_sel = LogicVec(name="next_pc_sel", parent=self, shape=(2,))
         self.inst_opcode = LogicVec(name="inst_opcode", parent=self, shape=(7,))
-        self.take_branch = Logic(name="take_branch", parent=self)
+        self.take_branch = Bit(name="take_branch", parent=self)
 
         # Processes
         self._procs.add((self.proc_next_pc_sel, COMBI))

@@ -4,7 +4,7 @@ from seqlogic import Module
 from seqlogic.hier import List
 from seqlogic.logicvec import T, xes, zeros
 from seqlogic.sim import notify
-from seqlogic.var import Logic, LogicVec
+from seqlogic.var import Bit, LogicVec
 
 from ..misc import COMBI, FLOP, TASK
 
@@ -19,14 +19,14 @@ class RegFile(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.wr_en = Logic(name="wr_en", parent=self)
+        self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_addr = LogicVec(name="wr_addr", parent=self, shape=(5,))
         self.wr_data = LogicVec(name="wr_data", parent=self, shape=(32,))
         self.rs1_addr = LogicVec(name="rs1_addr", parent=self, shape=(5,))
         self.rs1_data = LogicVec(name="rs1_data", parent=self, shape=(32,))
         self.rs2_addr = LogicVec(name="rs2_addr", parent=self, shape=(5,))
         self.rs2_data = LogicVec(name="rs2_data", parent=self, shape=(32,))
-        self.clock = Logic(name="clock", parent=self)
+        self.clock = Bit(name="clock", parent=self)
 
         # State
         self.regs = List(name="regs", parent=self)

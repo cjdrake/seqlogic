@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import F, T, xes
 from seqlogic.sim import notify
-from seqlogic.var import Logic, LogicVec
+from seqlogic.var import Bit, LogicVec
 
 from ..misc import COMBI
 
@@ -19,7 +19,7 @@ class Mux2(Module):
 
         # Ports
         self.out = LogicVec(name="out", parent=self, shape=(width,))
-        self.sel = Logic(name="sel", parent=self)
+        self.sel = Bit(name="sel", parent=self)
         self.in0 = LogicVec(name="in0", parent=self, shape=(width,))
         self.in1 = LogicVec(name="in1", parent=self, shape=(width,))
 

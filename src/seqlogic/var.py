@@ -78,7 +78,7 @@ class LogicVec(TraceVar):
 # TODO(cjdrake): Create a generic type for enums
 
 
-class Logic(LogicVec):
+class Bit(LogicVec):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module):

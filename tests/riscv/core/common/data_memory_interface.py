@@ -3,7 +3,7 @@
 from seqlogic import Module
 from seqlogic.logicvec import cat, rep, vec, xes
 from seqlogic.sim import notify
-from seqlogic.var import Logic, LogicVec
+from seqlogic.var import Bit, LogicVec
 
 from ..misc import COMBI
 
@@ -19,16 +19,16 @@ class DataMemoryInterface(Module):
         self.data_format = LogicVec(name="data_format", parent=self, shape=(3,))
 
         self.addr = LogicVec(name="addr", parent=self, shape=(32,))
-        self.wr_en = Logic(name="wr_en", parent=self)
+        self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_data = LogicVec(name="wr_data", parent=self, shape=(32,))
-        self.rd_en = Logic(name="rd_en", parent=self)
+        self.rd_en = Bit(name="rd_en", parent=self)
         self.rd_data = LogicVec(name="rd_data", parent=self, shape=(32,))
 
         self.bus_addr = LogicVec(name="bus_addr", parent=self, shape=(32,))
-        self.bus_wr_en = Logic(name="bus_wr_en", parent=self)
+        self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
         self.bus_wr_be = LogicVec(name="bus_wr_be", parent=self, shape=(4,))
         self.bus_wr_data = LogicVec(name="bus_wr_data", parent=self, shape=(32,))
-        self.bus_rd_en = Logic(name="bus_rd_en", parent=self)
+        self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
         self.bus_rd_data = LogicVec(name="bus_rd_data", parent=self, shape=(32,))
 
         # State
