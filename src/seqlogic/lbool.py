@@ -1,4 +1,22 @@
-"""Lifted Boolean data type."""
+"""Lifted Boolean scalar and vector data types.
+
+The conventional Boolean type consists of {False, True}, or {0, 1}.
+You can pack Booleans using an int, e.g. hex(0xaa | 0x55) == '0xff'.
+
+The "lifted" Boolean data type expands {0, 1} to {0, 1, Unknown, Illogical}.
+
+Zero and One retain their original meanings.
+
+"Illogical" means neither zero nor one.
+This is an illogical or metastable value that always dominates other values.
+
+"Unknown" means either zero or one.
+This is an unknown or uninitialized value that may either dominate or be
+dominated by other values, depending on the operation.
+
+The 'vec' class packs multiple lifted Booleans into a vector,
+which enables efficient, bit-wise operations and arithmetic.
+"""
 
 # pylint: disable = protected-access
 
@@ -12,26 +30,27 @@ from .util import clog2
 _ITEM_BITS = 2
 _ITEM_MASK = 0b11
 
-_ILLOGICAL_UNKNOWN = 0b00
+# Scalars
+_ILLOGICAL = 0b00
 _ZERO = 0b01
 _ONE = 0b10
-_LOGICAL_UNKNOWN = 0b11
+_UNKNOWN = 0b11
 
 
-from_int = (_ZERO, _ONE)
+from_bit = (_ZERO, _ONE)
 
 from_char = {
-    "?": _ILLOGICAL_UNKNOWN,
+    "?": _ILLOGICAL,
     "0": _ZERO,
     "1": _ONE,
-    "X": _LOGICAL_UNKNOWN,
+    "X": _UNKNOWN,
 }
 
 to_char = {
-    _ILLOGICAL_UNKNOWN: "?",
+    _ILLOGICAL: "?",
     _ZERO: "0",
     _ONE: "1",
-    _LOGICAL_UNKNOWN: "X",
+    _UNKNOWN: "X",
 }
 
 from_hexchar = {
@@ -687,15 +706,15 @@ class vec:
         n, a, b = self._n, self, other
 
         if a.has_null() or b.has_null() or ci.has_null():
-            return vec(n, _fill(_ILLOGICAL_UNKNOWN, n)), _W, _W
+            return vec(n, _fill(_ILLOGICAL, n)), _W, _W
         if a.has_dc() or b.has_dc() or ci.has_dc():
-            return vec(n, _fill(_LOGICAL_UNKNOWN, n)), _X, _X
+            return vec(n, _fill(_UNKNOWN, n)), _X, _X
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
 
         data = 0
         for i in range(n):
-            data |= from_int[s & 1] << (2 * i)
+            data |= from_bit[s & 1] << (2 * i)
             s >>= 1
 
         # Carry out is True if there is leftover sum data
@@ -742,7 +761,7 @@ class vec:
 
     def count_nulls(self) -> int:
         """TODO(cjdrake): Write docstring."""
-        return self._count(_byte_cnt_nulls, _ILLOGICAL_UNKNOWN)
+        return self._count(_byte_cnt_nulls, _ILLOGICAL)
 
     def count_zeros(self) -> int:
         """TODO(cjdrake): Write docstring."""
@@ -754,7 +773,7 @@ class vec:
 
     def count_dcs(self) -> int:
         """TODO(cjdrake): Write docstring."""
-        return self._count(_byte_cnt_dcs, _LOGICAL_UNKNOWN)
+        return self._count(_byte_cnt_dcs, _UNKNOWN)
 
     def count_known(self) -> int:
         """TODO(cjdrake): Write docstring."""
@@ -876,7 +895,7 @@ def uint2vec(num: int, n: int | None = None) -> vec:
     r = num
 
     while r >= 1:
-        data |= from_int[r & 1] << (_ITEM_BITS * i)
+        data |= from_bit[r & 1] << (_ITEM_BITS * i)
         i += 1
         r >>= 1
 
@@ -911,7 +930,7 @@ def int2vec(num: int, n: int | None = None) -> vec:
     r = abs(num)
 
     while r >= 1:
-        data |= from_int[r & 1] << (_ITEM_BITS * i)
+        data |= from_bit[r & 1] << (_ITEM_BITS * i)
         i += 1
         r >>= 1
 
@@ -928,6 +947,26 @@ def int2vec(num: int, n: int | None = None) -> vec:
 
     v = vec(i, data).zext(n - i)
     return v.neg()[0] if neg else v
+
+
+def illogicals(n: int) -> vec:
+    """TODO(cjdrake): Write docstring."""
+    return vec(n, _fill(_ILLOGICAL, n))
+
+
+def zeros(n: int) -> vec:
+    """TODO(cjdrake): Write docstring."""
+    return vec(n, _fill(_ZERO, n))
+
+
+def ones(n: int) -> vec:
+    """TODO(cjdrake): Write docstring."""
+    return vec(n, _fill(_ONE, n))
+
+
+def unknowns(n: int) -> vec:
+    """TODO(cjdrake): Write docstring."""
+    return vec(n, _fill(_UNKNOWN, n))
 
 
 def from_items(xs: Iterable[int] = ()) -> vec:
@@ -954,10 +993,10 @@ def from_quads(xs: Iterable[int] = ()) -> vec:
 _E = vec(0, 0)
 
 # One bit values
-_W = vec(1, _ILLOGICAL_UNKNOWN)
+_W = vec(1, _ILLOGICAL)
 _F = vec(1, _ZERO)
 _T = vec(1, _ONE)
-_X = vec(1, _LOGICAL_UNKNOWN)
+_X = vec(1, _UNKNOWN)
 
 _byte_cnt_nulls = {
     0b00_00_00_00: 4,

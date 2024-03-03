@@ -430,7 +430,7 @@ def _rank1(fst: int, rst) -> logicvec:
     for x in rst:
         match x:
             case 0 | 1:
-                pcitems.append(lbool.from_int[x])
+                pcitems.append(lbool.from_bit[x])
             case _:
                 raise TypeError("Expected item to be in (0, 1)")
     return logicvec(lbool.from_items(pcitems))
@@ -466,13 +466,13 @@ def vec(obj=None) -> logicvec:
             return E
         # Rank 0 int
         case 0 | 1 as x:
-            return logicvec(lbool.from_items([lbool.from_int[x]]))
+            return logicvec(lbool.from_items([lbool.from_bit[x]]))
         # Rank 1 str
         case str() as lit:
             return logicvec(_parse_str_lit(lit))
         # Rank 1 [0 | 1, ...]
         case [0 | 1 as x, *rst]:
-            return _rank1(lbool.from_int[x], rst)
+            return _rank1(lbool.from_bit[x], rst)
         # Rank 2 str
         case [str() as lit, *rst]:
             return _rank2(logicvec(_parse_str_lit(lit)), rst)
@@ -508,7 +508,7 @@ def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
     for obj in objs:
         match obj:
             case 0 | 1 as x:
-                vs.append(logicvec(lbool.from_items([lbool.from_int[x]])))
+                vs.append(logicvec(lbool.from_items([lbool.from_bit[x]])))
             case logicvec() as v:
                 vs.append(v)
             case _:
@@ -579,29 +579,24 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> logicvec:
 E = logicvec(lbool.vec(0, 0))
 
 
-def _consts(shape: tuple[int, ...], x: int) -> logicvec:
-    num = math.prod(shape)
-    return logicvec(lbool.from_items([x] * num), shape)
-
-
 def nulls(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with NULLs."""
-    return _consts(shape, lbool._ILLOGICAL_UNKNOWN)
+    return logicvec(lbool.illogicals(math.prod(shape)), shape)
 
 
 def zeros(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with zeros."""
-    return _consts(shape, lbool._ZERO)
+    return logicvec(lbool.zeros(math.prod(shape)), shape)
 
 
 def ones(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with ones."""
-    return _consts(shape, lbool._ONE)
+    return logicvec(lbool.ones(math.prod(shape)), shape)
 
 
 def xes(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with Xes."""
-    return _consts(shape, lbool._LOGICAL_UNKNOWN)
+    return logicvec(lbool.unknowns(math.prod(shape)), shape)
 
 
 # One bit values
