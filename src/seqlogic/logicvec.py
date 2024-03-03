@@ -10,7 +10,6 @@ from collections.abc import Collection, Generator
 from functools import cached_property
 
 from . import lbool
-from .lbool import PcVec
 
 _NUM_RE = re.compile(
     r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[X01x_]+))|"
@@ -25,7 +24,7 @@ class logicvec:
     Use the factory functions instead.
     """
 
-    def __init__(self, w: PcVec, shape: tuple[int, ...] | None = None):
+    def __init__(self, w: lbool.vec, shape: tuple[int, ...] | None = None):
         """TODO(cjdrake): Write docstring."""
         self._w = w
         if shape is None:
@@ -400,7 +399,7 @@ class logicvec:
         return tuple(nkey)
 
 
-def _parse_str_lit(lit: str) -> PcVec:
+def _parse_str_lit(lit: str) -> lbool.vec:
     if m := _NUM_RE.match(lit):
         # Binary
         if m.group("BinSize"):
@@ -456,7 +455,7 @@ def _rank2(fst: logicvec, rst) -> logicvec:
                 s = f"Expected item to be str or logicvec[{s}]"
                 raise TypeError(s)
         size += len(fst._w)
-    return logicvec(PcVec(size, data), shape)
+    return logicvec(lbool.vec(size, data), shape)
 
 
 def vec(obj=None) -> logicvec:
@@ -542,7 +541,7 @@ def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
     else:
         shape = (sum(dims),) + fst.shape[1:]
 
-    return logicvec(PcVec(size, data), shape)
+    return logicvec(lbool.vec(size, data), shape)
 
 
 def rep(obj: int | logicvec, n: int, flatten: bool = False) -> logicvec:
@@ -565,19 +564,19 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> logicvec:
         case int() as i:
             data = f(v._w.data, i)
             if shape:
-                return _sel(logicvec(PcVec(n, data), shape), key[1:])
-            return logicvec(PcVec(1, data))
+                return _sel(logicvec(lbool.vec(n, data), shape), key[1:])
+            return logicvec(lbool.vec(1, data))
         case slice() as sl:
             datas = (f(v._w.data, i) for i in range(sl.start, sl.stop, sl.step))
             if shape:
-                return cat([_sel(logicvec(PcVec(n, data), shape), key[1:]) for data in datas])
-            return cat([logicvec(PcVec(1, data)) for data in datas])
+                return cat([_sel(logicvec(lbool.vec(n, data), shape), key[1:]) for data in datas])
+            return cat([logicvec(lbool.vec(1, data)) for data in datas])
         case _:  # pragma: no cover
             assert False
 
 
 # The empty vector is a singleton
-E = logicvec(PcVec(0, 0))
+E = logicvec(lbool.vec(0, 0))
 
 
 def _consts(shape: tuple[int, ...], x: int) -> logicvec:

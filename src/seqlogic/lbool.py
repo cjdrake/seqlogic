@@ -333,7 +333,7 @@ def limplies(p: int, q: int) -> int:
     return y
 
 
-class PcVec:
+class vec:
     """TODO(cjdrake): Write docstring."""
 
     def __class_getitem__(cls, key: int):
@@ -353,19 +353,19 @@ class PcVec:
     def __len__(self) -> int:
         return self._n
 
-    def __getitem__(self, key: int | slice) -> PcVec:
+    def __getitem__(self, key: int | slice) -> vec:
         match key:
             case int() as i:
                 d = self._get_item(self._norm_index(i))
-                return PcVec(1, d)
+                return vec(1, d)
             case slice() as sl:
                 i, j = self._norm_slice(sl)
                 n, d = self._get_items(i, j)
-                return PcVec(n, d)
+                return vec(n, d)
             case _:
                 raise TypeError("Expected key to be int or slice")
 
-    def __iter__(self) -> Generator[PcVec[1], None, None]:
+    def __iter__(self) -> Generator[vec[1], None, None]:
         for i in range(self._n):
             yield self.__getitem__(i)
 
@@ -382,12 +382,12 @@ class PcVec:
         return self.to_int()
 
     # Comparison
-    def _eq(self, other: PcVec) -> bool:
+    def _eq(self, other: vec) -> bool:
         return self._n == other._n and self._data == other._data
 
     def __eq__(self, other) -> bool:
         match other:
-            case PcVec():
+            case vec():
                 return self._eq(other)
             case _:
                 return False
@@ -396,31 +396,31 @@ class PcVec:
         return hash(self._n) ^ hash(self._data)
 
     # Bitwise Arithmetic
-    def __invert__(self) -> PcVec:
+    def __invert__(self) -> vec:
         return self.lnot()
 
-    def __or__(self, other: PcVec) -> PcVec:
+    def __or__(self, other: vec) -> vec:
         return self.lor(other)
 
-    def __and__(self, other: PcVec) -> PcVec:
+    def __and__(self, other: vec) -> vec:
         return self.land(other)
 
-    def __xor__(self, other: PcVec) -> PcVec:
+    def __xor__(self, other: vec) -> vec:
         return self.lxor(other)
 
-    def __lshift__(self, n: int) -> PcVec:
+    def __lshift__(self, n: int) -> vec:
         return self.lsh(n)[0]
 
-    def __rshift__(self, n: int) -> PcVec:
+    def __rshift__(self, n: int) -> vec:
         return self.rsh(n)[0]
 
-    def __add__(self, other: PcVec) -> PcVec:
+    def __add__(self, other: vec) -> vec:
         return self.add(other, ci=F)[0]
 
-    def __sub__(self, other: PcVec) -> PcVec:
+    def __sub__(self, other: vec) -> vec:
         return self.sub(other)[0]
 
-    def __neg__(self) -> PcVec:
+    def __neg__(self) -> vec:
         return self.neg()[0]
 
     @property
@@ -433,7 +433,7 @@ class PcVec:
         """Number of bits of data."""
         return _ITEM_BITS * self._n
 
-    def lnot(self) -> PcVec:
+    def lnot(self) -> vec:
         """Lifted NOT function."""
         x_0 = self._bit_mask[0]
         x_01 = x_0 << 1
@@ -444,9 +444,9 @@ class PcVec:
         y1 = x_01
         y = y1 | y0
 
-        return PcVec(self._n, y)
+        return vec(self._n, y)
 
-    def lnor(self, other: PcVec) -> PcVec:
+    def lnor(self, other: vec) -> vec:
         """Lifted NOR function."""
         self._check_len(other)
 
@@ -464,9 +464,9 @@ class PcVec:
         y1 = x0_01 & x1_01
         y = y1 | y0
 
-        return PcVec(self._n, y)
+        return vec(self._n, y)
 
-    def lor(self, other: PcVec) -> PcVec:
+    def lor(self, other: vec) -> vec:
         """Lifted OR function."""
         self._check_len(other)
 
@@ -482,16 +482,16 @@ class PcVec:
         y1 = x0_01 & x1_1 | x0_1 & x1_01 | x0_1 & x1_1
         y = y1 | y0
 
-        return PcVec(self._n, y)
+        return vec(self._n, y)
 
-    def ulor(self) -> PcVec[1]:
+    def ulor(self) -> vec[1]:
         """Unary lifted OR reduction."""
         y = F
         for x in self:
             y = y.lor(x)
         return y
 
-    def lnand(self, other: PcVec) -> PcVec:
+    def lnand(self, other: vec) -> vec:
         """Lifted NAND function."""
         self._check_len(other)
 
@@ -509,9 +509,9 @@ class PcVec:
         y1 = x0_01 & x1_01 | x0_01 & x1_1 | x0_1 & x1_01
         y = y1 | y0
 
-        return PcVec(self._n, y)
+        return vec(self._n, y)
 
-    def land(self, other: PcVec) -> PcVec:
+    def land(self, other: vec) -> vec:
         """Lifted AND function."""
         self._check_len(other)
 
@@ -527,16 +527,16 @@ class PcVec:
         y1 = x0_1 & x1_1
         y = y1 | y0
 
-        return PcVec(self._n, y)
+        return vec(self._n, y)
 
-    def uland(self) -> PcVec[1]:
+    def uland(self) -> vec[1]:
         """Unary lifted AND reduction."""
         y = T
         for x in self:
             y = y.land(x)
         return y
 
-    def lxnor(self, other: PcVec) -> PcVec:
+    def lxnor(self, other: vec) -> vec:
         """Lifted XNOR function."""
         self._check_len(other)
 
@@ -554,9 +554,9 @@ class PcVec:
         y1 = x0_01 & x1_01 | x0_1 & x1_1
         y = y1 | y0
 
-        return PcVec(self._n, y)
+        return vec(self._n, y)
 
-    def lxor(self, other: PcVec) -> PcVec:
+    def lxor(self, other: vec) -> vec:
         """Lifted XOR function."""
         self._check_len(other)
 
@@ -574,16 +574,16 @@ class PcVec:
         y1 = x0_01 & x1_1 | x0_1 & x1_01
         y = y1 | y0
 
-        return PcVec(self._n, y)
+        return vec(self._n, y)
 
-    def ulxor(self) -> PcVec[1]:
+    def ulxor(self) -> vec[1]:
         """Unary lifted XOR reduction."""
         y = F
         for x in self:
             y = y.lxor(x)
         return y
 
-    def ulxnor(self) -> PcVec[1]:
+    def ulxnor(self) -> vec[1]:
         """Unary lifted XNOR reduction."""
         y = T
         for x in self:
@@ -622,26 +622,26 @@ class PcVec:
             return -(self.lnot().to_uint() + 1)
         return self.to_uint()
 
-    def ult(self, other: PcVec) -> bool:
+    def ult(self, other: vec) -> bool:
         """Unsigned less than."""
         self._check_len(other)
         return self.to_uint() < other.to_uint()
 
-    def slt(self, other: PcVec) -> bool:
+    def slt(self, other: vec) -> bool:
         """Signed less than."""
         self._check_len(other)
         return self.to_int() < other.to_int()
 
-    def zext(self, n: int) -> PcVec:
+    def zext(self, n: int) -> vec:
         """Zero extend by n bits."""
         if n < 0:
             raise ValueError(f"Expected n ≥ 0, got {n}")
         if n == 0:
             return self
         prefix = _fill(ZERO, n)
-        return PcVec(self._n + n, self._data | (prefix << self.nbits))
+        return vec(self._n + n, self._data | (prefix << self.nbits))
 
-    def sext(self, n: int) -> PcVec:
+    def sext(self, n: int) -> vec:
         """Sign extend by n bits."""
         if n < 0:
             raise ValueError(f"Expected n ≥ 0, got {n}")
@@ -649,37 +649,37 @@ class PcVec:
             return self
         sign = self._get_item(self._n - 1)
         prefix = _fill(sign, n)
-        return PcVec(self._n + n, self._data | (prefix << self.nbits))
+        return vec(self._n + n, self._data | (prefix << self.nbits))
 
-    def lsh(self, n: int, ci: PcVec[1] | None = None) -> tuple[PcVec, PcVec]:
+    def lsh(self, n: int, ci: vec[1] | None = None) -> tuple[vec, vec]:
         """Left shift by n bits."""
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
             return self, E
         if ci is None:
-            ci = PcVec(n, _fill(ZERO, n))
+            ci = vec(n, _fill(ZERO, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         sh, co = self[:-n], self[-n:]
-        y = PcVec(self._n, ci._data | (sh._data << ci.nbits))
+        y = vec(self._n, ci._data | (sh._data << ci.nbits))
         return y, co
 
-    def rsh(self, n: int, ci: PcVec[1] | None = None) -> tuple[PcVec, PcVec]:
+    def rsh(self, n: int, ci: vec[1] | None = None) -> tuple[vec, vec]:
         """Right shift by n bits."""
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
             return self, E
         if ci is None:
-            ci = PcVec(n, _fill(ZERO, n))
+            ci = vec(n, _fill(ZERO, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         co, sh = self[:n], self[n:]
-        y = PcVec(self._n, sh._data | (ci._data << sh.nbits))
+        y = vec(self._n, sh._data | (ci._data << sh.nbits))
         return y, co
 
-    def arsh(self, n: int) -> tuple[PcVec, PcVec]:
+    def arsh(self, n: int) -> tuple[vec, vec]:
         """Arithmetically right shift by n bits."""
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
@@ -688,10 +688,10 @@ class PcVec:
         sign = self._get_item(self._n - 1)
         ci_data = _fill(sign, n)
         co, sh = self[:n], self[n:]
-        y = PcVec(self._n, sh._data | (ci_data << sh.nbits))
+        y = vec(self._n, sh._data | (ci_data << sh.nbits))
         return y, co
 
-    def add(self, other: PcVec, ci: PcVec[1]) -> tuple[PcVec, PcVec[1], PcVec[1]]:
+    def add(self, other: vec, ci: vec[1]) -> tuple[vec, vec[1], vec[1]]:
         """Twos complement addition."""
         self._check_len(other)
 
@@ -699,9 +699,9 @@ class PcVec:
         n, a, b = self._n, self, other
 
         if a.has_null() or b.has_null() or ci.has_null():
-            return PcVec(n, _fill(NULL, n)), N, N
+            return vec(n, _fill(NULL, n)), N, N
         if a.has_dc() or b.has_dc() or ci.has_dc():
-            return PcVec(n, _fill(DC, n)), X, X
+            return vec(n, _fill(DC, n)), X, X
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
 
@@ -713,7 +713,7 @@ class PcVec:
         # Carry out is True if there is leftover sum data
         co = (F, T)[s != 0]
 
-        s = PcVec(n, data)
+        s = vec(n, data)
 
         # Overflow is true if sign A matches sign B, and mismatches sign S
         aa = a[-1]
@@ -723,16 +723,16 @@ class PcVec:
 
         return s, co, ovf
 
-    def sub(self, other: PcVec) -> tuple[PcVec, PcVec[1], PcVec[1]]:
+    def sub(self, other: vec) -> tuple[vec, vec[1], vec[1]]:
         """Twos complement subtraction."""
         return self.add(other.lnot(), ci=T)
 
-    def neg(self) -> tuple[PcVec, PcVec[1], PcVec[1]]:
+    def neg(self) -> tuple[vec, vec[1], vec[1]]:
         """Twos complement negation."""
-        zero = PcVec(self._n, _fill(ZERO, self._n))
+        zero = vec(self._n, _fill(ZERO, self._n))
         return zero.sub(self)
 
-    def _check_len(self, other: PcVec):
+    def _check_len(self, other: vec):
         if self._n != other._n:
             s = f"Expected n = {self._n}, got {other._n}"
             raise ValueError(s)
@@ -868,15 +868,15 @@ def _fill(x: int, n: int) -> int:
     return data
 
 
-def uint2vec(num: int, n: int | None = None) -> PcVec:
-    """Convert nonnegative int to PcVec.
+def uint2vec(num: int, n: int | None = None) -> vec:
+    """Convert nonnegative int to vec.
 
     Args:
         num: A nonnegative integer
         n: Optional output length
 
     Returns:
-        A PcVec instance
+        A vec instance
 
     Raises:
         ValueError: If num is negative or overflows the output length.
@@ -901,18 +901,18 @@ def uint2vec(num: int, n: int | None = None) -> PcVec:
         s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
         raise ValueError(s)
 
-    return PcVec(i, data).zext(n - i)
+    return vec(i, data).zext(n - i)
 
 
-def int2vec(num: int, n: int | None = None) -> PcVec:
-    """Convert int to PcVec.
+def int2vec(num: int, n: int | None = None) -> vec:
+    """Convert int to vec.
 
     Args:
         num: An integer
         n: Optional output length
 
     Returns:
-        A PcVec instance
+        A vec instance
 
     Raises:
         ValueError: If num overflows the output length.
@@ -939,38 +939,38 @@ def int2vec(num: int, n: int | None = None) -> PcVec:
         s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
         raise ValueError(s)
 
-    v = PcVec(i, data).zext(n - i)
+    v = vec(i, data).zext(n - i)
     return v.neg()[0] if neg else v
 
 
-def from_pcitems(xs: Iterable[int] = ()) -> PcVec:
-    """Convert an iterable of PcItems to a PcVec."""
+def from_pcitems(xs: Iterable[int] = ()) -> vec:
+    """Convert an iterable of items to a vec."""
     n = 0
     data = 0
     for i, x in enumerate(xs):
         n += 1
         data |= x << (_ITEM_BITS * i)
-    return PcVec(n, data)
+    return vec(n, data)
 
 
-def from_quads(xs: Iterable[int] = ()) -> PcVec:
-    """Convert an iterable of bytes (four PcItems each) to a PcVec."""
+def from_quads(xs: Iterable[int] = ()) -> vec:
+    """Convert an iterable of bytes (four items each) to a vec."""
     n = 0
     data = 0
     for i, x in enumerate(xs):
         n += 4
         data |= x << (4 * _ITEM_BITS * i)
-    return PcVec(n, data)
+    return vec(n, data)
 
 
 # Empty
-E = PcVec(0, 0)
+E = vec(0, 0)
 
 # One bit values
-N = PcVec(1, NULL)
-F = PcVec(1, ZERO)
-T = PcVec(1, ONE)
-X = PcVec(1, DC)
+N = vec(1, NULL)
+F = vec(1, ZERO)
+T = vec(1, ONE)
+X = vec(1, DC)
 
 _byte_cnt_nulls = {
     0b00_00_00_00: 4,

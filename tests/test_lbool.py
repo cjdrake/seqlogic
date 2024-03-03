@@ -6,7 +6,6 @@ import pytest
 
 from seqlogic import lbool
 from seqlogic.lbool import (
-    PcVec,
     int2vec,
     land,
     limplies,
@@ -17,6 +16,7 @@ from seqlogic.lbool import (
     lxnor,
     lxor,
     uint2vec,
+    vec,
 )
 
 LNOT = {
@@ -33,7 +33,7 @@ def test_lnot():
         x = lbool.from_char[x]
         y = lbool.from_char[y]
         assert lnot(x) == y
-        assert ~PcVec(1, x) == PcVec(1, y)
+        assert ~vec(1, x) == vec(1, y)
 
 
 LNOR = {
@@ -63,7 +63,7 @@ def test_lnor():
         x1 = lbool.from_char[xs[1]]
         y = lbool.from_char[y]
         assert lnor(x0, x1) == y
-        assert ~(PcVec(1, x0) | PcVec(1, x1)) == PcVec(1, y)
+        assert ~(vec(1, x0) | vec(1, x1)) == vec(1, y)
 
 
 LOR = {
@@ -93,7 +93,7 @@ def test_lor():
         x1 = lbool.from_char[xs[1]]
         y = lbool.from_char[y]
         assert lor(x0, x1) == y
-        assert PcVec(1, x0) | PcVec(1, x1) == PcVec(1, y)
+        assert vec(1, x0) | vec(1, x1) == vec(1, y)
 
 
 LNAND = {
@@ -123,7 +123,7 @@ def test_lnand():
         x1 = lbool.from_char[xs[1]]
         y = lbool.from_char[y]
         assert lnand(x0, x1) == y
-        assert ~(PcVec(1, x0) & PcVec(1, x1)) == PcVec(1, y)
+        assert ~(vec(1, x0) & vec(1, x1)) == vec(1, y)
 
 
 LAND = {
@@ -153,7 +153,7 @@ def test_land():
         x1 = lbool.from_char[xs[1]]
         y = lbool.from_char[y]
         assert land(x0, x1) == y
-        assert PcVec(1, x0) & PcVec(1, x1) == PcVec(1, y)
+        assert vec(1, x0) & vec(1, x1) == vec(1, y)
 
 
 LXNOR = {
@@ -183,7 +183,7 @@ def test_lxnor():
         x1 = lbool.from_char[xs[1]]
         y = lbool.from_char[y]
         assert lxnor(x0, x1) == y
-        assert ~(PcVec(1, x0) ^ PcVec(1, x1)) == PcVec(1, y)
+        assert ~(vec(1, x0) ^ vec(1, x1)) == vec(1, y)
 
 
 LXOR = {
@@ -213,7 +213,7 @@ def test_lxor():
         x1 = lbool.from_char[xs[1]]
         y = lbool.from_char[y]
         assert lxor(x0, x1) == y
-        assert PcVec(1, x0) ^ PcVec(1, x1) == PcVec(1, y)
+        assert vec(1, x0) ^ vec(1, x1) == vec(1, y)
 
 
 LIMPLIES = {
@@ -392,38 +392,38 @@ def test_int2vec():
         int2vec(4, 3)
 
 
-def test_pcvec_basic():
-    """Test seqlogic.lbool.PcVec basic functionality."""
+def test_vec_basic():
+    """Test seqlogic.lbool.vec basic functionality."""
     # n is non-negative
     with pytest.raises(ValueError):
-        PcVec(-1, 42)
+        vec(-1, 42)
 
     # data in [0, 2**nbits)
     with pytest.raises(ValueError):
-        PcVec(4, -1)
+        vec(4, -1)
     with pytest.raises(ValueError):
-        PcVec(4, 2 ** (2 * 4))
+        vec(4, 2 ** (2 * 4))
 
-    v = PcVec(4, 0b11_10_01_00)
+    v = vec(4, 0b11_10_01_00)
     assert len(v) == 4
 
-    assert v[3] == PcVec(1, 0b11)
-    assert v[2] == PcVec(1, 0b10)
-    assert v[1] == PcVec(1, 0b01)
-    assert v[0] == PcVec(1, 0b00)
+    assert v[3] == vec(1, 0b11)
+    assert v[2] == vec(1, 0b10)
+    assert v[1] == vec(1, 0b01)
+    assert v[0] == vec(1, 0b00)
 
-    assert v[0:1] == PcVec(1, 0b00)
-    assert v[0:2] == PcVec(2, 0b01_00)
-    assert v[0:3] == PcVec(3, 0b10_01_00)
-    assert v[0:4] == PcVec(4, 0b11_10_01_00)
-    assert v[1:2] == PcVec(1, 0b01)
-    assert v[1:3] == PcVec(2, 0b10_01)
-    assert v[1:4] == PcVec(3, 0b11_10_01)
-    assert v[2:3] == PcVec(1, 0b10)
-    assert v[2:4] == PcVec(2, 0b11_10)
-    assert v[3:4] == PcVec(1, 0b11)
+    assert v[0:1] == vec(1, 0b00)
+    assert v[0:2] == vec(2, 0b01_00)
+    assert v[0:3] == vec(3, 0b10_01_00)
+    assert v[0:4] == vec(4, 0b11_10_01_00)
+    assert v[1:2] == vec(1, 0b01)
+    assert v[1:3] == vec(2, 0b10_01)
+    assert v[1:4] == vec(3, 0b11_10_01)
+    assert v[2:3] == vec(1, 0b10)
+    assert v[2:4] == vec(2, 0b11_10)
+    assert v[3:4] == vec(1, 0b11)
 
     with pytest.raises(TypeError):
         v["invalid"]  # pyright: ignore[reportArgumentType]
 
-    assert list(v) == [PcVec(1, 0b00), PcVec(1, 0b01), PcVec(1, 0b10), PcVec(1, 0b11)]
+    assert list(v) == [vec(1, 0b00), vec(1, 0b01), vec(1, 0b10), vec(1, 0b11)]
