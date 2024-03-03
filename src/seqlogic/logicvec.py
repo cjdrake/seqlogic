@@ -409,7 +409,7 @@ def _parse_str_lit(lit: str) -> lbool.vec:
             if ndigits != size:
                 s = f"Expected {size} digits, got {ndigits}"
                 raise ValueError(s)
-            return lbool.from_pcitems(lbool.from_char[c] for c in reversed(digits))
+            return lbool.from_items(lbool.from_char[c] for c in reversed(digits))
         # Hexadecimal
         elif m.group("HexSize"):
             size = int(m.group("HexSize"))
@@ -433,7 +433,7 @@ def _rank1(fst: int, rst) -> logicvec:
                 pcitems.append(lbool.from_int[x])
             case _:
                 raise TypeError("Expected item to be in (0, 1)")
-    return logicvec(lbool.from_pcitems(pcitems))
+    return logicvec(lbool.from_items(pcitems))
 
 
 def _rank2(fst: logicvec, rst) -> logicvec:
@@ -466,7 +466,7 @@ def vec(obj=None) -> logicvec:
             return E
         # Rank 0 int
         case 0 | 1 as x:
-            return logicvec(lbool.from_pcitems([lbool.from_int[x]]))
+            return logicvec(lbool.from_items([lbool.from_int[x]]))
         # Rank 1 str
         case str() as lit:
             return logicvec(_parse_str_lit(lit))
@@ -508,7 +508,7 @@ def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
     for obj in objs:
         match obj:
             case 0 | 1 as x:
-                vs.append(logicvec(lbool.from_pcitems([lbool.from_int[x]])))
+                vs.append(logicvec(lbool.from_items([lbool.from_int[x]])))
             case logicvec() as v:
                 vs.append(v)
             case _:
@@ -581,7 +581,7 @@ E = logicvec(lbool.vec(0, 0))
 
 def _consts(shape: tuple[int, ...], x: int) -> logicvec:
     num = math.prod(shape)
-    return logicvec(lbool.from_pcitems([x] * num), shape)
+    return logicvec(lbool.from_items([x] * num), shape)
 
 
 def nulls(shape: tuple[int, ...]) -> logicvec:

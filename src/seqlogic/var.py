@@ -9,7 +9,7 @@ from . import sim
 from .hier import Module, Variable
 from .logicvec import F, T, logicvec, xes
 
-_pcitem2char = {
+_item2char = {
     0b00: "x",
     0b01: "0",
     0b10: "1",
@@ -20,7 +20,7 @@ _pcitem2char = {
 def vec2vcd(v: logicvec) -> VarValue:
     """Convert value to VCD variable."""
     # pylint: disable = protected-access
-    return "".join(_pcitem2char[v._w._get_item(i)] for i in range(v._w._n - 1, -1, -1))
+    return "".join(_item2char[v._w._get_item(i)] for i in range(v._w._n - 1, -1, -1))
 
 
 class TraceSingular(Variable, sim.Singular):

@@ -861,7 +861,6 @@ class vec:
 
 
 def _fill(x: int, n: int) -> int:
-    """TODO(cjdrake): Write docstring."""
     data = 0
     for i in range(n):
         data |= x << (_ITEM_BITS * i)
@@ -943,7 +942,7 @@ def int2vec(num: int, n: int | None = None) -> vec:
     return v.neg()[0] if neg else v
 
 
-def from_pcitems(xs: Iterable[int] = ()) -> vec:
+def from_items(xs: Iterable[int] = ()) -> vec:
     """Convert an iterable of items to a vec."""
     n = 0
     data = 0
