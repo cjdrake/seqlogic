@@ -8,6 +8,7 @@ https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 """
 
 import heapq
+from abc import ABC
 from collections import defaultdict
 from collections.abc import Awaitable, Callable, Coroutine, Generator
 from typing import NewType, TypeAlias
@@ -20,52 +21,120 @@ _INIT_REGION = Region(-1)
 _START_TIME = 0
 
 
-class SimVar:
-    """The simulation component of a variable."""
+class State(ABC):
+    """TODO(cjdrake): Write docstring."""
 
     def __init__(self, value):
         """TODO(cjdrake): Write docstring."""
-        self._value = self._next_value = value
-        self._changed = False
+        self._init_value = value
 
         # Reference to the event loop
         self._sim = _sim
 
-    def _get_value(self):
+    def changed(self) -> bool:
+        """TODO(cjdrake): Write docstring."""
+        raise NotImplementedError
+
+    def update(self):
+        """TODO(cjdrake): Write docstring."""
+        raise NotImplementedError()
+
+
+class Singular(State):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, value):
+        """TODO(cjdrake): Write docstring."""
+        super().__init__(value)
+
+        self._value = self._init_value
+        self._next_value = self._init_value
+        self._changed = False
+
+    def get_value(self):
+        """TODO(cjdrake): Write docstring."""
         return self._value
 
-    def _set_value(self, value):
-        self._value = value
+    def set_value(self, value):
+        """TODO(cjdrake): Write docstring."""
+        self._value = self._next_value = value
 
-    value = property(fget=_get_value, fset=_set_value)
+    value = property(fget=get_value, fset=set_value)
 
-    def _get_next(self):
+    def get_next(self):
+        """TODO(cjdrake): Write docstring."""
         return self._next_value
 
-    def _set_next(self, value):
+    def set_next(self, value):
+        """TODO(cjdrake): Write docstring."""
         self._changed = value != self._next_value
         self._next_value = value
 
         # Notify the event loop
         _sim.touch(self)
 
-    next = property(fget=_get_next, fset=_set_next)
+    next = property(fget=get_next, fset=set_next)
 
     def changed(self) -> bool:
-        """Return True if the variable has changed."""
+        """TODO(cjdrake): Write docstring."""
         return self._changed
 
-    def dirty(self) -> bool:
-        """Return True if the present state is dirty."""
-        return self._next_value != self._value
-
     def update(self):
-        """Update present state, and reset next state."""
+        """TODO(cjdrake): Write docstring."""
         self._value = self._next_value
         self._changed = False
 
+    def dirty(self) -> bool:
+        """TODO(cjdrake): Write docstring."""
+        return self._next_value != self._value
 
-_SimQueueItem: TypeAlias = tuple[int, Region, Coroutine, SimVar | None]
+
+class Aggregate(State):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, shape: tuple[int, ...], value):
+        """TODO(cjdrake): Write docstring."""
+        super().__init__(value)
+
+        # TODO(cjdrake): Use this for index checking
+        self._shape = shape
+        self._values = defaultdict(lambda: self._init_value)
+        self._next_values = defaultdict(lambda: self._init_value)
+        self._changed = set()
+
+    def get_value(self, index):
+        """TODO(cjdrake): Write docstring."""
+        return self._values[index]
+
+    def set_value(self, index, value):
+        """TODO(cjdrake): Write docstring."""
+        self._values[index] = self._next_values[index] = value
+
+    def get_next(self, index):
+        """TODO(cjdrake): Write docstring."""
+        return self._next_values[index]
+
+    def set_next(self, index, value):
+        """TODO(cjdrake): Write docstring."""
+        if value != self._next_values[index]:
+            self._changed.add(index)
+        self._next_values[index] = value
+
+        # Notify the event loop
+        _sim.touch(self)
+
+    def changed(self) -> bool:
+        """TODO(cjdrake): Write docstring."""
+        return bool(self._changed)
+
+    def update(self):
+        """TODO(cjdrake): Write docstring."""
+        for index in self._changed:
+            self._values[index] = self._next_values[index]
+        self._changed.clear()
+
+
+_SimQueueItem: TypeAlias = tuple[int, Region, Coroutine, State | None]
 
 
 class _SimQueue:
@@ -84,26 +153,26 @@ class _SimQueue:
         self._items.clear()
         self._index = 0
 
-    def push(self, time: int, region: Region, task: Coroutine, var: SimVar | None):
-        heapq.heappush(self._items, (time, region, self._index, task, var))
+    def push(self, time: int, region: Region, task: Coroutine, state: State | None):
+        heapq.heappush(self._items, (time, region, self._index, task, state))
         self._index += 1
 
     def peek(self) -> _SimQueueItem:
-        time, region, _, task, var = self._items[0]
-        return (time, region, task, var)
+        time, region, _, task, state = self._items[0]
+        return (time, region, task, state)
 
     # def pop(self) -> _SimQueueItem:
-    #    time, region, _, task, var = heapq.heappop(self._items)
-    #    return (time, region, task, var)
+    #    time, region, _, task, state = heapq.heappop(self._items)
+    #    return (time, region, task, state)
 
     def pop_region(self) -> Generator[_SimQueueItem, None, None]:
-        time, region, _, task, var = heapq.heappop(self._items)
-        yield (time, region, task, var)
+        time, region, _, task, state = heapq.heappop(self._items)
+        yield (time, region, task, state)
         while self._items:
-            t, r, _, task, var = self._items[0]
+            t, r, _, task, state = self._items[0]
             if t == time and r == region:
                 heapq.heappop(self._items)
-                yield (time, region, task, var)
+                yield (time, region, task, state)
             else:
                 break
 
@@ -112,8 +181,8 @@ class _SimAwaitable(Awaitable):
     """Suspend execution of the current task."""
 
     def __await__(self):
-        var = yield
-        return var
+        state = yield
+        return state
 
 
 class Sim:
@@ -131,10 +200,10 @@ class Sim:
         self._task: Coroutine | None = None
         self._task_region: dict[Coroutine, Region] = {}
         # Dynamic event dependencies
-        self._var2tasks: dict[SimVar, set[Coroutine]] = defaultdict(set)
-        self._triggers: dict[SimVar, dict[Coroutine, Callable[[], bool]]] = defaultdict(dict)
+        self._waiting: dict[State, set[Coroutine]] = defaultdict(set)
+        self._triggers: dict[State, dict[Coroutine, Callable[[], bool]]] = defaultdict(dict)
         # Postponed actions
-        self._touched_vars: set[SimVar] = set()
+        self._touched_state: set[State] = set()
         # Processes
         self._procs = []
 
@@ -150,9 +219,9 @@ class Sim:
         self._region = _INIT_REGION
         self._queue.clear()
         self._task = None
-        self._var2tasks.clear()
+        self._waiting.clear()
         self._triggers.clear()
-        self._touched_vars.clear()
+        self._touched_state.clear()
 
     def reset(self):
         """Reset the simulation state."""
@@ -169,10 +238,10 @@ class Sim:
         assert self._task is not None
         return self._task
 
-    def call_soon(self, task: Coroutine, var: SimVar | None = None):
+    def call_soon(self, task: Coroutine, state: State | None = None):
         """Schedule the task in the current timeslot."""
         region = self._task_region[task]
-        self._queue.push(self._time, region, task, var)
+        self._queue.push(self._time, region, task, state)
 
     def call_later(self, delay: int, task: Coroutine):
         """Schedule the task after a relative delay."""
@@ -189,22 +258,22 @@ class Sim:
         self._procs.append((proc, region, args, kwargs))
 
     def add_event(self, event: Callable[[], bool]):
-        """Add a conditional var => task dependency."""
+        """Add a conditional state => task dependency."""
         assert self._task is not None
-        var = event.__self__
-        self._var2tasks[var].add(self._task)
-        self._triggers[var][self._task] = event
+        state = event.__self__
+        self._waiting[state].add(self._task)
+        self._triggers[state][self._task] = event
 
-    def touch(self, var: SimVar):
-        """Notify dependent tasks about a variable change."""
-        tasks = [task for task in self._var2tasks[var] if self._triggers[var][task]()]
+    def touch(self, state: State):
+        """Notify dependent tasks about state change."""
+        tasks = [task for task in self._waiting[state] if self._triggers[state][task]()]
         for task in tasks:
-            self.call_soon(task, var)
-            self._var2tasks[var].remove(task)
-            del self._triggers[var][task]
+            self.call_soon(task, state)
+            self._waiting[state].remove(task)
+            del self._triggers[state][task]
 
-        # Add variable to update set
-        self._touched_vars.add(var)
+        # Add state to update set
+        self._touched_state.add(state)
 
     def _limit(self, ticks: int | None, until: int | None) -> int | None:
         """Determine the run limit."""
@@ -255,7 +324,7 @@ class Sim:
             # Next task scheduled: future time slot
             elif time > self._time:
                 # Update all simulation state
-                self._update_vars()
+                self._update_state()
                 # Exit if we hit the run limit
                 if limit is not None and time >= limit:
                     break
@@ -263,9 +332,9 @@ class Sim:
                 self._time = time
 
             # Resume execution
-            for _, _, self._task, var in self._queue.pop_region():
+            for _, _, self._task, state in self._queue.pop_region():
                 try:
-                    self._task.send(var)
+                    self._task.send(state)
                 except StopIteration:
                     pass
 
@@ -297,7 +366,7 @@ class Sim:
             # Next task scheduled: future time slot
             elif time > self._time:
                 # Update all simulation state
-                self._update_vars()
+                self._update_state()
                 yield self._time
                 # Exit if we hit the run limit
                 if limit is not None and time >= limit:
@@ -306,17 +375,17 @@ class Sim:
                 self._time = time
 
             # Resume execution
-            for _, _, self._task, var in self._queue.pop_region():
+            for _, _, self._task, state in self._queue.pop_region():
                 try:
-                    self._task.send(var)
+                    self._task.send(state)
                 except StopIteration:
                     pass
 
-    def _update_vars(self):
-        """Prepare variables to enter the next time slot."""
-        while self._touched_vars:
-            var = self._touched_vars.pop()
-            var.update()
+    def _update_state(self):
+        """Prepare state to enter the next time slot."""
+        while self._touched_state:
+            state = self._touched_state.pop()
+            state.update()
 
 
 _sim = Sim()
@@ -328,7 +397,7 @@ async def sleep(delay: int):
     await _SimAwaitable()
 
 
-async def notify(*events: Callable[[], bool]) -> SimVar:
+async def notify(*events: Callable[[], bool]) -> State:
     """Suspend the task, and wake up after an event notification."""
     for event in events:
         _sim.add_event(event)

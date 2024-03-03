@@ -1,13 +1,13 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module
-from seqlogic.hier import List
+from seqlogic import Array, Bit, Bits, Module
 from seqlogic.logicvec import T, xes, zeros
 from seqlogic.sim import notify
 
 from ..misc import COMBI, FLOP, TASK
 
-NUM = 32
+WIDTH = 32
+DEPTH = 32
 
 
 class RegFile(Module):
@@ -20,18 +20,15 @@ class RegFile(Module):
         # Ports
         self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_addr = Bits(name="wr_addr", parent=self, shape=(5,))
-        self.wr_data = Bits(name="wr_data", parent=self, shape=(32,))
+        self.wr_data = Bits(name="wr_data", parent=self, shape=(WIDTH,))
         self.rs1_addr = Bits(name="rs1_addr", parent=self, shape=(5,))
-        self.rs1_data = Bits(name="rs1_data", parent=self, shape=(32,))
+        self.rs1_data = Bits(name="rs1_data", parent=self, shape=(WIDTH,))
         self.rs2_addr = Bits(name="rs2_addr", parent=self, shape=(5,))
-        self.rs2_data = Bits(name="rs2_data", parent=self, shape=(32,))
+        self.rs2_data = Bits(name="rs2_data", parent=self, shape=(WIDTH,))
         self.clock = Bit(name="clock", parent=self)
 
         # State
-        self.regs = List(name="regs", parent=self)
-        for i in range(NUM):
-            reg = Bits(name=str(i), parent=self.regs, shape=(32,))
-            self.regs.append(reg)
+        self.regs = Array(name="regs", parent=self, packed_shape=(WIDTH,), unpacked_shape=(DEPTH,))
 
         self._procs.add((self.proc_init, TASK))
         self._procs.add((self.proc_wr_port, FLOP))
@@ -40,9 +37,9 @@ class RegFile(Module):
 
     async def proc_init(self):
         """TODO(cjdrake): Write docstring."""
-        self.regs[0].next = zeros((32,))
-        for i in range(1, NUM):
-            self.regs[i].next = zeros((32,))
+        self.regs.set_next(0, zeros((WIDTH,)))
+        for i in range(1, DEPTH):
+            self.regs.set_next(i, zeros((WIDTH,)))
 
     async def proc_wr_port(self):
         """TODO(cjdrake): Write docstring."""
@@ -51,28 +48,26 @@ class RegFile(Module):
             if self.wr_en.value == T:
                 i = self.wr_addr.value.to_uint()
                 if i != 0:
-                    self.regs[i].next = self.wr_data.value
+                    self.regs.set_next(i, self.wr_data.value)
 
     async def proc_rd1_port(self):
         """TODO(cjdrake): Write docstring."""
-        others = [self.regs[i].changed for i in range(1, NUM)]
         while True:
-            await notify(self.rs1_addr.changed, *others)
+            await notify(self.rs1_addr.changed, self.regs.changed)
             try:
                 i = self.rs1_addr.next.to_uint()
             except ValueError:
-                self.rs1_data.next = xes((32,))
+                self.rs1_data.next = xes((WIDTH,))
             else:
-                self.rs1_data.next = self.regs[i].next
+                self.rs1_data.next = self.regs.get_next(i)
 
     async def proc_rd2_port(self):
         """TODO(cjdrake): Write docstring."""
-        others = [self.regs[i].changed for i in range(1, NUM)]
         while True:
-            await notify(self.rs2_addr.changed, *others)
+            await notify(self.rs2_addr.changed, self.regs.changed)
             try:
                 i = self.rs2_addr.next.to_uint()
             except ValueError:
-                self.rs2_data.next = xes((32,))
+                self.rs2_data.next = xes((WIDTH,))
             else:
-                self.rs2_data.next = self.regs[i].next
+                self.rs2_data.next = self.regs.get_next(i)

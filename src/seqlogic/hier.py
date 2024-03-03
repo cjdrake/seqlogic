@@ -64,17 +64,10 @@ class Module(Hierarchy):
     @property
     def qualname(self) -> str:
         """Return the module's fully qualified name."""
-        match self._parent:
-            case None:
-                return f"/{self._name}"
-            case List():
-                return f"{self._parent.qualname}[{self._name}]"
-            case Dict():
-                return f"{self._parent.qualname}[{self._name}]"
-            case Module():
-                return f"{self._parent.qualname}/{self._name}"
-            case _:  # pragma: no cover
-                assert False
+        if self._parent is None:
+            return f"/{self._name}"
+        else:
+            return f"{self._parent.qualname}/{self._name}"
 
     def iter_bfs(self) -> Generator[Hierarchy, None, None]:
         """TODO(cjdrake): Write docstring."""
@@ -91,7 +84,7 @@ class Module(Hierarchy):
     @property
     def scope(self) -> str:
         """Return the module's full name using dot separator syntax."""
-        if self.parent is None:
+        if self._parent is None:
             return self.name
         assert isinstance(self._parent, Module)
         return f"{self._parent.scope}.{self.name}"
@@ -126,7 +119,7 @@ class Module(Hierarchy):
             child.dump_vcd(vcdw, pattern)
 
 
-class HierVar(Hierarchy):
+class Variable(Hierarchy):
     """Design hierarchy leaf node."""
 
     def __init__(self, name: str, parent: Module):
@@ -137,28 +130,13 @@ class HierVar(Hierarchy):
     @property
     def qualname(self) -> str:
         """Return the variable's fully qualified name."""
-        match self._parent:
-            case List():
-                return f"{self._parent.qualname}[{self._name}]"
-            case Dict():
-                return f"{self._parent.qualname}[{self._name}]"
-            case Module():
-                return f"{self._parent.qualname}/{self._name}"
-            case _:  # pragma: no cover
-                assert False
+        assert self._parent is not None
+        return f"{self._parent.qualname}/{self._name}"
 
-    def iter_bfs(self) -> Generator[HierVar, None, None]:
+    def iter_bfs(self) -> Generator[Variable, None, None]:
         """TODO(cjdrake): Write docstring."""
         yield self
 
-    def iter_dfs(self) -> Generator[HierVar, None, None]:
+    def iter_dfs(self) -> Generator[Variable, None, None]:
         """TODO(cjdrake): Write docstring."""
         yield self
-
-
-class List(Module, list):
-    """TODO(cjdrake): Write docstring."""
-
-
-class Dict(Module, dict):
-    """TODO(cjdrake): Write docstring."""

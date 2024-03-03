@@ -9,7 +9,7 @@ from collections.abc import Callable
 
 from seqlogic import Bit
 from seqlogic.logicvec import F, T, logicvec
-from seqlogic.sim import SimVar, notify, sleep
+from seqlogic.sim import Singular, notify, sleep
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
@@ -91,7 +91,7 @@ async def clock_drv(
 
 
 async def dff_arn_drv(
-    q: SimVar,
+    q: Singular,
     d: Callable[[], logicvec],
     reset_n: Bit,
     reset_value: logicvec,

@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import pytest
 
-from seqlogic.sim import Region, SimVar, get_loop, notify, sleep
+from seqlogic.sim import Region, Singular, get_loop, notify, sleep
 
 loop = get_loop()
 waves = defaultdict(dict)
@@ -14,7 +14,7 @@ def _waves_add(time, var, val):
     waves[time][var] = val
 
 
-class _BoolVar(SimVar):
+class _BoolVar(Singular):
     """Variable that supports dumping to memory."""
 
     def __init__(self):

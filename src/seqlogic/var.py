@@ -5,9 +5,9 @@ from collections import defaultdict
 
 from vcd.writer import VarValue
 
-from .hier import HierVar, Module
+from . import sim
+from .hier import Module, Variable
 from .logicvec import F, T, logicvec, xes
-from .sim import SimVar
 
 
 def vec2vcd(x: logicvec) -> VarValue:
@@ -18,13 +18,13 @@ def vec2vcd(x: logicvec) -> VarValue:
     return "".join(reversed(bits))
 
 
-class TraceVar(HierVar, SimVar):
+class TraceVar(Variable, sim.Singular):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, name: str, parent: Module, init):
+    def __init__(self, name: str, parent: Module, value):
         """TODO(cjdrake): Write docstring."""
-        HierVar.__init__(self, name, parent)
-        SimVar.__init__(self, value=init)
+        Variable.__init__(self, name, parent)
+        sim.Singular.__init__(self, value)
         self._waves_change = None
         self._vcd_change = None
 
@@ -72,7 +72,7 @@ class Bits(TraceVar):
 
     def __init__(self, name: str, parent: Module, shape: tuple[int, ...]):
         """TODO(cjdrake): Write docstring."""
-        super().__init__(name, parent, init=xes(shape))
+        super().__init__(name, parent, value=xes(shape))
 
 
 # TODO(cjdrake): Create a generic type for enums
@@ -92,3 +92,18 @@ class Bit(Bits):
     def negedge(self) -> bool:
         """TODO(cjdrake): Write docstring."""
         return self._value == T and self._next_value == F
+
+
+class Array(Variable, sim.Aggregate):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(
+        self,
+        name: str,
+        parent: Module,
+        packed_shape: tuple[int, ...],
+        unpacked_shape: tuple[int, ...],
+    ):
+        """TODO(cjdrake): Write docstring."""
+        Variable.__init__(self, name, parent)
+        sim.Aggregate.__init__(self, shape=unpacked_shape, value=xes(packed_shape))

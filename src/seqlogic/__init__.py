@@ -1,10 +1,11 @@
 """Sequential Logic."""
 
 from .hier import Module
-from .var import Bit, Bits
+from .var import Array, Bit, Bits
 
 __all__ = [
-    "Module",
+    "Array",
     "Bit",
     "Bits",
+    "Module",
 ]
