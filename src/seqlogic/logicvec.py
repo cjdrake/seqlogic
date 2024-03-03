@@ -426,14 +426,14 @@ def _parse_str_lit(lit: str) -> lbool.vec:
 
 
 def _rank1(fst: int, rst) -> logicvec:
-    pcitems = [fst]
+    items = [fst]
     for x in rst:
         match x:
             case 0 | 1:
-                pcitems.append(lbool.from_bit[x])
+                items.append(lbool.from_bit[x])
             case _:
                 raise TypeError("Expected item to be in (0, 1)")
-    return logicvec(lbool.from_items(pcitems))
+    return logicvec(lbool.from_items(items))
 
 
 def _rank2(fst: logicvec, rst) -> logicvec:
