@@ -359,7 +359,8 @@ class PcVec:
                 d = self._get_item(self._norm_index(i))
                 return PcVec(1, d)
             case slice() as sl:
-                n, d = self._get_items(*self._norm_slice(sl))
+                i, j = self._norm_slice(sl)
+                n, d = self._get_items(i, j)
                 return PcVec(n, d)
             case _:
                 raise TypeError("Expected key to be int or slice")
@@ -692,6 +693,8 @@ class PcVec:
 
     def add(self, other: PcVec, ci: PcVec[1]) -> tuple[PcVec, PcVec[1], PcVec[1]]:
         """Twos complement addition."""
+        self._check_len(other)
+
         # Rename for readability
         n, a, b = self._n, self, other
 
