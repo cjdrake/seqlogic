@@ -29,7 +29,7 @@ class Opcode(Enum):
     JAL = "7b110_1111"
     SYSTEM = "7b111_0011"
 
-    X = "7bxxx_xxxx"
+    X = "7bXXX_XXXX"
 
 
 class CtlPc(Enum):
@@ -40,7 +40,7 @@ class CtlPc(Enum):
     RS1_IMM = "2b10"
     PC4_BR = "2b11"
 
-    X = "2bxx"
+    X = "2bXX"
 
 
 class CtlAlu(Enum):
@@ -51,7 +51,7 @@ class CtlAlu(Enum):
     OP = "2b10"
     OP_IMM = "2b11"
 
-    X = "2bxx"
+    X = "2bXX"
 
 
 class AluOp(Enum):
@@ -77,7 +77,7 @@ class AluOp(Enum):
     REM = "5b1_0010"
     REMU = "5b1_0011"
 
-    X = "5bx_xxxx"
+    X = "5bX_XXXX"
 
 
 class CtlAluA(Enum):
@@ -86,7 +86,7 @@ class CtlAluA(Enum):
     RS1 = "1b0"
     PC = "1b1"
 
-    X = "1bx"
+    X = "1bX"
 
 
 class CtlAluB(Enum):
@@ -95,7 +95,7 @@ class CtlAluB(Enum):
     RS2 = "1b0"
     IMM = "1b1"
 
-    X = "1bx"
+    X = "1bX"
 
 
 class Funct3AluLogic(Enum):
@@ -110,7 +110,7 @@ class Funct3AluLogic(Enum):
     OR = "3b110"
     AND = "3b111"
 
-    X = "3bxxx"
+    X = "3bXXX"
 
 
 class Funct3Branch(Enum):
@@ -123,7 +123,7 @@ class Funct3Branch(Enum):
     LTU = "3b110"
     GEU = "3b111"
 
-    X = "3bxxx"
+    X = "3bXXX"
 
 
 class Funct3AluMul(Enum):
@@ -138,7 +138,7 @@ class Funct3AluMul(Enum):
     REM = "3b110"
     REMU = "3b111"
 
-    X = "3bxxx"
+    X = "3bXXX"
 
 
 class CtlWriteBack(Enum):
@@ -149,4 +149,4 @@ class CtlWriteBack(Enum):
     PC4 = "3b010"
     IMM = "3b011"
 
-    X = "3bxxx"
+    X = "3bXXX"

@@ -24,7 +24,7 @@ class SeqDetect(Enum):
     C = "2b10"
     D = "2b11"
 
-    XX = "2bxx"
+    XX = "2bXX"
 
 
 class EnumVar(TraceSingular):

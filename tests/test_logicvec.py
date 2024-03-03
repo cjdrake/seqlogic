@@ -11,109 +11,109 @@ from seqlogic.logicvec import F, N, T, X, cat, nulls, ones, rep, uint2vec, vec, 
 def test_not():
     """Test logicvec NOT function."""
     x = vec([N, F, T, X])
-    assert str(~x) == "vec(4bx01X)"
+    assert str(~x) == "vec(4bX01?)"
 
 
 def test_nor():
     """Test logicvec NOR function."""
-    x0 = vec("16bxxxx_1111_0000_XXXX")
-    x1 = vec("16bx10X_x10X_x10X_x10X")
-    assert str(x0.lnor(x1)) == "vec(16bx0xX_000X_x01X_XXXX)"
+    x0 = vec("16bXXXX_1111_0000_????")
+    x1 = vec("16bX10?_X10?_X10?_X10?")
+    assert str(x0.lnor(x1)) == "vec(16bX0X?_000?_X01?_????)"
 
 
 def test_or():
     """Test logicvec OR function."""
-    x0 = vec("16bxxxx_1111_0000_XXXX")
-    x1 = vec("16bx10X_x10X_x10X_x10X")
-    assert str(x0 | x1) == "vec(16bx1xX_111X_x10X_XXXX)"
+    x0 = vec("16bXXXX_1111_0000_????")
+    x1 = vec("16bX10?_X10?_X10?_X10?")
+    assert str(x0 | x1) == "vec(16bX1X?_111?_X10?_????)"
 
 
 def test_nand():
     """Test logicvec NAND function."""
-    x0 = vec("16bxxxx_1111_0000_XXXX")
-    x1 = vec("16bx10X_x10X_x10X_x10X")
-    assert str(x0.lnand(x1)) == "vec(16bxx1X_x01X_111X_XXXX)"
+    x0 = vec("16bXXXX_1111_0000_????")
+    x1 = vec("16bX10?_X10?_X10?_X10?")
+    assert str(x0.lnand(x1)) == "vec(16bXX1?_X01?_111?_????)"
 
 
 def test_and():
     """Test logicvec AND function."""
-    x0 = vec("16bxxxx_1111_0000_XXXX")
-    x1 = vec("16bx10X_x10X_x10X_x10X")
-    assert str(x0 & x1) == "vec(16bxx0X_x10X_000X_XXXX)"
+    x0 = vec("16bXXXX_1111_0000_????")
+    x1 = vec("16bX10?_X10?_X10?_X10?")
+    assert str(x0 & x1) == "vec(16bXX0?_X10?_000?_????)"
 
 
 def test_xnor():
     """Test logicvec XNOR function."""
-    x0 = vec("16bxxxx_1111_0000_XXXX")
-    x1 = vec("16bx10X_x10X_x10X_x10X")
-    assert str(x0.lxnor(x1)) == "vec(16bxxxX_x10X_x01X_XXXX)"
+    x0 = vec("16bXXXX_1111_0000_????")
+    x1 = vec("16bX10?_X10?_X10?_X10?")
+    assert str(x0.lxnor(x1)) == "vec(16bXXX?_X10?_X01?_????)"
 
 
 def test_xor():
     """Test logicvec XOR function."""
-    x0 = vec("16bxxxx_1111_0000_XXXX")
-    x1 = vec("16bx10X_x10X_x10X_x10X")
-    assert str(x0 ^ x1) == "vec(16bxxxX_x01X_x10X_XXXX)"
+    x0 = vec("16bXXXX_1111_0000_????")
+    x1 = vec("16bX10?_X10?_X10?_X10?")
+    assert str(x0 ^ x1) == "vec(16bXXX?_X01?_X10?_????)"
 
 
 def test_uor():
     """Test logicvec unary OR method."""
-    assert vec("2bXX").ulor() == N
-    assert vec("2b0X").ulor() == N
-    assert vec("2b1X").ulor() == N
-    assert vec("2bxX").ulor() == N
-    assert vec("2bX0").ulor() == N
+    assert vec("2b??").ulor() == N
+    assert vec("2b0?").ulor() == N
+    assert vec("2b1?").ulor() == N
+    assert vec("2bX?").ulor() == N
+    assert vec("2b?0").ulor() == N
     assert vec("2b00").ulor() == F
     assert vec("2b10").ulor() == T
-    assert vec("2bx0").ulor() == X
-    assert vec("2bX1").ulor() == N
+    assert vec("2bX0").ulor() == X
+    assert vec("2b?1").ulor() == N
     assert vec("2b01").ulor() == T
     assert vec("2b11").ulor() == T
-    assert vec("2bx1").ulor() == T
-    assert vec("2bXx").ulor() == N
-    assert vec("2b0x").ulor() == X
-    assert vec("2b1x").ulor() == T
-    assert vec("2bxx").ulor() == X
+    assert vec("2bX1").ulor() == T
+    assert vec("2b?X").ulor() == N
+    assert vec("2b0X").ulor() == X
+    assert vec("2b1X").ulor() == T
+    assert vec("2bXX").ulor() == X
 
 
 def test_uand():
     """Test logicvec unary and method."""
-    assert vec("2bXX").uland() == N
-    assert vec("2b0X").uland() == N
-    assert vec("2b1X").uland() == N
-    assert vec("2bxX").uland() == N
-    assert vec("2bX0").uland() == N
+    assert vec("2b??").uland() == N
+    assert vec("2b0?").uland() == N
+    assert vec("2b1?").uland() == N
+    assert vec("2bX?").uland() == N
+    assert vec("2b?0").uland() == N
     assert vec("2b00").uland() == F
     assert vec("2b10").uland() == F
-    assert vec("2bx0").uland() == F
-    assert vec("2bX1").uland() == N
+    assert vec("2bX0").uland() == F
+    assert vec("2b?1").uland() == N
     assert vec("2b01").uland() == F
     assert vec("2b11").uland() == T
-    assert vec("2bx1").uland() == X
-    assert vec("2bXx").uland() == N
-    assert vec("2b0x").uland() == F
-    assert vec("2b1x").uland() == X
-    assert vec("2bxx").uland() == X
+    assert vec("2bX1").uland() == X
+    assert vec("2b?X").uland() == N
+    assert vec("2b0X").uland() == F
+    assert vec("2b1X").uland() == X
+    assert vec("2bXX").uland() == X
 
 
 def test_uxor():
     """Test logicvec unary xor method."""
-    assert vec("2bXX").ulxor() == N
-    assert vec("2b0X").ulxor() == N
-    assert vec("2b1X").ulxor() == N
-    assert vec("2bxX").ulxor() == N
-    assert vec("2bX0").ulxor() == N
+    assert vec("2b??").ulxor() == N
+    assert vec("2b0?").ulxor() == N
+    assert vec("2b1?").ulxor() == N
+    assert vec("2bX?").ulxor() == N
+    assert vec("2b?0").ulxor() == N
     assert vec("2b00").ulxor() == F
     assert vec("2b10").ulxor() == T
-    assert vec("2bx0").ulxor() == X
-    assert vec("2bX1").ulxor() == N
+    assert vec("2bX0").ulxor() == X
+    assert vec("2b?1").ulxor() == N
     assert vec("2b01").ulxor() == T
     assert vec("2b11").ulxor() == F
-    assert vec("2bx1").ulxor() == X
-    assert vec("2bXx").ulxor() == N
-    assert vec("2b0x").ulxor() == X
-    assert vec("2b1x").ulxor() == X
-    assert vec("2bxx").ulxor() == X
+    assert vec("2bX1").ulxor() == X
+    assert vec("2b?X").ulxor() == N
+    assert vec("2b0X").ulxor() == X
+    assert vec("2b1X").ulxor() == X
+    assert vec("2bXX").ulxor() == X
 
 
 def test_zext():
@@ -325,7 +325,7 @@ def test_parse_str_literal():
         vec("invalid")
 
     # Valid input
-    v = vec("4bx1_0X")
+    v = vec("4bX1_0?")
     assert v._w.data == 0b11_10_01_00
     v = vec("64hFeDc_Ba98_7654_3210")
     assert v._w.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
@@ -417,10 +417,10 @@ def test_scalar():
     assert v0.flatten() == v0
 
     # Test __str__ and __repr__
-    assert str(vn) == repr(vn) == "vec([X])"
+    assert str(vn) == repr(vn) == "vec([?])"
     assert str(v0) == repr(v0) == "vec([0])"
     assert str(v1) == repr(v1) == "vec([1])"
-    assert str(vx) == repr(vx) == "vec([x])"
+    assert str(vx) == repr(vx) == "vec([X])"
 
     # Test __len__
     assert len(v0) == 1
@@ -450,7 +450,7 @@ def test_scalar():
 
 def test_rank1_str():
     """Test vec rank1 string input."""
-    v = vec("8bx10X_x10X")
+    v = vec("8bX10?_X10?")
     data = 0b11100100_11100100
     xs = [N, F, T, X] * 2
 
@@ -465,7 +465,7 @@ def test_rank1_str():
     assert v.flatten() == v
 
     # Test __str__ and __repr__
-    assert str(v) == repr(v) == "vec(8bx10X_x10X)"
+    assert str(v) == repr(v) == "vec(8bX10?_X10?)"
 
     # Test __len__
     assert len(v) == 8
@@ -480,7 +480,7 @@ def test_rank1_str():
     assert v[7] == X
 
     # Test __eq__
-    assert v == vec("8bx10X_x10X")
+    assert v == vec("8bX10?_X10?")
     # Same data, different shape
     assert v != v.reshape((2, 4))
     with pytest.raises(ValueError):
@@ -505,7 +505,7 @@ def test_rank1_str():
 def test_rank1_logic():
     """Test vec function w/ rank1 logic input."""
     xs = [N, F, T, X]
-    v1 = vec("4bx10X")
+    v1 = vec("4bX10?")
     v2 = vec([0, 1, 0, 1])
     with pytest.raises(TypeError):
         _ = vec([0, "invalid"])
@@ -519,72 +519,72 @@ def test_rank1_logic():
     assert list(v1.flat) == xs
 
     # Test __str__ and __repr__
-    assert str(v1) == repr(v1) == "vec(4bx10X)"
+    assert str(v1) == repr(v1) == "vec(4bX10?)"
     assert str(v2) == repr(v2) == "vec(4b1010)"
 
 
 def test_rank2_str():
     """Test vec function w/ rank2 str input."""
-    v = vec(["4bx10X", "4bx10X"])
+    v = vec(["4bX10?", "4bX10?"])
 
-    assert v.flatten() == vec("8bx10X_x10X")
+    assert v.flatten() == vec("8bX10?_X10?")
 
     # Test __str__ and __repr__
-    assert str(v) == repr(v) == "vec([4bx10X, 4bx10X])"
+    assert str(v) == repr(v) == "vec([4bX10?, 4bX10?])"
 
 
 def test_rank2_vec():
     """Test vec function w/ rank2 vec input."""
-    v = vec([vec("4bx10X"), vec("4bx10X")])
+    v = vec([vec("4bX10?"), vec("4bX10?")])
 
     # Test __str__ and __repr__
-    assert str(v) == repr(v) == "vec([4bx10X, 4bx10X])"
+    assert str(v) == repr(v) == "vec([4bX10?, 4bX10?])"
 
 
 def test_rank2_errors():
     """Test vec function rank2 errors."""
     # Mismatched str literal
     with pytest.raises(TypeError):
-        vec(["4bx10X", "3b10X"])
+        vec(["4bX10?", "3b10?"])
     # logicvec followed by some invalid type
     with pytest.raises(TypeError):
-        vec(["4bx10X", 42])
+        vec(["4bX10?", 42])
 
 
 R3VEC = """\
-vec([[4bx10X, 4bx10X],
-     [4bx10X, 4bx10X]])"""
+vec([[4bX10?, 4bX10?],
+     [4bX10?, 4bX10?]])"""
 
 
 def test_rank3_vec():
     """Test vec function w/ rank3 input."""
     v = vec(
         [
-            [vec("4bx10X"), vec("4bx10X")],
-            [vec("4bx10X"), vec("4bx10X")],
+            [vec("4bX10?"), vec("4bX10?")],
+            [vec("4bX10?"), vec("4bX10?")],
         ]
     )
 
-    assert v.flatten() == vec("16bx10X_x10X_x10X_x10X")
+    assert v.flatten() == vec("16bX10?_X10?_X10?_X10?")
 
     # Test __str__ and __repr__
     assert str(v) == repr(v) == R3VEC
 
 
 R4VEC = """\
-vec([[[4bx10X, 4bx10X],
-      [4bx10X, 4bx10X]],
+vec([[[4bX10?, 4bX10?],
+      [4bX10?, 4bX10?]],
 
-     [[4bx10X, 4bx10X],
-      [4bx10X, 4bx10X]]])"""
+     [[4bX10?, 4bX10?],
+      [4bX10?, 4bX10?]]])"""
 
 
 def test_rank4_vec():
     """Test vec function w/ rank4 input."""
     v = vec(
         [
-            [[vec("4bx10X"), vec("4bx10X")], [vec("4bx10X"), vec("4bx10X")]],
-            [[vec("4bx10X"), vec("4bx10X")], [vec("4bx10X"), vec("4bx10X")]],
+            [[vec("4bX10?"), vec("4bX10?")], [vec("4bX10?"), vec("4bX10?")]],
+            [[vec("4bX10?"), vec("4bX10?")], [vec("4bX10?"), vec("4bX10?")]],
         ]
     )
 
@@ -636,10 +636,10 @@ def test_rep():
 
 def test_consts():
     """Test logicvec constants."""
-    assert nulls((8,)) == vec("8bXXXX_XXXX")
+    assert nulls((8,)) == vec("8b????_????")
     assert zeros((8,)) == vec("8b0000_0000")
     assert ones((8,)) == vec("8b1111_1111")
-    assert xes((8,)) == vec("8bxxxx_xxxx")
+    assert xes((8,)) == vec("8bXXXX_XXXX")
 
 
 def test_slicing():
@@ -713,7 +713,7 @@ def test_slicing():
 
 def test_countbits():
     """Test logicvec countbits methods."""
-    v = vec("8bx10X_x10X")
+    v = vec("8bX10?_X10?")
     assert v._w.count_known() == 4
     assert v._w.count_unknown() == 4
 
@@ -736,5 +736,5 @@ def test_countbits():
 
     assert not vec("4b0000")._w.has_unknown()
     assert not vec("4b1111")._w.has_unknown()
-    assert vec("4b0x01")._w.has_unknown()
-    assert vec("4b01X1")._w.has_unknown()
+    assert vec("4b0X01")._w.has_unknown()
+    assert vec("4b01?1")._w.has_unknown()

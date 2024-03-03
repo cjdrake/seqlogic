@@ -12,7 +12,7 @@ from functools import cached_property
 from . import lbool
 
 _NUM_RE = re.compile(
-    r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[X01x_]+))|"
+    r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[?01X_]+))|"
     r"((?P<HexSize>[0-9]+)h(?P<HexDigits>[0-9a-fA-F_]+))"
 )
 
@@ -586,22 +586,22 @@ def _consts(shape: tuple[int, ...], x: int) -> logicvec:
 
 def nulls(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with NULLs."""
-    return _consts(shape, lbool.NULL)
+    return _consts(shape, lbool._ILLOGICAL_UNKNOWN)
 
 
 def zeros(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with zeros."""
-    return _consts(shape, lbool.ZERO)
+    return _consts(shape, lbool._ZERO)
 
 
 def ones(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with ones."""
-    return _consts(shape, lbool.ONE)
+    return _consts(shape, lbool._ONE)
 
 
 def xes(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with Xes."""
-    return _consts(shape, lbool.DC)
+    return _consts(shape, lbool._LOGICAL_UNKNOWN)
 
 
 # One bit values

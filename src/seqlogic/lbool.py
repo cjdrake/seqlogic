@@ -12,26 +12,26 @@ from .util import clog2
 _ITEM_BITS = 2
 _ITEM_MASK = 0b11
 
-NULL = 0b00
-ZERO = 0b01
-ONE = 0b10
-DC = 0b11  # "Don't Care"
+_ILLOGICAL_UNKNOWN = 0b00
+_ZERO = 0b01
+_ONE = 0b10
+_LOGICAL_UNKNOWN = 0b11
 
 
-from_int = (ZERO, ONE)
+from_int = (_ZERO, _ONE)
 
 from_char = {
-    "X": NULL,
-    "0": ZERO,
-    "1": ONE,
-    "x": DC,
+    "?": _ILLOGICAL_UNKNOWN,
+    "0": _ZERO,
+    "1": _ONE,
+    "X": _LOGICAL_UNKNOWN,
 }
 
 to_char = {
-    NULL: "X",
-    ZERO: "0",
-    ONE: "1",
-    DC: "x",
+    _ILLOGICAL_UNKNOWN: "?",
+    _ZERO: "0",
+    _ONE: "1",
+    _LOGICAL_UNKNOWN: "X",
 }
 
 from_hexchar = {
@@ -415,7 +415,7 @@ class vec:
         return self.rsh(n)[0]
 
     def __add__(self, other: vec) -> vec:
-        return self.add(other, ci=F)[0]
+        return self.add(other, ci=_F)[0]
 
     def __sub__(self, other: vec) -> vec:
         return self.sub(other)[0]
@@ -486,7 +486,7 @@ class vec:
 
     def ulor(self) -> vec[1]:
         """Unary lifted OR reduction."""
-        y = F
+        y = _F
         for x in self:
             y = y.lor(x)
         return y
@@ -531,7 +531,7 @@ class vec:
 
     def uland(self) -> vec[1]:
         """Unary lifted AND reduction."""
-        y = T
+        y = _T
         for x in self:
             y = y.land(x)
         return y
@@ -578,14 +578,14 @@ class vec:
 
     def ulxor(self) -> vec[1]:
         """Unary lifted XOR reduction."""
-        y = F
+        y = _F
         for x in self:
             y = y.lxor(x)
         return y
 
     def ulxnor(self) -> vec[1]:
         """Unary lifted XNOR reduction."""
-        y = T
+        y = _T
         for x in self:
             y = y.lxnor(x)
         return y
@@ -618,7 +618,7 @@ class vec:
         if self._n == 0:
             return 0
         sign = self._get_item(self._n - 1)
-        if sign == ONE:
+        if sign == _ONE:
             return -(self.lnot().to_uint() + 1)
         return self.to_uint()
 
@@ -638,7 +638,7 @@ class vec:
             raise ValueError(f"Expected n ≥ 0, got {n}")
         if n == 0:
             return self
-        prefix = _fill(ZERO, n)
+        prefix = _fill(_ZERO, n)
         return vec(self._n + n, self._data | (prefix << self.nbits))
 
     def sext(self, n: int) -> vec:
@@ -656,9 +656,9 @@ class vec:
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
-            return self, E
+            return self, _E
         if ci is None:
-            ci = vec(n, _fill(ZERO, n))
+            ci = vec(n, _fill(_ZERO, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         sh, co = self[:-n], self[-n:]
@@ -670,9 +670,9 @@ class vec:
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
-            return self, E
+            return self, _E
         if ci is None:
-            ci = vec(n, _fill(ZERO, n))
+            ci = vec(n, _fill(_ZERO, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         co, sh = self[:n], self[n:]
@@ -684,7 +684,7 @@ class vec:
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
-            return self, E
+            return self, _E
         sign = self._get_item(self._n - 1)
         ci_data = _fill(sign, n)
         co, sh = self[:n], self[n:]
@@ -699,9 +699,9 @@ class vec:
         n, a, b = self._n, self, other
 
         if a.has_null() or b.has_null() or ci.has_null():
-            return vec(n, _fill(NULL, n)), N, N
+            return vec(n, _fill(_ILLOGICAL_UNKNOWN, n)), _W, _W
         if a.has_dc() or b.has_dc() or ci.has_dc():
-            return vec(n, _fill(DC, n)), X, X
+            return vec(n, _fill(_LOGICAL_UNKNOWN, n)), _X, _X
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
 
@@ -711,7 +711,7 @@ class vec:
             s >>= 1
 
         # Carry out is True if there is leftover sum data
-        co = (F, T)[s != 0]
+        co = (_F, _T)[s != 0]
 
         s = vec(n, data)
 
@@ -725,11 +725,11 @@ class vec:
 
     def sub(self, other: vec) -> tuple[vec, vec[1], vec[1]]:
         """Twos complement subtraction."""
-        return self.add(other.lnot(), ci=T)
+        return self.add(other.lnot(), ci=_T)
 
     def neg(self) -> tuple[vec, vec[1], vec[1]]:
         """Twos complement negation."""
-        zero = vec(self._n, _fill(ZERO, self._n))
+        zero = vec(self._n, _fill(_ZERO, self._n))
         return zero.sub(self)
 
     def _check_len(self, other: vec):
@@ -754,19 +754,19 @@ class vec:
 
     def count_nulls(self) -> int:
         """TODO(cjdrake): Write docstring."""
-        return self._count(_byte_cnt_nulls, NULL)
+        return self._count(_byte_cnt_nulls, _ILLOGICAL_UNKNOWN)
 
     def count_zeros(self) -> int:
         """TODO(cjdrake): Write docstring."""
-        return self._count(_byte_cnt_zeros, ZERO)
+        return self._count(_byte_cnt_zeros, _ZERO)
 
     def count_ones(self) -> int:
         """TODO(cjdrake): Write docstring."""
-        return self._count(_byte_cnt_ones, ONE)
+        return self._count(_byte_cnt_ones, _ONE)
 
     def count_dcs(self) -> int:
         """TODO(cjdrake): Write docstring."""
-        return self._count(_byte_cnt_dcs, DC)
+        return self._count(_byte_cnt_dcs, _LOGICAL_UNKNOWN)
 
     def count_known(self) -> int:
         """TODO(cjdrake): Write docstring."""
@@ -851,7 +851,7 @@ class vec:
         F(n+1) = 4*F(n) + 1
         F(n) = (4^n - 1) / 3
         """
-        zero_mask = _fill(ZERO, self._n)
+        zero_mask = _fill(_ZERO, self._n)
         one_mask = zero_mask << 1
         return zero_mask, one_mask
 
@@ -963,13 +963,13 @@ def from_quads(xs: Iterable[int] = ()) -> vec:
 
 
 # Empty
-E = vec(0, 0)
+_E = vec(0, 0)
 
 # One bit values
-N = vec(1, NULL)
-F = vec(1, ZERO)
-T = vec(1, ONE)
-X = vec(1, DC)
+_W = vec(1, _ILLOGICAL_UNKNOWN)
+_F = vec(1, _ZERO)
+_T = vec(1, _ONE)
+_X = vec(1, _LOGICAL_UNKNOWN)
 
 _byte_cnt_nulls = {
     0b00_00_00_00: 4,

@@ -58,7 +58,7 @@ def test_lfsr():
         -1: {
             top.reset_n: X,
             top.clock: X,
-            top.q: vec("3bxxx"),
+            top.q: vec("3bXXX"),
         },
         0: {
             top.reset_n: T,
