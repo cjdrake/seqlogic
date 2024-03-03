@@ -1,11 +1,11 @@
-"""Test seqlogic.pcn module."""
+"""Test seqlogic.lbool module."""
 
 # pylint: disable = pointless-statement
 
 import pytest
 
-from seqlogic import pcn
-from seqlogic.pcn import (
+from seqlogic import lbool
+from seqlogic.lbool import (
     PcVec,
     int2vec,
     land,
@@ -28,10 +28,10 @@ LNOT = {
 
 
 def test_lnot():
-    """Test seqlogic.pcn.lnot function."""
+    """Test seqlogic.lbool.lnot function."""
     for x, y in LNOT.items():
-        x = pcn.from_char[x]
-        y = pcn.from_char[y]
+        x = lbool.from_char[x]
+        y = lbool.from_char[y]
         assert lnot(x) == y
         assert ~PcVec(1, x) == PcVec(1, y)
 
@@ -57,11 +57,11 @@ LNOR = {
 
 
 def test_lnor():
-    """Test seqlogic.pcn.lnor function."""
+    """Test seqlogic.lbool.lnor function."""
     for xs, y in LNOR.items():
-        x0 = pcn.from_char[xs[0]]
-        x1 = pcn.from_char[xs[1]]
-        y = pcn.from_char[y]
+        x0 = lbool.from_char[xs[0]]
+        x1 = lbool.from_char[xs[1]]
+        y = lbool.from_char[y]
         assert lnor(x0, x1) == y
         assert ~(PcVec(1, x0) | PcVec(1, x1)) == PcVec(1, y)
 
@@ -87,11 +87,11 @@ LOR = {
 
 
 def test_lor():
-    """Test seqlogic.pcn.lor function."""
+    """Test seqlogic.lbool.lor function."""
     for xs, y in LOR.items():
-        x0 = pcn.from_char[xs[0]]
-        x1 = pcn.from_char[xs[1]]
-        y = pcn.from_char[y]
+        x0 = lbool.from_char[xs[0]]
+        x1 = lbool.from_char[xs[1]]
+        y = lbool.from_char[y]
         assert lor(x0, x1) == y
         assert PcVec(1, x0) | PcVec(1, x1) == PcVec(1, y)
 
@@ -117,11 +117,11 @@ LNAND = {
 
 
 def test_lnand():
-    """Test seqlogic.pcn.lnand function."""
+    """Test seqlogic.lbool.lnand function."""
     for xs, y in LNAND.items():
-        x0 = pcn.from_char[xs[0]]
-        x1 = pcn.from_char[xs[1]]
-        y = pcn.from_char[y]
+        x0 = lbool.from_char[xs[0]]
+        x1 = lbool.from_char[xs[1]]
+        y = lbool.from_char[y]
         assert lnand(x0, x1) == y
         assert ~(PcVec(1, x0) & PcVec(1, x1)) == PcVec(1, y)
 
@@ -147,11 +147,11 @@ LAND = {
 
 
 def test_land():
-    """Test seqlogic.pcn.land function."""
+    """Test seqlogic.lbool.land function."""
     for xs, y in LAND.items():
-        x0 = pcn.from_char[xs[0]]
-        x1 = pcn.from_char[xs[1]]
-        y = pcn.from_char[y]
+        x0 = lbool.from_char[xs[0]]
+        x1 = lbool.from_char[xs[1]]
+        y = lbool.from_char[y]
         assert land(x0, x1) == y
         assert PcVec(1, x0) & PcVec(1, x1) == PcVec(1, y)
 
@@ -177,11 +177,11 @@ LXNOR = {
 
 
 def test_lxnor():
-    """Test seqlogic.pcn.lnand function."""
+    """Test seqlogic.lbool.lnand function."""
     for xs, y in LXNOR.items():
-        x0 = pcn.from_char[xs[0]]
-        x1 = pcn.from_char[xs[1]]
-        y = pcn.from_char[y]
+        x0 = lbool.from_char[xs[0]]
+        x1 = lbool.from_char[xs[1]]
+        y = lbool.from_char[y]
         assert lxnor(x0, x1) == y
         assert ~(PcVec(1, x0) ^ PcVec(1, x1)) == PcVec(1, y)
 
@@ -207,11 +207,11 @@ LXOR = {
 
 
 def test_lxor():
-    """Test seqlogic.pcn.land function."""
+    """Test seqlogic.lbool.land function."""
     for xs, y in LXOR.items():
-        x0 = pcn.from_char[xs[0]]
-        x1 = pcn.from_char[xs[1]]
-        y = pcn.from_char[y]
+        x0 = lbool.from_char[xs[0]]
+        x1 = lbool.from_char[xs[1]]
+        y = lbool.from_char[y]
         assert lxor(x0, x1) == y
         assert PcVec(1, x0) ^ PcVec(1, x1) == PcVec(1, y)
 
@@ -237,11 +237,11 @@ LIMPLIES = {
 
 
 def test_limplies():
-    """Test seqlogic.pcn.limplies function."""
+    """Test seqlogic.lbool.limplies function."""
     for xs, y in LIMPLIES.items():
-        x0 = pcn.from_char[xs[0]]
-        x1 = pcn.from_char[xs[1]]
-        y = pcn.from_char[y]
+        x0 = lbool.from_char[xs[0]]
+        x1 = lbool.from_char[xs[1]]
+        y = lbool.from_char[y]
         assert limplies(x0, x1) == y
 
 
@@ -277,7 +277,7 @@ UINT2VEC_N_VALS = {
 
 
 def test_uint2vec():
-    """Test seqlogic.pcn.uint2vec function."""
+    """Test seqlogic.lbool.uint2vec function."""
     # Negative inputs are invalid
     with pytest.raises(ValueError):
         uint2vec(-1)
@@ -359,7 +359,7 @@ INT2VEC_N_VALS = {
 
 
 def test_int2vec():
-    """Test seqlogic.pcn.int2vec function."""
+    """Test seqlogic.lbool.int2vec function."""
     for i, s in INT2VEC_VALS.items():
         v = int2vec(i)
         assert str(v) == s
@@ -393,7 +393,7 @@ def test_int2vec():
 
 
 def test_pcvec_basic():
-    """Test seqlogic.pcn.PcVec basic functionality."""
+    """Test seqlogic.lbool.PcVec basic functionality."""
     # n is non-negative
     with pytest.raises(ValueError):
         PcVec(-1, 42)

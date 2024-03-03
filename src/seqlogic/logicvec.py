@@ -9,8 +9,8 @@ import re
 from collections.abc import Collection, Generator
 from functools import cached_property
 
-from . import pcn
-from .pcn import PcVec
+from . import lbool
+from .lbool import PcVec
 
 _NUM_RE = re.compile(
     r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[X01x_]+))|"
@@ -321,7 +321,7 @@ class logicvec:
         for i, x in enumerate(self.flat):
             if i % 4 == 0 and i != 0:
                 chars.append("_")
-            chars.append(pcn.to_char[x._w.data])
+            chars.append(lbool.to_char[x._w.data])
         return prefix + "".join(reversed(chars))
 
     def _str(self, indent: str) -> str:
@@ -331,7 +331,7 @@ class logicvec:
             return "[]"
         # Scalar
         if self._shape == (1,):
-            return "[" + pcn.to_char[self._w.data] + "]"
+            return "[" + lbool.to_char[self._w.data] + "]"
         # 1D Vector
         if self.ndim == 1:
             return self._to_lit()
@@ -410,7 +410,7 @@ def _parse_str_lit(lit: str) -> PcVec:
             if ndigits != size:
                 s = f"Expected {size} digits, got {ndigits}"
                 raise ValueError(s)
-            return pcn.from_pcitems(pcn.from_char[c] for c in reversed(digits))
+            return lbool.from_pcitems(lbool.from_char[c] for c in reversed(digits))
         # Hexadecimal
         elif m.group("HexSize"):
             size = int(m.group("HexSize"))
@@ -419,7 +419,7 @@ def _parse_str_lit(lit: str) -> PcVec:
             if 4 * ndigits != size:
                 s = f"Expected size to match # digits, got {size} ≠ {4 * ndigits}"
                 raise ValueError(s)
-            return pcn.from_quads(pcn.from_hexchar[c] for c in reversed(digits))
+            return lbool.from_quads(lbool.from_hexchar[c] for c in reversed(digits))
         else:  # pragma: no cover
             assert False
     else:
@@ -431,10 +431,10 @@ def _rank1(fst: int, rst) -> logicvec:
     for x in rst:
         match x:
             case 0 | 1:
-                pcitems.append(pcn.from_int[x])
+                pcitems.append(lbool.from_int[x])
             case _:
                 raise TypeError("Expected item to be in (0, 1)")
-    return logicvec(pcn.from_pcitems(pcitems))
+    return logicvec(lbool.from_pcitems(pcitems))
 
 
 def _rank2(fst: logicvec, rst) -> logicvec:
@@ -467,13 +467,13 @@ def vec(obj=None) -> logicvec:
             return E
         # Rank 0 int
         case 0 | 1 as x:
-            return logicvec(pcn.from_pcitems([pcn.from_int[x]]))
+            return logicvec(lbool.from_pcitems([lbool.from_int[x]]))
         # Rank 1 str
         case str() as lit:
             return logicvec(_parse_str_lit(lit))
         # Rank 1 [0 | 1, ...]
         case [0 | 1 as x, *rst]:
-            return _rank1(pcn.from_int[x], rst)
+            return _rank1(lbool.from_int[x], rst)
         # Rank 2 str
         case [str() as lit, *rst]:
             return _rank2(logicvec(_parse_str_lit(lit)), rst)
@@ -490,12 +490,12 @@ def vec(obj=None) -> logicvec:
 
 def uint2vec(num: int, size: int | None = None) -> logicvec:
     """Convert nonnegative int to logic_vector."""
-    return logicvec(pcn.uint2vec(num, size))
+    return logicvec(lbool.uint2vec(num, size))
 
 
 def int2vec(num: int, size: int | None = None) -> logicvec:
     """Convert int to logic_vector."""
-    return logicvec(pcn.int2vec(num, size))
+    return logicvec(lbool.int2vec(num, size))
 
 
 def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
@@ -509,7 +509,7 @@ def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
     for obj in objs:
         match obj:
             case 0 | 1 as x:
-                vs.append(logicvec(pcn.from_pcitems([pcn.from_int[x]])))
+                vs.append(logicvec(lbool.from_pcitems([lbool.from_int[x]])))
             case logicvec() as v:
                 vs.append(v)
             case _:
@@ -582,27 +582,27 @@ E = logicvec(PcVec(0, 0))
 
 def _consts(shape: tuple[int, ...], x: int) -> logicvec:
     num = math.prod(shape)
-    return logicvec(pcn.from_pcitems([x] * num), shape)
+    return logicvec(lbool.from_pcitems([x] * num), shape)
 
 
 def nulls(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with NULLs."""
-    return _consts(shape, pcn.NULL)
+    return _consts(shape, lbool.NULL)
 
 
 def zeros(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with zeros."""
-    return _consts(shape, pcn.ZERO)
+    return _consts(shape, lbool.ZERO)
 
 
 def ones(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with ones."""
-    return _consts(shape, pcn.ONE)
+    return _consts(shape, lbool.ONE)
 
 
 def xes(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with Xes."""
-    return _consts(shape, pcn.DC)
+    return _consts(shape, lbool.DC)
 
 
 # One bit values

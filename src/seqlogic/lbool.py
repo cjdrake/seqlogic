@@ -1,4 +1,4 @@
-"""Positional Cube (PC) Notation."""
+"""Lifted Boolean data type."""
 
 # pylint: disable = protected-access
 
