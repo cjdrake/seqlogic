@@ -19,6 +19,8 @@ from seqlogic.lbool import (
     vec,
 )
 
+E = vec(0, 0)
+
 LNOT = {
     "?": "?",
     "0": "1",
@@ -407,7 +409,7 @@ def test_vec_zext():
     assert v.zext(4) == vec(8, 0b01_01_01_01_10_01_10_01)
 
 
-def test_sext():
+def test_vec_sext():
     """Test seqlogic.lbool.vec.sext method."""
     v1 = vec(4, 0b10_01_10_01)
     v2 = vec(4, 0b01_10_01_10)
@@ -417,6 +419,70 @@ def test_sext():
     assert v1.sext(4) == vec(8, 0b10_10_10_10_10_01_10_01)
     assert v2.sext(0) is v2
     assert v2.sext(4) == vec(8, 0b01_01_01_01_01_10_01_10)
+
+
+def test_vec_lsh():
+    """Test seqlogic.lbool.vec.lsh method."""
+    v = vec(4, 0b10_10_10_10)
+    y, co = v.lsh(0)
+    assert y is v and co == E
+    assert v.lsh(1) == (vec(4, 0b10_10_10_01), vec(1, 0b10))
+    assert v.lsh(2) == (vec(4, 0b10_10_01_01), vec(2, 0b10_10))
+    assert v << 2 == vec(4, 0b10_10_01_01)
+    assert v.lsh(3) == (vec(4, 0b10_01_01_01), vec(3, 0b10_10_10))
+    assert v.lsh(4) == (vec(4, 0b01_01_01_01), vec(4, 0b10_10_10_10))
+
+    with pytest.raises(ValueError):
+        v.lsh(-1)
+    with pytest.raises(ValueError):
+        v.lsh(5)
+
+    assert v.lsh(2, vec(2, 0b01_10)) == (vec(4, 0b10_10_01_10), vec(2, 0b10_10))
+    with pytest.raises(ValueError):
+        v.lsh(2, vec(3, 0b01_01_01))
+
+
+def test_vec_rsh():
+    """Test seqlogic.lbool.vec.rsh method."""
+    v = vec(4, 0b10_10_10_10)
+    y, co = v.rsh(0)
+    assert y is v and co == E
+    assert v.rsh(1) == (vec(4, 0b01_10_10_10), vec(1, 0b10))
+    assert v.rsh(2) == (vec(4, 0b01_01_10_10), vec(2, 0b10_10))
+    assert v >> 2 == vec(4, 0b01_01_10_10)
+    assert v.rsh(3) == (vec(4, 0b01_01_01_10), vec(3, 0b10_10_10))
+    assert v.rsh(4) == (vec(4, 0b01_01_01_01), vec(4, 0b10_10_10_10))
+
+    with pytest.raises(ValueError):
+        v.rsh(-1)
+    with pytest.raises(ValueError):
+        v.rsh(5)
+
+    assert v.rsh(2, vec(2, 0b01_10)) == (vec(4, 0b01_10_10_10), vec(2, 0b10_10))
+    with pytest.raises(ValueError):
+        v.rsh(2, vec(3, 0b01_01_01))
+
+
+def test_vec_arsh():
+    """Test seqlogic.lbool.vec.arsh method."""
+    v = vec(4, 0b10_10_10_10)
+    assert v.arsh(0) == (vec(4, 0b10_10_10_10), E)
+    assert v.arsh(1) == (vec(4, 0b10_10_10_10), vec(1, 0b10))
+    assert v.arsh(2) == (vec(4, 0b10_10_10_10), vec(2, 0b10_10))
+    assert v.arsh(3) == (vec(4, 0b10_10_10_10), vec(3, 0b10_10_10))
+    assert v.arsh(4) == (vec(4, 0b10_10_10_10), vec(4, 0b10_10_10_10))
+
+    v = vec(4, 0b01_10_10_10)
+    assert v.arsh(0) == (vec(4, 0b01_10_10_10), E)
+    assert v.arsh(1) == (vec(4, 0b01_01_10_10), vec(1, 0b10))
+    assert v.arsh(2) == (vec(4, 0b01_01_01_10), vec(2, 0b10_10))
+    assert v.arsh(3) == (vec(4, 0b01_01_01_01), vec(3, 0b10_10_10))
+    assert v.arsh(4) == (vec(4, 0b01_01_01_01), vec(4, 0b01_10_10_10))
+
+    with pytest.raises(ValueError):
+        v.arsh(-1)
+    with pytest.raises(ValueError):
+        v.arsh(5)
 
 
 UINT2VEC_VALS = {
