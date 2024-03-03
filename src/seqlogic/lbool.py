@@ -576,18 +576,18 @@ class vec:
 
         return vec(self._n, y)
 
-    def ulxor(self) -> vec[1]:
-        """Unary lifted XOR reduction."""
-        y = _F
-        for x in self:
-            y = y.lxor(x)
-        return y
-
     def ulxnor(self) -> vec[1]:
         """Unary lifted XNOR reduction."""
         y = _T
         for x in self:
             y = y.lxnor(x)
+        return y
+
+    def ulxor(self) -> vec[1]:
+        """Unary lifted XOR reduction."""
+        y = _F
+        for x in self:
+            y = y.lxor(x)
         return y
 
     def to_uint(self) -> int:
