@@ -9,16 +9,21 @@ from . import sim
 from .hier import Module, Variable
 from .logicvec import F, T, logicvec, xes
 
+_pcitem2char = {
+    0b00: "x",
+    0b01: "0",
+    0b10: "1",
+    0b11: "x",
+}
 
-def vec2vcd(x: logicvec) -> VarValue:
+
+def vec2vcd(v: logicvec) -> VarValue:
     """Convert value to VCD variable."""
-    bits = []
-    for i in range(x.size):
-        bits.append(str(x[i]))
-    return "".join(reversed(bits))
+    # pylint: disable = protected-access
+    return "".join(_pcitem2char[v._w._get_item(i)] for i in range(v._w._n - 1, -1, -1))
 
 
-class TraceVar(Variable, sim.Singular):
+class TraceSingular(Variable, sim.Singular):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module, value):
@@ -67,7 +72,32 @@ class TraceVar(Variable, sim.Singular):
         super().update()
 
 
-class Bits(TraceVar):
+class TraceAggregate(Variable, sim.Aggregate):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(
+        self,
+        name: str,
+        parent: Module,
+        shape: tuple[int, ...],
+        value,
+    ):
+        """TODO(cjdrake): Write docstring."""
+        Variable.__init__(self, name, parent)
+        sim.Aggregate.__init__(self, shape, value)
+
+    def dump_waves(self, waves: defaultdict, pattern: str):
+        """TODO(cjdrake): Write docstring."""
+
+    def dump_vcd(self, vcdw, pattern: str):
+        """TODO(cjdrake): Write docstring."""
+
+    # def update(self):
+    #    """TODO(cjdrake): Write docstring."""
+    #    super().update()
+
+
+class Bits(TraceSingular):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module, shape: tuple[int, ...]):
@@ -94,16 +124,15 @@ class Bit(Bits):
         return self._value == T and self._next_value == F
 
 
-class Array(Variable, sim.Aggregate):
+class Array(TraceAggregate):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(
         self,
         name: str,
         parent: Module,
-        packed_shape: tuple[int, ...],
         unpacked_shape: tuple[int, ...],
+        packed_shape: tuple[int, ...],
     ):
         """TODO(cjdrake): Write docstring."""
-        Variable.__init__(self, name, parent)
-        sim.Aggregate.__init__(self, shape=unpacked_shape, value=xes(packed_shape))
+        super().__init__(name, parent, unpacked_shape, value=xes(packed_shape))

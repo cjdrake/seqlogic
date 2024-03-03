@@ -29,7 +29,7 @@ class DataMemory(Module):
         self.clock = Bit(name="clock", parent=self)
 
         # State
-        self.mem = Array(name="mem", parent=self, packed_shape=(WIDTH,), unpacked_shape=(DEPTH,))
+        self.mem = Array(name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
 
         self._procs.add((self.proc_wr_port, FLOP))
         self._procs.add((self.proc_rd_data, COMBI))

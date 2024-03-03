@@ -28,7 +28,7 @@ class RegFile(Module):
         self.clock = Bit(name="clock", parent=self)
 
         # State
-        self.regs = Array(name="regs", parent=self, packed_shape=(WIDTH,), unpacked_shape=(DEPTH,))
+        self.regs = Array(name="regs", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
 
         self._procs.add((self.proc_init, TASK))
         self._procs.add((self.proc_wr_port, FLOP))

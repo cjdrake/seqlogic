@@ -22,7 +22,7 @@ class TextMemory(Module):
         self.rd_data = Bits(name="rd_data", parent=self, shape=(WIDTH,))
 
         # State
-        self.mem = Array(name="mem", parent=self, packed_shape=(WIDTH,), unpacked_shape=(DEPTH,))
+        self.mem = Array(name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
 
         # Processes
         self._procs.add((self.proc_rd_data, COMBI))

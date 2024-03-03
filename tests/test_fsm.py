@@ -9,7 +9,7 @@ from seqlogic import Bit, Module
 from seqlogic.enum import Enum
 from seqlogic.logicvec import F, T, X
 from seqlogic.sim import Region, get_loop, notify
-from seqlogic.var import TraceVar
+from seqlogic.var import TraceSingular
 
 from .common import clock_drv, dff_arn_drv, reset_drv
 
@@ -27,7 +27,7 @@ class SeqDetect(Enum):
     XX = "2bxx"
 
 
-class EnumVar(TraceVar):
+class EnumVar(TraceSingular):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module):
