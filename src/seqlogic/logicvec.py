@@ -216,22 +216,17 @@ class logicvec:
                 pass
             case logicvec():
                 if n._w.has_illogical():
-                    return nulls((v.size,)), E
+                    return illogicals((v.size,)), E
                 elif n._w.has_unknown():
                     return xes((v.size,)), E
                 else:
                     n = n.to_uint()
             case _:
                 raise TypeError("Expected n to be int or logicvec")
-        if not 0 <= n <= v.size:
-            raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
-        if n == 0:
-            return v, E
         if ci is None:
-            ci = uint2vec(0, n)
-        elif ci.shape != (n,):
-            raise ValueError(f"Expected ci to have shape ({n},)")
-        y, co = self._w.lsh(n, ci._w)
+            y, co = self._w.lsh(n)
+        else:
+            y, co = self._w.lsh(n, ci._w)
         return logicvec(y), logicvec(co)
 
     def rsh(self, n: int | logicvec, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
@@ -248,22 +243,17 @@ class logicvec:
                 pass
             case logicvec():
                 if n._w.has_illogical():
-                    return nulls((v.size,)), E
+                    return illogicals((v.size,)), E
                 elif n._w.has_unknown():
                     return xes((v.size,)), E
                 else:
                     n = n.to_uint()
             case _:
                 raise TypeError("Expected n to be int or logicvec")
-        if not 0 <= n <= v.size:
-            raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
-        if n == 0:
-            return v, E
         if ci is None:
-            ci = uint2vec(0, n)
-        elif ci.shape != (n,):
-            raise ValueError(f"Expected ci to have shape ({n},)")
-        y, co = self._w.rsh(n, ci._w)
+            y, co = self._w.rsh(n)
+        else:
+            y, co = self._w.rsh(n, ci._w)
         return logicvec(y), logicvec(co)
 
     def arsh(self, n: int | logicvec) -> tuple[logicvec, logicvec]:
@@ -280,17 +270,13 @@ class logicvec:
                 pass
             case logicvec():
                 if n._w.has_illogical():
-                    return nulls((v.size,)), E
+                    return illogicals((v.size,)), E
                 elif n._w.has_unknown():
                     return xes((v.size,)), E
                 else:
                     n = n.to_uint()
             case _:
                 raise TypeError("Expected n to be int or logicvec")
-        if not 0 <= n <= v.size:
-            raise ValueError(f"Expected 0 ≤ n ≤ {v.size}, got {n}")
-        if n == 0:
-            return v, E
         y, co = self._w.arsh(n)
         return logicvec(y), logicvec(co)
 
@@ -531,8 +517,8 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> logicvec:
 E = logicvec(lbool.vec(0, 0))
 
 
-def nulls(shape: tuple[int, ...]) -> logicvec:
-    """Return a new logic_vector of given shape, filled with NULLs."""
+def illogicals(shape: tuple[int, ...]) -> logicvec:
+    """Return a new logic_vector of given shape, filled with ILLOGICAL."""
     return logicvec(lbool.illogicals(math.prod(shape)), shape)
 
 
@@ -552,7 +538,7 @@ def xes(shape: tuple[int, ...]) -> logicvec:
 
 
 # One bit values
-N = nulls((1,))
+Y = illogicals((1,))
 F = zeros((1,))
 T = ones((1,))
 X = xes((1,))
