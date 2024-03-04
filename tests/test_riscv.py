@@ -11,9 +11,9 @@ It merely serves as a non-trivial example design.
 
 from collections import defaultdict
 
-from seqlogic import Module
+from seqlogic import Module, get_loop
 from seqlogic.logicvec import F, T, X, uint2vec, vec, xes, zeros
-from seqlogic.sim import Region, get_loop
+from seqlogic.sim import Region
 
 from .riscv.core.common.constants import AluOp, CtlAluA, CtlAluB, CtlPc
 from .riscv.core.singlecycle.top import Top

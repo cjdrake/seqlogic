@@ -7,9 +7,9 @@ It might be useful to add to seqlogic library.
 from collections import defaultdict
 from collections.abc import Callable
 
-from seqlogic import Bit
+from seqlogic import Bit, notify, sleep
 from seqlogic.logicvec import F, T, logicvec
-from seqlogic.sim import Singular, notify, sleep
+from seqlogic.var import TraceSingular
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
@@ -91,7 +91,7 @@ async def clock_drv(
 
 
 async def dff_arn_drv(
-    q: Singular,
+    q: TraceSingular,
     d: Callable[[], logicvec],
     reset_n: Bit,
     reset_value: logicvec,

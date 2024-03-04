@@ -2,9 +2,9 @@
 
 from collections import defaultdict
 
-from seqlogic import Bit, Bits, Module
+from seqlogic import Bit, Bits, Module, get_loop
 from seqlogic.logicvec import F, T, X, cat, logicvec, vec
-from seqlogic.sim import Region, get_loop
+from seqlogic.sim import Region
 
 from .common import clock_drv, dff_arn_drv, reset_drv
 

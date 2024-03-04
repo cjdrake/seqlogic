@@ -5,10 +5,10 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Bit, Module
+from seqlogic import Bit, Module, get_loop, notify
 from seqlogic.enum import Enum
 from seqlogic.logicvec import F, T, X
-from seqlogic.sim import Region, get_loop, notify
+from seqlogic.sim import Region
 from seqlogic.var import TraceSingular
 
 from .common import clock_drv, dff_arn_drv, reset_drv
