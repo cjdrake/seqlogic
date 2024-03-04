@@ -7,9 +7,7 @@ from ..common.adder import Adder
 from ..common.alu import Alu
 from ..common.immediate_generator import ImmedateGenerator
 from ..common.instruction_decoder import InstructionDecoder
-from ..common.mux2 import Mux2
-from ..common.mux4 import Mux4
-from ..common.mux8 import Mux8
+from ..common.mux import Mux
 from ..common.regfile import RegFile
 from ..common.register import Register
 from ..misc import COMBI, TASK
@@ -97,33 +95,33 @@ class DataPath(Module):
         self.connect(self.alu.op_a, self.alu_op_a)
         self.connect(self.alu.op_b, self.alu_op_b)
 
-        self.mux_next_pc = Mux4(name="mux_next_pc", parent=self, width=32)
+        self.mux_next_pc = Mux(name="mux_next_pc", parent=self, n=4, width=32)
         self.connect(self.pc_next, self.mux_next_pc.out)
         self.connect(self.mux_next_pc.sel, self.next_pc_sel)
-        self.connect(self.mux_next_pc.in0, self.pc_plus_4)
-        self.connect(self.mux_next_pc.in1, self.pc_plus_immediate)
+        self.connect(self.mux_next_pc.ins[0], self.pc_plus_4)
+        self.connect(self.mux_next_pc.ins[1], self.pc_plus_immediate)
         # .in2 ({alu_result[32-1:1], 1'b0})
         # .in3 (32'h0000_0000)
 
-        self.mux_op_a = Mux2(name="mux_op_a", parent=self, width=32)
+        self.mux_op_a = Mux(name="mux_op_a", parent=self, n=2, width=32)
         self.connect(self.alu_op_a, self.mux_op_a.out)
         self.connect(self.mux_op_a.sel, self.alu_op_a_sel)
-        self.connect(self.mux_op_a.in0, self.rs1_data)
-        self.connect(self.mux_op_a.in1, self.pc)
+        self.connect(self.mux_op_a.ins[0], self.rs1_data)
+        self.connect(self.mux_op_a.ins[1], self.pc)
 
-        self.mux_op_b = Mux2(name="mux_op_b", parent=self, width=32)
+        self.mux_op_b = Mux(name="mux_op_b", parent=self, n=2, width=32)
         self.connect(self.alu_op_b, self.mux_op_b.out)
         self.connect(self.mux_op_b.sel, self.alu_op_b_sel)
-        self.connect(self.mux_op_b.in0, self.rs2_data)
-        self.connect(self.mux_op_b.in1, self.immediate)
+        self.connect(self.mux_op_b.ins[0], self.rs2_data)
+        self.connect(self.mux_op_b.ins[1], self.immediate)
 
-        self.mux_reg_writeback = Mux8(name="mux_reg_writeback", parent=self, width=32)
+        self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, width=32)
         self.connect(self.wr_data, self.mux_reg_writeback.out)
         self.connect(self.mux_reg_writeback.sel, self.reg_writeback_sel)
-        self.connect(self.mux_reg_writeback.in0, self.alu_result)
-        self.connect(self.mux_reg_writeback.in1, self.data_mem_rd_data)
-        self.connect(self.mux_reg_writeback.in2, self.pc_plus_4)
-        self.connect(self.mux_reg_writeback.in3, self.immediate)
+        self.connect(self.mux_reg_writeback.ins[0], self.alu_result)
+        self.connect(self.mux_reg_writeback.ins[1], self.data_mem_rd_data)
+        self.connect(self.mux_reg_writeback.ins[2], self.pc_plus_4)
+        self.connect(self.mux_reg_writeback.ins[3], self.immediate)
         # .in4(32'h0000_0000)
         # .in5(32'h0000_0000)
         # .in6(32'h0000_0000)
@@ -169,16 +167,16 @@ class DataPath(Module):
         """TODO(cjdrake): Write docstring."""
         self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
         # mux_next_pc.in3(32'h0000_0000)
-        self.mux_next_pc.in3.next = zeros((32,))
+        self.mux_next_pc.ins[3].next = zeros((32,))
         # mux_reg_writeback.{in4, in5, in6, in7}
-        self.mux_reg_writeback.in4.next = zeros((32,))
-        self.mux_reg_writeback.in5.next = zeros((32,))
-        self.mux_reg_writeback.in6.next = zeros((32,))
-        self.mux_reg_writeback.in7.next = zeros((32,))
+        self.mux_reg_writeback.ins[4].next = zeros((32,))
+        self.mux_reg_writeback.ins[5].next = zeros((32,))
+        self.mux_reg_writeback.ins[6].next = zeros((32,))
+        self.mux_reg_writeback.ins[7].next = zeros((32,))
 
     async def proc_mux(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.alu_result.changed)
             # mux_next_pc.in2({alu_result[31:1], 1'b0})
-            self.mux_next_pc.in2.next = cat([F, self.alu_result.next[1:32]])
+            self.mux_next_pc.ins[2].next = cat([F, self.alu_result.next[1:32]])
