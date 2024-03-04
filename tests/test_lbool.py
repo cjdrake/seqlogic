@@ -247,6 +247,49 @@ def test_vec_repr():
     assert repr(vec(4, 0b1110_0100)) == "vec(4, 0b1110_0100)"
 
 
+def test_vec_bool():
+    """Test seqlogic.lbool.vec.__bool__ method."""
+    assert bool(vec(0, 0)) is False
+    assert bool(vec(1, 0b01)) is False
+    assert bool(vec(1, 0b10)) is True
+    assert bool(vec(4, 0b01_01_01_01)) is False
+    assert bool(vec(4, 0b10_01_10_01)) is True
+    with pytest.raises(ValueError):
+        bool(vec(4, 0b11_10_01_00))
+
+
+def test_vec_int():
+    """Test seqlogic.lbool.vec.__int__ method."""
+    assert int(vec(0, 0)) == 0
+    assert int(vec(1, 0b01)) == 0
+    assert int(vec(1, 0b10)) == -1
+    assert int(vec(4, 0b01_01_01_01)) == 0
+    assert int(vec(4, 0b10_01_10_01)) == -6
+    assert int(vec(4, 0b01_10_01_10)) == 5
+    with pytest.raises(ValueError):
+        int(vec(4, 0b11_10_01_00))
+
+
+def test_vec_eq():
+    """Test seqlogic.lbool.vec.__eq__ method."""
+    assert vec(0, 0) == vec(0, 0)
+    assert vec(4, 0b10_01_10_01) == vec(4, 0b10_01_10_01)
+    assert vec(4, 0b10_01_10_01) != vec(4, 0b01_10_01_10)
+    assert vec(4, 0b11_10_01_00) != "foo"
+
+
+def test_vec_hash():
+    """Test seqlogic.lbool.vec.__hash__ method."""
+    s = set()
+    s.add(lbool.uint2vec(0))
+    s.add(lbool.uint2vec(1))
+    s.add(lbool.uint2vec(2))
+    s.add(lbool.uint2vec(3))
+    s.add(lbool.uint2vec(1))
+    s.add(lbool.uint2vec(2))
+    assert len(s) == 4
+
+
 def test_vec_lnot():
     """Test seqlogic.lbool.vec.lnot method."""
     x = vec(4, 0b11_10_01_00)
@@ -637,6 +680,31 @@ def test_int2vec():
         int2vec(3, 2)
     with pytest.raises(ValueError):
         int2vec(4, 3)
+
+
+def test_lit2vec():
+    """Test parsing of vector string literals."""
+    # literal doesn't match size
+    with pytest.raises(ValueError):
+        lbool.lit2vec("4b1010_1010")
+    with pytest.raises(ValueError):
+        lbool.lit2vec("8b1010")
+    with pytest.raises(ValueError):
+        lbool.lit2vec("16hdead_beef")
+    with pytest.raises(ValueError):
+        lbool.lit2vec("8hdead")
+
+    # Invalid input
+    with pytest.raises(ValueError):
+        lbool.lit2vec("invalid")
+
+    # Valid input
+    v = lbool.lit2vec("4bX1_0?")
+    assert v.data == 0b11_10_01_00
+    v = lbool.lit2vec("64hFeDc_Ba98_7654_3210")
+    assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
+    v = lbool.lit2vec("64hfEdC_bA98_7654_3210")
+    assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
 
 
 def test_vec_basic():
