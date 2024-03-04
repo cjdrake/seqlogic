@@ -508,10 +508,10 @@ class vec:
         Returns:
             One-bit vec, data contains OR reduction.
         """
-        y = _F
-        for x in self:
-            y = y.lor(x)
-        return y
+        data = _ZERO
+        for i in range(self._n):
+            data = lor(data, self._get_item(i))
+        return vec(1, data)
 
     def lnand(self, other: vec) -> vec:
         """Bitwise lifted NAND.
@@ -577,10 +577,10 @@ class vec:
         Returns:
             One-bit vec, data contains AND reduction.
         """
-        y = _T
-        for x in self:
-            y = y.land(x)
-        return y
+        data = _ONE
+        for i in range(self._n):
+            data = land(data, self._get_item(i))
+        return vec(1, data)
 
     def lxnor(self, other: vec) -> vec:
         """Bitwise lifted XNOR.
@@ -648,10 +648,10 @@ class vec:
         Returns:
             One-bit vec, data contains XNOR reduction.
         """
-        y = _T
-        for x in self:
-            y = y.lxnor(x)
-        return y
+        data = _ONE
+        for i in range(self._n):
+            data = lxnor(data, self._get_item(i))
+        return vec(1, data)
 
     def ulxor(self) -> vec[1]:
         """Unary lifted XOR reduction.
@@ -659,10 +659,10 @@ class vec:
         Returns:
             One-bit vec, data contains XOR reduction.
         """
-        y = _F
-        for x in self:
-            y = y.lxor(x)
-        return y
+        data = _ZERO
+        for i in range(self._n):
+            data = lxor(data, self._get_item(i))
+        return vec(1, data)
 
     def to_uint(self) -> int:
         """Convert to unsigned integer.
