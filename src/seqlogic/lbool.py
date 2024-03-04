@@ -22,6 +22,7 @@ which enables efficient, bit-wise operations and arithmetic.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Generator, Iterable
 from functools import cached_property
 
@@ -35,48 +36,6 @@ _ILLOGICAL = 0b00
 _ZERO = 0b01
 _ONE = 0b10
 _UNKNOWN = 0b11
-
-
-from_bit = (_ZERO, _ONE)
-
-from_char = {
-    "?": _ILLOGICAL,
-    "0": _ZERO,
-    "1": _ONE,
-    "X": _UNKNOWN,
-}
-
-to_char = {
-    _ILLOGICAL: "?",
-    _ZERO: "0",
-    _ONE: "1",
-    _UNKNOWN: "X",
-}
-
-from_hexchar = {
-    "0": 0b01_01_01_01,
-    "1": 0b01_01_01_10,
-    "2": 0b01_01_10_01,
-    "3": 0b01_01_10_10,
-    "4": 0b01_10_01_01,
-    "5": 0b01_10_01_10,
-    "6": 0b01_10_10_01,
-    "7": 0b01_10_10_10,
-    "8": 0b10_01_01_01,
-    "9": 0b10_01_01_10,
-    "a": 0b10_01_10_01,
-    "A": 0b10_01_10_01,
-    "b": 0b10_01_10_10,
-    "B": 0b10_01_10_10,
-    "c": 0b10_10_01_01,
-    "C": 0b10_10_01_01,
-    "d": 0b10_10_01_10,
-    "D": 0b10_10_01_10,
-    "e": 0b10_10_10_01,
-    "E": 0b10_10_10_01,
-    "f": 0b10_10_10_10,
-    "F": 0b10_10_10_10,
-}
 
 
 def lnot(x: int) -> int:
@@ -377,10 +336,18 @@ class vec:
             yield self.__getitem__(i)
 
     def __str__(self) -> str:
-        return "".join(to_char[self._get_item(i)] for i in range(self._n))
+        if self._n == 0:
+            return ""
+        prefix = f"{self._n}b"
+        chars = []
+        for i in range(self._n):
+            if i % 4 == 0 and i != 0:
+                chars.append("_")
+            chars.append(_to_char[self._get_item(i)])
+        return prefix + "".join(reversed(chars))
 
     def __repr__(self) -> str:
-        return self.__str__()
+        return f"vec({self._n}, 0b{self._data:0{self.nbits}_b})"
 
     def __bool__(self) -> bool:
         return self.to_uint() != 0
@@ -714,7 +681,7 @@ class vec:
 
         data = 0
         for i in range(n):
-            data |= from_bit[s & 1] << (2 * i)
+            data |= _from_bit[s & 1] << (2 * i)
             s >>= 1
 
         # Carry out is True if there is leftover sum data
@@ -895,7 +862,7 @@ def uint2vec(num: int, n: int | None = None) -> vec:
     r = num
 
     while r >= 1:
-        data |= from_bit[r & 1] << (_ITEM_BITS * i)
+        data |= _from_bit[r & 1] << (_ITEM_BITS * i)
         i += 1
         r >>= 1
 
@@ -930,7 +897,7 @@ def int2vec(num: int, n: int | None = None) -> vec:
     r = abs(num)
 
     while r >= 1:
-        data |= from_bit[r & 1] << (_ITEM_BITS * i)
+        data |= _from_bit[r & 1] << (_ITEM_BITS * i)
         i += 1
         r >>= 1
 
@@ -947,6 +914,57 @@ def int2vec(num: int, n: int | None = None) -> vec:
 
     v = vec(i, data).zext(n - i)
     return v.neg()[0] if neg else v
+
+
+_NUM_RE = re.compile(
+    r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[?01X_]+))|"
+    r"((?P<HexSize>[0-9]+)h(?P<HexDigits>[0-9a-fA-F_]+))"
+)
+
+
+def lit2vec(lit: str) -> vec:
+    """TODO(cjdrake): Write docstring."""
+    if m := _NUM_RE.match(lit):
+        # Binary
+        if m.group("BinSize"):
+            size = int(m.group("BinSize"))
+            digits = m.group("BinDigits").replace("_", "")
+            ndigits = len(digits)
+            if ndigits != size:
+                s = f"Expected {size} digits, got {ndigits}"
+                raise ValueError(s)
+            # return from_items(_from_char[c] for c in reversed(digits))
+            i, data = 0, 0
+            for c in reversed(digits):
+                data |= _from_char[c] << (i * _ITEM_BITS)
+                i += 1
+            return vec(i, data)
+        # Hexadecimal
+        elif m.group("HexSize"):
+            size = int(m.group("HexSize"))
+            digits = m.group("HexDigits").replace("_", "")
+            ndigits = len(digits)
+            if 4 * ndigits != size:
+                s = f"Expected size to match # digits, got {size} ≠ {4 * ndigits}"
+                raise ValueError(s)
+            i, data = 0, 0
+            for c in reversed(digits):
+                data |= _from_hexchar[c] << (i * _ITEM_BITS)
+                i += 4
+            return vec(i, data)
+        else:  # pragma: no cover
+            assert False
+    else:
+        raise ValueError(f"Expected str literal, got {lit}")
+
+
+def bools2vec(xs: Iterable[object]) -> vec:
+    """TODO(cjdrake): Write docstring."""
+    i, data = 0, 0
+    for x in xs:
+        data |= _from_bit[bool(x)] << (_ITEM_BITS * i)
+        i += 1
+    return vec(i, data)
 
 
 def illogicals(n: int) -> vec:
@@ -979,16 +997,6 @@ def from_items(xs: Iterable[int] = ()) -> vec:
     return vec(n, data)
 
 
-def from_quads(xs: Iterable[int] = ()) -> vec:
-    """Convert an iterable of bytes (four items each) to a vec."""
-    n = 0
-    data = 0
-    for i, x in enumerate(xs):
-        n += 4
-        data |= x << (4 * _ITEM_BITS * i)
-    return vec(n, data)
-
-
 # Empty
 _E = vec(0, 0)
 
@@ -997,6 +1005,48 @@ _W = vec(1, _ILLOGICAL)
 _F = vec(1, _ZERO)
 _T = vec(1, _ONE)
 _X = vec(1, _UNKNOWN)
+
+
+_from_bit = (_ZERO, _ONE)
+
+_from_char = {
+    "?": _ILLOGICAL,
+    "0": _ZERO,
+    "1": _ONE,
+    "X": _UNKNOWN,
+}
+
+_to_char = {
+    _ILLOGICAL: "?",
+    _ZERO: "0",
+    _ONE: "1",
+    _UNKNOWN: "X",
+}
+
+_from_hexchar = {
+    "0": 0b01_01_01_01,
+    "1": 0b01_01_01_10,
+    "2": 0b01_01_10_01,
+    "3": 0b01_01_10_10,
+    "4": 0b01_10_01_01,
+    "5": 0b01_10_01_10,
+    "6": 0b01_10_10_01,
+    "7": 0b01_10_10_10,
+    "8": 0b10_01_01_01,
+    "9": 0b10_01_01_10,
+    "a": 0b10_01_10_01,
+    "A": 0b10_01_10_01,
+    "b": 0b10_01_10_10,
+    "B": 0b10_01_10_10,
+    "c": 0b10_10_01_01,
+    "C": 0b10_10_01_01,
+    "d": 0b10_10_01_10,
+    "D": 0b10_10_01_10,
+    "e": 0b10_10_10_01,
+    "E": 0b10_10_10_01,
+    "f": 0b10_10_10_10,
+    "F": 0b10_10_10_10,
+}
 
 _byte_cnt_nulls = {
     0b00_00_00_00: 4,

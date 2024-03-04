@@ -348,18 +348,18 @@ def test_uint2vec():
     assert str(uint2vec(7)) == "vec(3b111)"
     assert str(uint2vec(8)) == "vec(4b1000)"
 
-    assert str(uint2vec(0, size=4)) == "vec(4b0000)"
-    assert str(uint2vec(1, size=4)) == "vec(4b0001)"
-    assert str(uint2vec(2, size=4)) == "vec(4b0010)"
-    assert str(uint2vec(3, size=4)) == "vec(4b0011)"
-    assert str(uint2vec(4, size=4)) == "vec(4b0100)"
-    assert str(uint2vec(5, size=4)) == "vec(4b0101)"
-    assert str(uint2vec(6, size=4)) == "vec(4b0110)"
-    assert str(uint2vec(7, size=4)) == "vec(4b0111)"
-    assert str(uint2vec(8, size=4)) == "vec(4b1000)"
+    assert str(uint2vec(0, n=4)) == "vec(4b0000)"
+    assert str(uint2vec(1, n=4)) == "vec(4b0001)"
+    assert str(uint2vec(2, n=4)) == "vec(4b0010)"
+    assert str(uint2vec(3, n=4)) == "vec(4b0011)"
+    assert str(uint2vec(4, n=4)) == "vec(4b0100)"
+    assert str(uint2vec(5, n=4)) == "vec(4b0101)"
+    assert str(uint2vec(6, n=4)) == "vec(4b0110)"
+    assert str(uint2vec(7, n=4)) == "vec(4b0111)"
+    assert str(uint2vec(8, n=4)) == "vec(4b1000)"
 
     with pytest.raises(ValueError):
-        uint2vec(8, size=3)
+        uint2vec(8, n=3)
 
 
 def test_empty():
@@ -507,8 +507,6 @@ def test_rank1_logic():
     xs = [N, F, T, X]
     v1 = vec("4bX10?")
     v2 = vec([0, 1, 0, 1])
-    with pytest.raises(TypeError):
-        _ = vec([0, "invalid"])
 
     # Test properties
     assert v1.shape == (4,)

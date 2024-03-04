@@ -1,6 +1,7 @@
 """Enum Logic Data Type."""
 
-from .logicvec import _parse_str_lit, logicvec
+from . import lbool
+from .logicvec import logicvec
 
 # PyLint is confused by MetaClass behavior
 # pylint: disable = no-value-for-parameter
@@ -50,7 +51,7 @@ class Enum(metaclass=_EnumMeta):
 
     def __init__(self, lit: str):
         """TODO(cjdrake): Write docstring."""
-        super().__init__(_parse_str_lit(lit))
+        super().__init__(lbool.lit2vec(lit))
         # Override string representation from base class
         self._name = self.__class__._lit2name[lit]
 

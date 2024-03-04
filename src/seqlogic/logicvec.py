@@ -5,16 +5,10 @@
 from __future__ import annotations
 
 import math
-import re
 from collections.abc import Collection, Generator
 from functools import cached_property
 
 from . import lbool
-
-_NUM_RE = re.compile(
-    r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[?01X_]+))|"
-    r"((?P<HexSize>[0-9]+)h(?P<HexDigits>[0-9a-fA-F_]+))"
-)
 
 
 class logicvec:
@@ -315,13 +309,7 @@ class logicvec:
         return logicvec(s), logicvec(co), logicvec(ovf)
 
     def _to_lit(self) -> str:
-        prefix = f"{self.size}b"
-        chars = []
-        for i, x in enumerate(self.flat):
-            if i % 4 == 0 and i != 0:
-                chars.append("_")
-            chars.append(lbool.to_char[x._w.data])
-        return prefix + "".join(reversed(chars))
+        return str(self._w)
 
     def _str(self, indent: str) -> str:
         """Help __str__ method recursion."""
@@ -330,7 +318,7 @@ class logicvec:
             return "[]"
         # Scalar
         if self._shape == (1,):
-            return "[" + lbool.to_char[self._w.data] + "]"
+            return "[" + str(self._w)[2:] + "]"
         # 1D Vector
         if self.ndim == 1:
             return self._to_lit()
@@ -399,43 +387,6 @@ class logicvec:
         return tuple(nkey)
 
 
-def _parse_str_lit(lit: str) -> lbool.vec:
-    if m := _NUM_RE.match(lit):
-        # Binary
-        if m.group("BinSize"):
-            size = int(m.group("BinSize"))
-            digits = m.group("BinDigits").replace("_", "")
-            ndigits = len(digits)
-            if ndigits != size:
-                s = f"Expected {size} digits, got {ndigits}"
-                raise ValueError(s)
-            return lbool.from_items(lbool.from_char[c] for c in reversed(digits))
-        # Hexadecimal
-        elif m.group("HexSize"):
-            size = int(m.group("HexSize"))
-            digits = m.group("HexDigits").replace("_", "")
-            ndigits = len(digits)
-            if 4 * ndigits != size:
-                s = f"Expected size to match # digits, got {size} ≠ {4 * ndigits}"
-                raise ValueError(s)
-            return lbool.from_quads(lbool.from_hexchar[c] for c in reversed(digits))
-        else:  # pragma: no cover
-            assert False
-    else:
-        raise ValueError(f"Expected str literal, got {lit}")
-
-
-def _rank1(fst: int, rst) -> logicvec:
-    items = [fst]
-    for x in rst:
-        match x:
-            case 0 | 1:
-                items.append(lbool.from_bit[x])
-            case _:
-                raise TypeError("Expected item to be in (0, 1)")
-    return logicvec(lbool.from_items(items))
-
-
 def _rank2(fst: logicvec, rst) -> logicvec:
     shape = (len(rst) + 1,) + fst.shape
     size = len(fst._w)
@@ -443,7 +394,7 @@ def _rank2(fst: logicvec, rst) -> logicvec:
     for i, v in enumerate(rst, start=1):
         match v:
             case str() as lit:
-                w = _parse_str_lit(lit)
+                w = lbool.lit2vec(lit)
                 if len(w) != fst.size:
                     s = f"Expected str literal to have size {fst.size}, got {len(w)}"
                     raise TypeError(s)
@@ -466,16 +417,17 @@ def vec(obj=None) -> logicvec:
             return E
         # Rank 0 int
         case 0 | 1 as x:
-            return logicvec(lbool.from_items([lbool.from_bit[x]]))
+            return logicvec(lbool.bools2vec([x]))
         # Rank 1 str
         case str() as lit:
-            return logicvec(_parse_str_lit(lit))
+            return logicvec(lbool.lit2vec(lit))
         # Rank 1 [0 | 1, ...]
         case [0 | 1 as x, *rst]:
-            return _rank1(lbool.from_bit[x], rst)
+            return logicvec(lbool.bools2vec([x, *rst]))
         # Rank 2 str
         case [str() as lit, *rst]:
-            return _rank2(logicvec(_parse_str_lit(lit)), rst)
+            v = logicvec(lbool.lit2vec(lit))
+            return _rank2(v, rst)
         # Rank 2 logic_vector
         case [logicvec() as v, *rst]:
             return _rank2(v, rst)
@@ -487,14 +439,14 @@ def vec(obj=None) -> logicvec:
             raise TypeError(f"Invalid input: {type(obj)}")
 
 
-def uint2vec(num: int, size: int | None = None) -> logicvec:
+def uint2vec(num: int, n: int | None = None) -> logicvec:
     """Convert nonnegative int to logic_vector."""
-    return logicvec(lbool.uint2vec(num, size))
+    return logicvec(lbool.uint2vec(num, n))
 
 
-def int2vec(num: int, size: int | None = None) -> logicvec:
+def int2vec(num: int, n: int | None = None) -> logicvec:
     """Convert int to logic_vector."""
-    return logicvec(lbool.int2vec(num, size))
+    return logicvec(lbool.int2vec(num, n))
 
 
 def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
@@ -508,7 +460,7 @@ def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
     for obj in objs:
         match obj:
             case 0 | 1 as x:
-                vs.append(logicvec(lbool.from_items([lbool.from_bit[x]])))
+                vs.append(logicvec(lbool.bools2vec([x])))
             case logicvec() as v:
                 vs.append(v)
             case _:

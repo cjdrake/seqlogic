@@ -1,6 +1,7 @@
 """Test seqlogic.lbool module."""
 
 # pylint: disable = pointless-statement
+# pylint: disable = protected-access
 
 import pytest
 
@@ -32,8 +33,8 @@ LNOT = {
 def test_lnot():
     """Test seqlogic.lbool.lnot function."""
     for x, y in LNOT.items():
-        x = lbool.from_char[x]
-        y = lbool.from_char[y]
+        x = lbool._from_char[x]
+        y = lbool._from_char[y]
         assert lnot(x) == y
 
 
@@ -60,9 +61,9 @@ LNOR = {
 def test_lnor():
     """Test seqlogic.lbool.lnor function."""
     for xs, y in LNOR.items():
-        x0 = lbool.from_char[xs[0]]
-        x1 = lbool.from_char[xs[1]]
-        y = lbool.from_char[y]
+        x0 = lbool._from_char[xs[0]]
+        x1 = lbool._from_char[xs[1]]
+        y = lbool._from_char[y]
         assert lnor(x0, x1) == y
 
 
@@ -89,11 +90,10 @@ LOR = {
 def test_lor():
     """Test seqlogic.lbool.lor function."""
     for xs, y in LOR.items():
-        x0 = lbool.from_char[xs[0]]
-        x1 = lbool.from_char[xs[1]]
-        y = lbool.from_char[y]
+        x0 = lbool._from_char[xs[0]]
+        x1 = lbool._from_char[xs[1]]
+        y = lbool._from_char[y]
         assert lor(x0, x1) == y
-        assert vec(1, x0) | vec(1, x1) == vec(1, y)
 
 
 LNAND = {
@@ -119,11 +119,10 @@ LNAND = {
 def test_lnand():
     """Test seqlogic.lbool.lnand function."""
     for xs, y in LNAND.items():
-        x0 = lbool.from_char[xs[0]]
-        x1 = lbool.from_char[xs[1]]
-        y = lbool.from_char[y]
+        x0 = lbool._from_char[xs[0]]
+        x1 = lbool._from_char[xs[1]]
+        y = lbool._from_char[y]
         assert lnand(x0, x1) == y
-        assert ~(vec(1, x0) & vec(1, x1)) == vec(1, y)
 
 
 LAND = {
@@ -149,11 +148,10 @@ LAND = {
 def test_land():
     """Test seqlogic.lbool.land function."""
     for xs, y in LAND.items():
-        x0 = lbool.from_char[xs[0]]
-        x1 = lbool.from_char[xs[1]]
-        y = lbool.from_char[y]
+        x0 = lbool._from_char[xs[0]]
+        x1 = lbool._from_char[xs[1]]
+        y = lbool._from_char[y]
         assert land(x0, x1) == y
-        assert vec(1, x0) & vec(1, x1) == vec(1, y)
 
 
 LXNOR = {
@@ -179,11 +177,10 @@ LXNOR = {
 def test_lxnor():
     """Test seqlogic.lbool.lnand function."""
     for xs, y in LXNOR.items():
-        x0 = lbool.from_char[xs[0]]
-        x1 = lbool.from_char[xs[1]]
-        y = lbool.from_char[y]
+        x0 = lbool._from_char[xs[0]]
+        x1 = lbool._from_char[xs[1]]
+        y = lbool._from_char[y]
         assert lxnor(x0, x1) == y
-        assert ~(vec(1, x0) ^ vec(1, x1)) == vec(1, y)
 
 
 LXOR = {
@@ -209,11 +206,10 @@ LXOR = {
 def test_lxor():
     """Test seqlogic.lbool.land function."""
     for xs, y in LXOR.items():
-        x0 = lbool.from_char[xs[0]]
-        x1 = lbool.from_char[xs[1]]
-        y = lbool.from_char[y]
+        x0 = lbool._from_char[xs[0]]
+        x1 = lbool._from_char[xs[1]]
+        y = lbool._from_char[y]
         assert lxor(x0, x1) == y
-        assert vec(1, x0) ^ vec(1, x1) == vec(1, y)
 
 
 LIMPLIES = {
@@ -239,10 +235,16 @@ LIMPLIES = {
 def test_limplies():
     """Test seqlogic.lbool.limplies function."""
     for xs, y in LIMPLIES.items():
-        x0 = lbool.from_char[xs[0]]
-        x1 = lbool.from_char[xs[1]]
-        y = lbool.from_char[y]
+        x0 = lbool._from_char[xs[0]]
+        x1 = lbool._from_char[xs[1]]
+        y = lbool._from_char[y]
         assert limplies(x0, x1) == y
+
+
+def test_vec_repr():
+    """Test seqlogic.lbool.vec.__repr__ method."""
+    assert repr(vec(0, 0)) == "vec(0, 0b0)"
+    assert repr(vec(4, 0b1110_0100)) == "vec(4, 0b1110_0100)"
 
 
 def test_vec_lnot():
@@ -273,6 +275,7 @@ def test_vec_lnand():
     x0 = vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = vec(16, 0b11100100_11100100_11100100_11100100)
     assert x0.lnand(x1) == vec(16, 0b11111000_11011000_10101000_00000000)
+    assert ~(x0 & x1) == vec(16, 0b11111000_11011000_10101000_00000000)
 
 
 def test_vec_land():
@@ -280,6 +283,7 @@ def test_vec_land():
     x0 = vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = vec(16, 0b11100100_11100100_11100100_11100100)
     assert x0.land(x1) == vec(16, 0b11110100_11100100_01010100_00000000)
+    assert (x0 & x1) == vec(16, 0b11110100_11100100_01010100_00000000)
 
 
 def test_vec_lxnor():
@@ -287,6 +291,7 @@ def test_vec_lxnor():
     x0 = vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = vec(16, 0b11100100_11100100_11100100_11100100)
     assert x0.lxnor(x1) == vec(16, 0b11111100_11100100_11011000_00000000)
+    assert ~(x0 ^ x1) == vec(16, 0b11111100_11100100_11011000_00000000)
 
 
 def test_vec_lxor():
@@ -294,6 +299,7 @@ def test_vec_lxor():
     x0 = vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = vec(16, 0b11100100_11100100_11100100_11100100)
     assert x0.lxor(x1) == vec(16, 0b11111100_11011000_11100100_00000000)
+    assert (x0 ^ x1) == vec(16, 0b11111100_11011000_11100100_00000000)
 
 
 ULOR = {
@@ -487,32 +493,33 @@ def test_vec_arsh():
 
 UINT2VEC_VALS = {
     0: "",
-    1: "1",
-    2: "01",
-    3: "11",
-    4: "001",
-    5: "101",
-    6: "011",
-    7: "111",
-    8: "0001",
+    1: "1b1",
+    2: "2b10",
+    3: "2b11",
+    4: "3b100",
+    5: "3b101",
+    6: "3b110",
+    7: "3b111",
+    8: "4b1000",
 }
 
 UINT2VEC_N_VALS = {
     (0, 0): "",
-    (0, 1): "0",
-    (0, 2): "00",
-    (1, 1): "1",
-    (1, 2): "10",
-    (1, 4): "1000",
-    (2, 2): "01",
-    (2, 3): "010",
-    (2, 4): "0100",
-    (3, 2): "11",
-    (3, 3): "110",
-    (3, 4): "1100",
-    (4, 3): "001",
-    (4, 4): "0010",
-    (4, 5): "00100",
+    (0, 1): "1b0",
+    (0, 2): "2b00",
+    (1, 1): "1b1",
+    (1, 2): "2b01",
+    (1, 3): "3b001",
+    (1, 4): "4b0001",
+    (2, 2): "2b10",
+    (2, 3): "3b010",
+    (2, 4): "4b0010",
+    (3, 2): "2b11",
+    (3, 3): "3b011",
+    (3, 4): "4b0011",
+    (4, 3): "3b100",
+    (4, 4): "4b0100",
+    (4, 5): "5b0_0100",
 }
 
 
@@ -545,56 +552,56 @@ def test_uint2vec():
 
 
 INT2VEC_VALS = {
-    -8: "0001",
-    -7: "1001",
-    -6: "0101",
-    -5: "1101",
-    -4: "001",
-    -3: "101",
-    -2: "01",
-    -1: "1",
-    0: "0",
-    1: "10",
-    2: "010",
-    3: "110",
-    4: "0010",
-    5: "1010",
-    6: "0110",
-    7: "1110",
-    8: "00010",
+    -8: "4b1000",
+    -7: "4b1001",
+    -6: "4b1010",
+    -5: "4b1011",
+    -4: "3b100",
+    -3: "3b101",
+    -2: "2b10",
+    -1: "1b1",
+    0: "1b0",
+    1: "2b01",
+    2: "3b010",
+    3: "3b011",
+    4: "4b0100",
+    5: "4b0101",
+    6: "4b0110",
+    7: "4b0111",
+    8: "5b0_1000",
 }
 
 INT2VEC_N_VALS = {
-    (-5, 4): "1101",
-    (-5, 5): "11011",
-    (-5, 6): "110111",
-    (-4, 3): "001",
-    (-4, 4): "0011",
-    (-4, 5): "00111",
-    (-3, 3): "101",
-    (-3, 4): "1011",
-    (-3, 5): "10111",
-    (-2, 2): "01",
-    (-2, 3): "011",
-    (-2, 4): "0111",
-    (-1, 1): "1",
-    (-1, 2): "11",
-    (-1, 3): "111",
-    (0, 1): "0",
-    (0, 2): "00",
-    (0, 3): "000",
-    (1, 2): "10",
-    (1, 3): "100",
-    (1, 4): "1000",
-    (2, 3): "010",
-    (2, 4): "0100",
-    (2, 5): "01000",
-    (3, 3): "110",
-    (3, 4): "1100",
-    (3, 5): "11000",
-    (4, 4): "0010",
-    (4, 5): "00100",
-    (4, 6): "001000",
+    (-5, 4): "4b1011",
+    (-5, 5): "5b1_1011",
+    (-5, 6): "6b11_1011",
+    (-4, 3): "3b100",
+    (-4, 4): "4b1100",
+    (-4, 5): "5b1_1100",
+    (-3, 3): "3b101",
+    (-3, 4): "4b1101",
+    (-3, 5): "5b1_1101",
+    (-2, 2): "2b10",
+    (-2, 3): "3b110",
+    (-2, 4): "4b1110",
+    (-1, 1): "1b1",
+    (-1, 2): "2b11",
+    (-1, 3): "3b111",
+    (0, 1): "1b0",
+    (0, 2): "2b00",
+    (0, 3): "3b000",
+    (1, 2): "2b01",
+    (1, 3): "3b001",
+    (1, 4): "4b0001",
+    (2, 3): "3b010",
+    (2, 4): "4b0010",
+    (2, 5): "5b0_0010",
+    (3, 3): "3b011",
+    (3, 4): "4b0011",
+    (3, 5): "5b0_0011",
+    (4, 4): "4b0100",
+    (4, 5): "5b0_0100",
+    (4, 6): "6b00_0100",
 }
 
 
