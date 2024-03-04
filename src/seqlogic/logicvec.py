@@ -215,9 +215,9 @@ class logicvec:
             case int():
                 pass
             case logicvec():
-                if n._w.has_null():
+                if n._w.has_illogical():
                     return nulls((v.size,)), E
-                elif n._w.has_dc():
+                elif n._w.has_unknown():
                     return xes((v.size,)), E
                 else:
                     n = n.to_uint()
@@ -247,9 +247,9 @@ class logicvec:
             case int():
                 pass
             case logicvec():
-                if n._w.has_null():
+                if n._w.has_illogical():
                     return nulls((v.size,)), E
-                elif n._w.has_dc():
+                elif n._w.has_unknown():
                     return xes((v.size,)), E
                 else:
                     n = n.to_uint()
@@ -279,9 +279,9 @@ class logicvec:
             case int():
                 pass
             case logicvec():
-                if n._w.has_null():
+                if n._w.has_illogical():
                     return nulls((v.size,)), E
-                elif n._w.has_dc():
+                elif n._w.has_unknown():
                     return xes((v.size,)), E
                 else:
                     n = n.to_uint()

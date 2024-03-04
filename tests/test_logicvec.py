@@ -712,8 +712,10 @@ def test_slicing():
 def test_countbits():
     """Test logicvec countbits methods."""
     v = vec("8bX10?_X10?")
-    assert v._w.count_known() == 4
-    assert v._w.count_unknown() == 4
+    assert v._w.count_illogicals() == 2
+    assert v._w.count_zeros() == 2
+    assert v._w.count_ones() == 2
+    assert v._w.count_unknowns() == 2
 
     assert vec("4b0000")._w.count_ones() == 0
     assert vec("4b0001")._w.count_ones() == 1
@@ -735,4 +737,4 @@ def test_countbits():
     assert not vec("4b0000")._w.has_unknown()
     assert not vec("4b1111")._w.has_unknown()
     assert vec("4b0X01")._w.has_unknown()
-    assert vec("4b01?1")._w.has_unknown()
+    assert vec("4b01?1")._w.has_illogical()

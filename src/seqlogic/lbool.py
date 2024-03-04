@@ -300,13 +300,33 @@ def limplies(p: int, q: int) -> int:
 
 
 class vec:
-    """TODO(cjdrake): Write docstring."""
+    """One dimensional vector of lbool items.
+
+    Though it is possible to construct an lbool vec directly,
+    it is easier to use one of the factory functions:
+    * uint2vec
+    * int2vec
+    * lit2vec
+    * bools2vec
+    * illogicals
+    * zeros
+    * ones
+    * unknowns
+    """
 
     def __class_getitem__(cls, key: int):
         pass  # pragma: no cover
 
     def __init__(self, n: int, data: int):
-        """TODO(cjdrake): Write docstring."""
+        """Initialize.
+
+        Args:
+            n: Length
+            data: lbool items packed into an int
+
+        Raises:
+            ValueError if n or data is invalid/inconsistent
+        """
         if n < 0:
             raise ValueError(f"Expected n ≥ 0, got {n}")
         self._n = n
@@ -399,7 +419,7 @@ class vec:
 
     @property
     def data(self) -> int:
-        """TODO(cjdrake): Write docstring."""
+        """Packed items."""
         return self._data
 
     @cached_property
@@ -408,7 +428,11 @@ class vec:
         return _ITEM_BITS * self._n
 
     def lnot(self) -> vec:
-        """Lifted NOT function."""
+        """Bitwise lifted NOT.
+
+        Returns:
+            vec of equal length and inverted data.
+        """
         x_0 = self._bit_mask[0]
         x_01 = x_0 << 1
         x_1 = self._bit_mask[1]
@@ -421,7 +445,17 @@ class vec:
         return vec(self._n, y)
 
     def lnor(self, other: vec) -> vec:
-        """Lifted NOR function."""
+        """Bitwise lifted NOR.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            vec of equal length, data contains NOR result.
+
+        Raises:
+            ValueError: vec lengths do not match.
+        """
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -441,7 +475,17 @@ class vec:
         return vec(self._n, y)
 
     def lor(self, other: vec) -> vec:
-        """Lifted OR function."""
+        """Bitwise lifted OR.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            vec of equal length, data contains OR result.
+
+        Raises:
+            ValueError: vec lengths do not match.
+        """
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -459,14 +503,28 @@ class vec:
         return vec(self._n, y)
 
     def ulor(self) -> vec[1]:
-        """Unary lifted OR reduction."""
+        """Unary lifted OR reduction.
+
+        Returns:
+            One-bit vec, data contains OR reduction.
+        """
         y = _F
         for x in self:
             y = y.lor(x)
         return y
 
     def lnand(self, other: vec) -> vec:
-        """Lifted NAND function."""
+        """Bitwise lifted NAND.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            vec of equal length, data contains NAND result.
+
+        Raises:
+            ValueError: vec lengths do not match.
+        """
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -486,7 +544,17 @@ class vec:
         return vec(self._n, y)
 
     def land(self, other: vec) -> vec:
-        """Lifted AND function."""
+        """Bitwise lifted AND.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            vec of equal length, data contains AND result.
+
+        Raises:
+            ValueError: vec lengths do not match.
+        """
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -504,14 +572,28 @@ class vec:
         return vec(self._n, y)
 
     def uland(self) -> vec[1]:
-        """Unary lifted AND reduction."""
+        """Unary lifted AND reduction.
+
+        Returns:
+            One-bit vec, data contains AND reduction.
+        """
         y = _T
         for x in self:
             y = y.land(x)
         return y
 
     def lxnor(self, other: vec) -> vec:
-        """Lifted XNOR function."""
+        """Bitwise lifted XNOR.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            vec of equal length, data contains XNOR result.
+
+        Raises:
+            ValueError: vec lengths do not match.
+        """
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -531,7 +613,17 @@ class vec:
         return vec(self._n, y)
 
     def lxor(self, other: vec) -> vec:
-        """Lifted XOR function."""
+        """Bitwise lifted XOR.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            vec of equal length, data contains XOR result.
+
+        Raises:
+            ValueError: vec lengths do not match.
+        """
         self._check_len(other)
 
         x0_0 = self._bit_mask[0]
@@ -551,24 +643,39 @@ class vec:
         return vec(self._n, y)
 
     def ulxnor(self) -> vec[1]:
-        """Unary lifted XNOR reduction."""
+        """Unary lifted XNOR reduction.
+
+        Returns:
+            One-bit vec, data contains XNOR reduction.
+        """
         y = _T
         for x in self:
             y = y.lxnor(x)
         return y
 
     def ulxor(self) -> vec[1]:
-        """Unary lifted XOR reduction."""
+        """Unary lifted XOR reduction.
+
+        Returns:
+            One-bit vec, data contains XOR reduction.
+        """
         y = _F
         for x in self:
             y = y.lxor(x)
         return y
 
     def to_uint(self) -> int:
-        """Convert to unsigned integer."""
+        """Convert to unsigned integer.
+
+        Returns:
+            An unsigned int.
+
+        Raises:
+            ValueError: vec is partially unknown.
+        """
         y = 0
 
-        if self.has_unknown():
+        if self.has_illogical() or self.has_unknown():
             raise ValueError("Cannot convert unknown to uint")
 
         i, data = 0, self._data
@@ -588,7 +695,14 @@ class vec:
         return y
 
     def to_int(self) -> int:
-        """Convert to signed integer."""
+        """Convert to signed integer.
+
+        Returns:
+            A signed int, from two's complement encoding.
+
+        Raises:
+            ValueError: vec is partially unknown.
+        """
         if self._n == 0:
             return 0
         sign = self._get_item(self._n - 1)
@@ -597,17 +711,47 @@ class vec:
         return self.to_uint()
 
     def ult(self, other: vec) -> bool:
-        """Unsigned less than."""
+        """Unsigned less than.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Boolean result of unsigned(self) < unsigned(other)
+
+        Raises:
+            ValueError: vec lengths do not match.
+        """
         self._check_len(other)
         return self.to_uint() < other.to_uint()
 
     def slt(self, other: vec) -> bool:
-        """Signed less than."""
+        """Signed less than.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Boolean result of signed(self) < signed(other)
+
+        Raises:
+            ValueError: vec lengths do not match.
+        """
         self._check_len(other)
         return self.to_int() < other.to_int()
 
     def zext(self, n: int) -> vec:
-        """Zero extend by n bits."""
+        """Zero extend by n bits.
+
+        Args:
+            n: Non-negative number of bits.
+
+        Returns:
+            vec zero-extended by n bits.
+
+        Raises:
+            ValueError: If n is negative.
+        """
         if n < 0:
             raise ValueError(f"Expected n ≥ 0, got {n}")
         if n == 0:
@@ -616,7 +760,17 @@ class vec:
         return vec(self._n + n, self._data | (prefix << self.nbits))
 
     def sext(self, n: int) -> vec:
-        """Sign extend by n bits."""
+        """Sign extend by n bits.
+
+        Args:
+            n: Non-negative number of bits.
+
+        Returns:
+            vec sign-extended by n bits.
+
+        Raises:
+            ValueError: If n is negative.
+        """
         if n < 0:
             raise ValueError(f"Expected n ≥ 0, got {n}")
         if n == 0:
@@ -626,7 +780,19 @@ class vec:
         return vec(self._n + n, self._data | (prefix << self.nbits))
 
     def lsh(self, n: int, ci: vec[1] | None = None) -> tuple[vec, vec]:
-        """Left shift by n bits."""
+        """Left shift by n bits.
+
+        Args:
+            n: Non-negative number of bits.
+            ci: Optional "carry in"
+
+        Returns:
+            vec left-shifted by n bits. If ci is provided, use it for shift
+            input. Otherwise use zeros.
+
+        Raises:
+            ValueError: If n or ci are invalid/inconsistent.
+        """
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
@@ -640,7 +806,19 @@ class vec:
         return y, co
 
     def rsh(self, n: int, ci: vec[1] | None = None) -> tuple[vec, vec]:
-        """Right shift by n bits."""
+        """Right shift by n bits.
+
+        Args:
+            n: Non-negative number of bits.
+            ci: Optional "carry in"
+
+        Returns:
+            vec right-shifted by n bits. If ci is provided, use it for shift
+            input. Otherwise use zeros.
+
+        Raises:
+            ValueError: If n or ci are invalid/inconsistent.
+        """
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
@@ -654,7 +832,17 @@ class vec:
         return y, co
 
     def arsh(self, n: int) -> tuple[vec, vec]:
-        """Arithmetically right shift by n bits."""
+        """Arithmetically right shift by n bits.
+
+        Args:
+            n: Non-negative number of bits.
+
+        Returns:
+            vec arithmetically right-shifted by n bits.
+
+        Raises:
+            ValueError: If n is invalid.
+        """
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
@@ -666,15 +854,25 @@ class vec:
         return y, co
 
     def add(self, other: vec, ci: vec[1]) -> tuple[vec, vec[1], vec[1]]:
-        """Twos complement addition."""
+        """Twos complement addition.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            3-tuple of (sum, carry-out, overflow).
+
+        Raises:
+            ValueError: vec lengths are invalid/inconsistent.
+        """
         self._check_len(other)
 
         # Rename for readability
         n, a, b = self._n, self, other
 
-        if a.has_null() or b.has_null() or ci.has_null():
+        if a.has_illogical() or b.has_illogical() or ci.has_illogical():
             return vec(n, _fill(_ILLOGICAL, n)), _W, _W
-        if a.has_dc() or b.has_dc() or ci.has_dc():
+        if a.has_unknown() or b.has_unknown() or ci.has_unknown():
             return vec(n, _fill(_UNKNOWN, n)), _X, _X
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
@@ -698,11 +896,27 @@ class vec:
         return s, co, ovf
 
     def sub(self, other: vec) -> tuple[vec, vec[1], vec[1]]:
-        """Twos complement subtraction."""
+        """Twos complement subtraction.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            3-tuple of (sum, carry-out, overflow).
+
+        Raises:
+            ValueError: vec lengths are invalid/inconsistent.
+        """
         return self.add(other.lnot(), ci=_T)
 
     def neg(self) -> tuple[vec, vec[1], vec[1]]:
-        """Twos complement negation."""
+        """Twos complement negation.
+
+        Computed using 0 - self.
+
+        Returns:
+            3-tuple of (sum, carry-out, overflow).
+        """
         zero = vec(self._n, _fill(_ZERO, self._n))
         return zero.sub(self)
 
@@ -726,49 +940,37 @@ class vec:
 
         return y
 
-    def count_nulls(self) -> int:
-        """TODO(cjdrake): Write docstring."""
-        return self._count(_byte_cnt_nulls, _ILLOGICAL)
+    def count_illogicals(self) -> int:
+        """Return number of ILLOGICAL items."""
+        return self._count(_byte_cnt_illogicals, _ILLOGICAL)
 
     def count_zeros(self) -> int:
-        """TODO(cjdrake): Write docstring."""
+        """Return number of ZERO items."""
         return self._count(_byte_cnt_zeros, _ZERO)
 
     def count_ones(self) -> int:
-        """TODO(cjdrake): Write docstring."""
+        """Return number of ONE items."""
         return self._count(_byte_cnt_ones, _ONE)
 
-    def count_dcs(self) -> int:
-        """TODO(cjdrake): Write docstring."""
-        return self._count(_byte_cnt_dcs, _UNKNOWN)
-
-    def count_known(self) -> int:
-        """TODO(cjdrake): Write docstring."""
-        return self.count_zeros() + self.count_ones()
-
-    def count_unknown(self) -> int:
-        """TODO(cjdrake): Write docstring."""
-        return self.count_nulls() + self.count_dcs()
+    def count_unknowns(self) -> int:
+        """Return number of UNKNOWN items."""
+        return self._count(_byte_cnt_unknowns, _UNKNOWN)
 
     def onehot(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
-        return not self.has_unknown() and self.count_ones() == 1
+        """Return True if vec contains exactly one ONE item."""
+        return not self.has_illogical() and not self.has_unknown() and self.count_ones() == 1
 
     def onehot0(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
-        return not self.has_unknown() and self.count_ones() <= 1
+        """Return True if vec contains at most one ONE item."""
+        return not self.has_illogical() and not self.has_unknown() and self.count_ones() <= 1
 
-    def has_null(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
-        return self.count_nulls() != 0
-
-    def has_dc(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
-        return self.count_dcs() != 0
+    def has_illogical(self) -> bool:
+        """Return True if vec contains at least one ILLOGICAL item."""
+        return self.count_illogicals() != 0
 
     def has_unknown(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
-        return self.has_null() or self.has_dc()
+        """Return True if vec contains at least one UNKNOWN item."""
+        return self.count_unknowns() != 0
 
     def _norm_index(self, index: int) -> int:
         a, b = -self._n, self._n
@@ -809,22 +1011,6 @@ class vec:
 
     @cached_property
     def _mask(self) -> tuple[int, int]:
-        """Return PC zero/one mask.
-
-        The zero mask is: 0b01010101...
-        The one mask is:  0b10101010...
-
-        N
-        1          01 =  1 = (  4-1)/3
-        2        0101 =  5 = ( 16-1)/3
-        3      010101 = 21 = ( 64-1)/3
-        4    01010101 = 85 = (256-1)/3
-        ...
-
-        F(0) = 1
-        F(n+1) = 4*F(n) + 1
-        F(n) = (4^n - 1) / 3
-        """
         zero_mask = _fill(_ZERO, self._n)
         one_mask = zero_mask << 1
         return zero_mask, one_mask
@@ -835,6 +1021,7 @@ class vec:
 
 
 def _fill(x: int, n: int) -> int:
+    assert n >= 0
     data = 0
     for i in range(n):
         data |= x << (_ITEM_BITS * i)
@@ -845,11 +1032,11 @@ def uint2vec(num: int, n: int | None = None) -> vec:
     """Convert nonnegative int to vec.
 
     Args:
-        num: A nonnegative integer
-        n: Optional output length
+        num: A nonnegative integer.
+        n: Optional output length.
 
     Returns:
-        A vec instance
+        A vec instance.
 
     Raises:
         ValueError: If num is negative or overflows the output length.
@@ -881,11 +1068,11 @@ def int2vec(num: int, n: int | None = None) -> vec:
     """Convert int to vec.
 
     Args:
-        num: An integer
-        n: Optional output length
+        num: An integer.
+        n: Optional output length.
 
     Returns:
-        A vec instance
+        A vec instance.
 
     Raises:
         ValueError: If num overflows the output length.
@@ -923,7 +1110,24 @@ _NUM_RE = re.compile(
 
 
 def lit2vec(lit: str) -> vec:
-    """TODO(cjdrake): Write docstring."""
+    """Convert a string literal to a vec.
+
+    A string literal is in the form {width}{base}{characters},
+    where width is the number of bits, base is either 'b' for binary or
+    'h' for hexadecimal, and characters is a string of legal characters.
+    The character string can contains '_' separators for readability.
+
+    For example:
+        4b1010
+        6b11_X10?
+        64hdead_beef_feed_face
+
+    Returns:
+        A vec instance.
+
+    Raises:
+        ValueError: If input literal has a syntax error.
+    """
     if m := _NUM_RE.match(lit):
         # Binary
         if m.group("BinSize"):
@@ -933,7 +1137,6 @@ def lit2vec(lit: str) -> vec:
             if ndigits != size:
                 s = f"Expected {size} digits, got {ndigits}"
                 raise ValueError(s)
-            # return from_items(_from_char[c] for c in reversed(digits))
             i, data = 0, 0
             for c in reversed(digits):
                 data |= _from_char[c] << (i * _ITEM_BITS)
@@ -959,7 +1162,15 @@ def lit2vec(lit: str) -> vec:
 
 
 def bools2vec(xs: Iterable[object]) -> vec:
-    """TODO(cjdrake): Write docstring."""
+    """Convert an iterable of truthy items to a vec.
+
+    This is a convenience function.
+    For data in the form of [0, 1, 0, 1, ...],
+    or [False, True, False, True, ...].
+
+    Use with caution, as bool("0") evaluates to True,
+    i.e. ["0", "1", "0", "1"] => vec(4, 0b10_10_10_10)
+    """
     i, data = 0, 0
     for x in xs:
         data |= _from_bit[bool(x)] << (_ITEM_BITS * i)
@@ -968,33 +1179,31 @@ def bools2vec(xs: Iterable[object]) -> vec:
 
 
 def illogicals(n: int) -> vec:
-    """TODO(cjdrake): Write docstring."""
+    """Return a vec packed with n ILLOGICAL items."""
+    if n < 0:
+        raise ValueError(f"Expected n ≥, got {n}")
     return vec(n, _fill(_ILLOGICAL, n))
 
 
 def zeros(n: int) -> vec:
-    """TODO(cjdrake): Write docstring."""
+    """Return a vec packed with n ZERO items."""
+    if n < 0:
+        raise ValueError(f"Expected n ≥, got {n}")
     return vec(n, _fill(_ZERO, n))
 
 
 def ones(n: int) -> vec:
-    """TODO(cjdrake): Write docstring."""
+    """Return a vec packed with n ONE items."""
+    if n < 0:
+        raise ValueError(f"Expected n ≥, got {n}")
     return vec(n, _fill(_ONE, n))
 
 
 def unknowns(n: int) -> vec:
-    """TODO(cjdrake): Write docstring."""
+    """Return a vec packed with n UNKNOWN items."""
+    if n < 0:
+        raise ValueError(f"Expected n ≥, got {n}")
     return vec(n, _fill(_UNKNOWN, n))
-
-
-def from_items(xs: Iterable[int] = ()) -> vec:
-    """Convert an iterable of items to a vec."""
-    n = 0
-    data = 0
-    for i, x in enumerate(xs):
-        n += 1
-        data |= x << (_ITEM_BITS * i)
-    return vec(n, data)
 
 
 # Empty
@@ -1048,7 +1257,7 @@ _from_hexchar = {
     "F": 0b10_10_10_10,
 }
 
-_byte_cnt_nulls = {
+_byte_cnt_illogicals = {
     0b00_00_00_00: 4,
     0b00_00_00_01: 3,
     0b00_00_00_10: 3,
@@ -1825,7 +2034,7 @@ _byte_cnt_ones = {
     0b11_11_11_11: 0,
 }
 
-_byte_cnt_dcs = {
+_byte_cnt_unknowns = {
     0b00_00_00_00: 0,
     0b00_00_00_01: 0,
     0b00_00_00_10: 0,
@@ -2084,7 +2293,10 @@ _byte_cnt_dcs = {
     0b11_11_11_11: 4,
 }
 
-_item_uint = {0b01: 0, 0b10: 1}
+_item_uint = {
+    0b01: 0,
+    0b10: 1,
+}
 
 _BYTE_MASK = 0b11_11_11_11
 
