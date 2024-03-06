@@ -1161,19 +1161,16 @@ def lit2vec(lit: str) -> vec:
         raise ValueError(f"Expected str literal, got {lit}")
 
 
-def bools2vec(xs: Iterable[object]) -> vec:
+def bools2vec(xs: Iterable[int]) -> vec:
     """Convert an iterable of truthy items to a vec.
 
     This is a convenience function.
     For data in the form of [0, 1, 0, 1, ...],
     or [False, True, False, True, ...].
-
-    Use with caution, as bool("0") evaluates to True,
-    i.e. ["0", "1", "0", "1"] => vec(4, 0b10_10_10_10)
     """
     i, data = 0, 0
     for x in xs:
-        data |= _from_bit[bool(x)] << (_ITEM_BITS * i)
+        data |= _from_bit[x] << (_ITEM_BITS * i)
         i += 1
     return vec(i, data)
 
