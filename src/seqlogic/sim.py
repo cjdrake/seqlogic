@@ -257,6 +257,12 @@ class Sim:
         """Add a process to run at start of simulation."""
         self._procs.append((proc, region, args, kwargs))
 
+    def add_hier_procs(self, hier):
+        """TODO(cjdrake): Write docstring."""
+        for node in hier.iter_bfs():
+            for proc, region in node.procs:
+                self.add_proc(proc, Region(region))
+
     def add_event(self, event: Callable[[], bool]):
         """Add a conditional state => task dependency."""
         assert self._task is not None

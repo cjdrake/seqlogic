@@ -18,6 +18,7 @@ class Hierarchy(ABC):
         """TODO(cjdrake): Write docstring."""
         self._name = name
         self._parent = parent
+        self._procs = set()
 
     @property
     def name(self) -> str:
@@ -48,6 +49,11 @@ class Hierarchy(ABC):
     def dump_vcd(self, vcdw: VcdWriter, pattern: str):
         """TODO(cjdrake): Write docstring."""
 
+    @property
+    def procs(self):
+        """TODO(cjdrake): Write docstring."""
+        return self._procs
+
 
 class Module(Hierarchy):
     """Design hierarchy branch node."""
@@ -58,8 +64,6 @@ class Module(Hierarchy):
         self._children: list[Hierarchy] = []
         if parent is not None:
             parent.add_child(self)
-        # Processes
-        self._procs = set()
 
     @property
     def qualname(self) -> str:
@@ -88,11 +92,6 @@ class Module(Hierarchy):
             return self.name
         assert isinstance(self._parent, Module)
         return f"{self._parent.scope}.{self.name}"
-
-    @property
-    def procs(self):
-        """TODO(cjdrake): Write docstring."""
-        return self._procs
 
     def connect(self, dst, src):
         """TODO(cjdrake): Write docstring."""
