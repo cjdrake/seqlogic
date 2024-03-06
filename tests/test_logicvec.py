@@ -5,12 +5,12 @@
 
 import pytest
 
-from seqlogic.logicvec import F, T, X, Y, cat, illogicals, ones, rep, uint2vec, vec, xes, zeros
+from seqlogic.logicvec import F, T, W, X, cat, illogicals, ones, rep, uint2vec, vec, xes, zeros
 
 
 def test_not():
     """Test logicvec NOT function."""
-    x = vec([Y, F, T, X])
+    x = vec([W, F, T, X])
     assert str(~x) == "vec(4bX01?)"
 
 
@@ -58,19 +58,19 @@ def test_xor():
 
 def test_uor():
     """Test logicvec unary OR method."""
-    assert vec("2b??").ulor() == Y
-    assert vec("2b0?").ulor() == Y
-    assert vec("2b1?").ulor() == Y
-    assert vec("2bX?").ulor() == Y
-    assert vec("2b?0").ulor() == Y
+    assert vec("2b??").ulor() == W
+    assert vec("2b0?").ulor() == W
+    assert vec("2b1?").ulor() == W
+    assert vec("2bX?").ulor() == W
+    assert vec("2b?0").ulor() == W
     assert vec("2b00").ulor() == F
     assert vec("2b10").ulor() == T
     assert vec("2bX0").ulor() == X
-    assert vec("2b?1").ulor() == Y
+    assert vec("2b?1").ulor() == W
     assert vec("2b01").ulor() == T
     assert vec("2b11").ulor() == T
     assert vec("2bX1").ulor() == T
-    assert vec("2b?X").ulor() == Y
+    assert vec("2b?X").ulor() == W
     assert vec("2b0X").ulor() == X
     assert vec("2b1X").ulor() == T
     assert vec("2bXX").ulor() == X
@@ -78,19 +78,19 @@ def test_uor():
 
 def test_uand():
     """Test logicvec unary and method."""
-    assert vec("2b??").uland() == Y
-    assert vec("2b0?").uland() == Y
-    assert vec("2b1?").uland() == Y
-    assert vec("2bX?").uland() == Y
-    assert vec("2b?0").uland() == Y
+    assert vec("2b??").uland() == W
+    assert vec("2b0?").uland() == W
+    assert vec("2b1?").uland() == W
+    assert vec("2bX?").uland() == W
+    assert vec("2b?0").uland() == W
     assert vec("2b00").uland() == F
     assert vec("2b10").uland() == F
     assert vec("2bX0").uland() == F
-    assert vec("2b?1").uland() == Y
+    assert vec("2b?1").uland() == W
     assert vec("2b01").uland() == F
     assert vec("2b11").uland() == T
     assert vec("2bX1").uland() == X
-    assert vec("2b?X").uland() == Y
+    assert vec("2b?X").uland() == W
     assert vec("2b0X").uland() == F
     assert vec("2b1X").uland() == X
     assert vec("2bXX").uland() == X
@@ -98,19 +98,19 @@ def test_uand():
 
 def test_uxor():
     """Test logicvec unary xor method."""
-    assert vec("2b??").ulxor() == Y
-    assert vec("2b0?").ulxor() == Y
-    assert vec("2b1?").ulxor() == Y
-    assert vec("2bX?").ulxor() == Y
-    assert vec("2b?0").ulxor() == Y
+    assert vec("2b??").ulxor() == W
+    assert vec("2b0?").ulxor() == W
+    assert vec("2b1?").ulxor() == W
+    assert vec("2bX?").ulxor() == W
+    assert vec("2b?0").ulxor() == W
     assert vec("2b00").ulxor() == F
     assert vec("2b10").ulxor() == T
     assert vec("2bX0").ulxor() == X
-    assert vec("2b?1").ulxor() == Y
+    assert vec("2b?1").ulxor() == W
     assert vec("2b01").ulxor() == T
     assert vec("2b11").ulxor() == F
     assert vec("2bX1").ulxor() == X
-    assert vec("2b?X").ulxor() == Y
+    assert vec("2b?X").ulxor() == W
     assert vec("2b0X").ulxor() == X
     assert vec("2b1X").ulxor() == X
     assert vec("2bXX").ulxor() == X
@@ -401,7 +401,7 @@ def test_empty():
 
 def test_scalar():
     """Test scalar (vector w/ one element)."""
-    vn = Y
+    vn = W
     v0 = vec(0)
     v1 = vec(1)
     vx = X
@@ -452,7 +452,7 @@ def test_rank1_str():
     """Test vec rank1 string input."""
     v = vec("8bX10?_X10?")
     data = 0b11100100_11100100
-    xs = [Y, F, T, X] * 2
+    xs = [W, F, T, X] * 2
 
     # Test properties
     assert v.shape == (8,)
@@ -474,7 +474,7 @@ def test_rank1_str():
     assert list(v) == xs
 
     # Test __getitem__
-    assert v[0] == Y
+    assert v[0] == W
     assert v[1] == F
     assert v[6] == T
     assert v[7] == X
@@ -504,7 +504,7 @@ def test_rank1_str():
 
 def test_rank1_logic():
     """Test vec function w/ rank1 logic input."""
-    xs = [Y, F, T, X]
+    xs = [W, F, T, X]
     v1 = vec("4bX10?")
     v2 = vec([0, 1, 0, 1])
 

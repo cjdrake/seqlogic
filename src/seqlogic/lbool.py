@@ -311,7 +311,7 @@ class vec:
     * illogicals
     * zeros
     * ones
-    * unknowns
+    * xes
     """
 
     def __class_getitem__(cls, key: int):
@@ -1196,7 +1196,7 @@ def ones(n: int) -> vec:
     return vec(n, _fill(_ONE, n))
 
 
-def unknowns(n: int) -> vec:
+def xes(n: int) -> vec:
     """Return a vec packed with n UNKNOWN items."""
     if n < 0:
         raise ValueError(f"Expected n ≥, got {n}")

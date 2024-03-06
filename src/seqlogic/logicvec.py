@@ -534,11 +534,11 @@ def ones(shape: tuple[int, ...]) -> logicvec:
 
 def xes(shape: tuple[int, ...]) -> logicvec:
     """Return a new logic_vector of given shape, filled with Xes."""
-    return logicvec(lbool.unknowns(math.prod(shape)), shape)
+    return logicvec(lbool.xes(math.prod(shape)), shape)
 
 
 # One bit values
-Y = illogicals((1,))
+W = illogicals((1,))
 F = zeros((1,))
 T = ones((1,))
 X = xes((1,))
