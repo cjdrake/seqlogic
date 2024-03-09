@@ -366,7 +366,8 @@ class vec:
         return prefix + "".join(reversed(chars))
 
     def __repr__(self) -> str:
-        return f"vec({self._n}, 0b{self._data:0{self.nbits}_b})"
+        d = f"{self._data:0{self.nbits}_b}"
+        return f"vec({self._n}, 0b{d})"
 
     def __bool__(self) -> bool:
         return self.to_uint() != 0
