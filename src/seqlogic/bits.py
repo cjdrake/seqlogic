@@ -18,6 +18,9 @@ class bits:
     Use the factory functions instead.
     """
 
+    def __class_getitem__(cls, key: int | tuple[int, ...]):
+        pass  # pragma: no cover
+
     def __init__(self, w: lbool.vec, shape: tuple[int, ...] | None = None):
         """TODO(cjdrake): Write docstring."""
         self._w = w
