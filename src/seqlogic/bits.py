@@ -1,4 +1,4 @@
-"""Bit Array Data Type."""
+"""Bit Array data type."""
 
 # pylint: disable = protected-access
 
