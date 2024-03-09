@@ -1162,7 +1162,7 @@ def lit2vec(lit: str) -> vec:
 
 
 def bools2vec(xs: Iterable[int]) -> vec:
-    """Convert an iterable of truthy items to a vec.
+    """Convert an iterable of bools to a vec.
 
     This is a convenience function.
     For data in the form of [0, 1, 0, 1, ...],
