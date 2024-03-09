@@ -306,8 +306,7 @@ class vec:
     it is easier to use one of the factory functions:
     * uint2vec
     * int2vec
-    * lit2vec
-    * bools2vec
+    * foo
     * illogicals
     * zeros
     * ones
@@ -1109,7 +1108,21 @@ _NUM_RE = re.compile(
 )
 
 
-def lit2vec(lit: str) -> vec:
+def _bools2vec(xs: Iterable[int]) -> vec:
+    """Convert an iterable of bools to a vec.
+
+    This is a convenience function.
+    For data in the form of [0, 1, 0, 1, ...],
+    or [False, True, False, True, ...].
+    """
+    i, data = 0, 0
+    for x in xs:
+        data |= _from_bit[x] << (_ITEM_BITS * i)
+        i += 1
+    return vec(i, data)
+
+
+def _lit2vec(lit: str) -> vec:
     """Convert a string literal to a vec.
 
     A string literal is in the form {width}{base}{characters},
@@ -1161,18 +1174,20 @@ def lit2vec(lit: str) -> vec:
         raise ValueError(f"Expected str literal, got {lit}")
 
 
-def bools2vec(xs: Iterable[int]) -> vec:
-    """Convert an iterable of bools to a vec.
-
-    This is a convenience function.
-    For data in the form of [0, 1, 0, 1, ...],
-    or [False, True, False, True, ...].
-    """
-    i, data = 0, 0
-    for x in xs:
-        data |= _from_bit[x] << (_ITEM_BITS * i)
-        i += 1
-    return vec(i, data)
+# TODO(cjdrake): Rename
+def foo(obj=None) -> vec:
+    """TODO(cjdrake): Write docstring."""
+    match obj:
+        case None:
+            return vec(0, 0)
+        case 0 | 1 as x:
+            return _bools2vec([x])
+        case [0 | 1 as x, *rst]:
+            return _bools2vec([x, *rst])
+        case str() as lit:
+            return _lit2vec(lit)
+        case _:
+            raise TypeError(f"Invalid input: {obj}")
 
 
 def illogicals(n: int) -> vec:

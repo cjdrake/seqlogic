@@ -378,7 +378,7 @@ def _rank2(fst: bits, rst) -> bits:
     for i, v in enumerate(rst, start=1):
         match v:
             case str() as lit:
-                w = lbool.lit2vec(lit)
+                w = lbool._lit2vec(lit)
                 if len(w) != fst.size:
                     s = f"Expected str literal to have size {fst.size}, got {len(w)}"
                     raise TypeError(s)
@@ -401,16 +401,16 @@ def vec(obj=None) -> bits:
             return E
         # Rank 0 int
         case 0 | 1 as x:
-            return bits(lbool.bools2vec([x]))
+            return bits(lbool._bools2vec([x]))
         # Rank 1 str
         case str() as lit:
-            return bits(lbool.lit2vec(lit))
+            return bits(lbool._lit2vec(lit))
         # Rank 1 [0 | 1, ...]
         case [0 | 1 as x, *rst]:
-            return bits(lbool.bools2vec([x, *rst]))
+            return bits(lbool._bools2vec([x, *rst]))
         # Rank 2 str
         case [str() as lit, *rst]:
-            v = bits(lbool.lit2vec(lit))
+            v = bits(lbool._lit2vec(lit))
             return _rank2(v, rst)
         # Rank 2 logic_vector
         case [bits() as v, *rst]:
@@ -444,7 +444,7 @@ def cat(objs: Collection[int | bits], flatten: bool = False) -> bits:
     for obj in objs:
         match obj:
             case 0 | 1 as x:
-                vs.append(bits(lbool.bools2vec([x])))
+                vs.append(bits(lbool._bools2vec([x])))
             case bits() as v:
                 vs.append(v)
             case _:

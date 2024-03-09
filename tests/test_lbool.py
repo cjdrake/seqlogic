@@ -686,24 +686,24 @@ def test_lit2vec():
     """Test parsing of vector string literals."""
     # literal doesn't match size
     with pytest.raises(ValueError):
-        lbool.lit2vec("4b1010_1010")
+        lbool.foo("4b1010_1010")
     with pytest.raises(ValueError):
-        lbool.lit2vec("8b1010")
+        lbool.foo("8b1010")
     with pytest.raises(ValueError):
-        lbool.lit2vec("16hdead_beef")
+        lbool.foo("16hdead_beef")
     with pytest.raises(ValueError):
-        lbool.lit2vec("8hdead")
+        lbool.foo("8hdead")
 
     # Invalid input
     with pytest.raises(ValueError):
-        lbool.lit2vec("invalid")
+        lbool.foo("invalid")
 
     # Valid input
-    v = lbool.lit2vec("4bX1_0?")
+    v = lbool.foo("4bX1_0?")
     assert v.data == 0b11_10_01_00
-    v = lbool.lit2vec("64hFeDc_Ba98_7654_3210")
+    v = lbool.foo("64hFeDc_Ba98_7654_3210")
     assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
-    v = lbool.lit2vec("64hfEdC_bA98_7654_3210")
+    v = lbool.foo("64hfEdC_bA98_7654_3210")
     assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
 
 
