@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, sleep
-from seqlogic.logicvec import vec
+from seqlogic.bits import vec
 
 from ..common.data_memory_bus import DataMemoryBus
 from ..common.text_memory_bus import TextMemoryBus

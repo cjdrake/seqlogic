@@ -6,8 +6,8 @@ from collections import defaultdict
 from vcd.writer import VarValue
 
 from . import sim
+from .bits import F, T, logicvec, xes
 from .hier import Module, Variable
-from .logicvec import F, T, logicvec, xes
 
 _item2char = {
     0b00: "x",

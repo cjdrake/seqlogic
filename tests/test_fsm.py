@@ -6,8 +6,8 @@ Demonstrate usage of an enum.
 from collections import defaultdict
 
 from seqlogic import Bit, Module, get_loop, notify
+from seqlogic.bits import F, T, X
 from seqlogic.enum import Enum
-from seqlogic.logicvec import F, T, X
 from seqlogic.sim import Region
 from seqlogic.var import TraceSingular
 

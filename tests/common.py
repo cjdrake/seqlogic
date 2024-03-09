@@ -8,7 +8,7 @@ from collections import defaultdict
 from collections.abc import Callable
 
 from seqlogic import Bit, notify, sleep
-from seqlogic.logicvec import F, T, logicvec
+from seqlogic.bits import F, T, logicvec
 from seqlogic.var import TraceSingular
 
 # [Time][Var] = Val

@@ -2,8 +2,8 @@
 
 import pytest
 
+from seqlogic.bits import F, T
 from seqlogic.enum import Enum
-from seqlogic.logicvec import F, T
 
 # pylint: disable = no-value-for-parameter
 

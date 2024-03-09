@@ -5,7 +5,7 @@ See https://csrc.nist.gov/pubs/fips/197/final for details.
 
 from collections import deque
 
-from ..logicvec import T, cat, logicvec, rep, uint2vec
+from ..bits import T, cat, logicvec, rep, uint2vec
 
 NB = 4
 

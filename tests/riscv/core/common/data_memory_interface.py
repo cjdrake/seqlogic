@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, notify
-from seqlogic.logicvec import cat, rep, vec, xes
+from seqlogic.bits import cat, rep, vec, xes
 
 from ..misc import COMBI
 

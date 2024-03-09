@@ -1,7 +1,7 @@
 """Enum Logic Data Type."""
 
 from . import lbool
-from .logicvec import logicvec
+from .bits import logicvec
 
 # PyLint is confused by MetaClass behavior
 # pylint: disable = no-value-for-parameter

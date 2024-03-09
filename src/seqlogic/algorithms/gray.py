@@ -1,6 +1,6 @@
 """Gray Code."""
 
-from ..logicvec import cat, logicvec, vec
+from ..bits import cat, logicvec, vec
 
 
 def bin2gray(b: logicvec) -> logicvec:

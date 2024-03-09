@@ -1,7 +1,7 @@
 """Test AES Algorithm."""
 
 from seqlogic.algorithms.aes import decrypt, encrypt, key_expansion
-from seqlogic.logicvec import uint2vec
+from seqlogic.bits import uint2vec
 
 
 def _s2v(s: str):

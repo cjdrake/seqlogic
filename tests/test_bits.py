@@ -5,7 +5,7 @@
 
 import pytest
 
-from seqlogic.logicvec import F, T, W, X, cat, illogicals, ones, rep, uint2vec, vec, xes, zeros
+from seqlogic.bits import F, T, W, X, cat, illogicals, ones, rep, uint2vec, vec, xes, zeros
 
 
 def test_not():
