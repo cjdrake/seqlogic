@@ -28,8 +28,8 @@ class bits:
             self._shape = shape
 
     def __str__(self) -> str:
-        indent = "     "
-        return f"vec({self._str(indent)})"
+        indent = "      "
+        return f"bits({self._str(indent)})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -393,7 +393,7 @@ def _rank2(fst: bits, rst) -> bits:
     return bits(lbool.vec(size, data), shape)
 
 
-def vec(obj=None) -> bits:
+def foo(obj=None) -> bits:
     """Create a bit array."""
     match obj:
         # Empty
@@ -417,18 +417,18 @@ def vec(obj=None) -> bits:
             return _rank2(v, rst)
         # Rank 3+
         case [*objs]:
-            return cat([vec(obj) for obj in objs])
+            return cat([foo(obj) for obj in objs])
         # Unimplemented
         case _:
             raise TypeError(f"Invalid input: {type(obj)}")
 
 
-def uint2vec(num: int, n: int | None = None) -> bits:
+def uint2bits(num: int, n: int | None = None) -> bits:
     """Convert nonnegative int to logic_vector."""
     return bits(lbool.uint2vec(num, n))
 
 
-def int2vec(num: int, n: int | None = None) -> bits:
+def int2bits(num: int, n: int | None = None) -> bits:
     """Convert int to logic_vector."""
     return bits(lbool.int2vec(num, n))
 

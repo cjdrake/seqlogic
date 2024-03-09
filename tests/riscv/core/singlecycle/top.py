@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, sleep
-from seqlogic.bits import vec
+from seqlogic.bits import foo
 
 from ..common.data_memory_bus import DataMemoryBus
 from ..common.text_memory_bus import TextMemoryBus
@@ -63,7 +63,7 @@ class Top(Module):
     # input logic clock
     async def proc_clock(self):
         """TODO(cjdrake): Write docstring."""
-        self.clock.next = vec("1b0")
+        self.clock.next = foo("1b0")
         await sleep(1)
         while True:
             self.clock.next = ~(self.clock.next)
@@ -74,7 +74,7 @@ class Top(Module):
     # input logic reset
     async def proc_reset(self):
         """TODO(cjdrake): Write docstring."""
-        self.reset.next = vec("1b0")
+        self.reset.next = foo("1b0")
         await sleep(5)
         self.reset.next = ~(self.reset.next)
         await sleep(5)

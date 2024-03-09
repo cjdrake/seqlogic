@@ -5,7 +5,7 @@ See https://csrc.nist.gov/pubs/fips/197/final for details.
 
 from collections import deque
 
-from ..bits import T, bits, cat, rep, uint2vec
+from ..bits import T, bits, cat, rep, uint2bits
 
 NB = 4
 
@@ -91,11 +91,11 @@ _INV_MTXA = [
 
 
 # Convert raw data to bits
-SBOX = cat([uint2vec(x, _BYTE_BITS) for x in _SBOX])
-INV_SBOX = cat([uint2vec(x, _BYTE_BITS) for x in _INV_SBOX])
-RCON = cat([uint2vec(x, _BYTE_BITS) for x in _RCON])
-MTXA = cat([uint2vec(x, 16) for x in _MTXA])
-INV_MTXA = cat([uint2vec(x, 16) for x in _INV_MTXA])
+SBOX = cat([uint2bits(x, _BYTE_BITS) for x in _SBOX])
+INV_SBOX = cat([uint2bits(x, _BYTE_BITS) for x in _INV_SBOX])
+RCON = cat([uint2bits(x, _BYTE_BITS) for x in _RCON])
+MTXA = cat([uint2bits(x, 16) for x in _MTXA])
+INV_MTXA = cat([uint2bits(x, 16) for x in _INV_MTXA])
 
 
 def sub_word(w: bits) -> bits:
@@ -133,7 +133,7 @@ def xtime(b: bits, n: int) -> bits:
     """Repeated polynomial multiplication in GF(2^8)."""
     b = b.reshape(_BYTE_SHAPE)
     for _ in range(n):
-        b = (b << 1) ^ (uint2vec(0x1B, _BYTE_BITS) & rep(b[7], _BYTE_BITS))
+        b = (b << 1) ^ (uint2bits(0x1B, _BYTE_BITS) & rep(b[7], _BYTE_BITS))
     return b
 
 
@@ -142,7 +142,7 @@ def _rowxcol(row: bits, col: bits) -> bits:
     row = row.reshape((4, 4))
     col = col.reshape((_WORD_BYTES, _BYTE_BITS))
 
-    y = uint2vec(0, _BYTE_BITS)
+    y = uint2bits(0, _BYTE_BITS)
     for i in range(4):
         for j in range(4):
             if row[i, j] == T:

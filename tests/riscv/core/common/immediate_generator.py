@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bits, Module, notify
-from seqlogic.bits import F, cat, rep, vec, zeros
+from seqlogic.bits import F, cat, foo, rep, zeros
 
 from ..misc import COMBI
 from .constants import Opcode
@@ -54,7 +54,7 @@ class ImmedateGenerator(Module):
             elif self.inst.next[0:7] in [Opcode.AUIPC, Opcode.LUI]:
                 self.immediate.next = cat(
                     [
-                        vec("12b0000_0000_0000"),
+                        foo("12b0000_0000_0000"),
                         self.inst.next[12:20],
                         self.inst.next[20:31],
                         self.inst.next[31],

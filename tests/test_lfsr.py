@@ -3,7 +3,7 @@
 from collections import defaultdict
 
 from seqlogic import Bit, Bits, Module, get_loop
-from seqlogic.bits import F, T, X, bits, cat, vec
+from seqlogic.bits import F, T, X, bits, cat, foo
 from seqlogic.sim import Region
 
 from .common import clock_drv, dff_arn_drv, reset_drv
@@ -39,7 +39,7 @@ def test_lfsr():
         v: bits = top.q.value
         return cat([v[0] ^ v[2], v[:2]])
 
-    reset_value = vec("3b100")
+    reset_value = foo("3b100")
 
     # Schedule LFSR
     loop.add_proc(dff_arn_drv, Region(0), top.q, d, top.reset_n, reset_value, top.clock)
@@ -58,7 +58,7 @@ def test_lfsr():
         -1: {
             top.reset_n: X,
             top.clock: X,
-            top.q: vec("3bXXX"),
+            top.q: foo("3bXXX"),
         },
         0: {
             top.reset_n: T,
@@ -73,7 +73,7 @@ def test_lfsr():
         # q = reset_value
         6: {
             top.reset_n: F,
-            top.q: vec("3b100"),
+            top.q: foo("3b100"),
         },
         10: {
             top.clock: F,
@@ -93,42 +93,42 @@ def test_lfsr():
         # q = 001
         25: {
             top.clock: T,
-            top.q: vec("3b001"),
+            top.q: foo("3b001"),
         },
         30: {
             top.clock: F,
         },
         35: {
             top.clock: T,
-            top.q: vec("3b011"),
+            top.q: foo("3b011"),
         },
         40: {
             top.clock: F,
         },
         45: {
             top.clock: T,
-            top.q: vec("3b111"),
+            top.q: foo("3b111"),
         },
         50: {
             top.clock: F,
         },
         55: {
             top.clock: T,
-            top.q: vec("3b110"),
+            top.q: foo("3b110"),
         },
         60: {
             top.clock: F,
         },
         65: {
             top.clock: T,
-            top.q: vec("3b101"),
+            top.q: foo("3b101"),
         },
         70: {
             top.clock: F,
         },
         75: {
             top.clock: T,
-            top.q: vec("3b010"),
+            top.q: foo("3b010"),
         },
         80: {
             top.clock: F,
@@ -136,14 +136,14 @@ def test_lfsr():
         # Repeat cycle
         85: {
             top.clock: T,
-            top.q: vec("3b100"),
+            top.q: foo("3b100"),
         },
         90: {
             top.clock: F,
         },
         95: {
             top.clock: T,
-            top.q: vec("3b001"),
+            top.q: foo("3b001"),
         },
     }
 

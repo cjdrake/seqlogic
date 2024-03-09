@@ -1,12 +1,12 @@
 """Test AES Algorithm."""
 
 from seqlogic.algorithms.aes import decrypt, encrypt, key_expansion
-from seqlogic.bits import uint2vec
+from seqlogic.bits import uint2bits
 
 
 def _s2v(s: str):
     a = bytearray.fromhex(s)
-    return uint2vec(int.from_bytes(a, byteorder="little"), 4 * len(s))
+    return uint2bits(int.from_bytes(a, byteorder="little"), 4 * len(s))
 
 
 # fmt: off
@@ -32,7 +32,7 @@ def test_a1():
     key = _s2v("2b7e151628aed2a6abf7158809cf4f3c")
     rkey = key_expansion(nk, key)
     for i, w in enumerate(rkey):
-        assert str(w) == f"vec(32b{A1_EXP[i]:039_b})"
+        assert str(w) == f"bits(32b{A1_EXP[i]:039_b})"
 
 
 # fmt: off
@@ -60,7 +60,7 @@ def test_a2():
     key = _s2v("8e73b0f7da0e6452c810f32b809079e562f8ead2522c6b7b")
     rkey = key_expansion(nk, key)
     for i, w in enumerate(rkey):
-        assert str(w) == f"vec(32b{A2_EXP[i]:039_b})"
+        assert str(w) == f"bits(32b{A2_EXP[i]:039_b})"
 
 
 # fmt: off
@@ -90,7 +90,7 @@ def test_a3():
     key = _s2v("603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4")
     rkey = key_expansion(nk, key)
     for i, w in enumerate(rkey):
-        assert str(w) == f"vec(32b{A3_EXP[i]:039_b})"
+        assert str(w) == f"bits(32b{A3_EXP[i]:039_b})"
 
 
 PT = _s2v("00112233445566778899aabbccddeeff")

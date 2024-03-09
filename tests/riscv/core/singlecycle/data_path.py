@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, notify
-from seqlogic.bits import F, cat, vec, zeros
+from seqlogic.bits import F, cat, foo, zeros
 
 from ..common.adder import Adder
 from ..common.alu import Alu
@@ -141,7 +141,7 @@ class DataPath(Module):
         self.connect(self.immediate_generator.inst, self.inst)
 
         self.program_counter = Register(
-            name="program_counter", parent=self, width=32, init=vec("32h0040_0000")
+            name="program_counter", parent=self, width=32, init=foo("32h0040_0000")
         )
         self.connect(self.pc, self.program_counter.q)
         self.connect(self.program_counter.en, self.pc_wr_en)
@@ -165,7 +165,7 @@ class DataPath(Module):
 
     async def proc_init(self):
         """TODO(cjdrake): Write docstring."""
-        self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
+        self.adder_pc_plus_4.op_a.next = foo("32h0000_0004")
         # mux_next_pc.in3(32'h0000_0000)
         self.mux_next_pc.ins[3].next = zeros((32,))
         # mux_reg_writeback.{in4, in5, in6, in7}

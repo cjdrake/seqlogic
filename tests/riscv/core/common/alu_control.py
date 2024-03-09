@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bits, Module, notify
-from seqlogic.bits import T, vec
+from seqlogic.bits import T, foo
 
 from ..misc import COMBI
 from .constants import AluOp, CtlAlu, Funct3AluLogic, Funct3Branch
@@ -101,7 +101,7 @@ class AluControl(Module):
                     else:
                         self.alu_function.next = self.default_funct.next
                 case CtlAlu.OP_IMM:
-                    if self.inst_funct7.next[5] == T and self.inst_funct3.next[0:2] == vec("2b01"):
+                    if self.inst_funct7.next[5] == T and self.inst_funct3.next[0:2] == foo("2b01"):
                         self.alu_function.next = self.secondary_funct.next
                     else:
                         self.alu_function.next = self.default_funct.next

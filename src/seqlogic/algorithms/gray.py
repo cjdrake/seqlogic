@@ -1,6 +1,6 @@
 """Gray Code."""
 
-from ..bits import bits, cat, vec
+from ..bits import bits, cat, foo
 
 
 def bin2gray(b: bits) -> bits:
@@ -12,4 +12,4 @@ def bin2gray(b: bits) -> bits:
 def gray2bin(g: bits) -> bits:
     """Convert gray to binary."""
     g = g.flatten()
-    return vec([g[i:].ulxor() for i, _ in enumerate(g)])
+    return foo([g[i:].ulxor() for i, _ in enumerate(g)])
