@@ -8,14 +8,14 @@ from collections import defaultdict
 from collections.abc import Callable
 
 from seqlogic import Bit, notify, sleep
-from seqlogic.bits import F, T, logicvec
+from seqlogic.bits import F, T, bits
 from seqlogic.var import TraceSingular
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
 
 
-async def reset_drv(reset: Bit, init: logicvec = T, phase1_ticks: int = 1, phase2_ticks: int = 1):
+async def reset_drv(reset: Bit, init: bits = T, phase1_ticks: int = 1, phase2_ticks: int = 1):
     r"""
     Simulate a reset signal.
 
@@ -47,7 +47,7 @@ async def reset_drv(reset: Bit, init: logicvec = T, phase1_ticks: int = 1, phase
 
 async def clock_drv(
     clock: Bit,
-    init: logicvec = F,
+    init: bits = F,
     shift_ticks: int = 0,
     phase1_ticks: int = 1,
     phase2_ticks: int = 1,
@@ -92,9 +92,9 @@ async def clock_drv(
 
 async def dff_arn_drv(
     q: TraceSingular,
-    d: Callable[[], logicvec],
+    d: Callable[[], bits],
     reset_n: Bit,
-    reset_value: logicvec,
+    reset_value: bits,
     clock: Bit,
 ):
     """D Flop Flop with asynchronous, negedge-triggered reset."""

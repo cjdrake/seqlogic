@@ -9,7 +9,7 @@ from seqlogic.enum import Enum
 
 
 class Color(Enum):
-    """Boilerplate logicvec enum."""
+    """Boilerplate bit array enum."""
 
     RED = "2b00"
     GREEN = "2b01"
@@ -27,8 +27,8 @@ def test_basic():
     assert Color("2b10") is Color.BLUE
 
 
-def test_logicvec():
-    """Test behaviors of logicvec subclass."""
+def test_bits():
+    """Test behaviors of bits subclass."""
     assert Color.GREEN[0] == T
     assert Color.GREEN[1] == F
 

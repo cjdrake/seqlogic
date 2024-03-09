@@ -6,7 +6,7 @@ from collections import defaultdict
 from vcd.writer import VarValue
 
 from . import sim
-from .bits import F, T, logicvec, xes
+from .bits import F, T, bits, xes
 from .hier import Module, Variable
 
 _item2char = {
@@ -17,8 +17,8 @@ _item2char = {
 }
 
 
-def vec2vcd(v: logicvec) -> VarValue:
-    """Convert value to VCD variable."""
+def _bits2vcd(v: bits) -> VarValue:
+    """Convert bit array to VCD value."""
     # pylint: disable = protected-access
     return "".join(_item2char[v._w._get_item(i)] for i in range(v._w._n - 1, -1, -1))
 
@@ -54,12 +54,12 @@ class TraceSingular(Variable, sim.Singular):
                 name=self.name,
                 var_type="reg",
                 size=self._value.size,
-                init=vec2vcd(self._value),
+                init=_bits2vcd(self._value),
             )
 
             def change():
                 t = self._sim.time()
-                vcdw.change(var, t, vec2vcd(self._next_value))
+                vcdw.change(var, t, _bits2vcd(self._next_value))
 
             self._vcd_change = change
 

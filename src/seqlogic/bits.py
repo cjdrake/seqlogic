@@ -1,4 +1,4 @@
-"""Logic Vector Data Type."""
+"""Bit Array Data Type."""
 
 # pylint: disable = protected-access
 
@@ -11,8 +11,8 @@ from functools import cached_property
 from . import lbool
 
 
-class logicvec:
-    """Logic vector data type.
+class bits:
+    """Bit array data type.
 
     Do NOT instantiate this type directly.
     Use the factory functions instead.
@@ -37,69 +37,67 @@ class logicvec:
     def __len__(self) -> int:
         return self._shape[0]
 
-    def __iter__(self) -> Generator[logicvec, None, None]:
+    def __iter__(self) -> Generator[bits, None, None]:
         for i in range(self._shape[0]):
             yield self.__getitem__(i)
 
-    def __getitem__(
-        self, key: int | logicvec | slice | tuple[int | logicvec | slice, ...]
-    ) -> logicvec:
+    def __getitem__(self, key: int | bits | slice | tuple[int | bits | slice, ...]) -> bits:
         if self._shape == (0,):
             raise IndexError("Cannot index an empty vector")
         match key:
-            case int() | logicvec() | slice():
+            case int() | bits() | slice():
                 return _sel(self, self._norm_key([key]))
             case tuple():
                 return _sel(self, self._norm_key(list(key)))
             case _:
-                s = "Expected key to be int, logicvec, slice, or tuple"
+                s = "Expected key to be int, bits, slice, or tuple"
                 raise TypeError(s)
 
     def __eq__(self, other) -> bool:
         match other:
-            case logicvec():
+            case bits():
                 return self._w.data == other._w.data and self._shape == other.shape
             case _:
                 return False
 
-    def __invert__(self) -> logicvec:
+    def __invert__(self) -> bits:
         return self.lnot()
 
-    def __or__(self, other: logicvec) -> logicvec:
+    def __or__(self, other: bits) -> bits:
         return self.lor(other)
 
-    def __and__(self, other: logicvec) -> logicvec:
+    def __and__(self, other: bits) -> bits:
         return self.land(other)
 
-    def __xor__(self, other: logicvec) -> logicvec:
+    def __xor__(self, other: bits) -> bits:
         return self.lxor(other)
 
-    def __lshift__(self, n: int | logicvec) -> logicvec:
+    def __lshift__(self, n: int | bits) -> bits:
         return self.lsh(n)[0]
 
-    def __rshift__(self, n: int | logicvec) -> logicvec:
+    def __rshift__(self, n: int | bits) -> bits:
         return self.rsh(n)[0]
 
-    def __add__(self, other: logicvec) -> logicvec:
-        return logicvec(self._w.__add__(other._w))
+    def __add__(self, other: bits) -> bits:
+        return bits(self._w.__add__(other._w))
 
-    def __sub__(self, other: logicvec) -> logicvec:
-        return logicvec(self._w.__sub__(other._w))
+    def __sub__(self, other: bits) -> bits:
+        return bits(self._w.__sub__(other._w))
 
-    def __neg__(self) -> logicvec:
-        return logicvec(self._w.__neg__())
+    def __neg__(self) -> bits:
+        return bits(self._w.__neg__())
 
     @property
     def shape(self) -> tuple[int, ...]:
-        """Return logicvec shape."""
+        """Return bit array shape."""
         return self._shape
 
-    def reshape(self, shape: tuple[int, ...]) -> logicvec:
-        """Return an equivalent logic_vector with modified shape."""
+    def reshape(self, shape: tuple[int, ...]) -> bits:
+        """Return an equivalent bit array with modified shape."""
         if math.prod(shape) != self.size:
             s = f"Expected shape with size {self.size}, got {shape}"
             raise ValueError(s)
-        return logicvec(self._w, shape)
+        return bits(self._w, shape)
 
     @cached_property
     def ndim(self) -> int:
@@ -108,69 +106,69 @@ class logicvec:
 
     @property
     def size(self) -> int:
-        """Number of elements in the vector."""
+        """Number of elements in the array."""
         return len(self._w)
 
     @property
-    def flat(self) -> Generator[logicvec, None, None]:
+    def flat(self) -> Generator[bits, None, None]:
         """Return a flat iterator to the items."""
         for x in self._w:
-            yield logicvec(x)
+            yield bits(x)
 
-    def flatten(self) -> logicvec:
+    def flatten(self) -> bits:
         """Return a vector with equal data, flattened to 1D shape."""
-        return logicvec(self._w)
+        return bits(self._w)
 
-    def _check_shape(self, other: logicvec):
+    def _check_shape(self, other: bits):
         if self._shape != other.shape:
             s = f"Expected shape {self._shape}, got {other.shape}"
             raise ValueError(s)
 
-    def lnot(self) -> logicvec:
+    def lnot(self) -> bits:
         """Return output of "lifted" NOT function."""
-        return logicvec(self._w.lnot())
+        return bits(self._w.lnot())
 
-    def lnor(self, other: logicvec) -> logicvec:
+    def lnor(self, other: bits) -> bits:
         """Return output of "lifted" NOR function."""
         self._check_shape(other)
-        return logicvec(self._w.lnor(other._w))
+        return bits(self._w.lnor(other._w))
 
-    def lor(self, other: logicvec) -> logicvec:
+    def lor(self, other: bits) -> bits:
         """Return output of "lifted" OR function."""
         self._check_shape(other)
-        return logicvec(self._w.lor(other._w))
+        return bits(self._w.lor(other._w))
 
-    def ulor(self) -> logicvec:
+    def ulor(self) -> bits:
         """Return unary "lifted" OR of bits."""
-        return logicvec(self._w.ulor())
+        return bits(self._w.ulor())
 
-    def lnand(self, other: logicvec) -> logicvec:
+    def lnand(self, other: bits) -> bits:
         """Return output of "lifted" NAND function."""
         self._check_shape(other)
-        return logicvec(self._w.lnand(other._w))
+        return bits(self._w.lnand(other._w))
 
-    def land(self, other: logicvec) -> logicvec:
+    def land(self, other: bits) -> bits:
         """Return output of "lifted" AND function."""
         self._check_shape(other)
-        return logicvec(self._w.land(other._w))
+        return bits(self._w.land(other._w))
 
-    def uland(self) -> logicvec:
+    def uland(self) -> bits:
         """Return unary "lifted" AND of bits."""
-        return logicvec(self._w.uland())
+        return bits(self._w.uland())
 
-    def lxnor(self, other: logicvec) -> logicvec:
+    def lxnor(self, other: bits) -> bits:
         """Return output of "lifted" XNOR function."""
         self._check_shape(other)
-        return logicvec(self._w.lxnor(other._w))
+        return bits(self._w.lxnor(other._w))
 
-    def lxor(self, other: logicvec) -> logicvec:
+    def lxor(self, other: bits) -> bits:
         """Return output of "lifted" XOR function."""
         self._check_shape(other)
-        return logicvec(self._w.lxor(other._w))
+        return bits(self._w.lxor(other._w))
 
-    def ulxor(self) -> logicvec:
+    def ulxor(self) -> bits:
         """Return unary "lifted" XOR of bits."""
-        return logicvec(self._w.ulxor())
+        return bits(self._w.ulxor())
 
     def to_uint(self) -> int:
         """Convert vector to unsigned integer."""
@@ -180,8 +178,8 @@ class logicvec:
         """Convert vector to signed integer."""
         return self._w.to_int()
 
-    def zext(self, n: int) -> logicvec:
-        """Return vector zero extended by n bits.
+    def zext(self, n: int) -> bits:
+        """Return bit array zero extended by n bits.
 
         Zero extension is defined for 1-D vectors.
         Vectors of higher dimensions will be flattened, then zero extended.
@@ -189,10 +187,10 @@ class logicvec:
         v = self
         if self.ndim != 1:
             v = self.flatten()
-        return logicvec(v._w.zext(n))
+        return bits(v._w.zext(n))
 
-    def sext(self, n: int) -> logicvec:
-        """Return vector sign extended by n bits.
+    def sext(self, n: int) -> bits:
+        """Return bit array sign extended by n bits.
 
         Sign extension is defined for 1-D vectors.
         Vectors of higher dimension will be flattened, then sign extended.
@@ -200,10 +198,10 @@ class logicvec:
         v = self
         if self.ndim != 1:
             v = self.flatten()
-        return logicvec(v._w.sext(n))
+        return bits(v._w.sext(n))
 
-    def lsh(self, n: int | logicvec, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
-        """Return vector left shifted by n bits.
+    def lsh(self, n: int | bits, ci: bits | None = None) -> tuple[bits, bits]:
+        """Return bit array left shifted by n bits.
 
         Left shift is defined for 1-D vectors.
         Vectors of higher dimension will be flattened, then shifted.
@@ -214,7 +212,7 @@ class logicvec:
         match n:
             case int():
                 pass
-            case logicvec():
+            case bits():
                 if n._w.has_illogical():
                     return illogicals((v.size,)), E
                 elif n._w.has_unknown():
@@ -222,15 +220,15 @@ class logicvec:
                 else:
                     n = n.to_uint()
             case _:
-                raise TypeError("Expected n to be int or logicvec")
+                raise TypeError("Expected n to be int or bits")
         if ci is None:
             y, co = self._w.lsh(n)
         else:
             y, co = self._w.lsh(n, ci._w)
-        return logicvec(y), logicvec(co)
+        return bits(y), bits(co)
 
-    def rsh(self, n: int | logicvec, ci: logicvec | None = None) -> tuple[logicvec, logicvec]:
-        """Return vector right shifted by n bits.
+    def rsh(self, n: int | bits, ci: bits | None = None) -> tuple[bits, bits]:
+        """Return bit array right shifted by n bits.
 
         Right shift is defined for 1-D vectors.
         Vectors of higher dimension will be flattened, then shifted.
@@ -241,7 +239,7 @@ class logicvec:
         match n:
             case int():
                 pass
-            case logicvec():
+            case bits():
                 if n._w.has_illogical():
                     return illogicals((v.size,)), E
                 elif n._w.has_unknown():
@@ -249,15 +247,15 @@ class logicvec:
                 else:
                     n = n.to_uint()
             case _:
-                raise TypeError("Expected n to be int or logicvec")
+                raise TypeError("Expected n to be int or bits")
         if ci is None:
             y, co = self._w.rsh(n)
         else:
             y, co = self._w.rsh(n, ci._w)
-        return logicvec(y), logicvec(co)
+        return bits(y), bits(co)
 
-    def arsh(self, n: int | logicvec) -> tuple[logicvec, logicvec]:
-        """Return vector arithmetically right shifted by n bits.
+    def arsh(self, n: int | bits) -> tuple[bits, bits]:
+        """Return bit array arithmetically right shifted by n bits.
 
         Arithmetic right shift is defined for 1-D vectors.
         Vectors of higher dimension will be flattened, then shifted.
@@ -268,7 +266,7 @@ class logicvec:
         match n:
             case int():
                 pass
-            case logicvec():
+            case bits():
                 if n._w.has_illogical():
                     return illogicals((v.size,)), E
                 elif n._w.has_unknown():
@@ -276,23 +274,23 @@ class logicvec:
                 else:
                     n = n.to_uint()
             case _:
-                raise TypeError("Expected n to be int or logicvec")
+                raise TypeError("Expected n to be int or bits")
         y, co = self._w.arsh(n)
-        return logicvec(y), logicvec(co)
+        return bits(y), bits(co)
 
-    def add(self, other: logicvec, ci: object) -> tuple[logicvec, logicvec, logicvec]:
-        """Return the sum of two vectors, carry out, and overflow.
+    def add(self, other: bits, ci: object) -> tuple[bits, bits, bits]:
+        """Return the sum of two bit arrays, carry out, and overflow.
 
         The implementation propagates Xes according to the
         ripple carry addition algorithm.
         """
         match ci:
-            case logicvec():
+            case bits():
                 pass
             case _:
                 ci = (F, T)[bool(ci)]
         s, co, ovf = self._w.add(other._w, ci._w)
-        return logicvec(s), logicvec(co), logicvec(ovf)
+        return bits(s), bits(co), bits(ovf)
 
     def _to_lit(self) -> str:
         return str(self._w)
@@ -347,7 +345,7 @@ class logicvec:
             sl = slice(sl.start, sl.stop, 1)
         return sl
 
-    def _norm_key(self, key: list[int | logicvec | slice]) -> tuple[int | slice, ...]:
+    def _norm_key(self, key: list[int | bits | slice]) -> tuple[int | slice, ...]:
         ndim = len(key)
         if ndim > self.ndim:
             s = f"Expected ≤ {self.ndim} slice dimensions, got {ndim}"
@@ -363,7 +361,7 @@ class logicvec:
             match dim:
                 case int() as index:
                     nkey.append(self._norm_index(index, i))
-                case logicvec() as v:
+                case bits() as v:
                     nkey.append(self._norm_index(v.to_uint(), i))
                 case slice() as sl:
                     nkey.append(self._norm_slice(sl, i))
@@ -373,7 +371,7 @@ class logicvec:
         return tuple(nkey)
 
 
-def _rank2(fst: logicvec, rst) -> logicvec:
+def _rank2(fst: bits, rst) -> bits:
     shape = (len(rst) + 1,) + fst.shape
     size = len(fst._w)
     data = fst._w.data
@@ -385,37 +383,37 @@ def _rank2(fst: logicvec, rst) -> logicvec:
                     s = f"Expected str literal to have size {fst.size}, got {len(w)}"
                     raise TypeError(s)
                 data |= w.data << (fst._w.nbits * i)
-            case logicvec() if v.shape == fst.shape:
+            case bits() if v.shape == fst.shape:
                 data |= v._w.data << (fst._w.nbits * i)
             case _:
                 s = ",".join(str(dim) for dim in fst.shape)
-                s = f"Expected item to be str or logicvec[{s}]"
+                s = f"Expected item to be str or bits[{s}]"
                 raise TypeError(s)
         size += len(fst._w)
-    return logicvec(lbool.vec(size, data), shape)
+    return bits(lbool.vec(size, data), shape)
 
 
-def vec(obj=None) -> logicvec:
-    """Create a logic_vector."""
+def vec(obj=None) -> bits:
+    """Create a bit array."""
     match obj:
         # Empty
         case None:
             return E
         # Rank 0 int
         case 0 | 1 as x:
-            return logicvec(lbool.bools2vec([x]))
+            return bits(lbool.bools2vec([x]))
         # Rank 1 str
         case str() as lit:
-            return logicvec(lbool.lit2vec(lit))
+            return bits(lbool.lit2vec(lit))
         # Rank 1 [0 | 1, ...]
         case [0 | 1 as x, *rst]:
-            return logicvec(lbool.bools2vec([x, *rst]))
+            return bits(lbool.bools2vec([x, *rst]))
         # Rank 2 str
         case [str() as lit, *rst]:
-            v = logicvec(lbool.lit2vec(lit))
+            v = bits(lbool.lit2vec(lit))
             return _rank2(v, rst)
         # Rank 2 logic_vector
-        case [logicvec() as v, *rst]:
+        case [bits() as v, *rst]:
             return _rank2(v, rst)
         # Rank 3+
         case [*objs]:
@@ -425,29 +423,29 @@ def vec(obj=None) -> logicvec:
             raise TypeError(f"Invalid input: {type(obj)}")
 
 
-def uint2vec(num: int, n: int | None = None) -> logicvec:
+def uint2vec(num: int, n: int | None = None) -> bits:
     """Convert nonnegative int to logic_vector."""
-    return logicvec(lbool.uint2vec(num, n))
+    return bits(lbool.uint2vec(num, n))
 
 
-def int2vec(num: int, n: int | None = None) -> logicvec:
+def int2vec(num: int, n: int | None = None) -> bits:
     """Convert int to logic_vector."""
-    return logicvec(lbool.int2vec(num, n))
+    return bits(lbool.int2vec(num, n))
 
 
-def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
-    """Join a sequence of logicvecs."""
+def cat(objs: Collection[int | bits], flatten: bool = False) -> bits:
+    """Join a sequence of bits."""
     # Empty
     if len(objs) == 0:
         return E
 
     # Convert inputs
-    vs: list[logicvec] = []
+    vs: list[bits] = []
     for obj in objs:
         match obj:
             case 0 | 1 as x:
-                vs.append(logicvec(lbool.bools2vec([x])))
-            case logicvec() as v:
+                vs.append(bits(lbool.bools2vec([x])))
+            case bits() as v:
                 vs.append(v)
             case _:
                 raise TypeError(f"Invalid input: {type(obj)}")
@@ -479,15 +477,15 @@ def cat(objs: Collection[int | logicvec], flatten: bool = False) -> logicvec:
     else:
         shape = (sum(dims),) + fst.shape[1:]
 
-    return logicvec(lbool.vec(size, data), shape)
+    return bits(lbool.vec(size, data), shape)
 
 
-def rep(obj: int | logicvec, n: int, flatten: bool = False) -> logicvec:
-    """Repeat a logicvec n times."""
+def rep(obj: int | bits, n: int, flatten: bool = False) -> bits:
+    """Repeat a bit array n times."""
     return cat([obj] * n, flatten)
 
 
-def _sel(v: logicvec, key: tuple[int | slice, ...]) -> logicvec:
+def _sel(v: bits, key: tuple[int | slice, ...]) -> bits:
     assert 0 <= v.ndim == len(key)
 
     shape = v.shape[1:]
@@ -502,39 +500,39 @@ def _sel(v: logicvec, key: tuple[int | slice, ...]) -> logicvec:
         case int() as i:
             data = f(v._w.data, i)
             if shape:
-                return _sel(logicvec(lbool.vec(n, data), shape), key[1:])
-            return logicvec(lbool.vec(1, data))
+                return _sel(bits(lbool.vec(n, data), shape), key[1:])
+            return bits(lbool.vec(1, data))
         case slice() as sl:
             datas = (f(v._w.data, i) for i in range(sl.start, sl.stop, sl.step))
             if shape:
-                return cat([_sel(logicvec(lbool.vec(n, data), shape), key[1:]) for data in datas])
-            return cat([logicvec(lbool.vec(1, data)) for data in datas])
+                return cat([_sel(bits(lbool.vec(n, data), shape), key[1:]) for data in datas])
+            return cat([bits(lbool.vec(1, data)) for data in datas])
         case _:  # pragma: no cover
             assert False
 
 
 # The empty vector is a singleton
-E = logicvec(lbool.vec(0, 0))
+E = bits(lbool.vec(0, 0))
 
 
-def illogicals(shape: tuple[int, ...]) -> logicvec:
+def illogicals(shape: tuple[int, ...]) -> bits:
     """Return a new logic_vector of given shape, filled with ILLOGICAL."""
-    return logicvec(lbool.illogicals(math.prod(shape)), shape)
+    return bits(lbool.illogicals(math.prod(shape)), shape)
 
 
-def zeros(shape: tuple[int, ...]) -> logicvec:
+def zeros(shape: tuple[int, ...]) -> bits:
     """Return a new logic_vector of given shape, filled with zeros."""
-    return logicvec(lbool.zeros(math.prod(shape)), shape)
+    return bits(lbool.zeros(math.prod(shape)), shape)
 
 
-def ones(shape: tuple[int, ...]) -> logicvec:
+def ones(shape: tuple[int, ...]) -> bits:
     """Return a new logic_vector of given shape, filled with ones."""
-    return logicvec(lbool.ones(math.prod(shape)), shape)
+    return bits(lbool.ones(math.prod(shape)), shape)
 
 
-def xes(shape: tuple[int, ...]) -> logicvec:
+def xes(shape: tuple[int, ...]) -> bits:
     """Return a new logic_vector of given shape, filled with Xes."""
-    return logicvec(lbool.xes(math.prod(shape)), shape)
+    return bits(lbool.xes(math.prod(shape)), shape)
 
 
 # One bit values

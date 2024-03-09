@@ -3,7 +3,7 @@
 from collections import defaultdict
 
 from seqlogic import Bit, Bits, Module, get_loop
-from seqlogic.bits import F, T, X, cat, logicvec, vec
+from seqlogic.bits import F, T, X, bits, cat, vec
 from seqlogic.sim import Region
 
 from .common import clock_drv, dff_arn_drv, reset_drv
@@ -35,8 +35,8 @@ def test_lfsr():
     assert top.q.name == "q"
     assert top.q.qualname == "/top/q"
 
-    def d() -> logicvec:
-        v: logicvec = top.q.value
+    def d() -> bits:
+        v: bits = top.q.value
         return cat([v[0] ^ v[2], v[:2]])
 
     reset_value = vec("3b100")

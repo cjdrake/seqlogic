@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, notify
-from seqlogic.bits import F, T, logicvec
+from seqlogic.bits import F, T, bits
 
 from ..misc import FLOP
 
@@ -9,7 +9,7 @@ from ..misc import FLOP
 class Register(Module):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, name: str, parent: Module | None, width: int, init: logicvec):
+    def __init__(self, name: str, parent: Module | None, width: int, init: bits):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
