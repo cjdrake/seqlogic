@@ -7,6 +7,7 @@ import pytest
 
 from seqlogic import lbool
 from seqlogic.lbool import (
+    Vec,
     int2vec,
     land,
     limplies,
@@ -20,7 +21,7 @@ from seqlogic.lbool import (
     vec,
 )
 
-E = vec(0, 0)
+E = Vec(0, 0)
 
 LNOT = {
     "?": "?",
@@ -242,40 +243,40 @@ def test_limplies():
 
 
 def test_vec_repr():
-    """Test seqlogic.lbool.vec.__repr__ method."""
-    assert repr(vec(0, 0)) == "vec(0, 0b0)"
-    assert repr(vec(4, 0b1110_0100)) == "vec(4, 0b1110_0100)"
+    """Test seqlogic.lbool.Vec.__repr__ method."""
+    assert repr(Vec(0, 0)) == "vec(0, 0b0)"
+    assert repr(Vec(4, 0b1110_0100)) == "vec(4, 0b1110_0100)"
 
 
 def test_vec_bool():
-    """Test seqlogic.lbool.vec.__bool__ method."""
-    assert bool(vec(0, 0)) is False
-    assert bool(vec(1, 0b01)) is False
-    assert bool(vec(1, 0b10)) is True
-    assert bool(vec(4, 0b01_01_01_01)) is False
-    assert bool(vec(4, 0b10_01_10_01)) is True
+    """Test seqlogic.lbool.Vec.__bool__ method."""
+    assert bool(Vec(0, 0)) is False
+    assert bool(Vec(1, 0b01)) is False
+    assert bool(Vec(1, 0b10)) is True
+    assert bool(Vec(4, 0b01_01_01_01)) is False
+    assert bool(Vec(4, 0b10_01_10_01)) is True
     with pytest.raises(ValueError):
-        bool(vec(4, 0b11_10_01_00))
+        bool(Vec(4, 0b11_10_01_00))
 
 
 def test_vec_int():
-    """Test seqlogic.lbool.vec.__int__ method."""
-    assert int(vec(0, 0)) == 0
-    assert int(vec(1, 0b01)) == 0
-    assert int(vec(1, 0b10)) == -1
-    assert int(vec(4, 0b01_01_01_01)) == 0
-    assert int(vec(4, 0b10_01_10_01)) == -6
-    assert int(vec(4, 0b01_10_01_10)) == 5
+    """Test seqlogic.lbool.Vec.__int__ method."""
+    assert int(Vec(0, 0)) == 0
+    assert int(Vec(1, 0b01)) == 0
+    assert int(Vec(1, 0b10)) == -1
+    assert int(Vec(4, 0b01_01_01_01)) == 0
+    assert int(Vec(4, 0b10_01_10_01)) == -6
+    assert int(Vec(4, 0b01_10_01_10)) == 5
     with pytest.raises(ValueError):
-        int(vec(4, 0b11_10_01_00))
+        int(Vec(4, 0b11_10_01_00))
 
 
 def test_vec_eq():
-    """Test seqlogic.lbool.vec.__eq__ method."""
-    assert vec(0, 0) == vec(0, 0)
-    assert vec(4, 0b10_01_10_01) == vec(4, 0b10_01_10_01)
-    assert vec(4, 0b10_01_10_01) != vec(4, 0b01_10_01_10)
-    assert vec(4, 0b11_10_01_00) != "foo"
+    """Test seqlogic.lbool.Vec.__eq__ method."""
+    assert Vec(0, 0) == Vec(0, 0)
+    assert Vec(4, 0b10_01_10_01) == Vec(4, 0b10_01_10_01)
+    assert Vec(4, 0b10_01_10_01) != Vec(4, 0b01_10_01_10)
+    assert Vec(4, 0b11_10_01_00) != "foo"
 
 
 def test_vec_hash():
@@ -291,58 +292,58 @@ def test_vec_hash():
 
 
 def test_vec_lnot():
-    """Test seqlogic.lbool.vec.lnot method."""
-    x = vec(4, 0b11_10_01_00)
-    assert x.lnot() == vec(4, 0b11_01_10_00)
-    assert ~x == vec(4, 0b11_01_10_00)
+    """Test seqlogic.lbool.Vec.lnot method."""
+    x = Vec(4, 0b11_10_01_00)
+    assert x.lnot() == Vec(4, 0b11_01_10_00)
+    assert ~x == Vec(4, 0b11_01_10_00)
 
 
 def test_vec_lnor():
-    """Test seqlogic.lbool.vec.lnor method."""
-    x0 = vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.lnor(x1) == vec(16, 0b11011100_01010100_11011000_00000000)
-    assert ~(x0 | x1) == vec(16, 0b11011100_01010100_11011000_00000000)
+    """Test seqlogic.lbool.Vec.lnor method."""
+    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
+    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
+    assert x0.lnor(x1) == Vec(16, 0b11011100_01010100_11011000_00000000)
+    assert ~(x0 | x1) == Vec(16, 0b11011100_01010100_11011000_00000000)
 
 
 def test_vec_lor():
-    """Test seqlogic.lbool.vec.lor method."""
-    x0 = vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.lor(x1) == vec(16, 0b11101100_10101000_11100100_00000000)
-    assert x0 | x1 == vec(16, 0b11101100_10101000_11100100_00000000)
+    """Test seqlogic.lbool.Vec.lor method."""
+    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
+    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
+    assert x0.lor(x1) == Vec(16, 0b11101100_10101000_11100100_00000000)
+    assert x0 | x1 == Vec(16, 0b11101100_10101000_11100100_00000000)
 
 
 def test_vec_lnand():
-    """Test seqlogic.lbool.vec.lnand method."""
-    x0 = vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.lnand(x1) == vec(16, 0b11111000_11011000_10101000_00000000)
-    assert ~(x0 & x1) == vec(16, 0b11111000_11011000_10101000_00000000)
+    """Test seqlogic.lbool.Vec.lnand method."""
+    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
+    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
+    assert x0.lnand(x1) == Vec(16, 0b11111000_11011000_10101000_00000000)
+    assert ~(x0 & x1) == Vec(16, 0b11111000_11011000_10101000_00000000)
 
 
 def test_vec_land():
-    """Test seqlogic.lbool.vec.lnand method."""
-    x0 = vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.land(x1) == vec(16, 0b11110100_11100100_01010100_00000000)
-    assert (x0 & x1) == vec(16, 0b11110100_11100100_01010100_00000000)
+    """Test seqlogic.lbool.Vec.lnand method."""
+    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
+    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
+    assert x0.land(x1) == Vec(16, 0b11110100_11100100_01010100_00000000)
+    assert (x0 & x1) == Vec(16, 0b11110100_11100100_01010100_00000000)
 
 
 def test_vec_lxnor():
-    """Test seqlogic.lbool.vec.lxnor method."""
-    x0 = vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.lxnor(x1) == vec(16, 0b11111100_11100100_11011000_00000000)
-    assert ~(x0 ^ x1) == vec(16, 0b11111100_11100100_11011000_00000000)
+    """Test seqlogic.lbool.Vec.lxnor method."""
+    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
+    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
+    assert x0.lxnor(x1) == Vec(16, 0b11111100_11100100_11011000_00000000)
+    assert ~(x0 ^ x1) == Vec(16, 0b11111100_11100100_11011000_00000000)
 
 
 def test_vec_lxor():
-    """Test seqlogic.lbool.vec.lxor method."""
-    x0 = vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.lxor(x1) == vec(16, 0b11111100_11011000_11100100_00000000)
-    assert (x0 ^ x1) == vec(16, 0b11111100_11011000_11100100_00000000)
+    """Test seqlogic.lbool.Vec.lxor method."""
+    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
+    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
+    assert x0.lxor(x1) == Vec(16, 0b11111100_11011000_11100100_00000000)
+    assert (x0 ^ x1) == Vec(16, 0b11111100_11011000_11100100_00000000)
 
 
 ULOR = {
@@ -366,9 +367,9 @@ ULOR = {
 
 
 def test_vec_ulor():
-    """Test seqlogic.lbool.vec.ulor method."""
+    """Test seqlogic.lbool.Vec.ulor method."""
     for k, v in ULOR.items():
-        assert vec(2, k).ulor() == vec(1, v)
+        assert Vec(2, k).ulor() == Vec(1, v)
 
 
 UAND = {
@@ -392,9 +393,9 @@ UAND = {
 
 
 def test_vec_uand():
-    """Test seqlogic.lbool.vec.uand method."""
+    """Test seqlogic.lbool.Vec.uand method."""
     for k, v in UAND.items():
-        assert vec(2, k).uland() == vec(1, v)
+        assert Vec(2, k).uland() == Vec(1, v)
 
 
 UXNOR = {
@@ -418,9 +419,9 @@ UXNOR = {
 
 
 def test_vec_uxnor():
-    """Test seqlogic.lbool.vec.uxnor method."""
+    """Test seqlogic.lbool.Vec.uxnor method."""
     for k, v in UXNOR.items():
-        assert vec(2, k).ulxnor() == vec(1, v)
+        assert Vec(2, k).ulxnor() == Vec(1, v)
 
 
 UXOR = {
@@ -444,89 +445,89 @@ UXOR = {
 
 
 def test_vec_uxor():
-    """Test seqlogic.lbool.vec.uxor method."""
+    """Test seqlogic.lbool.Vec.uxor method."""
     for k, v in UXOR.items():
-        assert vec(2, k).ulxor() == vec(1, v)
+        assert Vec(2, k).ulxor() == Vec(1, v)
 
 
 def test_vec_zext():
-    """Test seqlogic.lbool.vec.zext method."""
-    v = vec(4, 0b10_01_10_01)
+    """Test seqlogic.lbool.Vec.zext method."""
+    v = Vec(4, 0b10_01_10_01)
     with pytest.raises(ValueError):
         v.zext(-1)
     assert v.zext(0) is v
-    assert v.zext(4) == vec(8, 0b01_01_01_01_10_01_10_01)
+    assert v.zext(4) == Vec(8, 0b01_01_01_01_10_01_10_01)
 
 
 def test_vec_sext():
-    """Test seqlogic.lbool.vec.sext method."""
-    v1 = vec(4, 0b10_01_10_01)
-    v2 = vec(4, 0b01_10_01_10)
+    """Test seqlogic.lbool.Vec.sext method."""
+    v1 = Vec(4, 0b10_01_10_01)
+    v2 = Vec(4, 0b01_10_01_10)
     with pytest.raises(ValueError):
         v1.sext(-1)
     assert v1.sext(0) is v1
-    assert v1.sext(4) == vec(8, 0b10_10_10_10_10_01_10_01)
+    assert v1.sext(4) == Vec(8, 0b10_10_10_10_10_01_10_01)
     assert v2.sext(0) is v2
-    assert v2.sext(4) == vec(8, 0b01_01_01_01_01_10_01_10)
+    assert v2.sext(4) == Vec(8, 0b01_01_01_01_01_10_01_10)
 
 
 def test_vec_lsh():
-    """Test seqlogic.lbool.vec.lsh method."""
-    v = vec(4, 0b10_10_10_10)
+    """Test seqlogic.lbool.Vec.lsh method."""
+    v = Vec(4, 0b10_10_10_10)
     y, co = v.lsh(0)
     assert y is v and co == E
-    assert v.lsh(1) == (vec(4, 0b10_10_10_01), vec(1, 0b10))
-    assert v.lsh(2) == (vec(4, 0b10_10_01_01), vec(2, 0b10_10))
-    assert v << 2 == vec(4, 0b10_10_01_01)
-    assert v.lsh(3) == (vec(4, 0b10_01_01_01), vec(3, 0b10_10_10))
-    assert v.lsh(4) == (vec(4, 0b01_01_01_01), vec(4, 0b10_10_10_10))
+    assert v.lsh(1) == (Vec(4, 0b10_10_10_01), Vec(1, 0b10))
+    assert v.lsh(2) == (Vec(4, 0b10_10_01_01), Vec(2, 0b10_10))
+    assert v << 2 == Vec(4, 0b10_10_01_01)
+    assert v.lsh(3) == (Vec(4, 0b10_01_01_01), Vec(3, 0b10_10_10))
+    assert v.lsh(4) == (Vec(4, 0b01_01_01_01), Vec(4, 0b10_10_10_10))
 
     with pytest.raises(ValueError):
         v.lsh(-1)
     with pytest.raises(ValueError):
         v.lsh(5)
 
-    assert v.lsh(2, vec(2, 0b01_10)) == (vec(4, 0b10_10_01_10), vec(2, 0b10_10))
+    assert v.lsh(2, Vec(2, 0b01_10)) == (Vec(4, 0b10_10_01_10), Vec(2, 0b10_10))
     with pytest.raises(ValueError):
-        v.lsh(2, vec(3, 0b01_01_01))
+        v.lsh(2, Vec(3, 0b01_01_01))
 
 
 def test_vec_rsh():
-    """Test seqlogic.lbool.vec.rsh method."""
-    v = vec(4, 0b10_10_10_10)
+    """Test seqlogic.lbool.Vec.rsh method."""
+    v = Vec(4, 0b10_10_10_10)
     y, co = v.rsh(0)
     assert y is v and co == E
-    assert v.rsh(1) == (vec(4, 0b01_10_10_10), vec(1, 0b10))
-    assert v.rsh(2) == (vec(4, 0b01_01_10_10), vec(2, 0b10_10))
-    assert v >> 2 == vec(4, 0b01_01_10_10)
-    assert v.rsh(3) == (vec(4, 0b01_01_01_10), vec(3, 0b10_10_10))
-    assert v.rsh(4) == (vec(4, 0b01_01_01_01), vec(4, 0b10_10_10_10))
+    assert v.rsh(1) == (Vec(4, 0b01_10_10_10), Vec(1, 0b10))
+    assert v.rsh(2) == (Vec(4, 0b01_01_10_10), Vec(2, 0b10_10))
+    assert v >> 2 == Vec(4, 0b01_01_10_10)
+    assert v.rsh(3) == (Vec(4, 0b01_01_01_10), Vec(3, 0b10_10_10))
+    assert v.rsh(4) == (Vec(4, 0b01_01_01_01), Vec(4, 0b10_10_10_10))
 
     with pytest.raises(ValueError):
         v.rsh(-1)
     with pytest.raises(ValueError):
         v.rsh(5)
 
-    assert v.rsh(2, vec(2, 0b01_10)) == (vec(4, 0b01_10_10_10), vec(2, 0b10_10))
+    assert v.rsh(2, Vec(2, 0b01_10)) == (Vec(4, 0b01_10_10_10), Vec(2, 0b10_10))
     with pytest.raises(ValueError):
-        v.rsh(2, vec(3, 0b01_01_01))
+        v.rsh(2, Vec(3, 0b01_01_01))
 
 
 def test_vec_arsh():
-    """Test seqlogic.lbool.vec.arsh method."""
-    v = vec(4, 0b10_10_10_10)
-    assert v.arsh(0) == (vec(4, 0b10_10_10_10), E)
-    assert v.arsh(1) == (vec(4, 0b10_10_10_10), vec(1, 0b10))
-    assert v.arsh(2) == (vec(4, 0b10_10_10_10), vec(2, 0b10_10))
-    assert v.arsh(3) == (vec(4, 0b10_10_10_10), vec(3, 0b10_10_10))
-    assert v.arsh(4) == (vec(4, 0b10_10_10_10), vec(4, 0b10_10_10_10))
+    """Test seqlogic.lbool.Vec.arsh method."""
+    v = Vec(4, 0b10_10_10_10)
+    assert v.arsh(0) == (Vec(4, 0b10_10_10_10), E)
+    assert v.arsh(1) == (Vec(4, 0b10_10_10_10), Vec(1, 0b10))
+    assert v.arsh(2) == (Vec(4, 0b10_10_10_10), Vec(2, 0b10_10))
+    assert v.arsh(3) == (Vec(4, 0b10_10_10_10), Vec(3, 0b10_10_10))
+    assert v.arsh(4) == (Vec(4, 0b10_10_10_10), Vec(4, 0b10_10_10_10))
 
-    v = vec(4, 0b01_10_10_10)
-    assert v.arsh(0) == (vec(4, 0b01_10_10_10), E)
-    assert v.arsh(1) == (vec(4, 0b01_01_10_10), vec(1, 0b10))
-    assert v.arsh(2) == (vec(4, 0b01_01_01_10), vec(2, 0b10_10))
-    assert v.arsh(3) == (vec(4, 0b01_01_01_01), vec(3, 0b10_10_10))
-    assert v.arsh(4) == (vec(4, 0b01_01_01_01), vec(4, 0b01_10_10_10))
+    v = Vec(4, 0b01_10_10_10)
+    assert v.arsh(0) == (Vec(4, 0b01_10_10_10), E)
+    assert v.arsh(1) == (Vec(4, 0b01_01_10_10), Vec(1, 0b10))
+    assert v.arsh(2) == (Vec(4, 0b01_01_01_10), Vec(2, 0b10_10))
+    assert v.arsh(3) == (Vec(4, 0b01_01_01_01), Vec(3, 0b10_10_10))
+    assert v.arsh(4) == (Vec(4, 0b01_01_01_01), Vec(4, 0b01_10_10_10))
 
     with pytest.raises(ValueError):
         v.arsh(-1)
@@ -686,59 +687,59 @@ def test_lit2vec():
     """Test parsing of vector string literals."""
     # literal doesn't match size
     with pytest.raises(ValueError):
-        lbool.foo("4b1010_1010")
+        vec("4b1010_1010")
     with pytest.raises(ValueError):
-        lbool.foo("8b1010")
+        vec("8b1010")
     with pytest.raises(ValueError):
-        lbool.foo("16hdead_beef")
+        vec("16hdead_beef")
     with pytest.raises(ValueError):
-        lbool.foo("8hdead")
+        vec("8hdead")
 
     # Invalid input
     with pytest.raises(ValueError):
-        lbool.foo("invalid")
+        vec("invalid")
 
     # Valid input
-    v = lbool.foo("4bX1_0?")
+    v = vec("4bX1_0?")
     assert v.data == 0b11_10_01_00
-    v = lbool.foo("64hFeDc_Ba98_7654_3210")
+    v = vec("64hFeDc_Ba98_7654_3210")
     assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
-    v = lbool.foo("64hfEdC_bA98_7654_3210")
+    v = vec("64hfEdC_bA98_7654_3210")
     assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
 
 
 def test_vec_basic():
-    """Test seqlogic.lbool.vec basic functionality."""
+    """Test seqlogic.lbool.Vec basic functionality."""
     # n is non-negative
     with pytest.raises(ValueError):
-        vec(-1, 42)
+        Vec(-1, 42)
 
     # data in [0, 2**nbits)
     with pytest.raises(ValueError):
-        vec(4, -1)
+        Vec(4, -1)
     with pytest.raises(ValueError):
-        vec(4, 2 ** (2 * 4))
+        Vec(4, 2 ** (2 * 4))
 
-    v = vec(4, 0b11_10_01_00)
+    v = Vec(4, 0b11_10_01_00)
     assert len(v) == 4
 
-    assert v[3] == vec(1, 0b11)
-    assert v[2] == vec(1, 0b10)
-    assert v[1] == vec(1, 0b01)
-    assert v[0] == vec(1, 0b00)
+    assert v[3] == Vec(1, 0b11)
+    assert v[2] == Vec(1, 0b10)
+    assert v[1] == Vec(1, 0b01)
+    assert v[0] == Vec(1, 0b00)
 
-    assert v[0:1] == vec(1, 0b00)
-    assert v[0:2] == vec(2, 0b01_00)
-    assert v[0:3] == vec(3, 0b10_01_00)
-    assert v[0:4] == vec(4, 0b11_10_01_00)
-    assert v[1:2] == vec(1, 0b01)
-    assert v[1:3] == vec(2, 0b10_01)
-    assert v[1:4] == vec(3, 0b11_10_01)
-    assert v[2:3] == vec(1, 0b10)
-    assert v[2:4] == vec(2, 0b11_10)
-    assert v[3:4] == vec(1, 0b11)
+    assert v[0:1] == Vec(1, 0b00)
+    assert v[0:2] == Vec(2, 0b01_00)
+    assert v[0:3] == Vec(3, 0b10_01_00)
+    assert v[0:4] == Vec(4, 0b11_10_01_00)
+    assert v[1:2] == Vec(1, 0b01)
+    assert v[1:3] == Vec(2, 0b10_01)
+    assert v[1:4] == Vec(3, 0b11_10_01)
+    assert v[2:3] == Vec(1, 0b10)
+    assert v[2:4] == Vec(2, 0b11_10)
+    assert v[3:4] == Vec(1, 0b11)
 
     with pytest.raises(TypeError):
         v["invalid"]  # pyright: ignore[reportArgumentType]
 
-    assert list(v) == [vec(1, 0b00), vec(1, 0b01), vec(1, 0b10), vec(1, 0b11)]
+    assert list(v) == [Vec(1, 0b00), Vec(1, 0b01), Vec(1, 0b10), Vec(1, 0b11)]

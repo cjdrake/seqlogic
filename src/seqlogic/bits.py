@@ -94,8 +94,8 @@ class bits:
         return self._shape
 
     @cached_property
-    def _v(self) -> lbool.vec:
-        return lbool.vec(self.size, self._data)
+    def _v(self) -> lbool.Vec:
+        return lbool.Vec(self.size, self._data)
 
     def reshape(self, shape: tuple[int, ...]) -> bits:
         """Return an equivalent bit array with modified shape."""
@@ -366,7 +366,7 @@ class bits:
         return tuple(nkey)
 
 
-def _v2b(v: lbool.vec) -> bits:
+def _v2b(v: lbool.Vec) -> bits:
     return bits((len(v),), v.data)
 
 

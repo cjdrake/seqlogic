@@ -299,14 +299,14 @@ def limplies(p: int, q: int) -> int:
     return y
 
 
-class vec:
+class Vec:
     """One dimensional vector of lbool items.
 
     Though it is possible to construct an lbool vec directly,
     it is easier to use one of the factory functions:
     * uint2vec
     * int2vec
-    * foo
+    * vec
     * illogicals
     * zeros
     * ones
@@ -338,19 +338,19 @@ class vec:
     def __len__(self) -> int:
         return self._n
 
-    def __getitem__(self, key: int | slice) -> vec:
+    def __getitem__(self, key: int | slice) -> Vec:
         match key:
             case int() as i:
                 d = self._get_item(self._norm_index(i))
-                return vec(1, d)
+                return Vec(1, d)
             case slice() as sl:
                 i, j = self._norm_slice(sl)
                 n, d = self._get_items(i, j)
-                return vec(n, d)
+                return Vec(n, d)
             case _:
                 raise TypeError("Expected key to be int or slice")
 
-    def __iter__(self) -> Generator[vec[1], None, None]:
+    def __iter__(self) -> Generator[Vec[1], None, None]:
         for i in range(self._n):
             yield self.__getitem__(i)
 
@@ -376,12 +376,12 @@ class vec:
         return self.to_int()
 
     # Comparison
-    def _eq(self, other: vec) -> bool:
+    def _eq(self, other: Vec) -> bool:
         return self._n == other._n and self._data == other._data
 
     def __eq__(self, other) -> bool:
         match other:
-            case vec():
+            case Vec():
                 return self._eq(other)
             case _:
                 return False
@@ -390,31 +390,31 @@ class vec:
         return hash(self._n) ^ hash(self._data)
 
     # Bitwise Arithmetic
-    def __invert__(self) -> vec:
+    def __invert__(self) -> Vec:
         return self.lnot()
 
-    def __or__(self, other: vec) -> vec:
+    def __or__(self, other: Vec) -> Vec:
         return self.lor(other)
 
-    def __and__(self, other: vec) -> vec:
+    def __and__(self, other: Vec) -> Vec:
         return self.land(other)
 
-    def __xor__(self, other: vec) -> vec:
+    def __xor__(self, other: Vec) -> Vec:
         return self.lxor(other)
 
-    def __lshift__(self, n: int) -> vec:
+    def __lshift__(self, n: int) -> Vec:
         return self.lsh(n)[0]
 
-    def __rshift__(self, n: int) -> vec:
+    def __rshift__(self, n: int) -> Vec:
         return self.rsh(n)[0]
 
-    def __add__(self, other: vec) -> vec:
+    def __add__(self, other: Vec) -> Vec:
         return self.add(other, ci=_F)[0]
 
-    def __sub__(self, other: vec) -> vec:
+    def __sub__(self, other: Vec) -> Vec:
         return self.sub(other)[0]
 
-    def __neg__(self) -> vec:
+    def __neg__(self) -> Vec:
         return self.neg()[0]
 
     @property
@@ -427,7 +427,7 @@ class vec:
         """Number of bits of data."""
         return _ITEM_BITS * self._n
 
-    def lnot(self) -> vec:
+    def lnot(self) -> Vec:
         """Bitwise lifted NOT.
 
         Returns:
@@ -442,9 +442,9 @@ class vec:
         y1 = x_01
         y = y1 | y0
 
-        return vec(self._n, y)
+        return Vec(self._n, y)
 
-    def lnor(self, other: vec) -> vec:
+    def lnor(self, other: Vec) -> Vec:
         """Bitwise lifted NOR.
 
         Args:
@@ -472,9 +472,9 @@ class vec:
         y1 = x0_01 & x1_01
         y = y1 | y0
 
-        return vec(self._n, y)
+        return Vec(self._n, y)
 
-    def lor(self, other: vec) -> vec:
+    def lor(self, other: Vec) -> Vec:
         """Bitwise lifted OR.
 
         Args:
@@ -500,9 +500,9 @@ class vec:
         y1 = x0_01 & x1_1 | x0_1 & x1_01 | x0_1 & x1_1
         y = y1 | y0
 
-        return vec(self._n, y)
+        return Vec(self._n, y)
 
-    def ulor(self) -> vec[1]:
+    def ulor(self) -> Vec[1]:
         """Unary lifted OR reduction.
 
         Returns:
@@ -511,9 +511,9 @@ class vec:
         data = _ZERO
         for i in range(self._n):
             data = lor(data, self._get_item(i))
-        return vec(1, data)
+        return Vec(1, data)
 
-    def lnand(self, other: vec) -> vec:
+    def lnand(self, other: Vec) -> Vec:
         """Bitwise lifted NAND.
 
         Args:
@@ -541,9 +541,9 @@ class vec:
         y1 = x0_01 & x1_01 | x0_01 & x1_1 | x0_1 & x1_01
         y = y1 | y0
 
-        return vec(self._n, y)
+        return Vec(self._n, y)
 
-    def land(self, other: vec) -> vec:
+    def land(self, other: Vec) -> Vec:
         """Bitwise lifted AND.
 
         Args:
@@ -569,9 +569,9 @@ class vec:
         y1 = x0_1 & x1_1
         y = y1 | y0
 
-        return vec(self._n, y)
+        return Vec(self._n, y)
 
-    def uland(self) -> vec[1]:
+    def uland(self) -> Vec[1]:
         """Unary lifted AND reduction.
 
         Returns:
@@ -580,9 +580,9 @@ class vec:
         data = _ONE
         for i in range(self._n):
             data = land(data, self._get_item(i))
-        return vec(1, data)
+        return Vec(1, data)
 
-    def lxnor(self, other: vec) -> vec:
+    def lxnor(self, other: Vec) -> Vec:
         """Bitwise lifted XNOR.
 
         Args:
@@ -610,9 +610,9 @@ class vec:
         y1 = x0_01 & x1_01 | x0_1 & x1_1
         y = y1 | y0
 
-        return vec(self._n, y)
+        return Vec(self._n, y)
 
-    def lxor(self, other: vec) -> vec:
+    def lxor(self, other: Vec) -> Vec:
         """Bitwise lifted XOR.
 
         Args:
@@ -640,9 +640,9 @@ class vec:
         y1 = x0_01 & x1_1 | x0_1 & x1_01
         y = y1 | y0
 
-        return vec(self._n, y)
+        return Vec(self._n, y)
 
-    def ulxnor(self) -> vec[1]:
+    def ulxnor(self) -> Vec[1]:
         """Unary lifted XNOR reduction.
 
         Returns:
@@ -651,9 +651,9 @@ class vec:
         data = _ONE
         for i in range(self._n):
             data = lxnor(data, self._get_item(i))
-        return vec(1, data)
+        return Vec(1, data)
 
-    def ulxor(self) -> vec[1]:
+    def ulxor(self) -> Vec[1]:
         """Unary lifted XOR reduction.
 
         Returns:
@@ -662,7 +662,7 @@ class vec:
         data = _ZERO
         for i in range(self._n):
             data = lxor(data, self._get_item(i))
-        return vec(1, data)
+        return Vec(1, data)
 
     def to_uint(self) -> int:
         """Convert to unsigned integer.
@@ -710,7 +710,7 @@ class vec:
             return -(self.lnot().to_uint() + 1)
         return self.to_uint()
 
-    def ult(self, other: vec) -> bool:
+    def ult(self, other: Vec) -> bool:
         """Unsigned less than.
 
         Args:
@@ -725,7 +725,7 @@ class vec:
         self._check_len(other)
         return self.to_uint() < other.to_uint()
 
-    def slt(self, other: vec) -> bool:
+    def slt(self, other: Vec) -> bool:
         """Signed less than.
 
         Args:
@@ -740,7 +740,7 @@ class vec:
         self._check_len(other)
         return self.to_int() < other.to_int()
 
-    def zext(self, n: int) -> vec:
+    def zext(self, n: int) -> Vec:
         """Zero extend by n bits.
 
         Args:
@@ -757,9 +757,9 @@ class vec:
         if n == 0:
             return self
         prefix = _fill(_ZERO, n)
-        return vec(self._n + n, self._data | (prefix << self.nbits))
+        return Vec(self._n + n, self._data | (prefix << self.nbits))
 
-    def sext(self, n: int) -> vec:
+    def sext(self, n: int) -> Vec:
         """Sign extend by n bits.
 
         Args:
@@ -777,9 +777,9 @@ class vec:
             return self
         sign = self._get_item(self._n - 1)
         prefix = _fill(sign, n)
-        return vec(self._n + n, self._data | (prefix << self.nbits))
+        return Vec(self._n + n, self._data | (prefix << self.nbits))
 
-    def lsh(self, n: int, ci: vec[1] | None = None) -> tuple[vec, vec]:
+    def lsh(self, n: int, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
         """Left shift by n bits.
 
         Args:
@@ -798,14 +798,14 @@ class vec:
         if n == 0:
             return self, _E
         if ci is None:
-            ci = vec(n, _fill(_ZERO, n))
+            ci = Vec(n, _fill(_ZERO, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         sh, co = self[:-n], self[-n:]
-        y = vec(self._n, ci._data | (sh._data << ci.nbits))
+        y = Vec(self._n, ci._data | (sh._data << ci.nbits))
         return y, co
 
-    def rsh(self, n: int, ci: vec[1] | None = None) -> tuple[vec, vec]:
+    def rsh(self, n: int, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
         """Right shift by n bits.
 
         Args:
@@ -824,14 +824,14 @@ class vec:
         if n == 0:
             return self, _E
         if ci is None:
-            ci = vec(n, _fill(_ZERO, n))
+            ci = Vec(n, _fill(_ZERO, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         co, sh = self[:n], self[n:]
-        y = vec(self._n, sh._data | (ci._data << sh.nbits))
+        y = Vec(self._n, sh._data | (ci._data << sh.nbits))
         return y, co
 
-    def arsh(self, n: int) -> tuple[vec, vec]:
+    def arsh(self, n: int) -> tuple[Vec, Vec]:
         """Arithmetically right shift by n bits.
 
         Args:
@@ -850,10 +850,10 @@ class vec:
         sign = self._get_item(self._n - 1)
         ci_data = _fill(sign, n)
         co, sh = self[:n], self[n:]
-        y = vec(self._n, sh._data | (ci_data << sh.nbits))
+        y = Vec(self._n, sh._data | (ci_data << sh.nbits))
         return y, co
 
-    def add(self, other: vec, ci: vec[1]) -> tuple[vec, vec[1], vec[1]]:
+    def add(self, other: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1], Vec[1]]:
         """Twos complement addition.
 
         Args:
@@ -871,9 +871,9 @@ class vec:
         n, a, b = self._n, self, other
 
         if a.has_illogical() or b.has_illogical() or ci.has_illogical():
-            return vec(n, _fill(_ILLOGICAL, n)), _W, _W
+            return Vec(n, _fill(_ILLOGICAL, n)), _W, _W
         if a.has_unknown() or b.has_unknown() or ci.has_unknown():
-            return vec(n, _fill(_UNKNOWN, n)), _X, _X
+            return Vec(n, _fill(_UNKNOWN, n)), _X, _X
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
 
@@ -885,7 +885,7 @@ class vec:
         # Carry out is True if there is leftover sum data
         co = (_F, _T)[s != 0]
 
-        s = vec(n, data)
+        s = Vec(n, data)
 
         # Overflow is true if sign A matches sign B, and mismatches sign S
         aa = a[-1]
@@ -895,7 +895,7 @@ class vec:
 
         return s, co, ovf
 
-    def sub(self, other: vec) -> tuple[vec, vec[1], vec[1]]:
+    def sub(self, other: Vec) -> tuple[Vec, Vec[1], Vec[1]]:
         """Twos complement subtraction.
 
         Args:
@@ -909,7 +909,7 @@ class vec:
         """
         return self.add(other.lnot(), ci=_T)
 
-    def neg(self) -> tuple[vec, vec[1], vec[1]]:
+    def neg(self) -> tuple[Vec, Vec[1], Vec[1]]:
         """Twos complement negation.
 
         Computed using 0 - self.
@@ -917,10 +917,10 @@ class vec:
         Returns:
             3-tuple of (sum, carry-out, overflow).
         """
-        zero = vec(self._n, _fill(_ZERO, self._n))
+        zero = Vec(self._n, _fill(_ZERO, self._n))
         return zero.sub(self)
 
-    def _check_len(self, other: vec):
+    def _check_len(self, other: Vec):
         if self._n != other._n:
             s = f"Expected n = {self._n}, got {other._n}"
             raise ValueError(s)
@@ -1027,7 +1027,7 @@ def _fill(x: int, n: int) -> int:
     return data
 
 
-def uint2vec(num: int, n: int | None = None) -> vec:
+def uint2vec(num: int, n: int | None = None) -> Vec:
     """Convert nonnegative int to vec.
 
     Args:
@@ -1060,10 +1060,10 @@ def uint2vec(num: int, n: int | None = None) -> vec:
         s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
         raise ValueError(s)
 
-    return vec(i, data).zext(n - i)
+    return Vec(i, data).zext(n - i)
 
 
-def int2vec(num: int, n: int | None = None) -> vec:
+def int2vec(num: int, n: int | None = None) -> Vec:
     """Convert int to vec.
 
     Args:
@@ -1098,7 +1098,7 @@ def int2vec(num: int, n: int | None = None) -> vec:
         s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
         raise ValueError(s)
 
-    v = vec(i, data).zext(n - i)
+    v = Vec(i, data).zext(n - i)
     return v.neg()[0] if neg else v
 
 
@@ -1108,7 +1108,7 @@ _NUM_RE = re.compile(
 )
 
 
-def _bools2vec(xs: Iterable[int]) -> vec:
+def _bools2vec(xs: Iterable[int]) -> Vec:
     """Convert an iterable of bools to a vec.
 
     This is a convenience function.
@@ -1119,10 +1119,10 @@ def _bools2vec(xs: Iterable[int]) -> vec:
     for x in xs:
         data |= _from_bit[x] << (_ITEM_BITS * i)
         i += 1
-    return vec(i, data)
+    return Vec(i, data)
 
 
-def _lit2vec(lit: str) -> vec:
+def _lit2vec(lit: str) -> Vec:
     """Convert a string literal to a vec.
 
     A string literal is in the form {width}{base}{characters},
@@ -1154,7 +1154,7 @@ def _lit2vec(lit: str) -> vec:
             for c in reversed(digits):
                 data |= _from_char[c] << (i * _ITEM_BITS)
                 i += 1
-            return vec(i, data)
+            return Vec(i, data)
         # Hexadecimal
         elif m.group("HexSize"):
             size = int(m.group("HexSize"))
@@ -1167,19 +1167,18 @@ def _lit2vec(lit: str) -> vec:
             for c in reversed(digits):
                 data |= _from_hexchar[c] << (i * _ITEM_BITS)
                 i += 4
-            return vec(i, data)
+            return Vec(i, data)
         else:  # pragma: no cover
             assert False
     else:
         raise ValueError(f"Expected str literal, got {lit}")
 
 
-# TODO(cjdrake): Rename
-def foo(obj=None) -> vec:
+def vec(obj=None) -> Vec:
     """TODO(cjdrake): Write docstring."""
     match obj:
         case None:
-            return vec(0, 0)
+            return Vec(0, 0)
         case 0 | 1 as x:
             return _bools2vec([x])
         case [0 | 1 as x, *rst]:
@@ -1190,40 +1189,40 @@ def foo(obj=None) -> vec:
             raise TypeError(f"Invalid input: {obj}")
 
 
-def _consts(x: int, n: int) -> vec:
+def _consts(x: int, n: int) -> Vec:
     if n < 0:
         raise ValueError(f"Expected n ≥, got {n}")
-    return vec(n, _fill(x, n))
+    return Vec(n, _fill(x, n))
 
 
-def illogicals(n: int) -> vec:
+def illogicals(n: int) -> Vec:
     """Return a vec packed with n ILLOGICAL items."""
     return _consts(_ILLOGICAL, n)
 
 
-def zeros(n: int) -> vec:
+def zeros(n: int) -> Vec:
     """Return a vec packed with n ZERO items."""
     return _consts(_ZERO, n)
 
 
-def ones(n: int) -> vec:
+def ones(n: int) -> Vec:
     """Return a vec packed with n ONE items."""
     return _consts(_ONE, n)
 
 
-def xes(n: int) -> vec:
+def xes(n: int) -> Vec:
     """Return a vec packed with n UNKNOWN items."""
     return _consts(_UNKNOWN, n)
 
 
 # Empty
-_E = vec(0, 0)
+_E = Vec(0, 0)
 
 # One bit values
-_W = vec(1, _ILLOGICAL)
-_F = vec(1, _ZERO)
-_T = vec(1, _ONE)
-_X = vec(1, _UNKNOWN)
+_W = Vec(1, _ILLOGICAL)
+_F = Vec(1, _ZERO)
+_T = Vec(1, _ONE)
+_X = Vec(1, _UNKNOWN)
 
 
 _from_bit = (_ZERO, _ONE)
