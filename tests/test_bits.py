@@ -377,7 +377,8 @@ def test_empty():
     assert v.flatten() == v
 
     # Test __str__ and __repr__
-    assert str(v) == repr(v) == "bits([])"
+    assert str(v) == "bits([])"
+    assert repr(v) == "bits((0,), 0b0)"
 
     # Test __len__
     assert len(v) == 0
@@ -416,11 +417,17 @@ def test_scalar():
 
     assert v0.flatten() == v0
 
-    # Test __str__ and __repr__
-    assert str(vn) == repr(vn) == "bits([?])"
-    assert str(v0) == repr(v0) == "bits([0])"
-    assert str(v1) == repr(v1) == "bits([1])"
-    assert str(vx) == repr(vx) == "bits([X])"
+    # Test __str__
+    assert str(vn) == "bits([?])"
+    assert str(v0) == "bits([0])"
+    assert str(v1) == "bits([1])"
+    assert str(vx) == "bits([X])"
+
+    # Test __repr__
+    assert repr(vn) == "bits((1,), 0b00)"
+    assert repr(v0) == "bits((1,), 0b01)"
+    assert repr(v1) == "bits((1,), 0b10)"
+    assert repr(vx) == "bits((1,), 0b11)"
 
     # Test __len__
     assert len(v0) == 1
@@ -465,7 +472,8 @@ def test_rank1_str():
     assert v.flatten() == v
 
     # Test __str__ and __repr__
-    assert str(v) == repr(v) == "bits(8bX10?_X10?)"
+    assert str(v) == "bits(8bX10?_X10?)"
+    assert repr(v) == "bits((8,), 0b1110_0100_1110_0100)"
 
     # Test __len__
     assert len(v) == 8
@@ -516,9 +524,13 @@ def test_rank1_logic():
     assert v1._w.nbits == 8
     assert list(v1.flat) == xs
 
-    # Test __str__ and __repr__
-    assert str(v1) == repr(v1) == "bits(4bX10?)"
-    assert str(v2) == repr(v2) == "bits(4b1010)"
+    # Test __str__
+    assert str(v1) == "bits(4bX10?)"
+    assert str(v2) == "bits(4b1010)"
+
+    # Test __repr__
+    assert repr(v1) == "bits((4,), 0b1110_0100)"
+    assert repr(v2) == "bits((4,), 0b1001_1001)"
 
 
 def test_rank2_str():
@@ -527,16 +539,22 @@ def test_rank2_str():
 
     assert v.flatten() == foo("8bX10?_X10?")
 
-    # Test __str__ and __repr__
-    assert str(v) == repr(v) == "bits([4bX10?, 4bX10?])"
+    # Test __str__
+    assert str(v) == "bits([4bX10?, 4bX10?])"
+
+    # Test __repr__
+    assert repr(v) == "bits((2, 4), 0b1110_0100_1110_0100)"
 
 
 def test_rank2_vec():
     """Test foo function w/ rank2 bits input."""
     v = foo([foo("4bX10?"), foo("4bX10?")])
 
-    # Test __str__ and __repr__
-    assert str(v) == repr(v) == "bits([4bX10?, 4bX10?])"
+    # Test __str__
+    assert str(v) == "bits([4bX10?, 4bX10?])"
+
+    # Test __repr__
+    assert repr(v) == "bits((2, 4), 0b1110_0100_1110_0100)"
 
 
 def test_rank2_errors():
@@ -565,8 +583,11 @@ def test_rank3_vec():
 
     assert v.flatten() == foo("16bX10?_X10?_X10?_X10?")
 
-    # Test __str__ and __repr__
-    assert str(v) == repr(v) == R3VEC
+    # Test __str__
+    assert str(v) == R3VEC
+
+    # Test __repr__
+    assert repr(v) == "bits((2, 2, 4), 0b1110_0100_1110_0100_1110_0100_1110_0100)"
 
 
 R4VEC = """\
@@ -586,8 +607,16 @@ def test_rank4_vec():
         ]
     )
 
-    # Test __str__ and __repr__
-    assert str(v) == repr(v) == R4VEC
+    # Test __str__
+    assert str(v) == R4VEC
+
+    # Test __repr__
+    assert repr(v) == (
+        "bits("
+        "(2, 2, 2, 4), "
+        "0b1110_0100_1110_0100_1110_0100_1110_0100_1110_0100_1110_0100_1110_0100_1110_0100"
+        ")"
+    )
 
 
 def test_invalid_vec():
