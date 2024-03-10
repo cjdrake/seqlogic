@@ -473,7 +473,7 @@ def test_rank1_str():
 
     # Test __str__ and __repr__
     assert str(b) == "bits(8bX10?_X10?)"
-    assert repr(b) == "bits((8,), 0b1110_0100_1110_0100)"
+    assert repr(b) == "bits((8,), 0b1110010011100100)"
 
     # Test __len__
     assert len(b) == 8
@@ -529,8 +529,8 @@ def test_rank1_logic():
     assert str(b2) == "bits(4b1010)"
 
     # Test __repr__
-    assert repr(b1) == "bits((4,), 0b1110_0100)"
-    assert repr(b2) == "bits((4,), 0b1001_1001)"
+    assert repr(b1) == "bits((4,), 0b11100100)"
+    assert repr(b2) == "bits((4,), 0b10011001)"
 
 
 def test_rank2_str():
@@ -543,7 +543,7 @@ def test_rank2_str():
     assert str(b) == "bits([4bX10?, 4bX10?])"
 
     # Test __repr__
-    assert repr(b) == "bits((2, 4), 0b1110_0100_1110_0100)"
+    assert repr(b) == "bits((2, 4), 0b1110010011100100)"
 
 
 def test_rank2_vec():
@@ -554,7 +554,7 @@ def test_rank2_vec():
     assert str(b) == "bits([4bX10?, 4bX10?])"
 
     # Test __repr__
-    assert repr(b) == "bits((2, 4), 0b1110_0100_1110_0100)"
+    assert repr(b) == "bits((2, 4), 0b1110010011100100)"
 
 
 def test_rank2_errors():
@@ -587,7 +587,7 @@ def test_rank3_vec():
     assert str(b) == R3VEC
 
     # Test __repr__
-    assert repr(b) == "bits((2, 2, 4), 0b1110_0100_1110_0100_1110_0100_1110_0100)"
+    assert repr(b) == "bits((2, 2, 4), 0b11100100111001001110010011100100)"
 
 
 R4VEC = """\
@@ -614,7 +614,7 @@ def test_rank4_vec():
     assert repr(b) == (
         "bits("
         "(2, 2, 2, 4), "
-        "0b1110_0100_1110_0100_1110_0100_1110_0100_1110_0100_1110_0100_1110_0100_1110_0100"
+        "0b1110010011100100111001001110010011100100111001001110010011100100"
         ")"
     )
 

@@ -51,7 +51,7 @@ class Bits:
         return f"{name}({self._str(indent)})"
 
     def __repr__(self) -> str:
-        d = f"0b{self._data:0{self._v.nbits}_b}"
+        d = f"0b{self._data:0{self._v.nbits}b}"
         return f"bits({repr(self._shape)}, {d})"
 
     def __eq__(self, other) -> bool:

@@ -302,7 +302,7 @@ def limplies(p: int, q: int) -> int:
 class Vec:
     """One dimensional vector of lbool items.
 
-    Though it is possible to construct an lbool vec directly,
+    Though it is possible to construct an lbool Vec directly,
     it is easier to use one of the factory functions:
     * uint2vec
     * int2vec
@@ -366,7 +366,7 @@ class Vec:
         return prefix + "".join(reversed(chars))
 
     def __repr__(self) -> str:
-        d = f"0b{self._data:0{self.nbits}_b}"
+        d = f"0b{self._data:0{self.nbits}b}"
         return f"vec({self._n}, {d})"
 
     def __bool__(self) -> bool:
@@ -1035,7 +1035,7 @@ def uint2vec(num: int, n: int | None = None) -> Vec:
         n: Optional output length.
 
     Returns:
-        A vec instance.
+        A Vec instance.
 
     Raises:
         ValueError: If num is negative or overflows the output length.
@@ -1071,7 +1071,7 @@ def int2vec(num: int, n: int | None = None) -> Vec:
         n: Optional output length.
 
     Returns:
-        A vec instance.
+        A Vec instance.
 
     Raises:
         ValueError: If num overflows the output length.
@@ -1136,7 +1136,7 @@ def _lit2vec(lit: str) -> Vec:
         64hdead_beef_feed_face
 
     Returns:
-        A vec instance.
+        A Vec instance.
 
     Raises:
         ValueError: If input literal has a syntax error.
@@ -1175,7 +1175,22 @@ def _lit2vec(lit: str) -> Vec:
 
 
 def vec(obj=None) -> Vec:
-    """TODO(cjdrake): Write docstring."""
+    """Create a Vec using standard input formats.
+
+    vec() or vec(None) will return the empty vec
+    vec(False | True) will return a length 1 vec
+    vec([False | True, ...]) will return a length n vec
+    vec(str) will parse a string literal and return an arbitrary vec
+
+    Args:
+        obj: Object that can be converted to an lbool Vec.
+
+    Returns:
+        A Vec instance.
+
+    Raises:
+        TypeError: If input obj is invalid.
+    """
     match obj:
         case None:
             return Vec(0, 0)
