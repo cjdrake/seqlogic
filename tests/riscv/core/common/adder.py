@@ -1,8 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bits, Module, notify
-
-from ..misc import COMBI
+from seqlogic.sim import always_comb
 
 
 class Adder(Module):
@@ -18,9 +17,6 @@ class Adder(Module):
 
         self.build()
 
-        # Processes
-        self._procs.add((self.proc_out, COMBI))
-
     def build(self):
         """TODO(cjdrake): Write docstring."""
         # Ports
@@ -28,6 +24,7 @@ class Adder(Module):
         self.op_a = Bits(name="op_a", parent=self, shape=(self.width,))
         self.op_b = Bits(name="op_b", parent=self, shape=(self.width,))
 
+    @always_comb
     async def proc_out(self):
         """TODO(cjdrake): Write docstring."""
         while True:

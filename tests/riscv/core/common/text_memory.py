@@ -2,8 +2,7 @@
 
 from seqlogic import Array, Bits, Module, notify
 from seqlogic.bits import xes
-
-from ..misc import COMBI
+from seqlogic.sim import always_comb
 
 WIDTH = 32
 DEPTH = 1024
@@ -18,9 +17,6 @@ class TextMemory(Module):
 
         self.build()
 
-        # Processes
-        self._procs.add((self.proc_rd_data, COMBI))
-
     def build(self):
         """TODO(cjdrake): Write docstring."""
         # Ports
@@ -31,6 +27,7 @@ class TextMemory(Module):
         self.mem = Array(name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
 
     # output logic [31:0] rd_data
+    @always_comb
     async def proc_rd_data(self):
         """TODO(cjdrake): Write docstring."""
         while True:

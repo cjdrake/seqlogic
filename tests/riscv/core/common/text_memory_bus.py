@@ -2,8 +2,8 @@
 
 from seqlogic import Bits, Module, notify
 from seqlogic.bits import xes
+from seqlogic.sim import always_comb
 
-from ..misc import COMBI
 from .constants import TEXT_BASE, TEXT_BITS, TEXT_SIZE
 from .text_memory import TextMemory
 
@@ -19,8 +19,6 @@ class TextMemoryBus(Module):
 
         # Processes
         self.connect(self.text, self.text_memory.rd_data)
-        self._procs.add((self.proc_rd_data, COMBI))
-        self._procs.add((self.proc_text_memory_rd_addr, COMBI))
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
@@ -33,6 +31,7 @@ class TextMemoryBus(Module):
         self.text_memory = TextMemory("text_memory", parent=self)
 
     # output logic [31:0] rd_data
+    @always_comb
     async def proc_rd_data(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -45,6 +44,7 @@ class TextMemoryBus(Module):
                 self.rd_data.next = xes((32,))
 
     # text_memory.rd_addr(rd_addr[...])
+    @always_comb
     async def proc_text_memory_rd_addr(self):
         """TODO(cjdrake): Write docstring."""
         while True:

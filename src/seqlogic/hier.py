@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from collections.abc import Generator
@@ -18,7 +19,14 @@ class Hierarchy(ABC):
         """TODO(cjdrake): Write docstring."""
         self._name = name
         self._parent = parent
+
         self._procs = set()
+
+        def is_proc_region(m):
+            return isinstance(m, tuple) and len(m) == 2 and inspect.iscoroutinefunction(m[0])
+
+        for _, (proc, region) in inspect.getmembers(self, is_proc_region):
+            self._procs.add((proc, region))
 
     @property
     def name(self) -> str:

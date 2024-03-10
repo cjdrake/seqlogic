@@ -2,8 +2,8 @@
 
 from seqlogic import Bits, Module, notify
 from seqlogic.bits import F, cat, foo, rep, zeros
+from seqlogic.sim import always_comb
 
-from ..misc import COMBI
 from .constants import Opcode
 
 
@@ -16,15 +16,13 @@ class ImmedateGenerator(Module):
 
         self.build()
 
-        # Processes
-        self._procs.add((self.proc_out, COMBI))
-
     def build(self):
         """TODO(cjdrake): Write docstring."""
         # Ports
         self.immediate = Bits(name="immediate", parent=self, shape=(32,))
         self.inst = Bits(name="inst", parent=self, shape=(32,))
 
+    @always_comb
     async def proc_out(self):
         """TODO(cjdrake): Write docstring."""
         while True:

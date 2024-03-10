@@ -427,7 +427,7 @@ class _Schedule:
         self._region = region
 
     def __get__(self, obj, cls=None):
-        return partial(self._func, obj)
+        return (partial(self._func, obj), self._region)
 
 
 class initial(_Schedule):

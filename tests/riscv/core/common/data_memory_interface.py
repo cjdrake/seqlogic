@@ -2,8 +2,7 @@
 
 from seqlogic import Bit, Bits, Module, notify
 from seqlogic.bits import cat, foo, rep, xes
-
-from ..misc import COMBI
+from seqlogic.sim import always_comb
 
 
 class DataMemoryInterface(Module):
@@ -19,10 +18,6 @@ class DataMemoryInterface(Module):
         self.connect(self.bus_addr, self.addr)
         self.connect(self.bus_wr_en, self.wr_en)
         self.connect(self.bus_rd_en, self.rd_en)
-
-        self._procs.add((self.proc_wr_be, COMBI))
-        self._procs.add((self.proc_wr_data, COMBI))
-        self._procs.add((self.proc_rd_data, COMBI))
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
@@ -46,6 +41,7 @@ class DataMemoryInterface(Module):
         self.position_fix = Bits(name="position_fix", parent=self, shape=(32,))
         self.sign_fix = Bits(name="sign_fix", parent=self, shape=(32,))
 
+    @always_comb
     async def proc_wr_be(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -61,6 +57,7 @@ class DataMemoryInterface(Module):
             else:
                 self.bus_wr_be.next = xes((4,))
 
+    @always_comb
     async def proc_wr_data(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -68,6 +65,7 @@ class DataMemoryInterface(Module):
             n = cat([foo("3b000"), self.addr.next[:2]])
             self.bus_wr_data.next = self.wr_data.next << n
 
+    @always_comb
     async def proc_rd_data(self):
         """TODO(cjdrake): Write docstring."""
         while True:

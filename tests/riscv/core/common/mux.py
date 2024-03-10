@@ -2,9 +2,8 @@
 
 from seqlogic import Bits, Module, notify
 from seqlogic.bits import xes
+from seqlogic.sim import always_comb
 from seqlogic.util import clog2
-
-from ..misc import COMBI
 
 
 class Mux(Module):
@@ -19,9 +18,6 @@ class Mux(Module):
 
         self.build()
 
-        # Processes
-        self._procs.add((self.proc_out, COMBI))
-
     def build(self):
         """TODO(cjdrake): Write docstring."""
         # Ports
@@ -29,6 +25,7 @@ class Mux(Module):
         self.sel = Bits(name="sel", parent=self, shape=(clog2(self.n),))
         self.ins = [Bits(name=f"in{i}", parent=self, shape=(self.width,)) for i in range(self.n)]
 
+    @always_comb
     async def proc_out(self):
         """TODO(cjdrake): Write docstring."""
         ins_changed = [x.changed for x in self.ins]

@@ -2,8 +2,8 @@
 
 from seqlogic import Bits, Module, notify
 from seqlogic.bits import T, foo
+from seqlogic.sim import always_comb
 
-from ..misc import COMBI
 from .constants import AluOp, CtlAlu, Funct3AluLogic, Funct3Branch
 
 
@@ -15,12 +15,6 @@ class AluControl(Module):
         super().__init__(name, parent)
 
         self.build()
-
-        # Processes
-        self._procs.add((self.proc_default_funct, COMBI))
-        self._procs.add((self.proc_secondary_funct, COMBI))
-        self._procs.add((self.proc_branch_funct, COMBI))
-        self._procs.add((self.proc_alu_function, COMBI))
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
@@ -35,6 +29,7 @@ class AluControl(Module):
         self.secondary_funct = Bits(name="seconary_funct", parent=self, shape=(5,))
         self.branch_funct = Bits(name="branch_funct", parent=self, shape=(5,))
 
+    @always_comb
     async def proc_default_funct(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -59,6 +54,7 @@ class AluControl(Module):
                 case _:
                     self.default_funct.next = AluOp.X
 
+    @always_comb
     async def proc_secondary_funct(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -71,6 +67,7 @@ class AluControl(Module):
                 case _:
                     self.secondary_funct.next = AluOp.X
 
+    @always_comb
     async def proc_branch_funct(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -85,6 +82,7 @@ class AluControl(Module):
                 case _:
                     self.branch_funct.next = AluOp.X
 
+    @always_comb
     async def proc_alu_function(self):
         """TODO(cjdrake): Write docstring."""
         while True:

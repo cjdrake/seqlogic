@@ -2,6 +2,7 @@
 
 from seqlogic import Bit, Bits, Module, notify
 from seqlogic.bits import F, cat, foo, zeros
+from seqlogic.sim import always_comb, initial
 
 from ..common.adder import Adder
 from ..common.alu import Alu
@@ -10,7 +11,6 @@ from ..common.instruction_decoder import InstructionDecoder
 from ..common.mux import Mux
 from ..common.regfile import RegFile
 from ..common.register import Register
-from ..misc import COMBI, TASK
 
 
 class DataPath(Module):
@@ -94,10 +94,6 @@ class DataPath(Module):
         self.connect(self.rs2_data, self.regfile.rs2_data)
         self.connect(self.regfile.clock, self.clock)
 
-        # Processes
-        self._procs.add((self.proc_init, TASK))
-        self._procs.add((self.proc_mux, COMBI))
-
     def build(self):
         """TODO(cjdrake): Write docstring."""
         self.data_mem_addr = Bits(name="data_mem_addr", parent=self, shape=(32,))
@@ -168,6 +164,7 @@ class DataPath(Module):
         self.program_counter = Register(name="program_counter", parent=self, width=32, init=pc_init)
         self.regfile = RegFile(name="regfile", parent=self)
 
+    @initial
     async def proc_init(self):
         """TODO(cjdrake): Write docstring."""
         self.adder_pc_plus_4.op_a.next = foo("32h0000_0004")
@@ -179,6 +176,7 @@ class DataPath(Module):
         self.mux_reg_writeback.ins[6].next = zeros((32,))
         self.mux_reg_writeback.ins[7].next = zeros((32,))
 
+    @always_comb
     async def proc_mux(self):
         """TODO(cjdrake): Write docstring."""
         while True:

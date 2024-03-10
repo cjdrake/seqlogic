@@ -2,8 +2,7 @@
 
 from seqlogic import Array, Bit, Bits, Module, notify
 from seqlogic.bits import T, cat, xes
-
-from ..misc import COMBI, FLOP
+from seqlogic.sim import always_comb, always_ff
 
 WIDTH = 32
 DEPTH = 32 * 1024
@@ -17,9 +16,6 @@ class DataMemory(Module):
         super().__init__(name, parent)
 
         self.build()
-
-        self._procs.add((self.proc_wr_port, FLOP))
-        self._procs.add((self.proc_rd_data, COMBI))
 
     def build(self):
         """Write docstring."""
@@ -37,6 +33,7 @@ class DataMemory(Module):
         # State
         self.mem = Array(name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
 
+    @always_ff
     async def proc_wr_port(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -53,6 +50,7 @@ class DataMemory(Module):
                     parts.append(v[a:b])
                 self.mem.set_next(i, cat(parts, flatten=True))
 
+    @always_comb
     async def proc_rd_data(self):
         """TODO(cjdrake): Write docstring."""
         while True:

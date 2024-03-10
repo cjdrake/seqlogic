@@ -1,8 +1,7 @@
 """TODO(cjdrake): Add docstring."""
 
 from seqlogic import Bits, Module, notify
-
-from ..misc import COMBI
+from seqlogic.sim import always_comb
 
 
 class InstructionDecoder(Module):
@@ -13,9 +12,6 @@ class InstructionDecoder(Module):
         super().__init__(name, parent)
 
         self.build()
-
-        # Processes
-        self._procs.add((self.proc_out, COMBI))
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
@@ -28,6 +24,7 @@ class InstructionDecoder(Module):
         self.inst_opcode = Bits(name="inst_opcode", parent=self, shape=(7,))
         self.inst = Bits(name="inst", parent=self, shape=(32,))
 
+    @always_comb
     async def proc_out(self):
         """TODO(cjdrake): Write docstring."""
         while True:

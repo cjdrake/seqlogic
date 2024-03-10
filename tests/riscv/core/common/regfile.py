@@ -4,8 +4,6 @@ from seqlogic import Array, Bit, Bits, Module, notify
 from seqlogic.bits import T, xes, zeros
 from seqlogic.sim import always_comb, always_ff, initial
 
-from ..misc import COMBI, FLOP, TASK
-
 WIDTH = 32
 DEPTH = 32
 
@@ -18,12 +16,6 @@ class RegFile(Module):
         super().__init__(name, parent)
 
         self.build()
-
-        # Processes
-        self._procs.add((self.proc_init, TASK))
-        self._procs.add((self.proc_wr_port, FLOP))
-        self._procs.add((self.proc_rd1_port, COMBI))
-        self._procs.add((self.proc_rd2_port, COMBI))
 
     def build(self):
         """TODO(cjdrake): Write docstring."""

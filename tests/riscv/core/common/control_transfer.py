@@ -2,8 +2,8 @@
 
 from seqlogic import Bit, Bits, Module, notify
 from seqlogic.bits import X
+from seqlogic.sim import always_comb
 
-from ..misc import COMBI
 from .constants import Funct3Branch
 
 
@@ -16,9 +16,6 @@ class ControlTransfer(Module):
 
         self.build()
 
-        # Processes
-        self._procs.add((self.proc_take_branch, COMBI))
-
     def build(self):
         """TODO(cjdrake): Write docstring."""
         # Ports
@@ -26,6 +23,7 @@ class ControlTransfer(Module):
         self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
 
+    @always_comb
     async def proc_take_branch(self):
         """TODO(cjdrake): Write docstring."""
         while True:

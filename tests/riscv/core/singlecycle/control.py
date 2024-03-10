@@ -2,9 +2,9 @@
 
 from seqlogic import Bit, Bits, Module, notify
 from seqlogic.bits import F, T, foo
+from seqlogic.sim import always_comb
 
 from ..common.constants import CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Opcode
-from ..misc import COMBI
 
 
 class Control(Module):
@@ -15,10 +15,6 @@ class Control(Module):
         super().__init__(name, parent)
 
         self.build()
-
-        # Processes
-        self._procs.add((self.proc_next_pc_sel, COMBI))
-        self._procs.add((self.proc_others, COMBI))
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
@@ -35,6 +31,7 @@ class Control(Module):
         self.inst_opcode = Bits(name="inst_opcode", parent=self, shape=(7,))
         self.take_branch = Bit(name="take_branch", parent=self)
 
+    @always_comb
     async def proc_next_pc_sel(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -52,6 +49,7 @@ class Control(Module):
                 case _:
                     self.next_pc_sel.next = CtlPc.PC4
 
+    @always_comb
     async def proc_others(self):
         """TODO(cjdrake): Write docstring."""
         while True:

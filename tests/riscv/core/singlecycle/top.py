@@ -2,10 +2,10 @@
 
 from seqlogic import Bit, Bits, Module, sleep
 from seqlogic.bits import foo
+from seqlogic.sim import initial
 
 from ..common.data_memory_bus import DataMemoryBus
 from ..common.text_memory_bus import TextMemoryBus
-from ..misc import TASK
 from .core import Core
 
 
@@ -41,9 +41,6 @@ class Top(Module):
         self.connect(self.core.clock, self.clock)
         self.connect(self.core.reset, self.reset)
 
-        self._procs.add((self.proc_clock, TASK))
-        self._procs.add((self.proc_reset, TASK))
-
     def build(self):
         """TODO(cjdrake): Write docstring."""
         # Ports
@@ -66,6 +63,7 @@ class Top(Module):
         self.core = Core(name="core", parent=self)
 
     # input logic clock
+    @initial
     async def proc_clock(self):
         """TODO(cjdrake): Write docstring."""
         self.clock.next = foo("1b0")
@@ -77,6 +75,7 @@ class Top(Module):
             await sleep(1)
 
     # input logic reset
+    @initial
     async def proc_reset(self):
         """TODO(cjdrake): Write docstring."""
         self.reset.next = foo("1b0")

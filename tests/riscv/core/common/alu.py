@@ -2,8 +2,8 @@
 
 from seqlogic import Bit, Bits, Module, notify
 from seqlogic.bits import F, T, xes, zeros
+from seqlogic.sim import always_comb
 
-from ..misc import COMBI
 from .constants import AluOp
 
 
@@ -16,10 +16,6 @@ class Alu(Module):
 
         self.build()
 
-        # Processes
-        self._procs.add((self.proc_result, COMBI))
-        self._procs.add((self.proc_result_equal_zero, COMBI))
-
     def build(self):
         """TODO(cjdrake): Write docstring."""
         # Ports
@@ -29,6 +25,7 @@ class Alu(Module):
         self.op_a = Bits(name="op_a", parent=self, shape=(32,))
         self.op_b = Bits(name="op_b", parent=self, shape=(32,))
 
+    @always_comb
     async def proc_result(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -80,6 +77,7 @@ class Alu(Module):
                 case _:
                     self.result.next = zeros((32,))
 
+    @always_comb
     async def proc_result_equal_zero(self):
         """TODO(cjdrake): Write docstring."""
         while True:

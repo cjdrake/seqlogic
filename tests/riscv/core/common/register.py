@@ -2,8 +2,7 @@
 
 from seqlogic import Bit, Bits, Module, notify
 from seqlogic.bits import F, T, bits
-
-from ..misc import FLOP
+from seqlogic.sim import always_ff
 
 
 class Register(Module):
@@ -19,9 +18,6 @@ class Register(Module):
 
         self.build()
 
-        # Processes
-        self._procs.add((self.proc_q, FLOP))
-
     def build(self):
         """TODO(cjdrake): Write docstring."""
         # Ports
@@ -31,6 +27,7 @@ class Register(Module):
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
 
+    @always_ff
     async def proc_q(self):
         """TODO(cjdrake): Write docstring."""
         while True:
