@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bits, Module, notify
+from seqlogic import Bits, Module, changed
 from seqlogic.sim import always_comb
 
 
@@ -27,5 +27,5 @@ class Adder(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.op_a.changed, self.op_b.changed)
+            await changed(self.op_a, self.op_b)
             self.result.next = self.op_a.next + self.op_b.next

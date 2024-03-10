@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bits, Module, notify
+from seqlogic import Bits, Module, changed
 from seqlogic.bits import F, bits, cat, rep, zeros
 from seqlogic.sim import always_comb
 
@@ -26,7 +26,7 @@ class ImmedateGenerator(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.inst.changed)
+            await changed(self.inst)
             if self.inst.next[0:7] in [Opcode.LOAD, Opcode.LOAD_FP, Opcode.OP_IMM, Opcode.JALR]:
                 self.immediate.next = cat(
                     [

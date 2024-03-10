@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, notify
+from seqlogic import Bit, Bits, Module, changed
 from seqlogic.bits import F, T, xes, zeros
 from seqlogic.sim import always_comb
 
@@ -29,7 +29,7 @@ class Alu(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.alu_function.changed, self.op_a.changed, self.op_b.changed)
+            await changed(self.alu_function, self.op_a, self.op_b)
             match self.alu_function.next:
                 case AluOp.ADD:
                     self.result.next = self.op_a.next + self.op_b.next
@@ -81,7 +81,7 @@ class Alu(Module):
     async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.result.changed)
+            await changed(self.result)
             if self.result.next == zeros((32,)):
                 self.result_equal_zero.next = T
             else:

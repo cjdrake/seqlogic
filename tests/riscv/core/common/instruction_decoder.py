@@ -1,6 +1,6 @@
 """TODO(cjdrake): Add docstring."""
 
-from seqlogic import Bits, Module, notify
+from seqlogic import Bits, Module, changed
 from seqlogic.sim import always_comb
 
 
@@ -28,7 +28,7 @@ class InstructionDecoder(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.inst.changed)
+            await changed(self.inst)
             self.inst_funct7.next = self.inst.next[25:32]
             self.inst_rs2.next = self.inst.next[20:25]
             self.inst_rs1.next = self.inst.next[15:20]

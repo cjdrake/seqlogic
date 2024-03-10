@@ -1,13 +1,14 @@
 """Sequential Logic."""
 
 from .hier import Module
-from .sim import get_loop, notify, sleep
+from .sim import changed, get_loop, notify, sleep
 from .var import Array, Bit, Bits
 
 __all__ = [
     # hier
     "Module",
     # sim
+    "changed",
     "get_loop",
     "notify",
     "sleep",

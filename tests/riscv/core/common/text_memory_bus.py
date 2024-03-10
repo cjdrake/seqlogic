@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bits, Module, notify
+from seqlogic import Bits, Module, changed
 from seqlogic.bits import xes
 from seqlogic.sim import always_comb
 
@@ -36,7 +36,7 @@ class TextMemoryBus(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.rd_addr.changed, self.text.changed)
+            await changed(self.rd_addr, self.text)
             addr = self.rd_addr.next.to_uint()
             is_text = TEXT_BASE <= addr < (TEXT_BASE + TEXT_SIZE)
             if is_text:
@@ -48,5 +48,5 @@ class TextMemoryBus(Module):
     async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.rd_addr.changed)
+            await changed(self.rd_addr)
             self.text_memory.rd_addr.next = self.rd_addr.next[2:TEXT_BITS]

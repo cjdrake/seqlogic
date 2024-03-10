@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bits, Module, notify
+from seqlogic import Bits, Module, changed
 from seqlogic.bits import T, bits
 from seqlogic.sim import always_comb
 
@@ -35,7 +35,7 @@ class AluControl(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.inst_funct3.changed)
+            await changed(self.inst_funct3)
             match self.inst_funct3.next:
                 case Funct3AluLogic.ADD_SUB:
                     self.default_funct.next = AluOp.ADD
@@ -60,7 +60,7 @@ class AluControl(Module):
     async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.inst_funct3.changed)
+            await changed(self.inst_funct3)
             match self.inst_funct3.next:
                 case Funct3AluLogic.ADD_SUB:
                     self.secondary_funct.next = AluOp.SUB
@@ -73,7 +73,7 @@ class AluControl(Module):
     async def p_c_2(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.inst_funct3.changed)
+            await changed(self.inst_funct3)
             match self.inst_funct3.next:
                 case Funct3Branch.EQ | Funct3Branch.NE:
                     self.branch_funct.next = AluOp.SEQ
@@ -88,13 +88,13 @@ class AluControl(Module):
     async def p_c_3(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(
-                self.alu_op_type.changed,
-                self.inst_funct3.changed,
-                self.inst_funct7.changed,
-                self.secondary_funct.changed,
-                self.default_funct.changed,
-                self.branch_funct.changed,
+            await changed(
+                self.alu_op_type,
+                self.inst_funct3,
+                self.inst_funct7,
+                self.secondary_funct,
+                self.default_funct,
+                self.branch_funct,
             )
             match self.alu_op_type.next:
                 case CtlAlu.ADD:

@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bits, Module, notify
+from seqlogic import Bits, Module, changed
 from seqlogic.bits import xes
 from seqlogic.sim import always_comb
 from seqlogic.util import clog2
@@ -28,9 +28,8 @@ class Mux(Module):
     @always_comb
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
-        ins_changed = [x.changed for x in self.ins]
         while True:
-            await notify(self.sel.changed, *ins_changed)
+            await changed(self.sel, *self.ins)
             try:
                 index = self.sel.next.to_uint()
             except ValueError:

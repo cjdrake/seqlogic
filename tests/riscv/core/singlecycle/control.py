@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, notify
+from seqlogic import Bit, Bits, Module, changed
 from seqlogic.bits import F, T, bits
 from seqlogic.sim import always_comb
 
@@ -35,7 +35,7 @@ class Control(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.inst_opcode.changed, self.take_branch.changed)
+            await changed(self.inst_opcode, self.take_branch)
             match self.inst_opcode.next:
                 case Opcode.BRANCH:
                     if self.take_branch.next == T:
@@ -53,7 +53,7 @@ class Control(Module):
     async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.inst_opcode.changed)
+            await changed(self.inst_opcode)
 
             self.pc_wr_en.next = T
             self.regfile_wr_en.next = F

@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, notify
+from seqlogic import Bit, Bits, Module, changed
 from seqlogic.bits import X
 from seqlogic.sim import always_comb
 
@@ -27,7 +27,7 @@ class ControlTransfer(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.inst_funct3.changed, self.result_equal_zero.changed)
+            await changed(self.inst_funct3, self.result_equal_zero)
             match self.inst_funct3.next:
                 case Funct3Branch.EQ:
                     self.take_branch.next = ~(self.result_equal_zero.next)

@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, notify
+from seqlogic import Bit, Bits, Module, changed
 from seqlogic.bits import F, T, X, xes
 from seqlogic.sim import always_comb
 
@@ -50,7 +50,7 @@ class DataMemoryBus(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.addr.changed)
+            await changed(self.addr)
             try:
                 addr = self.addr.next.to_uint()
             except ValueError:
@@ -65,21 +65,21 @@ class DataMemoryBus(Module):
     async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.wr_en.changed, self.is_data.changed)
+            await changed(self.wr_en, self.is_data)
             self.data_memory.wr_en.next = self.wr_en.next & self.is_data.next
 
     @always_comb
     async def p_c_2(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.addr.changed)
+            await changed(self.addr)
             self.data_memory.addr.next = self.addr.next[2:17]
 
     @always_comb
     async def p_c_3(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.rd_en.changed, self.is_data.changed, self.data.changed)
+            await changed(self.rd_en, self.is_data, self.data)
             if self.rd_en.next == T and self.is_data.next == T:
                 self.rd_data.next = self.data.next
             else:

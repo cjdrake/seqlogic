@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, notify
+from seqlogic import Bit, Bits, Module, changed
 from seqlogic.bits import bits, cat, rep, xes
 from seqlogic.sim import always_comb
 
@@ -47,7 +47,7 @@ class DataMemoryInterface(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.data_format.changed, self.addr.changed)
+            await changed(self.data_format, self.addr)
             if self.data_format.next[:2] == bits("2b00"):
                 self.bus_wr_be.next = bits("4b0001") << self.addr.next[:2]
             elif self.data_format.next[:2] == bits("2b01"):
@@ -63,7 +63,7 @@ class DataMemoryInterface(Module):
     async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.addr.changed, self.wr_data.changed)
+            await changed(self.addr, self.wr_data)
             n = cat([bits("3b000"), self.addr.next[:2]])
             self.bus_wr_data.next = self.wr_data.next << n
 
@@ -71,7 +71,7 @@ class DataMemoryInterface(Module):
     async def p_c_2(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.data_format.changed, self.addr.changed, self.bus_rd_data.changed)
+            await changed(self.data_format, self.addr, self.bus_rd_data)
             n = cat([bits("3b000"), self.addr.next[:2]])
             temp = self.bus_rd_data.next >> n
             if self.data_format.next[:2] == bits("2b00"):

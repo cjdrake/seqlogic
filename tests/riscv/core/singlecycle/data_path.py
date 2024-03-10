@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, notify
+from seqlogic import Bit, Bits, Module, changed
 from seqlogic.bits import F, bits, cat, zeros
 from seqlogic.sim import always_comb, initial
 
@@ -182,6 +182,6 @@ class DataPath(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.alu_result.changed)
+            await changed(self.alu_result)
             # mux_next_pc.in2({alu_result[31:1], 1'b0})
             self.mux_next_pc.ins[2].next = cat([F, self.alu_result.next[1:32]])

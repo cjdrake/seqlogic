@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Array, Bit, Bits, Module, notify
+from seqlogic import Array, Bit, Bits, Module, changed, notify
 from seqlogic.bits import T, xes, zeros
 from seqlogic.sim import always_comb, always_ff, initial
 
@@ -53,7 +53,7 @@ class RegFile(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.rs1_addr.changed, self.regs.changed)
+            await changed(self.rs1_addr, self.regs)
             try:
                 i = self.rs1_addr.next.to_uint()
             except ValueError:
@@ -65,7 +65,7 @@ class RegFile(Module):
     async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.rs2_addr.changed, self.regs.changed)
+            await changed(self.rs2_addr, self.regs)
             try:
                 i = self.rs2_addr.next.to_uint()
             except ValueError:

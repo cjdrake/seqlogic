@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Array, Bit, Bits, Module, notify
+from seqlogic import Array, Bit, Bits, Module, changed, notify
 from seqlogic.bits import T, cat, xes
 from seqlogic.sim import always_comb, always_ff
 
@@ -54,7 +54,7 @@ class DataMemory(Module):
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await notify(self.addr.changed, self.mem.changed)
+            await changed(self.addr, self.mem)
             try:
                 i = self.addr.next.to_uint()
             except ValueError:

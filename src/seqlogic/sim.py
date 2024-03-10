@@ -411,6 +411,14 @@ async def notify(*events: Callable[[], bool]) -> State:
     return var
 
 
+async def changed(*states: State) -> State:
+    """TODO(cjdrake): Write docstring."""
+    for state in states:
+        _sim.add_event(state.changed)
+    var = await _SimAwaitable()
+    return var
+
+
 def get_loop() -> Sim:
     """Return the event loop."""
     return _sim
