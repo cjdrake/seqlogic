@@ -2,10 +2,11 @@
 
 import pytest
 
-from seqlogic.bits import F, T
+from seqlogic.bits import F, T, X
 from seqlogic.enum import Enum
 
 # pylint: disable = no-value-for-parameter
+# pyright: reportAttributeAccessIssue=false
 
 
 class Color(Enum):
@@ -31,6 +32,12 @@ def test_bits():
     """Test behaviors of bits subclass."""
     assert Color.GREEN[0] == T
     assert Color.GREEN[1] == F
+
+
+def test_x():
+    """Test X item."""
+    assert Color.X[0] == X
+    assert Color.X[1] == X
 
 
 def test_enum_error():

@@ -13,6 +13,10 @@ from seqlogic.var import TraceSingular
 
 from .common import p_clk, p_dff, p_rst
 
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportReturnType=false
+
+
 loop = get_loop()
 
 
@@ -24,15 +28,13 @@ class SeqDetect(Enum):
     C = "2b10"
     D = "2b11"
 
-    XX = "2bXX"
-
 
 class EnumVar(TraceSingular):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module):
         """TODO(cjdrake): Write docstring."""
-        super().__init__(name, parent, SeqDetect.XX)
+        super().__init__(name, parent, SeqDetect.X)
 
 
 async def p_input(
@@ -79,27 +81,27 @@ def test_fsm():
         match ps.value:
             case SeqDetect.A:
                 if x.value == T:
-                    return SeqDetect.B  # pyright: ignore[reportReturnType]
+                    return SeqDetect.B
                 else:
-                    return SeqDetect.A  # pyright: ignore[reportReturnType]
+                    return SeqDetect.A
             case SeqDetect.B:
                 if x.value == T:
-                    return SeqDetect.C  # pyright: ignore[reportReturnType]
+                    return SeqDetect.C
                 else:
-                    return SeqDetect.A  # pyright: ignore[reportReturnType]
+                    return SeqDetect.A
             case SeqDetect.C:
                 if x.value == T:
-                    return SeqDetect.D  # pyright: ignore[reportReturnType]
+                    return SeqDetect.D
                 else:
-                    return SeqDetect.A  # pyright: ignore[reportReturnType]
+                    return SeqDetect.A
             case SeqDetect.D:
                 if x.value == T:
-                    return SeqDetect.D  # pyright: ignore[reportReturnType]
+                    return SeqDetect.D
                 else:
-                    return SeqDetect.A  # pyright: ignore[reportReturnType]
+                    return SeqDetect.A
 
             case _:
-                return SeqDetect.XX  # pyright: ignore[reportReturnType]
+                return SeqDetect.X
 
     # Schedule input
     loop.add_proc(p_input, Region(1), x, reset_n, clock)
@@ -120,7 +122,7 @@ def test_fsm():
             reset_n: X,
             clock: X,
             x: X,
-            ps: SeqDetect.XX,
+            ps: SeqDetect.X,
         },
         0: {
             reset_n: T,

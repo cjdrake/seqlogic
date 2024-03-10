@@ -15,11 +15,25 @@ class _EnumMeta(type):
     def __new__(mcs, name, bases, attrs):
         base_attrs = {}
         lit2name = {}
+        size = None
         for key, val in attrs.items():
             if key.startswith("__"):
                 base_attrs[key] = val
             else:
+                if key == "X":
+                    raise ValueError("Cannot use reserved name 'X'")
+                if size is None:
+                    size = len(lit2vec(val))
+                else:
+                    n = len(lit2vec(val))
+                    if n != size:
+                        s = f"Expected lit size {size}, got {n}"
+                        raise ValueError(s)
                 lit2name[val] = key
+
+        # Add the 'X' item
+        if size is not None:
+            lit2name[f"{size}b" + "X" * size] = "X"
 
         # Create enum class, save lit => name mapping
         cls = super().__new__(mcs, name, bases + (Bits,), base_attrs)

@@ -29,8 +29,6 @@ class Opcode(Enum):
     JAL = "7b110_1111"
     SYSTEM = "7b111_0011"
 
-    X = "7bXXX_XXXX"
-
 
 class CtlPc(Enum):
     """TODO(cjdrake): Write docstring."""
@@ -40,8 +38,6 @@ class CtlPc(Enum):
     RS1_IMM = "2b10"
     PC4_BR = "2b11"
 
-    X = "2bXX"
-
 
 class CtlAlu(Enum):
     """ALU op types."""
@@ -50,8 +46,6 @@ class CtlAlu(Enum):
     BRANCH = "2b01"
     OP = "2b10"
     OP_IMM = "2b11"
-
-    X = "2bXX"
 
 
 class AluOp(Enum):
@@ -77,8 +71,6 @@ class AluOp(Enum):
     REM = "5b1_0010"
     REMU = "5b1_0011"
 
-    X = "5bX_XXXX"
-
 
 class CtlAluA(Enum):
     """ALU 1st operand source."""
@@ -86,16 +78,12 @@ class CtlAluA(Enum):
     RS1 = "1b0"
     PC = "1b1"
 
-    X = "1bX"
-
 
 class CtlAluB(Enum):
     """ALU 2nd operand source."""
 
     RS2 = "1b0"
     IMM = "1b1"
-
-    X = "1bX"
 
 
 class Funct3AluLogic(Enum):
@@ -110,8 +98,6 @@ class Funct3AluLogic(Enum):
     OR = "3b110"
     AND = "3b111"
 
-    X = "3bXXX"
-
 
 class Funct3Branch(Enum):
     """Interpretations of the "funct3" field for branches."""
@@ -122,8 +108,6 @@ class Funct3Branch(Enum):
     GE = "3b101"
     LTU = "3b110"
     GEU = "3b111"
-
-    X = "3bXXX"
 
 
 class Funct3AluMul(Enum):
@@ -138,8 +122,6 @@ class Funct3AluMul(Enum):
     REM = "3b110"
     REMU = "3b111"
 
-    X = "3bXXX"
-
 
 class CtlWriteBack(Enum):
     """Register data sources."""
@@ -148,5 +130,3 @@ class CtlWriteBack(Enum):
     DATA = "3b001"
     PC4 = "3b010"
     IMM = "3b011"
-
-    X = "3bXXX"

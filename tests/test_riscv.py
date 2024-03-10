@@ -17,6 +17,9 @@ from seqlogic.bits import F, T, X, bits, uint2bits, xes, zeros
 from .riscv.core.common.constants import AluOp, CtlAluA, CtlAluB, CtlPc
 from .riscv.core.singlecycle.top import Top
 
+# pyright: reportAttributeAccessIssue=false
+
+
 loop = get_loop()
 
 
