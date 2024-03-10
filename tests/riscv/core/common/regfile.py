@@ -2,6 +2,7 @@
 
 from seqlogic import Array, Bit, Bits, Module, notify
 from seqlogic.bits import T, xes, zeros
+from seqlogic.sim import always_comb, always_ff, initial
 
 from ..misc import COMBI, FLOP, TASK
 
@@ -34,12 +35,14 @@ class RegFile(Module):
         self._procs.add((self.proc_rd1_port, COMBI))
         self._procs.add((self.proc_rd2_port, COMBI))
 
+    @initial
     async def proc_init(self):
         """TODO(cjdrake): Write docstring."""
         self.regs.set_next(0, zeros((WIDTH,)))
         for i in range(1, DEPTH):
             self.regs.set_next(i, zeros((WIDTH,)))
 
+    @always_ff
     async def proc_wr_port(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -49,6 +52,7 @@ class RegFile(Module):
                 if i != 0:
                     self.regs.set_next(i, self.wr_data.value)
 
+    @always_comb
     async def proc_rd1_port(self):
         """TODO(cjdrake): Write docstring."""
         while True:
@@ -60,6 +64,7 @@ class RegFile(Module):
             else:
                 self.rs1_data.next = self.regs.get_next(i)
 
+    @always_comb
     async def proc_rd2_port(self):
         """TODO(cjdrake): Write docstring."""
         while True:

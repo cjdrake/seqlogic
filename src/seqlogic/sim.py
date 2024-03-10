@@ -8,9 +8,11 @@ https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 """
 
 import heapq
+import inspect
 from abc import ABC
 from collections import defaultdict
 from collections.abc import Awaitable, Callable, Coroutine, Generator
+from functools import partial
 from typing import NewType, TypeAlias
 
 Region = NewType("Region", int)
@@ -414,3 +416,36 @@ async def notify(*events: Callable[[], bool]) -> State:
 def get_loop() -> Sim:
     """Return the event loop."""
     return _sim
+
+
+class _Schedule:
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, coro_func, region: Region):
+        assert inspect.iscoroutinefunction(coro_func)
+        self._func = coro_func
+        self._region = region
+
+    def __get__(self, obj, cls=None):
+        return partial(self._func, obj)
+
+
+class initial(_Schedule):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, coro_func):
+        super().__init__(coro_func, Region(2))
+
+
+class always_ff(_Schedule):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, coro_func):
+        super().__init__(coro_func, Region(1))
+
+
+class always_comb(_Schedule):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, coro_func):
+        super().__init__(coro_func, Region(0))
