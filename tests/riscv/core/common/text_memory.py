@@ -27,7 +27,7 @@ class TextMemory(Module):
         self.mem = Array(name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
 
     @always_comb
-    async def proc_rd_data(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.rd_addr.changed, self.mem.changed)

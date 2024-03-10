@@ -16,9 +16,7 @@ class TextMemoryBus(Module):
         super().__init__(name, parent)
 
         self.build()
-
-        # Processes
-        self.connect(self.text, self.text_memory.rd_data)
+        self.connect()
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
@@ -30,9 +28,12 @@ class TextMemoryBus(Module):
         # Submodules
         self.text_memory = TextMemory("text_memory", parent=self)
 
-    # output logic [31:0] rd_data
+    def connect(self):
+        """TODO(cjdrake): Write docstring."""
+        self.text.connect(self.text_memory.rd_data)
+
     @always_comb
-    async def proc_rd_data(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.rd_addr.changed, self.text.changed)
@@ -43,9 +44,8 @@ class TextMemoryBus(Module):
             else:
                 self.rd_data.next = xes((32,))
 
-    # text_memory.rd_addr(rd_addr[...])
     @always_comb
-    async def proc_text_memory_rd_addr(self):
+    async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.rd_addr.changed)

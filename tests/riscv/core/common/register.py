@@ -20,7 +20,6 @@ class Register(Module):
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
-        # Ports
         self.q = Bits(name="q", parent=self, shape=(self.width,))
         self.en = Bit(name="en", parent=self)
         self.d = Bits(name="d", parent=self, shape=(self.width,))
@@ -28,7 +27,7 @@ class Register(Module):
         self.reset = Bit(name="reset", parent=self)
 
     @always_ff
-    async def proc_q(self):
+    async def p_f_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             v = await notify(self.clock.posedge, self.reset.posedge)

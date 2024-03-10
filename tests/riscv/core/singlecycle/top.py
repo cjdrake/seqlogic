@@ -17,29 +17,7 @@ class Top(Module):
         super().__init__(name, parent=None)
 
         self.build()
-
-        # Processes
-        self.connect(self.text_memory_bus.rd_addr, self.pc)
-        self.connect(self.inst, self.text_memory_bus.rd_data)
-
-        self.connect(self.data_memory_bus.addr, self.bus_addr)
-        self.connect(self.data_memory_bus.wr_en, self.bus_wr_en)
-        self.connect(self.data_memory_bus.wr_be, self.bus_wr_be)
-        self.connect(self.data_memory_bus.wr_data, self.bus_wr_data)
-        self.connect(self.data_memory_bus.rd_en, self.bus_rd_en)
-        self.connect(self.bus_rd_data, self.data_memory_bus.rd_data)
-        self.connect(self.data_memory_bus.clock, self.clock)
-
-        self.connect(self.bus_addr, self.core.bus_addr)
-        self.connect(self.bus_wr_en, self.core.bus_wr_en)
-        self.connect(self.bus_wr_be, self.core.bus_wr_be)
-        self.connect(self.bus_wr_data, self.core.bus_wr_data)
-        self.connect(self.bus_rd_en, self.core.bus_rd_en)
-        self.connect(self.core.bus_rd_data, self.bus_rd_data)
-        self.connect(self.pc, self.core.pc)
-        self.connect(self.core.inst, self.inst)
-        self.connect(self.core.clock, self.clock)
-        self.connect(self.core.reset, self.reset)
+        self.connect()
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
@@ -62,8 +40,32 @@ class Top(Module):
         self.data_memory_bus = DataMemoryBus(name="data_memory_bus", parent=self)
         self.core = Core(name="core", parent=self)
 
+    def connect(self):
+        """TODO(cjdrake): Write docstring."""
+        self.text_memory_bus.rd_addr.connect(self.pc)
+        self.inst.connect(self.text_memory_bus.rd_data)
+
+        self.data_memory_bus.addr.connect(self.bus_addr)
+        self.data_memory_bus.wr_en.connect(self.bus_wr_en)
+        self.data_memory_bus.wr_be.connect(self.bus_wr_be)
+        self.data_memory_bus.wr_data.connect(self.bus_wr_data)
+        self.data_memory_bus.rd_en.connect(self.bus_rd_en)
+        self.bus_rd_data.connect(self.data_memory_bus.rd_data)
+        self.data_memory_bus.clock.connect(self.clock)
+
+        self.bus_addr.connect(self.core.bus_addr)
+        self.bus_wr_en.connect(self.core.bus_wr_en)
+        self.bus_wr_be.connect(self.core.bus_wr_be)
+        self.bus_wr_data.connect(self.core.bus_wr_data)
+        self.bus_rd_en.connect(self.core.bus_rd_en)
+        self.core.bus_rd_data.connect(self.bus_rd_data)
+        self.pc.connect(self.core.pc)
+        self.core.inst.connect(self.inst)
+        self.core.clock.connect(self.clock)
+        self.core.reset.connect(self.reset)
+
     @initial
-    async def proc_clock(self):
+    async def p_i_0(self):
         """TODO(cjdrake): Write docstring."""
         self.clock.next = bits("1b0")
         await sleep(1)
@@ -74,7 +76,7 @@ class Top(Module):
             await sleep(1)
 
     @initial
-    async def proc_reset(self):
+    async def p_i_1(self):
         """TODO(cjdrake): Write docstring."""
         self.reset.next = bits("1b0")
         await sleep(5)

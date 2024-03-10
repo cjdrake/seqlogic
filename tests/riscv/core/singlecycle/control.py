@@ -32,7 +32,7 @@ class Control(Module):
         self.take_branch = Bit(name="take_branch", parent=self)
 
     @always_comb
-    async def proc_next_pc_sel(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.inst_opcode.changed, self.take_branch.changed)
@@ -50,7 +50,7 @@ class Control(Module):
                     self.next_pc_sel.next = CtlPc.PC4
 
     @always_comb
-    async def proc_others(self):
+    async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.inst_opcode.changed)

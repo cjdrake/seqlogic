@@ -26,7 +26,7 @@ class Alu(Module):
         self.op_b = Bits(name="op_b", parent=self, shape=(32,))
 
     @always_comb
-    async def proc_result(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.alu_function.changed, self.op_a.changed, self.op_b.changed)
@@ -78,7 +78,7 @@ class Alu(Module):
                     self.result.next = zeros((32,))
 
     @always_comb
-    async def proc_result_equal_zero(self):
+    async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.result.changed)

@@ -19,13 +19,12 @@ class Adder(Module):
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
-        # Ports
         self.result = Bits(name="result", parent=self, shape=(self.width,))
         self.op_a = Bits(name="op_a", parent=self, shape=(self.width,))
         self.op_b = Bits(name="op_b", parent=self, shape=(self.width,))
 
     @always_comb
-    async def proc_out(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.op_a.changed, self.op_b.changed)

@@ -6,6 +6,8 @@ from seqlogic.sim import always_comb
 
 from .constants import AluOp, CtlAlu, Funct3AluLogic, Funct3Branch
 
+# pyright: reportAttributeAccessIssue=false
+
 
 class AluControl(Module):
     """TODO(cjdrake): Write docstring."""
@@ -30,7 +32,7 @@ class AluControl(Module):
         self.branch_funct = Bits(name="branch_funct", parent=self, shape=(5,))
 
     @always_comb
-    async def proc_default_funct(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.inst_funct3.changed)
@@ -55,7 +57,7 @@ class AluControl(Module):
                     self.default_funct.next = AluOp.X
 
     @always_comb
-    async def proc_secondary_funct(self):
+    async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.inst_funct3.changed)
@@ -68,7 +70,7 @@ class AluControl(Module):
                     self.secondary_funct.next = AluOp.X
 
     @always_comb
-    async def proc_branch_funct(self):
+    async def p_c_2(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.inst_funct3.changed)
@@ -83,7 +85,7 @@ class AluControl(Module):
                     self.branch_funct.next = AluOp.X
 
     @always_comb
-    async def proc_alu_function(self):
+    async def p_c_3(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(

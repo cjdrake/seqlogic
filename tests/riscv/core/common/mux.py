@@ -26,7 +26,7 @@ class Mux(Module):
         self.ins = [Bits(name=f"in{i}", parent=self, shape=(self.width,)) for i in range(self.n)]
 
     @always_comb
-    async def proc_out(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         ins_changed = [x.changed for x in self.ins]
         while True:

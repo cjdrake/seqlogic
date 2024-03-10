@@ -23,7 +23,7 @@ class ImmedateGenerator(Module):
         self.inst = Bits(name="inst", parent=self, shape=(32,))
 
     @always_comb
-    async def proc_out(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.inst.changed)

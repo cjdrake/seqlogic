@@ -16,12 +16,7 @@ class DataMemoryBus(Module):
         super().__init__(name, parent)
 
         self.build()
-
-        # Processes
-        self.connect(self.data_memory.wr_be, self.wr_be)
-        self.connect(self.data_memory.wr_data, self.wr_data)
-        self.connect(self.data, self.data_memory.rd_data)
-        self.connect(self.data_memory.clock, self.clock)
+        self.connect()
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
@@ -44,8 +39,15 @@ class DataMemoryBus(Module):
         # Submodules
         self.data_memory = DataMemory("data_memory", parent=self)
 
+    def connect(self):
+        """TODO(cjdrake): Write docstring."""
+        self.data_memory.wr_be.connect(self.wr_be)
+        self.data_memory.wr_data.connect(self.wr_data)
+        self.data.connect(self.data_memory.rd_data)
+        self.data_memory.clock.connect(self.clock)
+
     @always_comb
-    async def proc_is_data(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.addr.changed)
@@ -60,21 +62,21 @@ class DataMemoryBus(Module):
                     self.is_data.next = F
 
     @always_comb
-    async def proc_wr_en(self):
+    async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.wr_en.changed, self.is_data.changed)
             self.data_memory.wr_en.next = self.wr_en.next & self.is_data.next
 
     @always_comb
-    async def proc_data_memory_addr(self):
+    async def p_c_2(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.addr.changed)
             self.data_memory.addr.next = self.addr.next[2:17]
 
     @always_comb
-    async def proc_rd_data(self):
+    async def p_c_3(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.rd_en.changed, self.is_data.changed, self.data.changed)

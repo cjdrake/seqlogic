@@ -28,18 +28,19 @@ class RegFile(Module):
         self.rs2_addr = Bits(name="rs2_addr", parent=self, shape=(5,))
         self.rs2_data = Bits(name="rs2_data", parent=self, shape=(WIDTH,))
         self.clock = Bit(name="clock", parent=self)
+
         # State
         self.regs = Array(name="regs", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
 
     @initial
-    async def proc_init(self):
+    async def p_i_0(self):
         """TODO(cjdrake): Write docstring."""
         self.regs.set_next(0, zeros((WIDTH,)))
         for i in range(1, DEPTH):
             self.regs.set_next(i, zeros((WIDTH,)))
 
     @always_ff
-    async def proc_wr_port(self):
+    async def p_f_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.clock.posedge)
@@ -49,7 +50,7 @@ class RegFile(Module):
                     self.regs.set_next(i, self.wr_data.value)
 
     @always_comb
-    async def proc_rd1_port(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.rs1_addr.changed, self.regs.changed)
@@ -61,7 +62,7 @@ class RegFile(Module):
                 self.rs1_data.next = self.regs.get_next(i)
 
     @always_comb
-    async def proc_rd2_port(self):
+    async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.rs2_addr.changed, self.regs.changed)

@@ -8,6 +8,7 @@ from vcd.writer import VarValue
 from . import bits, sim
 from .bits import F, T, xes
 from .hier import Module, Variable
+from .sim import notify
 
 _item2char = {
     0b00: "x",
@@ -32,6 +33,14 @@ class TraceSingular(Variable, sim.Singular):
         sim.Singular.__init__(self, value)
         self._waves_change = None
         self._vcd_change = None
+
+    def update(self):
+        """TODO(cjdrake): Write docstring."""
+        if self._waves_change and self.dirty():
+            self._waves_change()
+        if self._vcd_change and self.dirty():
+            self._vcd_change()
+        super().update()
 
     def dump_waves(self, waves: defaultdict, pattern: str):
         """TODO(cjdrake): Write docstring."""
@@ -63,13 +72,15 @@ class TraceSingular(Variable, sim.Singular):
 
             self._vcd_change = change
 
-    def update(self):
+    def connect(self, src):
         """TODO(cjdrake): Write docstring."""
-        if self._waves_change and self.dirty():
-            self._waves_change()
-        if self._vcd_change and self.dirty():
-            self._vcd_change()
-        super().update()
+
+        async def proc():
+            while True:
+                await notify(src.changed)
+                self.next = src.next
+
+        self._procs.add((proc, 0))
 
 
 class TraceAggregate(Variable, sim.Aggregate):

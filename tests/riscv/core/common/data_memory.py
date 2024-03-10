@@ -34,7 +34,7 @@ class DataMemory(Module):
         self.mem = Array(name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
 
     @always_ff
-    async def proc_wr_port(self):
+    async def p_f_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.clock.posedge)
@@ -51,7 +51,7 @@ class DataMemory(Module):
                 self.mem.set_next(i, cat(parts, flatten=True))
 
     @always_comb
-    async def proc_rd_data(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.addr.changed, self.mem.changed)

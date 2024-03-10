@@ -24,7 +24,7 @@ class ControlTransfer(Module):
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
 
     @always_comb
-    async def proc_take_branch(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.inst_funct3.changed, self.result_equal_zero.changed)

@@ -9,7 +9,7 @@ from collections.abc import Generator
 
 from vcd.writer import VCDWriter as VcdWriter
 
-from .sim import get_loop, notify
+from .sim import get_loop
 
 
 class Hierarchy(ABC):
@@ -107,16 +107,6 @@ class Module(Hierarchy):
             return self.name
         assert isinstance(self._parent, Module)
         return f"{self._parent.scope}.{self.name}"
-
-    def connect(self, dst, src):
-        """TODO(cjdrake): Write docstring."""
-
-        async def proc():
-            while True:
-                await notify(src.changed)
-                dst.next = src.next
-
-        self._procs.add((proc, 0))
 
     def add_child(self, child: Hierarchy):
         """Add child module or variable."""

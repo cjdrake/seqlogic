@@ -13,11 +13,7 @@ class DataMemoryInterface(Module):
         super().__init__(name, parent)
 
         self.build()
-
-        # Processes
-        self.connect(self.bus_addr, self.addr)
-        self.connect(self.bus_wr_en, self.wr_en)
-        self.connect(self.bus_rd_en, self.rd_en)
+        self.connect()
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
@@ -41,8 +37,14 @@ class DataMemoryInterface(Module):
         self.position_fix = Bits(name="position_fix", parent=self, shape=(32,))
         self.sign_fix = Bits(name="sign_fix", parent=self, shape=(32,))
 
+    def connect(self):
+        """TODO(cjdrake): Write docstring."""
+        self.bus_addr.connect(self.addr)
+        self.bus_wr_en.connect(self.wr_en)
+        self.bus_rd_en.connect(self.rd_en)
+
     @always_comb
-    async def proc_wr_be(self):
+    async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.data_format.changed, self.addr.changed)
@@ -58,7 +60,7 @@ class DataMemoryInterface(Module):
                 self.bus_wr_be.next = xes((4,))
 
     @always_comb
-    async def proc_wr_data(self):
+    async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.addr.changed, self.wr_data.changed)
@@ -66,7 +68,7 @@ class DataMemoryInterface(Module):
             self.bus_wr_data.next = self.wr_data.next << n
 
     @always_comb
-    async def proc_rd_data(self):
+    async def p_c_2(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.data_format.changed, self.addr.changed, self.bus_rd_data.changed)
