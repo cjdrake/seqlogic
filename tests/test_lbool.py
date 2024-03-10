@@ -31,6 +31,21 @@ LNOT = {
 }
 
 
+def test_vec():
+    """Test seqlogic.lbool.vec function."""
+    assert vec() == Vec(0, 0)
+    assert vec(None) == Vec(0, 0)
+    assert vec(False) == Vec(1, 0b01)
+    assert vec(True) == Vec(1, 0b10)
+    assert vec(0) == Vec(1, 0b01)
+    assert vec(1) == Vec(1, 0b10)
+    assert vec([False, True, 0, 1]) == Vec(4, 0b10_01_10_01)
+
+    # Invalid input type
+    with pytest.raises(TypeError):
+        vec({"key": "val"})
+
+
 def test_lnot():
     """Test seqlogic.lbool.lnot function."""
     for x, y in LNOT.items():
@@ -345,6 +360,10 @@ def test_vec_lxor():
     assert x0.lxor(x1) == Vec(16, 0b11111100_11011000_11100100_00000000)
     assert (x0 ^ x1) == Vec(16, 0b11111100_11011000_11100100_00000000)
 
+    # Vector length mismatch
+    with pytest.raises(ValueError):
+        x0.lxor(Vec(8, 0b11111111_00000000))
+
 
 ULOR = {
     0b00_00: 0b00,
@@ -442,6 +461,38 @@ UXOR = {
     0b10_11: 0b11,
     0b11_11: 0b11,
 }
+
+
+def test_vec_ult():
+    """Test seqlogic.lbool.Vec.ult method."""
+    zero = uint2vec(0, 8)
+    one = uint2vec(1, 8)
+    two = uint2vec(2, 8)
+    assert not zero.ult(zero)
+    assert zero.ult(one)
+    assert zero.ult(two)
+    assert not one.ult(zero)
+    assert not one.ult(one)
+    assert one.ult(two)
+    assert not two.ult(zero)
+    assert not two.ult(one)
+    assert not two.ult(two)
+
+
+def test_vec_slt():
+    """Test seqlogic.lbool.Vec.slt method."""
+    n_one = int2vec(-1, 8)
+    zero = int2vec(0, 8)
+    one = int2vec(1, 8)
+    assert not n_one.slt(n_one)
+    assert n_one.slt(zero)
+    assert n_one.slt(one)
+    assert not zero.slt(n_one)
+    assert not zero.slt(zero)
+    assert zero.slt(one)
+    assert not one.slt(n_one)
+    assert not one.slt(zero)
+    assert not one.slt(one)
 
 
 def test_vec_uxor():
