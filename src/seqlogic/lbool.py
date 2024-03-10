@@ -1021,7 +1021,6 @@ class vec:
 
 
 def _fill(x: int, n: int) -> int:
-    assert n >= 0
     data = 0
     for i in range(n):
         data |= x << (_ITEM_BITS * i)
