@@ -11,7 +11,7 @@ from seqlogic.enum import Enum
 from seqlogic.sim import Region
 from seqlogic.var import TraceSingular
 
-from .common import clock_drv, dff_arn_drv, reset_drv
+from .common import p_clk, p_dff, p_rst
 
 loop = get_loop()
 
@@ -35,11 +35,12 @@ class EnumVar(TraceSingular):
         super().__init__(name, parent, SeqDetect.XX)
 
 
-async def _input_drv(
+async def p_input(
     x: Bit,
     reset_n: Bit,
     clock: Bit,
 ):
+    """TODO(cjdrake): Write docstring."""
     await notify(reset_n.negedge)
     x.next = F
 
@@ -101,17 +102,15 @@ def test_fsm():
                 return SeqDetect.XX  # pyright: ignore[reportReturnType]
 
     # Schedule input
-    loop.add_proc(_input_drv, Region(0), x, reset_n, clock)
+    loop.add_proc(p_input, Region(1), x, reset_n, clock)
 
     # Schedule LFSR
-    loop.add_proc(dff_arn_drv, Region(0), ps, ns, reset_n, SeqDetect.A, clock)
+    loop.add_proc(p_dff, Region(1), ps, ns, reset_n, SeqDetect.A, clock)
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(reset_drv, Region(1), reset_n, init=T, phase1_ticks=6, phase2_ticks=10)
-    loop.add_proc(
-        clock_drv, Region(1), clock, init=F, shift_ticks=5, phase1_ticks=5, phase2_ticks=5
-    )
+    loop.add_proc(p_rst, Region(2), reset_n, init=T, phase1=6, phase2=10)
+    loop.add_proc(p_clk, Region(2), clock, init=F, shift=5, phase1=5, phase2=5)
 
     loop.run(until=100)
 

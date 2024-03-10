@@ -25,6 +25,8 @@ Z32 = zeros((32,))
 
 DEBUG_REG = bits("32hFFFF_FFF0")
 
+PASS, FAIL, TIMEOUT = 0, 1, 2
+
 
 def get_mem(name: str) -> list[int]:
     """TODO(cjdrake): Write docstring."""
@@ -692,9 +694,6 @@ def test_singlecycle_dump():
         },
     }
     assert waves == exp
-
-
-PASS, FAIL, TIMEOUT = 0, 1, 2
 
 
 def run_riscv_test(name: str) -> int:

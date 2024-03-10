@@ -5,17 +5,16 @@ It might be useful to add to seqlogic library.
 """
 
 from collections import defaultdict
-from collections.abc import Callable
 
 from seqlogic import Bit, notify, sleep
-from seqlogic.bits import F, T, bits
+from seqlogic.bits import F, T
 from seqlogic.var import TraceSingular
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
 
 
-async def reset_drv(reset: Bit, init: bits = T, phase1_ticks: int = 1, phase2_ticks: int = 1):
+async def p_rst(reset: Bit, init=T, phase1: int = 1, phase2: int = 1):
     r"""
     Simulate a reset signal.
 
@@ -24,33 +23,33 @@ async def reset_drv(reset: Bit, init: bits = T, phase1_ticks: int = 1, phase2_ti
     <phase1> <phase2>
 
     Args:
-        phase1_ticks: Number of sim ticks in ...
-        phase2_ticks: Number of sim ticks in ...
+        phase1: Number of sim ticks in ...
+        phase2: Number of sim ticks in ...
 
     Raises:
         ValueError: An argument has the correct type, but an incorrect value
     """
-    if phase1_ticks < 0:
-        raise ValueError(f"Expected phase1_ticks ≥ 0, got {phase1_ticks}")
-    if phase2_ticks < 0:
-        raise ValueError(f"Expected phase2_ticks ≥ 0, got {phase2_ticks}")
+    if phase1 < 0:
+        raise ValueError(f"Expected phase1 ≥ 0, got {phase1}")
+    if phase2 < 0:
+        raise ValueError(f"Expected phase2 ≥ 0, got {phase2}")
 
     # T = 0
     reset.next = init
-    await sleep(phase1_ticks)
+    await sleep(phase1)
 
     reset.next = ~reset.value
-    await sleep(phase2_ticks)
+    await sleep(phase2)
 
     reset.next = ~reset.value
 
 
-async def clock_drv(
+async def p_clk(
     clock: Bit,
-    init: bits = F,
-    shift_ticks: int = 0,
-    phase1_ticks: int = 1,
-    phase2_ticks: int = 1,
+    init=F,
+    shift: int = 0,
+    phase1: int = 1,
+    phase2: int = 1,
 ):
     r"""
     Simulate a clock signal.
@@ -61,40 +60,40 @@ async def clock_drv(
 
     Args:
         init: Initial clock signal value
-        shift_ticks: Number of sim ticks to shift the first clock transition
-        phase1_ticks: Number of sim ticks in the clock's active phase
-        phase2_ticks: Number of sim ticks in the clock's passive phase
+        shift: Number of sim ticks to shift the first clock transition
+        phase1: Number of sim ticks in the clock's active phase
+        phase2: Number of sim ticks in the clock's passive phase
 
-    The period is phase1_ticks + phase2_ticks
-    The duty cycle is phase1_ticks / (phase1_ticks + phase2_ticks)
+    The period is phase1 + phase2
+    The duty cycle is phase1 / (phase1 + phase2)
 
     Raises:
         ValueError: An argument has the correct type, but an incorrect value
     """
-    if shift_ticks < 0:
-        raise ValueError(f"Expected shift_ticks ≥ 0, got {shift_ticks}")
-    if phase1_ticks < 0:
-        raise ValueError(f"Expected phase1_ticks ≥ 0, got {phase1_ticks}")
-    if phase2_ticks < 0:
-        raise ValueError(f"Expected phase2_ticks ≥ 0, got {phase2_ticks}")
+    if shift < 0:
+        raise ValueError(f"Expected shift ≥ 0, got {shift}")
+    if phase1 < 0:
+        raise ValueError(f"Expected phase1 ≥ 0, got {phase1}")
+    if phase2 < 0:
+        raise ValueError(f"Expected phase2 ≥ 0, got {phase2}")
 
     # T = 0
     clock.next = init
-    await sleep(shift_ticks)
+    await sleep(shift)
 
     while True:
         clock.next = ~clock.value
-        await sleep(phase1_ticks)
+        await sleep(phase1)
 
         clock.next = ~clock.value
-        await sleep(phase2_ticks)
+        await sleep(phase2)
 
 
-async def dff_arn_drv(
+async def p_dff(
     q: TraceSingular,
-    d: Callable[[], bits],
+    d,
     reset_n: Bit,
-    reset_value: bits,
+    reset_value,
     clock: Bit,
 ):
     """D Flop Flop with asynchronous, negedge-triggered reset."""

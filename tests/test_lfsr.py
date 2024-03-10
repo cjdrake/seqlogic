@@ -6,7 +6,7 @@ from seqlogic import Bit, Bits, Module, get_loop
 from seqlogic.bits import F, T, X, bits, cat
 from seqlogic.sim import Region
 
-from .common import clock_drv, dff_arn_drv, reset_drv
+from .common import p_clk, p_dff, p_rst
 
 loop = get_loop()
 
@@ -42,14 +42,12 @@ def test_lfsr():
     reset_value = bits("3b100")
 
     # Schedule LFSR
-    loop.add_proc(dff_arn_drv, Region(0), top.q, d, top.reset_n, reset_value, top.clock)
+    loop.add_proc(p_dff, Region(1), top.q, d, top.reset_n, reset_value, top.clock)
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(reset_drv, Region(1), top.reset_n, init=T, phase1_ticks=6, phase2_ticks=10)
-    loop.add_proc(
-        clock_drv, Region(1), top.clock, init=F, shift_ticks=5, phase1_ticks=5, phase2_ticks=5
-    )
+    loop.add_proc(p_rst, Region(2), top.reset_n, init=T, phase1=6, phase2=10)
+    loop.add_proc(p_clk, Region(2), top.clock, init=F, shift=5, phase1=5, phase2=5)
 
     loop.run(until=100)
 

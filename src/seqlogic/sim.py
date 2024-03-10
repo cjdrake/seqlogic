@@ -235,6 +235,10 @@ class Sim:
         """TODO(cjdrake): Write docstring."""
         return self._time
 
+    def region(self) -> Region:
+        """TODO(cjdrake): Write docstring."""
+        return self._region
+
     def task(self) -> Coroutine:
         """TODO(cjdrake): Write docstring."""
         assert self._task is not None

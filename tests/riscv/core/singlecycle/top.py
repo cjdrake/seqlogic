@@ -62,24 +62,22 @@ class Top(Module):
         self.data_memory_bus = DataMemoryBus(name="data_memory_bus", parent=self)
         self.core = Core(name="core", parent=self)
 
-    # input logic clock
     @initial
     async def proc_clock(self):
         """TODO(cjdrake): Write docstring."""
         self.clock.next = bits("1b0")
         await sleep(1)
         while True:
-            self.clock.next = ~(self.clock.next)
+            self.clock.next = ~(self.clock.value)
             await sleep(1)
-            self.clock.next = ~(self.clock.next)
+            self.clock.next = ~(self.clock.value)
             await sleep(1)
 
-    # input logic reset
     @initial
     async def proc_reset(self):
         """TODO(cjdrake): Write docstring."""
         self.reset.next = bits("1b0")
         await sleep(5)
-        self.reset.next = ~(self.reset.next)
+        self.reset.next = ~(self.reset.value)
         await sleep(5)
-        self.reset.next = ~(self.reset.next)
+        self.reset.next = ~(self.reset.value)

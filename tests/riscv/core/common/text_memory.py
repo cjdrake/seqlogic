@@ -26,7 +26,6 @@ class TextMemory(Module):
         # State
         self.mem = Array(name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
 
-    # output logic [31:0] rd_data
     @always_comb
     async def proc_rd_data(self):
         """TODO(cjdrake): Write docstring."""

@@ -14,20 +14,31 @@ def _waves_add(time, var, val):
     waves[time][var] = val
 
 
-class _BoolVar(Singular):
+class Bool(Singular):
     """Variable that supports dumping to memory."""
 
     def __init__(self):
+        """TODO(cjdrake): Write docstring."""
         super().__init__(value=False)
         _waves_add(self._sim.time(), self, self._value)
 
     def update(self):
+        """TODO(cjdrake): Write docstring."""
         if self.dirty():
             _waves_add(self._sim.time(), self, self._next_value)
         super().update()
 
+    def posedge(self) -> bool:
+        """TODO(cjdrake): Write docstring."""
+        return not self._value and self._next_value
+
+    def negedge(self) -> bool:
+        """TODO(cjdrake): Write docstring."""
+        return self._value and not self._next_value
+
     def edge(self) -> bool:
-        return not self._value and self._next_value or self._value and not self._next_value
+        """TODO(cjdrake): Write docstring."""
+        return self.posedge() or self.negedge()
 
 
 HELLO_OUT = """\
@@ -46,7 +57,7 @@ def test_hello(capsys):
         await sleep(2)
         print(f"[{loop.time()}] World")
 
-    loop.add_proc(hello, Region(0))
+    loop.add_proc(hello, Region(2))
 
     # Invalid run limit
     with pytest.raises(TypeError):
@@ -63,51 +74,49 @@ def test_vars_run():
     waves.clear()
     loop.reset()
 
-    a = _BoolVar()
-    b = _BoolVar()
-    c = _BoolVar()
+    clk = Bool()
+    a = Bool()
+    b = Bool()
 
-    async def run_a():
+    async def p_clk():
         while True:
             await sleep(5)
-            a.next = not a.value
+            clk.next = not clk.value
 
-    async def run_b():
+    async def p_a():
         i = 0
         while True:
-            await notify(a.edge)
-            # Dirty next state
+            await notify(clk.edge)
             if i % 2 == 0:
-                b.next = not b.value
-            # Clean next state
+                a.next = not a.value
             else:
-                b.next = b.value
+                a.next = a.value
             i += 1
 
-    async def run_c():
+    async def p_b():
         i = 0
         while True:
-            await notify(a.edge)
+            await notify(clk.edge)
             if i % 3 == 0:
-                c.next = not c.value
+                b.next = not b.value
             i += 1
 
-    loop.add_proc(run_a, Region(1))
-    loop.add_proc(run_b, Region(0))
-    loop.add_proc(run_c, Region(0))
+    loop.add_proc(p_clk, Region(2))
+    loop.add_proc(p_a, Region(1))
+    loop.add_proc(p_b, Region(1))
 
     # Expected sim output
     exp = {
-        -1: {a: False, b: False, c: False},
-        5: {a: True, b: True, c: True},
-        10: {a: False},
-        15: {a: True, b: False},
-        20: {a: False, c: False},
-        25: {a: True, b: True},
-        30: {a: False},
-        35: {a: True, b: False, c: True},
-        40: {a: False},
-        45: {a: True, b: True},
+        -1: {clk: False, a: False, b: False},
+        5: {clk: True, a: True, b: True},
+        10: {clk: False},
+        15: {clk: True, a: False},
+        20: {clk: False, b: False},
+        25: {clk: True, a: True},
+        30: {clk: False},
+        35: {clk: True, a: False, b: True},
+        40: {clk: False},
+        45: {clk: True, a: True},
     }
 
     # Event loop not started yet
@@ -128,51 +137,49 @@ def test_vars_iter():
     waves.clear()
     loop.reset()
 
-    a = _BoolVar()
-    b = _BoolVar()
-    c = _BoolVar()
+    clk = Bool()
+    a = Bool()
+    b = Bool()
 
-    async def run_a():
+    async def p_clk():
         while True:
             await sleep(5)
-            a.next = not a.value
+            clk.next = not clk.value
 
-    async def run_b():
+    async def p_a():
         i = 0
         while True:
-            await notify(a.edge)
-            # Dirty next state
+            await notify(clk.edge)
             if i % 2 == 0:
-                b.next = not b.value
-            # Clean next state
+                a.next = not a.value
             else:
-                b.next = b.value
+                a.next = a.value
             i += 1
 
-    async def run_c():
+    async def p_b():
         i = 0
         while True:
-            await notify(a.edge)
+            await notify(clk.edge)
             if i % 3 == 0:
-                c.next = not c.value
+                b.next = not b.value
             i += 1
 
-    loop.add_proc(run_a, Region(1))
-    loop.add_proc(run_b, Region(0))
-    loop.add_proc(run_c, Region(0))
+    loop.add_proc(p_clk, Region(2))
+    loop.add_proc(p_a, Region(1))
+    loop.add_proc(p_b, Region(1))
 
     # Expected sim output
     exp = {
-        -1: {a: False, b: False, c: False},
-        5: {a: True, b: True, c: True},
-        10: {a: False},
-        15: {a: True, b: False},
-        20: {a: False, c: False},
-        25: {a: True, b: True},
-        30: {a: False},
-        35: {a: True, b: False, c: True},
-        40: {a: False},
-        45: {a: True, b: True},
+        -1: {clk: False, a: False, b: False},
+        5: {clk: True, a: True, b: True},
+        10: {clk: False},
+        15: {clk: True, a: False},
+        20: {clk: False, b: False},
+        25: {clk: True, a: True},
+        30: {clk: False},
+        35: {clk: True, a: False, b: True},
+        40: {clk: False},
+        45: {clk: True, a: True},
     }
 
     for _ in loop.iter(until=50):

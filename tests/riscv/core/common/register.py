@@ -1,14 +1,14 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, notify
-from seqlogic.bits import F, T, bits
+from seqlogic.bits import F, T
 from seqlogic.sim import always_ff
 
 
 class Register(Module):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, name: str, parent: Module | None, width: int, init: bits):
+    def __init__(self, name: str, parent: Module | None, width: int, init):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
