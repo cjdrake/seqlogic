@@ -52,7 +52,7 @@ class Enum(metaclass=_EnumMeta):
     def __init__(self, lit: str):
         """TODO(cjdrake): Write docstring."""
         v = lbool._lit2vec(lit)
-        super().__init__((len(v),), v)
+        super().__init__((len(v),), v.data)
         # Override string representation from base class
         self._name = self.__class__._lit2name[lit]
 

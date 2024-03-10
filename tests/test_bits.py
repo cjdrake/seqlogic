@@ -10,50 +10,50 @@ from seqlogic.bits import F, T, W, X, cat, foo, illogicals, ones, rep, uint2bits
 
 def test_not():
     """Test bits NOT method."""
-    x = foo([W, F, T, X])
-    assert str(~x) == "bits(4bX01?)"
+    b = foo([W, F, T, X])
+    assert str(~b) == "bits(4bX01?)"
 
 
 def test_nor():
     """Test bits NOR method."""
-    x0 = foo("16bXXXX_1111_0000_????")
-    x1 = foo("16bX10?_X10?_X10?_X10?")
-    assert str(x0.lnor(x1)) == "bits(16bX0X?_000?_X01?_????)"
+    b0 = foo("16bXXXX_1111_0000_????")
+    b1 = foo("16bX10?_X10?_X10?_X10?")
+    assert str(b0.lnor(b1)) == "bits(16bX0X?_000?_X01?_????)"
 
 
 def test_or():
     """Test bits OR method."""
-    x0 = foo("16bXXXX_1111_0000_????")
-    x1 = foo("16bX10?_X10?_X10?_X10?")
-    assert str(x0 | x1) == "bits(16bX1X?_111?_X10?_????)"
+    b0 = foo("16bXXXX_1111_0000_????")
+    b1 = foo("16bX10?_X10?_X10?_X10?")
+    assert str(b0 | b1) == "bits(16bX1X?_111?_X10?_????)"
 
 
 def test_nand():
     """Test bits NAND method."""
-    x0 = foo("16bXXXX_1111_0000_????")
-    x1 = foo("16bX10?_X10?_X10?_X10?")
-    assert str(x0.lnand(x1)) == "bits(16bXX1?_X01?_111?_????)"
+    b0 = foo("16bXXXX_1111_0000_????")
+    b1 = foo("16bX10?_X10?_X10?_X10?")
+    assert str(b0.lnand(b1)) == "bits(16bXX1?_X01?_111?_????)"
 
 
 def test_and():
     """Test bits AND method."""
-    x0 = foo("16bXXXX_1111_0000_????")
-    x1 = foo("16bX10?_X10?_X10?_X10?")
-    assert str(x0 & x1) == "bits(16bXX0?_X10?_000?_????)"
+    b0 = foo("16bXXXX_1111_0000_????")
+    b1 = foo("16bX10?_X10?_X10?_X10?")
+    assert str(b0 & b1) == "bits(16bXX0?_X10?_000?_????)"
 
 
 def test_xnor():
     """Test bits XNOR method."""
-    x0 = foo("16bXXXX_1111_0000_????")
-    x1 = foo("16bX10?_X10?_X10?_X10?")
-    assert str(x0.lxnor(x1)) == "bits(16bXXX?_X10?_X01?_????)"
+    b0 = foo("16bXXXX_1111_0000_????")
+    b1 = foo("16bX10?_X10?_X10?_X10?")
+    assert str(b0.lxnor(b1)) == "bits(16bXXX?_X10?_X01?_????)"
 
 
 def test_xor():
     """Test bits XOR method."""
-    x0 = foo("16bXXXX_1111_0000_????")
-    x1 = foo("16bX10?_X10?_X10?_X10?")
-    assert str(x0 ^ x1) == "bits(16bXXX?_X01?_X10?_????)"
+    b0 = foo("16bXXXX_1111_0000_????")
+    b1 = foo("16bX10?_X10?_X10?_X10?")
+    assert str(b0 ^ b1) == "bits(16bXXX?_X01?_X10?_????)"
 
 
 def test_uor():
@@ -133,66 +133,66 @@ def test_sext():
 
 def test_lsh():
     """Test bits lsh method."""
-    v = foo("4b1111")
-    assert v.lsh(0) == (foo("4b1111"), foo())
-    assert v.lsh(1) == (foo("4b1110"), foo("1b1"))
-    assert v.lsh(2) == (foo("4b1100"), foo("2b11"))
-    assert v << 2 == foo("4b1100")
-    assert v.lsh(3) == (foo("4b1000"), foo("3b111"))
-    assert v.lsh(4) == (foo("4b0000"), foo("4b1111"))
+    b = foo("4b1111")
+    assert b.lsh(0) == (foo("4b1111"), foo())
+    assert b.lsh(1) == (foo("4b1110"), foo("1b1"))
+    assert b.lsh(2) == (foo("4b1100"), foo("2b11"))
+    assert b << 2 == foo("4b1100")
+    assert b.lsh(3) == (foo("4b1000"), foo("3b111"))
+    assert b.lsh(4) == (foo("4b0000"), foo("4b1111"))
     with pytest.raises(ValueError):
-        v.lsh(-1)
+        b.lsh(-1)
     with pytest.raises(ValueError):
-        v.lsh(5)
+        b.lsh(5)
 
-    assert v.lsh(2, foo("2b00")) == (foo("4b1100"), foo("2b11"))
+    assert b.lsh(2, foo("2b00")) == (foo("4b1100"), foo("2b11"))
     with pytest.raises(ValueError):
-        assert v.lsh(2, foo("3b000"))  # pyright: ignore[reportAssertAlwaysTrue]
+        assert b.lsh(2, foo("3b000"))  # pyright: ignore[reportAssertAlwaysTrue]
 
     assert foo(["4b0000", "4b1111"]).lsh(2) == (foo("8b1100_0000"), foo("2b11"))
 
 
 def test_rsh():
     """Test bits rsh method."""
-    v = foo("4b1111")
-    assert v.rsh(0) == (foo("4b1111"), foo())
-    assert v.rsh(1) == (foo("4b0111"), foo("1b1"))
-    assert v.rsh(2) == (foo("4b0011"), foo("2b11"))
-    assert v >> 2 == foo("4b0011")
-    assert v.rsh(3) == (foo("4b0001"), foo("3b111"))
-    assert v.rsh(4) == (foo("4b0000"), foo("4b1111"))
+    b = foo("4b1111")
+    assert b.rsh(0) == (foo("4b1111"), foo())
+    assert b.rsh(1) == (foo("4b0111"), foo("1b1"))
+    assert b.rsh(2) == (foo("4b0011"), foo("2b11"))
+    assert b >> 2 == foo("4b0011")
+    assert b.rsh(3) == (foo("4b0001"), foo("3b111"))
+    assert b.rsh(4) == (foo("4b0000"), foo("4b1111"))
     with pytest.raises(ValueError):
-        v.rsh(-1)
+        b.rsh(-1)
     with pytest.raises(ValueError):
-        v.rsh(5)
+        b.rsh(5)
 
-    assert v.rsh(2, foo("2b00")) == (foo("4b0011"), foo("2b11"))
+    assert b.rsh(2, foo("2b00")) == (foo("4b0011"), foo("2b11"))
     with pytest.raises(ValueError):
-        assert v.rsh(2, foo("3b000"))  # pyright: ignore[reportAssertAlwaysTrue]
+        assert b.rsh(2, foo("3b000"))  # pyright: ignore[reportAssertAlwaysTrue]
 
     assert foo(["4b0000", "4b1111"]).rsh(2) == (foo("8b0011_1100"), foo("2b00"))
 
 
 def test_arsh():
     """Test bits arsh method."""
-    v = foo("4b1111")
-    assert v.arsh(0) == (foo("4b1111"), foo())
-    assert v.arsh(1) == (foo("4b1111"), foo("1b1"))
-    assert v.arsh(2) == (foo("4b1111"), foo("2b11"))
-    assert v.arsh(3) == (foo("4b1111"), foo("3b111"))
-    assert v.arsh(4) == (foo("4b1111"), foo("4b1111"))
+    b = foo("4b1111")
+    assert b.arsh(0) == (foo("4b1111"), foo())
+    assert b.arsh(1) == (foo("4b1111"), foo("1b1"))
+    assert b.arsh(2) == (foo("4b1111"), foo("2b11"))
+    assert b.arsh(3) == (foo("4b1111"), foo("3b111"))
+    assert b.arsh(4) == (foo("4b1111"), foo("4b1111"))
 
-    v = foo("4b0111")
-    assert v.arsh(0) == (foo("4b0111"), foo())
-    assert v.arsh(1) == (foo("4b0011"), foo("1b1"))
-    assert v.arsh(2) == (foo("4b0001"), foo("2b11"))
-    assert v.arsh(3) == (foo("4b0000"), foo("3b111"))
-    assert v.arsh(4) == (foo("4b0000"), foo("4b0111"))
+    b = foo("4b0111")
+    assert b.arsh(0) == (foo("4b0111"), foo())
+    assert b.arsh(1) == (foo("4b0011"), foo("1b1"))
+    assert b.arsh(2) == (foo("4b0001"), foo("2b11"))
+    assert b.arsh(3) == (foo("4b0000"), foo("3b111"))
+    assert b.arsh(4) == (foo("4b0000"), foo("4b0111"))
 
     with pytest.raises(ValueError):
-        v.arsh(-1)
+        b.arsh(-1)
     with pytest.raises(ValueError):
-        v.arsh(5)
+        b.arsh(5)
 
     assert foo(["4b0000", "4b1111"]).arsh(2) == (foo("8b1111_1100"), foo("2b00"))
 
@@ -292,20 +292,20 @@ def test_operand_shape_mismatch():
     We could implement something like Verilog's loose typing, but for the time
     being just treat this as illegal.
     """
-    x0 = foo("4b1010")
-    x1 = foo("8b0101_0101")
+    b0 = foo("4b1010")
+    b1 = foo("8b0101_0101")
     with pytest.raises(ValueError):
-        x0.lnor(x1)
+        b0.lnor(b1)
     with pytest.raises(ValueError):
-        x0 | x1  # pyright: ignore[reportUnusedExpression]
+        b0 | b1  # pyright: ignore[reportUnusedExpression]
     with pytest.raises(ValueError):
-        x0.lnand(x1)
+        b0.lnand(b1)
     with pytest.raises(ValueError):
-        x0 & x1  # pyright: ignore[reportUnusedExpression]
+        b0 & b1  # pyright: ignore[reportUnusedExpression]
     with pytest.raises(ValueError):
-        x0.lxnor(x1)
+        b0.lxnor(b1)
     with pytest.raises(ValueError):
-        x0 ^ x1  # pyright: ignore[reportUnusedExpression]
+        b0 ^ b1  # pyright: ignore[reportUnusedExpression]
 
 
 def test_parse_str_literal():
@@ -325,12 +325,12 @@ def test_parse_str_literal():
         foo("invalid")
 
     # Valid input
-    v = foo("4bX1_0?")
-    assert v._w.data == 0b11_10_01_00
-    v = foo("64hFeDc_Ba98_7654_3210")
-    assert v._w.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
-    v = foo("64hfEdC_bA98_7654_3210")
-    assert v._w.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
+    b = foo("4bX1_0?")
+    assert b._v.data == 0b11_10_01_00
+    b = foo("64hFeDc_Ba98_7654_3210")
+    assert b._v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
+    b = foo("64hfEdC_bA98_7654_3210")
+    assert b._v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
 
 
 def test_uint2vec():
@@ -364,137 +364,137 @@ def test_uint2vec():
 
 def test_empty():
     """Test empty vector."""
-    v = foo()
+    b = foo()
 
     # Test properties
-    assert v.shape == (0,)
-    assert v._w.data == 0
-    assert v.ndim == 1
-    assert v.size == 0
-    assert v._w.nbits == 0
-    assert list(v.flat) == []  # pylint: disable = use-implicit-booleaness-not-comparison
+    assert b.shape == (0,)
+    assert b._v.data == 0
+    assert b.ndim == 1
+    assert b.size == 0
+    assert b._v.nbits == 0
+    assert list(b.flat) == []  # pylint: disable = use-implicit-booleaness-not-comparison
 
-    assert v.flatten() == v
+    assert b.flatten() == b
 
     # Test __str__ and __repr__
-    assert str(v) == "bits([])"
-    assert repr(v) == "bits((0,), 0b0)"
+    assert str(b) == "bits([])"
+    assert repr(b) == "bits((0,), 0b0)"
 
     # Test __len__
-    assert len(v) == 0
+    assert len(b) == 0
 
     # Test __iter__
-    assert list(v) == []  # pylint: disable = use-implicit-booleaness-not-comparison
+    assert list(b) == []  # pylint: disable = use-implicit-booleaness-not-comparison
 
     # Test __getitem__
     with pytest.raises(IndexError):
-        _ = v[0]
+        _ = b[0]
 
     # Test __eq__
-    assert v == foo()
-    assert v == v.reshape((0,))
-    assert v != foo(0)
+    assert b == foo()
+    assert b == b.reshape((0,))
+    assert b != foo(0)
 
     # Test to_uint, to_int
-    assert v.to_uint() == 0
-    assert v.to_int() == 0
+    assert b.to_uint() == 0
+    assert b.to_int() == 0
 
 
 def test_scalar():
     """Test scalar (vector w/ one element)."""
-    vn = W
-    v0 = foo(0)
-    v1 = foo(1)
-    vx = X
+    bn = W
+    b0 = foo(0)
+    b1 = foo(1)
+    bx = X
 
     # Test properties
-    assert v0.shape == (1,)
-    assert v0._w.data == 0b01
-    assert v0.ndim == 1
-    assert v0.size == 1
-    assert v0._w.nbits == 2
-    assert list(v0.flat) == [F]
+    assert b0.shape == (1,)
+    assert b0._v.data == 0b01
+    assert b0.ndim == 1
+    assert b0.size == 1
+    assert b0._v.nbits == 2
+    assert list(b0.flat) == [F]
 
-    assert v0.flatten() == v0
+    assert b0.flatten() == b0
 
     # Test __str__
-    assert str(vn) == "bits([?])"
-    assert str(v0) == "bits([0])"
-    assert str(v1) == "bits([1])"
-    assert str(vx) == "bits([X])"
+    assert str(bn) == "bits([?])"
+    assert str(b0) == "bits([0])"
+    assert str(b1) == "bits([1])"
+    assert str(bx) == "bits([X])"
 
     # Test __repr__
-    assert repr(vn) == "bits((1,), 0b00)"
-    assert repr(v0) == "bits((1,), 0b01)"
-    assert repr(v1) == "bits((1,), 0b10)"
-    assert repr(vx) == "bits((1,), 0b11)"
+    assert repr(bn) == "bits((1,), 0b00)"
+    assert repr(b0) == "bits((1,), 0b01)"
+    assert repr(b1) == "bits((1,), 0b10)"
+    assert repr(bx) == "bits((1,), 0b11)"
 
     # Test __len__
-    assert len(v0) == 1
+    assert len(b0) == 1
 
     # Test __iter__
-    assert list(v0) == [F]
+    assert list(b0) == [F]
 
     # Test __getitem__
-    assert v0[0] == F
+    assert b0[0] == F
 
     # Test __eq__
-    assert v0 == foo(0)
-    assert v0 == v0.reshape((1,))
-    assert v0 != foo()
-    assert v0 != foo(1)
+    assert b0 == foo(0)
+    assert b0 == b0.reshape((1,))
+    assert b0 != foo()
+    assert b0 != foo(1)
 
     # Test to_uint, to_int
     with pytest.raises(ValueError):
-        assert vn.to_uint()
-    assert v0.to_uint() == 0
-    assert v0.to_int() == 0
-    assert v1.to_uint() == 1
-    assert v1.to_int() == -1
+        assert bn.to_uint()
+    assert b0.to_uint() == 0
+    assert b0.to_int() == 0
+    assert b1.to_uint() == 1
+    assert b1.to_int() == -1
     with pytest.raises(ValueError):
-        assert vx.to_uint()
+        assert bx.to_uint()
 
 
 def test_rank1_str():
     """Test bits rank1 string input."""
-    v = foo("8bX10?_X10?")
+    b = foo("8bX10?_X10?")
     data = 0b11100100_11100100
     xs = [W, F, T, X] * 2
 
     # Test properties
-    assert v.shape == (8,)
-    assert v._w.data == data
-    assert v.ndim == 1
-    assert v.size == 8
-    assert v._w.nbits == 16
-    assert list(v.flat) == xs
+    assert b.shape == (8,)
+    assert b._v.data == data
+    assert b.ndim == 1
+    assert b.size == 8
+    assert b._v.nbits == 16
+    assert list(b.flat) == xs
 
-    assert v.flatten() == v
+    assert b.flatten() == b
 
     # Test __str__ and __repr__
-    assert str(v) == "bits(8bX10?_X10?)"
-    assert repr(v) == "bits((8,), 0b1110_0100_1110_0100)"
+    assert str(b) == "bits(8bX10?_X10?)"
+    assert repr(b) == "bits((8,), 0b1110_0100_1110_0100)"
 
     # Test __len__
-    assert len(v) == 8
+    assert len(b) == 8
 
     # Test __iter__
-    assert list(v) == xs
+    assert list(b) == xs
 
     # Test __getitem__
-    assert v[0] == W
-    assert v[1] == F
-    assert v[6] == T
-    assert v[7] == X
+    assert b[0] == W
+    assert b[1] == F
+    assert b[6] == T
+    assert b[7] == X
 
     # Test __eq__
-    assert v == foo("8bX10?_X10?")
+    assert b == foo("8bX10?_X10?")
     # Same data, different shape
-    assert v != v.reshape((2, 4))
+    assert b != b.reshape((2, 4))
     with pytest.raises(ValueError):
-        v.reshape((42,))
+        b.reshape((42,))
     # Different data, same shape
-    assert v != foo("8b0000_0000")
+    assert b != foo("8b0000_0000")
 
     # Test to_uint
     assert foo("16b1101_1110_1010_1101").to_uint() == 0xDEAD
@@ -513,48 +513,48 @@ def test_rank1_str():
 def test_rank1_logic():
     """Test foo function w/ rank1 logic input."""
     xs = [W, F, T, X]
-    v1 = foo("4bX10?")
-    v2 = foo([0, 1, 0, 1])
+    b1 = foo("4bX10?")
+    b2 = foo([0, 1, 0, 1])
 
     # Test properties
-    assert v1.shape == (4,)
-    assert v1._w.data == 0b11100100
-    assert v1.ndim == 1
-    assert v1.size == 4
-    assert v1._w.nbits == 8
-    assert list(v1.flat) == xs
+    assert b1.shape == (4,)
+    assert b1._v.data == 0b11100100
+    assert b1.ndim == 1
+    assert b1.size == 4
+    assert b1._v.nbits == 8
+    assert list(b1.flat) == xs
 
     # Test __str__
-    assert str(v1) == "bits(4bX10?)"
-    assert str(v2) == "bits(4b1010)"
+    assert str(b1) == "bits(4bX10?)"
+    assert str(b2) == "bits(4b1010)"
 
     # Test __repr__
-    assert repr(v1) == "bits((4,), 0b1110_0100)"
-    assert repr(v2) == "bits((4,), 0b1001_1001)"
+    assert repr(b1) == "bits((4,), 0b1110_0100)"
+    assert repr(b2) == "bits((4,), 0b1001_1001)"
 
 
 def test_rank2_str():
     """Test foo function w/ rank2 str input."""
-    v = foo(["4bX10?", "4bX10?"])
+    b = foo(["4bX10?", "4bX10?"])
 
-    assert v.flatten() == foo("8bX10?_X10?")
+    assert b.flatten() == foo("8bX10?_X10?")
 
     # Test __str__
-    assert str(v) == "bits([4bX10?, 4bX10?])"
+    assert str(b) == "bits([4bX10?, 4bX10?])"
 
     # Test __repr__
-    assert repr(v) == "bits((2, 4), 0b1110_0100_1110_0100)"
+    assert repr(b) == "bits((2, 4), 0b1110_0100_1110_0100)"
 
 
 def test_rank2_vec():
     """Test foo function w/ rank2 bits input."""
-    v = foo([foo("4bX10?"), foo("4bX10?")])
+    b = foo([foo("4bX10?"), foo("4bX10?")])
 
     # Test __str__
-    assert str(v) == "bits([4bX10?, 4bX10?])"
+    assert str(b) == "bits([4bX10?, 4bX10?])"
 
     # Test __repr__
-    assert repr(v) == "bits((2, 4), 0b1110_0100_1110_0100)"
+    assert repr(b) == "bits((2, 4), 0b1110_0100_1110_0100)"
 
 
 def test_rank2_errors():
@@ -574,20 +574,20 @@ bits([[4bX10?, 4bX10?],
 
 def test_rank3_vec():
     """Test foo function w/ rank3 input."""
-    v = foo(
+    b = foo(
         [
             [foo("4bX10?"), foo("4bX10?")],
             [foo("4bX10?"), foo("4bX10?")],
         ]
     )
 
-    assert v.flatten() == foo("16bX10?_X10?_X10?_X10?")
+    assert b.flatten() == foo("16bX10?_X10?_X10?_X10?")
 
     # Test __str__
-    assert str(v) == R3VEC
+    assert str(b) == R3VEC
 
     # Test __repr__
-    assert repr(v) == "bits((2, 2, 4), 0b1110_0100_1110_0100_1110_0100_1110_0100)"
+    assert repr(b) == "bits((2, 2, 4), 0b1110_0100_1110_0100_1110_0100_1110_0100)"
 
 
 R4VEC = """\
@@ -600,7 +600,7 @@ bits([[[4bX10?, 4bX10?],
 
 def test_rank4_vec():
     """Test foo function w/ rank4 input."""
-    v = foo(
+    b = foo(
         [
             [[foo("4bX10?"), foo("4bX10?")], [foo("4bX10?"), foo("4bX10?")]],
             [[foo("4bX10?"), foo("4bX10?")], [foo("4bX10?"), foo("4bX10?")]],
@@ -608,10 +608,10 @@ def test_rank4_vec():
     )
 
     # Test __str__
-    assert str(v) == R4VEC
+    assert str(b) == R4VEC
 
     # Test __repr__
-    assert repr(v) == (
+    assert repr(b) == (
         "bits("
         "(2, 2, 2, 4), "
         "0b1110_0100_1110_0100_1110_0100_1110_0100_1110_0100_1110_0100_1110_0100_1110_0100"
@@ -633,18 +633,18 @@ def test_cat():
     with pytest.raises(TypeError):
         cat(["invalid"])  # pyright: ignore[reportArgumentType]
 
-    v = cat([foo("2b00"), foo("2b01"), foo("2b10"), foo("2b11")], flatten=True)
-    assert v == foo("8b11100100")
-    assert v.shape == (8,)
+    b = cat([foo("2b00"), foo("2b01"), foo("2b10"), foo("2b11")], flatten=True)
+    assert b == foo("8b11100100")
+    assert b.shape == (8,)
 
-    v = cat([foo("2b00"), foo("2b01"), foo("2b10"), foo("2b11")], flatten=False)
-    assert v.shape == (4, 2)
+    b = cat([foo("2b00"), foo("2b01"), foo("2b10"), foo("2b11")], flatten=False)
+    assert b.shape == (4, 2)
 
-    v = cat([foo("1b0"), foo("2b01"), foo("1b1"), foo("2b11")], flatten=True)
-    assert v.shape == (6,)
+    b = cat([foo("1b0"), foo("2b01"), foo("1b1"), foo("2b11")], flatten=True)
+    assert b.shape == (6,)
 
-    v = cat([foo("1b0"), foo("2b01"), foo("1b1"), foo("2b11")], flatten=False)
-    assert v.shape == (6,)
+    b = cat([foo("1b0"), foo("2b01"), foo("1b1"), foo("2b11")], flatten=False)
+    assert b.shape == (6,)
 
     # Incompatible shapes
     with pytest.raises(ValueError):
@@ -653,12 +653,12 @@ def test_cat():
 
 def test_rep():
     """Test foo rep function."""
-    v = rep(foo("2b00"), 4, flatten=True)
-    assert v == foo("8b0000_0000")
-    assert v.shape == (8,)
+    b = rep(foo("2b00"), 4, flatten=True)
+    assert b == foo("8b0000_0000")
+    assert b.shape == (8,)
 
-    v = rep(foo("2b00"), 4, flatten=False)
-    assert v.shape == (4, 2)
+    b = rep(foo("2b00"), 4, flatten=False)
+    assert b.shape == (4, 2)
 
 
 def test_consts():
@@ -671,7 +671,7 @@ def test_consts():
 
 def test_slicing():
     """Test bits slicing behavior."""
-    v = foo(
+    b = foo(
         [
             [foo("4b0000"), foo("4b0001"), foo("4b0010"), foo("4b0011")],
             [foo("4b0100"), foo("4b0101"), foo("4b0110"), foo("4b0111")],
@@ -680,90 +680,90 @@ def test_slicing():
         ]
     )
 
-    assert v.shape == (4, 4, 4)
+    assert b.shape == (4, 4, 4)
 
     with pytest.raises(IndexError):
-        v[-5]
+        b[-5]
     with pytest.raises(TypeError):
-        v["invalid"]  # pyright: ignore[reportArgumentType]
+        b["invalid"]  # pyright: ignore[reportArgumentType]
 
-    assert v == v[:]
-    assert v == v[0:4]
-    assert v == v[-4:]
-    assert v == v[-5:]
-    assert v == v[:, :]
-    assert v == v[:, :, :]
+    assert b == b[:]
+    assert b == b[0:4]
+    assert b == b[-4:]
+    assert b == b[-5:]
+    assert b == b[:, :]
+    assert b == b[:, :, :]
 
-    assert v[0] == v[0, :]
-    assert v[0] == v[0, 0:4]
-    assert v[0] == v[0, -4:]
-    assert v[0] == v[0, -5:]
-    assert v[0] == v[0, :, :]
+    assert b[0] == b[0, :]
+    assert b[0] == b[0, 0:4]
+    assert b[0] == b[0, -4:]
+    assert b[0] == b[0, -5:]
+    assert b[0] == b[0, :, :]
 
-    assert v[0] == foo([foo("4b0000"), foo("4b0001"), foo("4b0010"), foo("4b0011")])
-    assert v[1] == foo([foo("4b0100"), foo("4b0101"), foo("4b0110"), foo("4b0111")])
-    assert v[2] == foo([foo("4b1000"), foo("4b1001"), foo("4b1010"), foo("4b1011")])
-    assert v[3] == foo([foo("4b1100"), foo("4b1101"), foo("4b1110"), foo("4b1111")])
+    assert b[0] == foo([foo("4b0000"), foo("4b0001"), foo("4b0010"), foo("4b0011")])
+    assert b[1] == foo([foo("4b0100"), foo("4b0101"), foo("4b0110"), foo("4b0111")])
+    assert b[2] == foo([foo("4b1000"), foo("4b1001"), foo("4b1010"), foo("4b1011")])
+    assert b[3] == foo([foo("4b1100"), foo("4b1101"), foo("4b1110"), foo("4b1111")])
 
-    assert v[0, 0] == v[0, 0, :]
-    assert v[0, 0] == v[0, 0, 0:4]
-    assert v[0, 0] == v[0, 0, -4:]
-    assert v[0, 0] == v[0, 0, -5:]
+    assert b[0, 0] == b[0, 0, :]
+    assert b[0, 0] == b[0, 0, 0:4]
+    assert b[0, 0] == b[0, 0, -4:]
+    assert b[0, 0] == b[0, 0, -5:]
 
-    assert v[0, 0] == foo("4b0000")
-    assert v[1, 1] == foo("4b0101")
-    assert v[2, 2] == foo("4b1010")
-    assert v[3, 3] == foo("4b1111")
+    assert b[0, 0] == foo("4b0000")
+    assert b[1, 1] == foo("4b0101")
+    assert b[2, 2] == foo("4b1010")
+    assert b[3, 3] == foo("4b1111")
 
-    assert v[0, :, 0] == foo("4b1010")
-    assert v[1, :, 1] == foo("4b1100")
-    assert v[2, :, 2] == foo("4b0000")
-    assert v[3, :, 3] == foo("4b1111")
+    assert b[0, :, 0] == foo("4b1010")
+    assert b[1, :, 1] == foo("4b1100")
+    assert b[2, :, 2] == foo("4b0000")
+    assert b[3, :, 3] == foo("4b1111")
 
-    assert v[0, 0, :-1] == foo("3b000")
-    assert v[0, 0, :-2] == foo("2b00")
-    assert v[0, 0, :-3] == foo("1b0")
-    assert v[0, 0, :-4] == foo()
+    assert b[0, 0, :-1] == foo("3b000")
+    assert b[0, 0, :-2] == foo("2b00")
+    assert b[0, 0, :-3] == foo("1b0")
+    assert b[0, 0, :-4] == foo()
 
-    assert v[0, 0, 0] == F
-    assert v[0, foo("2b00"), 0] == F
-    assert v[-4, -4, -4] == F
-    assert v[3, 3, 3] == T
-    assert v[3, foo("2b11"), 3] == T
-    assert v[-1, -1, -1] == T
+    assert b[0, 0, 0] == F
+    assert b[0, foo("2b00"), 0] == F
+    assert b[-4, -4, -4] == F
+    assert b[3, 3, 3] == T
+    assert b[3, foo("2b11"), 3] == T
+    assert b[-1, -1, -1] == T
 
     with pytest.raises(ValueError):
-        v[0, 0, 0, 0]
+        b[0, 0, 0, 0]
     with pytest.raises(TypeError):
-        v["invalid"]  # pyright: ignore[reportArgumentType]
+        b["invalid"]  # pyright: ignore[reportArgumentType]
 
 
 def test_countbits():
     """Test bits countbits methods."""
-    v = foo("8bX10?_X10?")
-    assert v._w.count_illogicals() == 2
-    assert v._w.count_zeros() == 2
-    assert v._w.count_ones() == 2
-    assert v._w.count_unknowns() == 2
+    b = foo("8bX10?_X10?")
+    assert b._v.count_illogicals() == 2
+    assert b._v.count_zeros() == 2
+    assert b._v.count_ones() == 2
+    assert b._v.count_unknowns() == 2
 
-    assert foo("4b0000")._w.count_ones() == 0
-    assert foo("4b0001")._w.count_ones() == 1
-    assert foo("4b0011")._w.count_ones() == 2
-    assert foo("4b0111")._w.count_ones() == 3
-    assert foo("4b1111")._w.count_ones() == 4
+    assert foo("4b0000")._v.count_ones() == 0
+    assert foo("4b0001")._v.count_ones() == 1
+    assert foo("4b0011")._v.count_ones() == 2
+    assert foo("4b0111")._v.count_ones() == 3
+    assert foo("4b1111")._v.count_ones() == 4
 
-    assert not foo("4b0000")._w.onehot()
-    assert foo("4b1000")._w.onehot()
-    assert foo("4b0001")._w.onehot()
-    assert not foo("4b1001")._w.onehot()
-    assert not foo("4b1101")._w.onehot()
+    assert not foo("4b0000")._v.onehot()
+    assert foo("4b1000")._v.onehot()
+    assert foo("4b0001")._v.onehot()
+    assert not foo("4b1001")._v.onehot()
+    assert not foo("4b1101")._v.onehot()
 
-    assert foo("4b0000")._w.onehot0()
-    assert foo("4b1000")._w.onehot0()
-    assert not foo("4b1010")._w.onehot0()
-    assert not foo("4b1011")._w.onehot0()
+    assert foo("4b0000")._v.onehot0()
+    assert foo("4b1000")._v.onehot0()
+    assert not foo("4b1010")._v.onehot0()
+    assert not foo("4b1011")._v.onehot0()
 
-    assert not foo("4b0000")._w.has_unknown()
-    assert not foo("4b1111")._w.has_unknown()
-    assert foo("4b0X01")._w.has_unknown()
-    assert foo("4b01?1")._w.has_illogical()
+    assert not foo("4b0000")._v.has_unknown()
+    assert not foo("4b1111")._v.has_unknown()
+    assert foo("4b0X01")._v.has_unknown()
+    assert foo("4b01?1")._v.has_illogical()

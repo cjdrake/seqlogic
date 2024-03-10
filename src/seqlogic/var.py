@@ -17,10 +17,10 @@ _item2char = {
 }
 
 
-def _bits2vcd(v: bits) -> VarValue:
+def _bits2vcd(b: bits) -> VarValue:
     """Convert bit array to VCD value."""
     # pylint: disable = protected-access
-    return "".join(_item2char[v._w._get_item(i)] for i in range(v._w._n - 1, -1, -1))
+    return "".join(_item2char[b._v._get_item(i)] for i in range(b._v._n - 1, -1, -1))
 
 
 class TraceSingular(Variable, sim.Singular):
