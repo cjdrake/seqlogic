@@ -20,6 +20,86 @@ class DataPath(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        # Processes
+        self.connect(self.data_mem_addr, self.alu_result)
+        self.connect(self.data_mem_wr_data, self.rs2_data)
+
+        self.connect(self.pc_plus_4, self.adder_pc_plus_4.result)
+        # .op_a(32'h0000_0004)
+        self.connect(self.adder_pc_plus_4.op_b, self.pc)
+
+        self.connect(self.pc_plus_immediate, self.adder_pc_plus_immediate.result)
+        self.connect(self.adder_pc_plus_immediate.op_a, self.pc)
+        self.connect(self.adder_pc_plus_immediate.op_b, self.immediate)
+
+        self.connect(self.alu_result, self.alu.result)
+        self.connect(self.alu_result_equal_zero, self.alu.result_equal_zero)
+        self.connect(self.alu.alu_function, self.alu_function)
+        self.connect(self.alu.op_a, self.alu_op_a)
+        self.connect(self.alu.op_b, self.alu_op_b)
+
+        self.connect(self.pc_next, self.mux_next_pc.out)
+        self.connect(self.mux_next_pc.sel, self.next_pc_sel)
+        self.connect(self.mux_next_pc.ins[0], self.pc_plus_4)
+        self.connect(self.mux_next_pc.ins[1], self.pc_plus_immediate)
+        # .in2 ({alu_result[32-1:1], 1'b0})
+        # .in3 (32'h0000_0000)
+
+        self.connect(self.alu_op_a, self.mux_op_a.out)
+        self.connect(self.mux_op_a.sel, self.alu_op_a_sel)
+        self.connect(self.mux_op_a.ins[0], self.rs1_data)
+        self.connect(self.mux_op_a.ins[1], self.pc)
+
+        self.connect(self.alu_op_b, self.mux_op_b.out)
+        self.connect(self.mux_op_b.sel, self.alu_op_b_sel)
+        self.connect(self.mux_op_b.ins[0], self.rs2_data)
+        self.connect(self.mux_op_b.ins[1], self.immediate)
+
+        self.connect(self.wr_data, self.mux_reg_writeback.out)
+        self.connect(self.mux_reg_writeback.sel, self.reg_writeback_sel)
+        self.connect(self.mux_reg_writeback.ins[0], self.alu_result)
+        self.connect(self.mux_reg_writeback.ins[1], self.data_mem_rd_data)
+        self.connect(self.mux_reg_writeback.ins[2], self.pc_plus_4)
+        self.connect(self.mux_reg_writeback.ins[3], self.immediate)
+        # .in4(32'h0000_0000)
+        # .in5(32'h0000_0000)
+        # .in6(32'h0000_0000)
+        # .in7(32'h0000_0000)
+
+        self.connect(self.instruction_decoder.inst, self.inst)
+        self.connect(self.inst_funct7, self.instruction_decoder.inst_funct7)
+        self.connect(self.inst_rs2, self.instruction_decoder.inst_rs2)
+        self.connect(self.inst_rs1, self.instruction_decoder.inst_rs1)
+        self.connect(self.inst_funct3, self.instruction_decoder.inst_funct3)
+        self.connect(self.inst_rd, self.instruction_decoder.inst_rd)
+        self.connect(self.inst_opcode, self.instruction_decoder.inst_opcode)
+
+        self.connect(self.immediate, self.immediate_generator.immediate)
+        self.connect(self.immediate_generator.inst, self.inst)
+
+        self.connect(self.pc, self.program_counter.q)
+        self.connect(self.program_counter.en, self.pc_wr_en)
+        self.connect(self.program_counter.d, self.pc_next)
+        self.connect(self.program_counter.clock, self.clock)
+        self.connect(self.program_counter.reset, self.reset)
+
+        self.connect(self.regfile.wr_en, self.regfile_wr_en)
+        self.connect(self.regfile.wr_addr, self.inst_rd)
+        self.connect(self.regfile.wr_data, self.wr_data)
+        self.connect(self.regfile.rs1_addr, self.inst_rs1)
+        self.connect(self.rs1_data, self.regfile.rs1_data)
+        self.connect(self.regfile.rs2_addr, self.inst_rs2)
+        self.connect(self.rs2_data, self.regfile.rs2_data)
+        self.connect(self.regfile.clock, self.clock)
+
+        # Processes
+        self._procs.add((self.proc_init, TASK))
+        self._procs.add((self.proc_mux, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         self.data_mem_addr = Bits(name="data_mem_addr", parent=self, shape=(32,))
         self.data_mem_wr_data = Bits(name="data_mem_wr_data", parent=self, shape=(32,))
         self.data_mem_rd_data = Bits(name="data_mem_rd_data", parent=self, shape=(32,))
@@ -74,94 +154,19 @@ class DataPath(Module):
         self.rs1_data = Bits(name="rs1_data", parent=self, shape=(32,))
         self.rs2_data = Bits(name="rs2_data", parent=self, shape=(32,))
 
-        self.connect(self.data_mem_addr, self.alu_result)
-        self.connect(self.data_mem_wr_data, self.rs2_data)
-
         # Submodules
         self.adder_pc_plus_4 = Adder(name="adder_pc_plus_4", parent=self, width=32)
-        self.connect(self.pc_plus_4, self.adder_pc_plus_4.result)
-        # .op_a(32'h0000_0004)
-        self.connect(self.adder_pc_plus_4.op_b, self.pc)
-
         self.adder_pc_plus_immediate = Adder(name="adder_pc_plus_immediate", parent=self, width=32)
-        self.connect(self.pc_plus_immediate, self.adder_pc_plus_immediate.result)
-        self.connect(self.adder_pc_plus_immediate.op_a, self.pc)
-        self.connect(self.adder_pc_plus_immediate.op_b, self.immediate)
-
         self.alu = Alu(name="alu", parent=self)
-        self.connect(self.alu_result, self.alu.result)
-        self.connect(self.alu_result_equal_zero, self.alu.result_equal_zero)
-        self.connect(self.alu.alu_function, self.alu_function)
-        self.connect(self.alu.op_a, self.alu_op_a)
-        self.connect(self.alu.op_b, self.alu_op_b)
-
         self.mux_next_pc = Mux(name="mux_next_pc", parent=self, n=4, width=32)
-        self.connect(self.pc_next, self.mux_next_pc.out)
-        self.connect(self.mux_next_pc.sel, self.next_pc_sel)
-        self.connect(self.mux_next_pc.ins[0], self.pc_plus_4)
-        self.connect(self.mux_next_pc.ins[1], self.pc_plus_immediate)
-        # .in2 ({alu_result[32-1:1], 1'b0})
-        # .in3 (32'h0000_0000)
-
         self.mux_op_a = Mux(name="mux_op_a", parent=self, n=2, width=32)
-        self.connect(self.alu_op_a, self.mux_op_a.out)
-        self.connect(self.mux_op_a.sel, self.alu_op_a_sel)
-        self.connect(self.mux_op_a.ins[0], self.rs1_data)
-        self.connect(self.mux_op_a.ins[1], self.pc)
-
         self.mux_op_b = Mux(name="mux_op_b", parent=self, n=2, width=32)
-        self.connect(self.alu_op_b, self.mux_op_b.out)
-        self.connect(self.mux_op_b.sel, self.alu_op_b_sel)
-        self.connect(self.mux_op_b.ins[0], self.rs2_data)
-        self.connect(self.mux_op_b.ins[1], self.immediate)
-
         self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, width=32)
-        self.connect(self.wr_data, self.mux_reg_writeback.out)
-        self.connect(self.mux_reg_writeback.sel, self.reg_writeback_sel)
-        self.connect(self.mux_reg_writeback.ins[0], self.alu_result)
-        self.connect(self.mux_reg_writeback.ins[1], self.data_mem_rd_data)
-        self.connect(self.mux_reg_writeback.ins[2], self.pc_plus_4)
-        self.connect(self.mux_reg_writeback.ins[3], self.immediate)
-        # .in4(32'h0000_0000)
-        # .in5(32'h0000_0000)
-        # .in6(32'h0000_0000)
-        # .in7(32'h0000_0000)
-
         self.instruction_decoder = InstructionDecoder(name="instruction_decoder", parent=self)
-        self.connect(self.instruction_decoder.inst, self.inst)
-        self.connect(self.inst_funct7, self.instruction_decoder.inst_funct7)
-        self.connect(self.inst_rs2, self.instruction_decoder.inst_rs2)
-        self.connect(self.inst_rs1, self.instruction_decoder.inst_rs1)
-        self.connect(self.inst_funct3, self.instruction_decoder.inst_funct3)
-        self.connect(self.inst_rd, self.instruction_decoder.inst_rd)
-        self.connect(self.inst_opcode, self.instruction_decoder.inst_opcode)
-
         self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
-        self.connect(self.immediate, self.immediate_generator.immediate)
-        self.connect(self.immediate_generator.inst, self.inst)
-
-        self.program_counter = Register(
-            name="program_counter", parent=self, width=32, init=foo("32h0040_0000")
-        )
-        self.connect(self.pc, self.program_counter.q)
-        self.connect(self.program_counter.en, self.pc_wr_en)
-        self.connect(self.program_counter.d, self.pc_next)
-        self.connect(self.program_counter.clock, self.clock)
-        self.connect(self.program_counter.reset, self.reset)
-
+        pc_init = foo("32h0040_0000")
+        self.program_counter = Register(name="program_counter", parent=self, width=32, init=pc_init)
         self.regfile = RegFile(name="regfile", parent=self)
-        self.connect(self.regfile.wr_en, self.regfile_wr_en)
-        self.connect(self.regfile.wr_addr, self.inst_rd)
-        self.connect(self.regfile.wr_data, self.wr_data)
-        self.connect(self.regfile.rs1_addr, self.inst_rs1)
-        self.connect(self.rs1_data, self.regfile.rs1_data)
-        self.connect(self.regfile.rs2_addr, self.inst_rs2)
-        self.connect(self.rs2_data, self.regfile.rs2_data)
-        self.connect(self.regfile.clock, self.clock)
-
-        # Processes
-        self._procs.add((self.proc_init, TASK))
-        self._procs.add((self.proc_mux, COMBI))
 
     async def proc_init(self):
         """TODO(cjdrake): Write docstring."""

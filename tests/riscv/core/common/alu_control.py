@@ -14,6 +14,16 @@ class AluControl(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        # Processes
+        self._procs.add((self.proc_default_funct, COMBI))
+        self._procs.add((self.proc_secondary_funct, COMBI))
+        self._procs.add((self.proc_branch_funct, COMBI))
+        self._procs.add((self.proc_alu_function, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         # Ports
         self.alu_function = Bits(name="alu_function", parent=self, shape=(5,))
         self.alu_op_type = Bits(name="alu_op_type", parent=self, shape=(2,))
@@ -24,12 +34,6 @@ class AluControl(Module):
         self.default_funct = Bits(name="default_funct", parent=self, shape=(5,))
         self.secondary_funct = Bits(name="seconary_funct", parent=self, shape=(5,))
         self.branch_funct = Bits(name="branch_funct", parent=self, shape=(5,))
-
-        # Processes
-        self._procs.add((self.proc_default_funct, COMBI))
-        self._procs.add((self.proc_secondary_funct, COMBI))
-        self._procs.add((self.proc_branch_funct, COMBI))
-        self._procs.add((self.proc_alu_function, COMBI))
 
     async def proc_default_funct(self):
         """TODO(cjdrake): Write docstring."""

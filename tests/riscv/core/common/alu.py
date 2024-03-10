@@ -14,16 +14,20 @@ class Alu(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        # Processes
+        self._procs.add((self.proc_result, COMBI))
+        self._procs.add((self.proc_result_equal_zero, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         # Ports
         self.result = Bits(name="result", parent=self, shape=(32,))
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
         self.alu_function = Bits(name="alu_function", parent=self, shape=(5,))
         self.op_a = Bits(name="op_a", parent=self, shape=(32,))
         self.op_b = Bits(name="op_b", parent=self, shape=(32,))
-
-        # Processes
-        self._procs.add((self.proc_result, COMBI))
-        self._procs.add((self.proc_result_equal_zero, COMBI))
 
     async def proc_result(self):
         """TODO(cjdrake): Write docstring."""

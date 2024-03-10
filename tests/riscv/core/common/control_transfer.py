@@ -14,13 +14,17 @@ class ControlTransfer(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        # Processes
+        self._procs.add((self.proc_take_branch, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         # Ports
         self.take_branch = Bit(name="take_branch", parent=self)
         self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
-
-        # Processes
-        self._procs.add((self.proc_take_branch, COMBI))
 
     async def proc_take_branch(self):
         """TODO(cjdrake): Write docstring."""

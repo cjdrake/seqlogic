@@ -421,9 +421,9 @@ def get_loop() -> Sim:
 class _Schedule:
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, coro_func, region: Region):
-        assert inspect.iscoroutinefunction(coro_func)
-        self._func = coro_func
+    def __init__(self, func, region: Region):
+        assert inspect.iscoroutinefunction(func)
+        self._func = func
         self._region = region
 
     def __get__(self, obj, cls=None):
@@ -433,19 +433,22 @@ class _Schedule:
 class initial(_Schedule):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, coro_func):
-        super().__init__(coro_func, Region(2))
+    def __init__(self, func):
+        """TODO(cjdrake): Write docstring."""
+        super().__init__(func, Region(2))
 
 
 class always_ff(_Schedule):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, coro_func):
-        super().__init__(coro_func, Region(1))
+    def __init__(self, func):
+        """TODO(cjdrake): Write docstring."""
+        super().__init__(func, Region(1))
 
 
 class always_comb(_Schedule):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, coro_func):
-        super().__init__(coro_func, Region(0))
+    def __init__(self, func):
+        """TODO(cjdrake): Write docstring."""
+        super().__init__(func, Region(0))

@@ -13,6 +13,19 @@ class DataMemoryInterface(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        # Processes
+        self.connect(self.bus_addr, self.addr)
+        self.connect(self.bus_wr_en, self.wr_en)
+        self.connect(self.bus_rd_en, self.rd_en)
+
+        self._procs.add((self.proc_wr_be, COMBI))
+        self._procs.add((self.proc_wr_data, COMBI))
+        self._procs.add((self.proc_rd_data, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         # Ports
         self.data_format = Bits(name="data_format", parent=self, shape=(3,))
 
@@ -32,14 +45,6 @@ class DataMemoryInterface(Module):
         # State
         self.position_fix = Bits(name="position_fix", parent=self, shape=(32,))
         self.sign_fix = Bits(name="sign_fix", parent=self, shape=(32,))
-
-        self.connect(self.bus_addr, self.addr)
-        self.connect(self.bus_wr_en, self.wr_en)
-        self.connect(self.bus_rd_en, self.rd_en)
-
-        self._procs.add((self.proc_wr_be, COMBI))
-        self._procs.add((self.proc_wr_data, COMBI))
-        self._procs.add((self.proc_rd_data, COMBI))
 
     async def proc_wr_be(self):
         """TODO(cjdrake): Write docstring."""

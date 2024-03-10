@@ -14,6 +14,14 @@ class Control(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        # Processes
+        self._procs.add((self.proc_next_pc_sel, COMBI))
+        self._procs.add((self.proc_others, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         # Ports
         self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
@@ -26,10 +34,6 @@ class Control(Module):
         self.next_pc_sel = Bits(name="next_pc_sel", parent=self, shape=(2,))
         self.inst_opcode = Bits(name="inst_opcode", parent=self, shape=(7,))
         self.take_branch = Bit(name="take_branch", parent=self)
-
-        # Processes
-        self._procs.add((self.proc_next_pc_sel, COMBI))
-        self._procs.add((self.proc_others, COMBI))
 
     async def proc_next_pc_sel(self):
         """TODO(cjdrake): Write docstring."""

@@ -16,13 +16,17 @@ class Adder(Module):
         assert width > 1
         self.width = width
 
-        # Ports
-        self.result = Bits(name="result", parent=self, shape=(width,))
-        self.op_a = Bits(name="op_a", parent=self, shape=(width,))
-        self.op_b = Bits(name="op_b", parent=self, shape=(width,))
+        self.build()
 
         # Processes
         self._procs.add((self.proc_out, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
+        # Ports
+        self.result = Bits(name="result", parent=self, shape=(self.width,))
+        self.op_a = Bits(name="op_a", parent=self, shape=(self.width,))
+        self.op_b = Bits(name="op_b", parent=self, shape=(self.width,))
 
     async def proc_out(self):
         """TODO(cjdrake): Write docstring."""

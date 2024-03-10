@@ -16,6 +16,13 @@ class DataMemory(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        self._procs.add((self.proc_wr_port, FLOP))
+        self._procs.add((self.proc_rd_data, COMBI))
+
+    def build(self):
+        """Write docstring."""
         # Ports
         self.addr = Bits(name="addr", parent=self, shape=(15,))
 
@@ -29,9 +36,6 @@ class DataMemory(Module):
 
         # State
         self.mem = Array(name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
-
-        self._procs.add((self.proc_wr_port, FLOP))
-        self._procs.add((self.proc_rd_data, COMBI))
 
     async def proc_wr_port(self):
         """TODO(cjdrake): Write docstring."""

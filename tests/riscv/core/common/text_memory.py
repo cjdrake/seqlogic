@@ -16,15 +16,19 @@ class TextMemory(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        # Processes
+        self._procs.add((self.proc_rd_data, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         # Ports
         self.rd_addr = Bits(name="rd_addr", parent=self, shape=(14,))
         self.rd_data = Bits(name="rd_data", parent=self, shape=(WIDTH,))
 
         # State
         self.mem = Array(name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
-
-        # Processes
-        self._procs.add((self.proc_rd_data, COMBI))
 
     # output logic [31:0] rd_data
     async def proc_rd_data(self):

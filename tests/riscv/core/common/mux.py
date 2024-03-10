@@ -14,16 +14,20 @@ class Mux(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
-        self._n = n
-        self._width = width
+        self.n = n
+        self.width = width
 
-        # Ports
-        self.out = Bits(name="out", parent=self, shape=(width,))
-        self.sel = Bits(name="sel", parent=self, shape=(clog2(n),))
-        self.ins = [Bits(name=f"in{i}", parent=self, shape=(width,)) for i in range(n)]
+        self.build()
 
         # Processes
         self._procs.add((self.proc_out, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
+        # Ports
+        self.out = Bits(name="out", parent=self, shape=(self.width,))
+        self.sel = Bits(name="sel", parent=self, shape=(clog2(self.n),))
+        self.ins = [Bits(name=f"in{i}", parent=self, shape=(self.width,)) for i in range(self.n)]
 
     async def proc_out(self):
         """TODO(cjdrake): Write docstring."""
@@ -33,6 +37,6 @@ class Mux(Module):
             try:
                 index = self.sel.next.to_uint()
             except ValueError:
-                self.out.next = xes((self._width,))
+                self.out.next = xes((self.width,))
             else:
                 self.out.next = self.ins[index].next

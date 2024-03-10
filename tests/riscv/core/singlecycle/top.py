@@ -16,6 +16,36 @@ class Top(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent=None)
 
+        self.build()
+
+        # Processes
+        self.connect(self.text_memory_bus.rd_addr, self.pc)
+        self.connect(self.inst, self.text_memory_bus.rd_data)
+
+        self.connect(self.data_memory_bus.addr, self.bus_addr)
+        self.connect(self.data_memory_bus.wr_en, self.bus_wr_en)
+        self.connect(self.data_memory_bus.wr_be, self.bus_wr_be)
+        self.connect(self.data_memory_bus.wr_data, self.bus_wr_data)
+        self.connect(self.data_memory_bus.rd_en, self.bus_rd_en)
+        self.connect(self.bus_rd_data, self.data_memory_bus.rd_data)
+        self.connect(self.data_memory_bus.clock, self.clock)
+
+        self.connect(self.bus_addr, self.core.bus_addr)
+        self.connect(self.bus_wr_en, self.core.bus_wr_en)
+        self.connect(self.bus_wr_be, self.core.bus_wr_be)
+        self.connect(self.bus_wr_data, self.core.bus_wr_data)
+        self.connect(self.bus_rd_en, self.core.bus_rd_en)
+        self.connect(self.core.bus_rd_data, self.bus_rd_data)
+        self.connect(self.pc, self.core.pc)
+        self.connect(self.core.inst, self.inst)
+        self.connect(self.core.clock, self.clock)
+        self.connect(self.core.reset, self.reset)
+
+        self._procs.add((self.proc_clock, TASK))
+        self._procs.add((self.proc_reset, TASK))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         # Ports
         self.bus_addr = Bits(name="bus_addr", parent=self, shape=(32,))
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
@@ -32,33 +62,8 @@ class Top(Module):
 
         # Submodules
         self.text_memory_bus = TextMemoryBus(name="text_memory_bus", parent=self)
-        self.connect(self.text_memory_bus.rd_addr, self.pc)
-        self.connect(self.inst, self.text_memory_bus.rd_data)
-
         self.data_memory_bus = DataMemoryBus(name="data_memory_bus", parent=self)
-        self.connect(self.data_memory_bus.addr, self.bus_addr)
-        self.connect(self.data_memory_bus.wr_en, self.bus_wr_en)
-        self.connect(self.data_memory_bus.wr_be, self.bus_wr_be)
-        self.connect(self.data_memory_bus.wr_data, self.bus_wr_data)
-        self.connect(self.data_memory_bus.rd_en, self.bus_rd_en)
-        self.connect(self.bus_rd_data, self.data_memory_bus.rd_data)
-        self.connect(self.data_memory_bus.clock, self.clock)
-
         self.core = Core(name="core", parent=self)
-        self.connect(self.bus_addr, self.core.bus_addr)
-        self.connect(self.bus_wr_en, self.core.bus_wr_en)
-        self.connect(self.bus_wr_be, self.core.bus_wr_be)
-        self.connect(self.bus_wr_data, self.core.bus_wr_data)
-        self.connect(self.bus_rd_en, self.core.bus_rd_en)
-        self.connect(self.core.bus_rd_data, self.bus_rd_data)
-        self.connect(self.pc, self.core.pc)
-        self.connect(self.core.inst, self.inst)
-        self.connect(self.core.clock, self.clock)
-        self.connect(self.core.reset, self.reset)
-
-        # Processes
-        self._procs.add((self.proc_clock, TASK))
-        self._procs.add((self.proc_reset, TASK))
 
     # input logic clock
     async def proc_clock(self):

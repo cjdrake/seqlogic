@@ -17,6 +17,16 @@ class RegFile(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        # Processes
+        self._procs.add((self.proc_init, TASK))
+        self._procs.add((self.proc_wr_port, FLOP))
+        self._procs.add((self.proc_rd1_port, COMBI))
+        self._procs.add((self.proc_rd2_port, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         # Ports
         self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_addr = Bits(name="wr_addr", parent=self, shape=(5,))
@@ -26,14 +36,8 @@ class RegFile(Module):
         self.rs2_addr = Bits(name="rs2_addr", parent=self, shape=(5,))
         self.rs2_data = Bits(name="rs2_data", parent=self, shape=(WIDTH,))
         self.clock = Bit(name="clock", parent=self)
-
         # State
         self.regs = Array(name="regs", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
-
-        self._procs.add((self.proc_init, TASK))
-        self._procs.add((self.proc_wr_port, FLOP))
-        self._procs.add((self.proc_rd1_port, COMBI))
-        self._procs.add((self.proc_rd2_port, COMBI))
 
     @initial
     async def proc_init(self):

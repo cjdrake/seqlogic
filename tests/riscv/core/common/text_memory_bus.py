@@ -15,20 +15,22 @@ class TextMemoryBus(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        # Processes
+        self.connect(self.text, self.text_memory.rd_data)
+        self._procs.add((self.proc_rd_data, COMBI))
+        self._procs.add((self.proc_text_memory_rd_addr, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         # Ports
         self.rd_addr = Bits(name="rd_addr", parent=self, shape=(32,))
         self.rd_data = Bits(name="rd_data", parent=self, shape=(32,))
-
         # State
         self.text = Bits(name="text", parent=self, shape=(32,))
-
         # Submodules
         self.text_memory = TextMemory("text_memory", parent=self)
-        self.connect(self.text, self.text_memory.rd_data)
-
-        # Processes
-        self._procs.add((self.proc_rd_data, COMBI))
-        self._procs.add((self.proc_text_memory_rd_addr, COMBI))
 
     # output logic [31:0] rd_data
     async def proc_rd_data(self):

@@ -14,12 +14,16 @@ class ImmedateGenerator(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
-        # Ports
-        self.immediate = Bits(name="immediate", parent=self, shape=(32,))
-        self.inst = Bits(name="inst", parent=self, shape=(32,))
+        self.build()
 
         # Processes
         self._procs.add((self.proc_out, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
+        # Ports
+        self.immediate = Bits(name="immediate", parent=self, shape=(32,))
+        self.inst = Bits(name="inst", parent=self, shape=(32,))
 
     async def proc_out(self):
         """TODO(cjdrake): Write docstring."""

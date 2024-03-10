@@ -14,17 +14,22 @@ class Register(Module):
         super().__init__(name, parent)
 
         # Parameters
+        self.width = width
         self.init = init
 
-        # Ports
-        self.q = Bits(name="q", parent=self, shape=(width,))
-        self.en = Bit(name="en", parent=self)
-        self.d = Bits(name="d", parent=self, shape=(width,))
-        self.clock = Bit(name="clock", parent=self)
-        self.reset = Bit(name="reset", parent=self)
+        self.build()
 
         # Processes
         self._procs.add((self.proc_q, FLOP))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
+        # Ports
+        self.q = Bits(name="q", parent=self, shape=(self.width,))
+        self.en = Bit(name="en", parent=self)
+        self.d = Bits(name="d", parent=self, shape=(self.width,))
+        self.clock = Bit(name="clock", parent=self)
+        self.reset = Bit(name="reset", parent=self)
 
     async def proc_q(self):
         """TODO(cjdrake): Write docstring."""

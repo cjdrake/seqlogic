@@ -15,6 +15,21 @@ class DataMemoryBus(Module):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
+        self.build()
+
+        # Processes
+        self.connect(self.data_memory.wr_be, self.wr_be)
+        self.connect(self.data_memory.wr_data, self.wr_data)
+        self.connect(self.data, self.data_memory.rd_data)
+        self.connect(self.data_memory.clock, self.clock)
+
+        self._procs.add((self.proc_is_data, COMBI))
+        self._procs.add((self.proc_wr_en, COMBI))
+        self._procs.add((self.proc_data_memory_addr, COMBI))
+        self._procs.add((self.proc_rd_data, COMBI))
+
+    def build(self):
+        """TODO(cjdrake): Write docstring."""
         # Ports
         self.addr = Bits(name="addr", parent=self, shape=(32,))
 
@@ -33,17 +48,6 @@ class DataMemoryBus(Module):
 
         # Submodules
         self.data_memory = DataMemory("data_memory", parent=self)
-
-        # Processes
-        self.connect(self.data_memory.wr_be, self.wr_be)
-        self.connect(self.data_memory.wr_data, self.wr_data)
-        self.connect(self.data, self.data_memory.rd_data)
-        self.connect(self.data_memory.clock, self.clock)
-
-        self._procs.add((self.proc_is_data, COMBI))
-        self._procs.add((self.proc_wr_en, COMBI))
-        self._procs.add((self.proc_data_memory_addr, COMBI))
-        self._procs.add((self.proc_rd_data, COMBI))
 
     async def proc_is_data(self):
         """TODO(cjdrake): Write docstring."""
