@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, notify
-from seqlogic.bits import F, cat, foo, zeros
+from seqlogic.bits import F, bits, cat, zeros
 from seqlogic.sim import always_comb, initial
 
 from ..common.adder import Adder
@@ -160,14 +160,14 @@ class DataPath(Module):
         self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, width=32)
         self.instruction_decoder = InstructionDecoder(name="instruction_decoder", parent=self)
         self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
-        pc_init = foo("32h0040_0000")
+        pc_init = bits("32h0040_0000")
         self.program_counter = Register(name="program_counter", parent=self, width=32, init=pc_init)
         self.regfile = RegFile(name="regfile", parent=self)
 
     @initial
     async def proc_init(self):
         """TODO(cjdrake): Write docstring."""
-        self.adder_pc_plus_4.op_a.next = foo("32h0000_0004")
+        self.adder_pc_plus_4.op_a.next = bits("32h0000_0004")
         # mux_next_pc.in3(32'h0000_0000)
         self.mux_next_pc.ins[3].next = zeros((32,))
         # mux_reg_writeback.{in4, in5, in6, in7}

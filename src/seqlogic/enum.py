@@ -1,7 +1,7 @@
 """Enum Logic Data Type."""
 
 from . import lbool
-from .bits import bits
+from .bits import Bits
 
 # PyLint is confused by MetaClass behavior
 # pylint: disable = no-value-for-parameter
@@ -22,7 +22,7 @@ class _EnumMeta(type):
                 lit2name[val] = key
 
         # Create enum class, save lit => name mapping
-        cls = super().__new__(mcs, name, bases + (bits,), base_attrs)
+        cls = super().__new__(mcs, name, bases + (Bits,), base_attrs)
         cls._lit2name = lit2name
 
         return cls

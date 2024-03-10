@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, notify
-from seqlogic.bits import F, T, foo
+from seqlogic.bits import F, T, bits
 from seqlogic.sim import always_comb
 
 from ..common.constants import CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Opcode
@@ -59,10 +59,10 @@ class Control(Module):
             self.regfile_wr_en.next = F
             self.alu_op_a_sel.next = F
             self.alu_op_b_sel.next = F
-            self.alu_op_type.next = foo("2b00")
+            self.alu_op_type.next = bits("2b00")
             self.data_mem_rd_en.next = F
             self.data_mem_wr_en.next = F
-            self.reg_writeback_sel.next = foo("3b000")
+            self.reg_writeback_sel.next = bits("3b000")
 
             match self.inst_opcode.next:
                 case Opcode.LOAD:

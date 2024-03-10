@@ -5,8 +5,8 @@ from collections import defaultdict
 
 from vcd.writer import VarValue
 
-from . import sim
-from .bits import F, T, bits, xes
+from . import bits, sim
+from .bits import F, T, xes
 from .hier import Module, Variable
 
 _item2char = {
@@ -17,7 +17,7 @@ _item2char = {
 }
 
 
-def _bits2vcd(b: bits) -> VarValue:
+def _bits2vcd(b: bits.Bits) -> VarValue:
     """Convert bit array to VCD value."""
     # pylint: disable = protected-access
     return "".join(_item2char[b._v._get_item(i)] for i in range(b._v._n - 1, -1, -1))

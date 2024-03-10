@@ -11,7 +11,7 @@ from functools import cached_property
 from . import lbool
 
 
-class bits:
+class Bits:
     """Bit array data type.
 
     Do NOT instantiate this type directly.
@@ -29,19 +29,19 @@ class bits:
     def __len__(self) -> int:
         return self._shape[0]
 
-    def __getitem__(self, key: int | bits | slice | tuple[int | bits | slice, ...]) -> bits:
+    def __getitem__(self, key: int | Bits | slice | tuple[int | Bits | slice, ...]) -> Bits:
         if self._shape == (0,):
             raise IndexError("Cannot index an empty vector")
         match key:
-            case int() | bits() | slice():
+            case int() | Bits() | slice():
                 return _sel(self, self._norm_key([key]))
             case tuple():
                 return _sel(self, self._norm_key(list(key)))
             case _:
-                s = "Expected key to be int, bits, slice, or tuple"
+                s = "Expected key to be int, Bits, slice, or tuple"
                 raise TypeError(s)
 
-    def __iter__(self) -> Generator[bits, None, None]:
+    def __iter__(self) -> Generator[Bits, None, None]:
         for i in range(self._shape[0]):
             yield self.__getitem__(i)
 
@@ -56,36 +56,36 @@ class bits:
 
     def __eq__(self, other) -> bool:
         match other:
-            case bits():
+            case Bits():
                 return self._shape == other.shape and self._data == other._data
             case _:
                 return False
 
-    def __invert__(self) -> bits:
+    def __invert__(self) -> Bits:
         return self.lnot()
 
-    def __or__(self, other: bits) -> bits:
+    def __or__(self, other: Bits) -> Bits:
         return self.lor(other)
 
-    def __and__(self, other: bits) -> bits:
+    def __and__(self, other: Bits) -> Bits:
         return self.land(other)
 
-    def __xor__(self, other: bits) -> bits:
+    def __xor__(self, other: Bits) -> Bits:
         return self.lxor(other)
 
-    def __lshift__(self, n: int | bits) -> bits:
+    def __lshift__(self, n: int | Bits) -> Bits:
         return self.lsh(n)[0]
 
-    def __rshift__(self, n: int | bits) -> bits:
+    def __rshift__(self, n: int | Bits) -> Bits:
         return self.rsh(n)[0]
 
-    def __add__(self, other: bits) -> bits:
+    def __add__(self, other: Bits) -> Bits:
         return _v2b(self._v.__add__(other._v))
 
-    def __sub__(self, other: bits) -> bits:
+    def __sub__(self, other: Bits) -> Bits:
         return _v2b(self._v.__sub__(other._v))
 
-    def __neg__(self) -> bits:
+    def __neg__(self) -> Bits:
         return _v2b(self._v.__neg__())
 
     @property
@@ -97,12 +97,12 @@ class bits:
     def _v(self) -> lbool.Vec:
         return lbool.Vec(self.size, self._data)
 
-    def reshape(self, shape: tuple[int, ...]) -> bits:
+    def reshape(self, shape: tuple[int, ...]) -> Bits:
         """Return an equivalent bit array with modified shape."""
         if math.prod(shape) != self.size:
             s = f"Expected shape with size {self.size}, got {shape}"
             raise ValueError(s)
-        return bits(shape, self._data)
+        return Bits(shape, self._data)
 
     @cached_property
     def ndim(self) -> int:
@@ -115,65 +115,65 @@ class bits:
         return math.prod(self._shape)
 
     @property
-    def flat(self) -> Generator[bits, None, None]:
+    def flat(self) -> Generator[Bits, None, None]:
         """Return a flat iterator to the items."""
         for v in self._v:
             yield _v2b(v)
 
-    def flatten(self) -> bits:
+    def flatten(self) -> Bits:
         """Return a vector with equal data, flattened to 1D shape."""
         if self.ndim == 1:
             return self
-        return bits((self.size,), self._data)
+        return Bits((self.size,), self._data)
 
-    def _check_shape(self, other: bits):
+    def _check_shape(self, other: Bits):
         if self._shape != other.shape:
             s = f"Expected shape {self._shape}, got {other.shape}"
             raise ValueError(s)
 
-    def lnot(self) -> bits:
+    def lnot(self) -> Bits:
         """Return output of "lifted" NOT function."""
         return _v2b(self._v.lnot())
 
-    def lnor(self, other: bits) -> bits:
+    def lnor(self, other: Bits) -> Bits:
         """Return output of "lifted" NOR function."""
         self._check_shape(other)
         return _v2b(self._v.lnor(other._v))
 
-    def lor(self, other: bits) -> bits:
+    def lor(self, other: Bits) -> Bits:
         """Return output of "lifted" OR function."""
         self._check_shape(other)
         return _v2b(self._v.lor(other._v))
 
-    def ulor(self) -> bits:
+    def ulor(self) -> Bits:
         """Return unary "lifted" OR of bits."""
         return _v2b(self._v.ulor())
 
-    def lnand(self, other: bits) -> bits:
+    def lnand(self, other: Bits) -> Bits:
         """Return output of "lifted" NAND function."""
         self._check_shape(other)
         return _v2b(self._v.lnand(other._v))
 
-    def land(self, other: bits) -> bits:
+    def land(self, other: Bits) -> Bits:
         """Return output of "lifted" AND function."""
         self._check_shape(other)
         return _v2b(self._v.land(other._v))
 
-    def uland(self) -> bits:
+    def uland(self) -> Bits:
         """Return unary "lifted" AND of bits."""
         return _v2b(self._v.uland())
 
-    def lxnor(self, other: bits) -> bits:
+    def lxnor(self, other: Bits) -> Bits:
         """Return output of "lifted" XNOR function."""
         self._check_shape(other)
         return _v2b(self._v.lxnor(other._v))
 
-    def lxor(self, other: bits) -> bits:
+    def lxor(self, other: Bits) -> Bits:
         """Return output of "lifted" XOR function."""
         self._check_shape(other)
         return _v2b(self._v.lxor(other._v))
 
-    def ulxor(self) -> bits:
+    def ulxor(self) -> Bits:
         """Return unary "lifted" XOR of bits."""
         return _v2b(self._v.ulxor())
 
@@ -185,7 +185,7 @@ class bits:
         """Convert vector to signed integer."""
         return self._v.to_int()
 
-    def zext(self, n: int) -> bits:
+    def zext(self, n: int) -> Bits:
         """Return bit array zero extended by n bits.
 
         Zero extension is defined for 1-D vectors.
@@ -193,7 +193,7 @@ class bits:
         """
         return _v2b(self.flatten()._v.zext(n))
 
-    def sext(self, n: int) -> bits:
+    def sext(self, n: int) -> Bits:
         """Return bit array sign extended by n bits.
 
         Sign extension is defined for 1-D vectors.
@@ -201,7 +201,7 @@ class bits:
         """
         return _v2b(self.flatten()._v.sext(n))
 
-    def lsh(self, n: int | bits, ci: bits | None = None) -> tuple[bits, bits]:
+    def lsh(self, n: int | Bits, ci: Bits | None = None) -> tuple[Bits, Bits]:
         """Return bit array left shifted by n bits.
 
         Left shift is defined for 1-D vectors.
@@ -211,7 +211,7 @@ class bits:
         match n:
             case int():
                 pass
-            case bits():
+            case Bits():
                 if n._v.has_illogical():
                     return illogicals((v.size,)), E
                 elif n._v.has_unknown():
@@ -219,14 +219,14 @@ class bits:
                 else:
                     n = n.to_uint()
             case _:
-                raise TypeError("Expected n to be int or bits")
+                raise TypeError("Expected n to be int or Bits")
         if ci is None:
             y, co = self._v.lsh(n)
         else:
             y, co = self._v.lsh(n, ci._v)
         return _v2b(y), _v2b(co)
 
-    def rsh(self, n: int | bits, ci: bits | None = None) -> tuple[bits, bits]:
+    def rsh(self, n: int | Bits, ci: Bits | None = None) -> tuple[Bits, Bits]:
         """Return bit array right shifted by n bits.
 
         Right shift is defined for 1-D vectors.
@@ -236,7 +236,7 @@ class bits:
         match n:
             case int():
                 pass
-            case bits():
+            case Bits():
                 if n._v.has_illogical():
                     return illogicals((v.size,)), E
                 elif n._v.has_unknown():
@@ -244,14 +244,14 @@ class bits:
                 else:
                     n = n.to_uint()
             case _:
-                raise TypeError("Expected n to be int or bits")
+                raise TypeError("Expected n to be int or Bits")
         if ci is None:
             y, co = self._v.rsh(n)
         else:
             y, co = self._v.rsh(n, ci._v)
         return _v2b(y), _v2b(co)
 
-    def arsh(self, n: int | bits) -> tuple[bits, bits]:
+    def arsh(self, n: int | Bits) -> tuple[Bits, Bits]:
         """Return bit array arithmetically right shifted by n bits.
 
         Arithmetic right shift is defined for 1-D vectors.
@@ -261,7 +261,7 @@ class bits:
         match n:
             case int():
                 pass
-            case bits():
+            case Bits():
                 if n._v.has_illogical():
                     return illogicals((v.size,)), E
                 elif n._v.has_unknown():
@@ -269,18 +269,18 @@ class bits:
                 else:
                     n = n.to_uint()
             case _:
-                raise TypeError("Expected n to be int or bits")
+                raise TypeError("Expected n to be int or Bits")
         y, co = self._v.arsh(n)
         return _v2b(y), _v2b(co)
 
-    def add(self, other: bits, ci: object) -> tuple[bits, bits, bits]:
+    def add(self, other: Bits, ci: object) -> tuple[Bits, Bits, Bits]:
         """Return the sum of two bit arrays, carry out, and overflow.
 
         The implementation propagates Xes according to the
         ripple carry addition algorithm.
         """
         match ci:
-            case bits():
+            case Bits():
                 pass
             case _:
                 ci = (F, T)[bool(ci)]
@@ -340,7 +340,7 @@ class bits:
             sl = slice(sl.start, sl.stop, 1)
         return sl
 
-    def _norm_key(self, key: list[int | bits | slice]) -> tuple[int | slice, ...]:
+    def _norm_key(self, key: list[int | Bits | slice]) -> tuple[int | slice, ...]:
         ndim = len(key)
         if ndim > self.ndim:
             s = f"Expected ≤ {self.ndim} slice dimensions, got {ndim}"
@@ -356,7 +356,7 @@ class bits:
             match dim:
                 case int() as index:
                     nkey.append(self._norm_index(index, i))
-                case bits() as v:
+                case Bits() as v:
                     nkey.append(self._norm_index(v.to_uint(), i))
                 case slice() as sl:
                     nkey.append(self._norm_slice(sl, i))
@@ -366,11 +366,11 @@ class bits:
         return tuple(nkey)
 
 
-def _v2b(v: lbool.Vec) -> bits:
-    return bits((len(v),), v.data)
+def _v2b(v: lbool.Vec) -> Bits:
+    return Bits((len(v),), v.data)
 
 
-def _rank2(fst: bits, rst) -> bits:
+def _rank2(fst: Bits, rst) -> Bits:
     shape = (len(rst) + 1,) + fst.shape
     size = len(fst._v)
     data = fst._data
@@ -382,17 +382,17 @@ def _rank2(fst: bits, rst) -> bits:
                     s = f"Expected str literal to have size {fst.size}, got {len(v)}"
                     raise TypeError(s)
                 data |= v.data << (fst._v.nbits * i)
-            case bits() if b.shape == fst.shape:
+            case Bits() if b.shape == fst.shape:
                 data |= b._data << (fst._v.nbits * i)
             case _:
                 s = ",".join(str(dim) for dim in fst.shape)
-                s = f"Expected item to be str or bits[{s}]"
+                s = f"Expected item to be str or Bits[{s}]"
                 raise TypeError(s)
         size += len(fst._v)
-    return bits(shape, data)
+    return Bits(shape, data)
 
 
-def foo(obj=None) -> bits:
+def bits(obj=None) -> Bits:
     """Create a bit array."""
     match obj:
         # Empty
@@ -401,7 +401,7 @@ def foo(obj=None) -> bits:
         # Rank 0 int
         case 0 | 1 as x:
             v = lbool._bools2vec([x])
-            return bits((1,), v.data)
+            return Bits((1,), v.data)
         # Rank 1 str
         case str() as lit:
             return _v2b(lbool._lit2vec(lit))
@@ -412,40 +412,40 @@ def foo(obj=None) -> bits:
         case [str() as lit, *rst]:
             return _rank2(_v2b(lbool._lit2vec(lit)), rst)
         # Rank 2 logic_vector
-        case [bits() as b, *rst]:
+        case [Bits() as b, *rst]:
             return _rank2(b, rst)
         # Rank 3+
         case [*objs]:
-            return cat([foo(obj) for obj in objs])
+            return cat([bits(obj) for obj in objs])
         # Unimplemented
         case _:
             raise TypeError(f"Invalid input: {type(obj)}")
 
 
-def uint2bits(num: int, n: int | None = None) -> bits:
+def uint2bits(num: int, n: int | None = None) -> Bits:
     """Convert nonnegative int to logic_vector."""
     return _v2b(lbool.uint2vec(num, n))
 
 
-def int2bits(num: int, n: int | None = None) -> bits:
+def int2bits(num: int, n: int | None = None) -> Bits:
     """Convert int to logic_vector."""
     return _v2b(lbool.int2vec(num, n))
 
 
-def cat(objs: Collection[int | bits], flatten: bool = False) -> bits:
+def cat(objs: Collection[int | Bits], flatten: bool = False) -> Bits:
     """Join a sequence of bits."""
     # Empty
     if len(objs) == 0:
         return E
 
     # Convert inputs
-    bs: list[bits] = []
+    bs: list[Bits] = []
     for obj in objs:
         match obj:
             case 0 | 1 as x:
                 v = lbool._bools2vec([x])
-                bs.append(bits((1,), v.data))
-            case bits() as b:
+                bs.append(Bits((1,), v.data))
+            case Bits() as b:
                 bs.append(b)
             case _:
                 raise TypeError(f"Invalid input: {type(obj)}")
@@ -477,15 +477,15 @@ def cat(objs: Collection[int | bits], flatten: bool = False) -> bits:
     else:
         shape = (sum(dims),) + fst.shape[1:]
 
-    return bits(shape, data)
+    return Bits(shape, data)
 
 
-def rep(obj: int | bits, n: int, flatten: bool = False) -> bits:
+def rep(obj: int | Bits, n: int, flatten: bool = False) -> Bits:
     """Repeat a bit array n times."""
     return cat([obj] * n, flatten)
 
 
-def _sel(b: bits, key: tuple[int | slice, ...]) -> bits:
+def _sel(b: Bits, key: tuple[int | slice, ...]) -> Bits:
     assert 0 <= b.ndim == len(key)
 
     shape = b.shape[1:]
@@ -500,47 +500,47 @@ def _sel(b: bits, key: tuple[int | slice, ...]) -> bits:
         case int() as i:
             data = f(b._data, i)
             if shape:
-                return _sel(bits(shape, data), key[1:])
-            return bits((1,), data)
+                return _sel(Bits(shape, data), key[1:])
+            return Bits((1,), data)
         case slice() as sl:
             datas = (f(b._data, i) for i in range(sl.start, sl.stop, sl.step))
             if shape:
-                return cat([_sel(bits(shape, data), key[1:]) for data in datas])
-            return cat([bits((1,), data) for data in datas])
+                return cat([_sel(Bits(shape, data), key[1:]) for data in datas])
+            return cat([Bits((1,), data) for data in datas])
         case _:  # pragma: no cover
             assert False
 
 
 # The empty vector is a singleton
-E = bits((0,), 0)
+E = Bits((0,), 0)
 
 
-def illogicals(shape: tuple[int, ...]) -> bits:
+def illogicals(shape: tuple[int, ...]) -> Bits:
     """Return a new logic_vector of given shape, filled with ILLOGICAL."""
     n = math.prod(shape)
     v = lbool.illogicals(n)
-    return bits(shape, v.data)
+    return Bits(shape, v.data)
 
 
-def zeros(shape: tuple[int, ...]) -> bits:
+def zeros(shape: tuple[int, ...]) -> Bits:
     """Return a new logic_vector of given shape, filled with zeros."""
     n = math.prod(shape)
     v = lbool.zeros(n)
-    return bits(shape, v.data)
+    return Bits(shape, v.data)
 
 
-def ones(shape: tuple[int, ...]) -> bits:
+def ones(shape: tuple[int, ...]) -> Bits:
     """Return a new logic_vector of given shape, filled with ones."""
     n = math.prod(shape)
     v = lbool.ones(n)
-    return bits(shape, v.data)
+    return Bits(shape, v.data)
 
 
-def xes(shape: tuple[int, ...]) -> bits:
+def xes(shape: tuple[int, ...]) -> Bits:
     """Return a new logic_vector of given shape, filled with Xes."""
     n = math.prod(shape)
     v = lbool.xes(n)
-    return bits(shape, v.data)
+    return Bits(shape, v.data)
 
 
 # One bit values

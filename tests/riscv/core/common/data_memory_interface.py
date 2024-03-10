@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, notify
-from seqlogic.bits import cat, foo, rep, xes
+from seqlogic.bits import bits, cat, rep, xes
 from seqlogic.sim import always_comb
 
 
@@ -46,14 +46,14 @@ class DataMemoryInterface(Module):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.data_format.changed, self.addr.changed)
-            if self.data_format.next[:2] == foo("2b00"):
-                self.bus_wr_be.next = foo("4b0001") << self.addr.next[:2]
-            elif self.data_format.next[:2] == foo("2b01"):
-                self.bus_wr_be.next = foo("4b0011") << self.addr.next[:2]
-            elif self.data_format.next[:2] == foo("2b10"):
-                self.bus_wr_be.next = foo("4b1111") << self.addr.next[:2]
-            elif self.data_format.next[:2] == foo("2b11"):
-                self.bus_wr_be.next = foo("4b0000")
+            if self.data_format.next[:2] == bits("2b00"):
+                self.bus_wr_be.next = bits("4b0001") << self.addr.next[:2]
+            elif self.data_format.next[:2] == bits("2b01"):
+                self.bus_wr_be.next = bits("4b0011") << self.addr.next[:2]
+            elif self.data_format.next[:2] == bits("2b10"):
+                self.bus_wr_be.next = bits("4b1111") << self.addr.next[:2]
+            elif self.data_format.next[:2] == bits("2b11"):
+                self.bus_wr_be.next = bits("4b0000")
             else:
                 self.bus_wr_be.next = xes((4,))
 
@@ -62,7 +62,7 @@ class DataMemoryInterface(Module):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.addr.changed, self.wr_data.changed)
-            n = cat([foo("3b000"), self.addr.next[:2]])
+            n = cat([bits("3b000"), self.addr.next[:2]])
             self.bus_wr_data.next = self.wr_data.next << n
 
     @always_comb
@@ -70,15 +70,15 @@ class DataMemoryInterface(Module):
         """TODO(cjdrake): Write docstring."""
         while True:
             await notify(self.data_format.changed, self.addr.changed, self.bus_rd_data.changed)
-            n = cat([foo("3b000"), self.addr.next[:2]])
+            n = cat([bits("3b000"), self.addr.next[:2]])
             temp = self.bus_rd_data.next >> n
-            if self.data_format.next[:2] == foo("2b00"):
+            if self.data_format.next[:2] == bits("2b00"):
                 x = ~(self.data_format.next[2]) & temp[7]
                 self.rd_data.next = cat([temp[:8], rep(x, 24)], flatten=True)
-            elif self.data_format.next[:2] == foo("2b01"):
+            elif self.data_format.next[:2] == bits("2b01"):
                 x = ~(self.data_format.next[2]) & temp[15]
                 self.rd_data.next = cat([temp[:16], rep(x, 16)], flatten=True)
-            elif self.data_format.next[:2] == foo("2b10"):
+            elif self.data_format.next[:2] == bits("2b10"):
                 self.rd_data.next = temp
             else:
                 self.rd_data.next = xes((32,))
