@@ -5,7 +5,7 @@ See https://csrc.nist.gov/pubs/fips/197/final for details.
 
 from collections import deque
 
-from ..bits import T, bits, cat, rep, uint2bits
+from ..bits import Bits, T, cat, rep, uint2bits
 
 NB = 4
 
@@ -98,7 +98,7 @@ MTXA = cat([uint2bits(x, 16) for x in _MTXA])
 INV_MTXA = cat([uint2bits(x, 16) for x in _INV_MTXA])
 
 
-def sub_word(w: bits) -> bits:
+def sub_word(w: Bits) -> Bits:
     """AES SubWord() function.
 
     Function used in the Key Expansion routine that takes a four-byte input word
@@ -108,7 +108,7 @@ def sub_word(w: bits) -> bits:
     return cat([SBOX[w[b]] for b in range(_WORD_BYTES)], flatten=True)
 
 
-def inv_sub_word(w: bits) -> bits:
+def inv_sub_word(w: Bits) -> Bits:
     """AES InvSubWord() function.
 
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
@@ -117,7 +117,7 @@ def inv_sub_word(w: bits) -> bits:
     return cat([INV_SBOX[w[b]] for b in range(_WORD_BYTES)], flatten=True)
 
 
-def rot_word(w: bits) -> bits:
+def rot_word(w: Bits) -> Bits:
     """AES RotWord() function.
 
     Function used in the Key Expansion routine that takes a four-byte word and
@@ -129,7 +129,7 @@ def rot_word(w: bits) -> bits:
     return cat(bytes_, flatten=True)
 
 
-def xtime(b: bits, n: int) -> bits:
+def xtime(b: Bits, n: int) -> Bits:
     """Repeated polynomial multiplication in GF(2^8)."""
     b = b.reshape(_BYTE_SHAPE)
     for _ in range(n):
@@ -137,7 +137,7 @@ def xtime(b: bits, n: int) -> bits:
     return b
 
 
-def _rowxcol(row: bits, col: bits) -> bits:
+def _rowxcol(row: Bits, col: Bits) -> Bits:
     """Multiply one row and one column."""
     row = row.reshape((4, 4))
     col = col.reshape((_WORD_BYTES, _BYTE_BITS))
@@ -151,14 +151,14 @@ def _rowxcol(row: bits, col: bits) -> bits:
     return y
 
 
-def _multiply(a: bits, col: bits) -> bits:
+def _multiply(a: Bits, col: Bits) -> Bits:
     """Multiply a matrix by one column."""
     a = a.reshape((4, 4, 4))
     col = col.reshape((_WORD_BYTES, _BYTE_BITS))
     return cat([_rowxcol(a[c], col) for c in range(NB)])
 
 
-def mix_columns(state: bits) -> bits:
+def mix_columns(state: Bits) -> Bits:
     """AES MixColumns() function.
 
     Transformation in the Cipher that takes all of the columns of the State and
@@ -168,7 +168,7 @@ def mix_columns(state: bits) -> bits:
     return cat([_multiply(MTXA, state[c]) for c in range(NB)])
 
 
-def inv_mix_columns(state: bits) -> bits:
+def inv_mix_columns(state: Bits) -> Bits:
     """AES InvMixColumns function.
 
     Transformation in the Inverse Cipher that is the inverse of MixColumns().
@@ -177,7 +177,7 @@ def inv_mix_columns(state: bits) -> bits:
     return cat([_multiply(INV_MTXA, state[c]) for c in range(NB)])
 
 
-def add_round_key(state: bits, rkey: bits) -> bits:
+def add_round_key(state: Bits, rkey: Bits) -> Bits:
     """AES AddRoundKey() function.
 
     Transformation in the Cipher and Inverse Cipher in which a Round Key is
@@ -191,7 +191,7 @@ def add_round_key(state: bits, rkey: bits) -> bits:
     return cat(words)
 
 
-def sub_bytes(state: bits) -> bits:
+def sub_bytes(state: Bits) -> Bits:
     """AES SubBytes() function.
 
     Transformation in the Cipher that processes the State using a non­linear
@@ -203,7 +203,7 @@ def sub_bytes(state: bits) -> bits:
     return cat(words)
 
 
-def inv_sub_bytes(state: bits) -> bits:
+def inv_sub_bytes(state: Bits) -> Bits:
     """AES InvSubBytes() function.
 
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
@@ -213,7 +213,7 @@ def inv_sub_bytes(state: bits) -> bits:
     return cat(words)
 
 
-def shift_rows(state: bits) -> bits:
+def shift_rows(state: Bits) -> Bits:
     """AES ShiftRows() function.
 
     Transformation in the Cipher that processes the State by cyclically shifting
@@ -231,7 +231,7 @@ def shift_rows(state: bits) -> bits:
     return cat(bytes_)
 
 
-def inv_shift_rows(state: bits) -> bits:
+def inv_shift_rows(state: Bits) -> Bits:
     """AES InvShiftRows() function.
 
     Transformation in the Inverse Cipher that is the inverse of ShiftRows().
@@ -248,7 +248,7 @@ def inv_shift_rows(state: bits) -> bits:
     return cat(bytes_)
 
 
-def key_expansion(nk: int, key: bits) -> bits:
+def key_expansion(nk: int, key: Bits) -> Bits:
     """Expand the key into the round key.
 
     See NIST FIPS 197 Section 5.2.
@@ -274,7 +274,7 @@ def _rksl(k: int) -> slice:
     return slice(NB * k, NB * (k + 1))
 
 
-def cipher(nk: int, pt: bits, rkey: bits):
+def cipher(nk: int, pt: Bits, rkey: Bits):
     """AES encryption cipher.
 
     See NIST FIPS 197 Section 5.1.
@@ -301,7 +301,7 @@ def cipher(nk: int, pt: bits, rkey: bits):
     return state.reshape(_TEXT_SHAPE)
 
 
-def inv_cipher(nk: int, ct: bits, rkey: bits):
+def inv_cipher(nk: int, ct: Bits, rkey: Bits):
     """AES decryption cipher.
 
     SEE NIST FIPS 197 Section 5.3.
@@ -328,14 +328,14 @@ def inv_cipher(nk: int, ct: bits, rkey: bits):
     return state.reshape(_TEXT_SHAPE)
 
 
-def encrypt(nk: int, pt: bits, key: bits) -> bits:
+def encrypt(nk: int, pt: Bits, key: Bits) -> Bits:
     """Encrypt a plain text block."""
     assert nk in (4, 6, 8)
     rkey = key_expansion(nk, key)
     return cipher(nk, pt, rkey)
 
 
-def decrypt(nk: int, ct: bits, key: bits) -> bits:
+def decrypt(nk: int, ct: Bits, key: Bits) -> Bits:
     """Decrypt a plain text block."""
     assert nk in (4, 6, 8)
     rkey = key_expansion(nk, key)

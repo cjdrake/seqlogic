@@ -9,6 +9,7 @@ from collections.abc import Collection, Generator
 from functools import cached_property
 
 from . import lbool
+from .lbool import Vec, bools2vec, int2vec, lit2vec, uint2vec
 
 
 class Bits:
@@ -94,8 +95,8 @@ class Bits:
         return self._shape
 
     @cached_property
-    def _v(self) -> lbool.Vec:
-        return lbool.Vec(self.size, self._data)
+    def _v(self) -> Vec:
+        return Vec(self.size, self._data)
 
     def reshape(self, shape: tuple[int, ...]) -> Bits:
         """Return an equivalent bit array with modified shape."""
@@ -366,7 +367,7 @@ class Bits:
         return tuple(nkey)
 
 
-def _v2b(v: lbool.Vec) -> Bits:
+def _v2b(v: Vec) -> Bits:
     return Bits((len(v),), v.data)
 
 
@@ -377,7 +378,7 @@ def _rank2(fst: Bits, rst) -> Bits:
     for i, b in enumerate(rst, start=1):
         match b:
             case str() as lit:
-                v = lbool._lit2vec(lit)
+                v = lit2vec(lit)
                 if len(v) != fst.size:
                     s = f"Expected str literal to have size {fst.size}, got {len(v)}"
                     raise TypeError(s)
@@ -400,17 +401,17 @@ def bits(obj=None) -> Bits:
             return E
         # Rank 0 int
         case 0 | 1 as x:
-            v = lbool._bools2vec([x])
+            v = bools2vec([x])
             return Bits((1,), v.data)
         # Rank 1 str
         case str() as lit:
-            return _v2b(lbool._lit2vec(lit))
+            return _v2b(lit2vec(lit))
         # Rank 1 [0 | 1, ...]
         case [0 | 1 as x, *rst]:
-            return _v2b(lbool._bools2vec([x, *rst]))
+            return _v2b(bools2vec([x, *rst]))
         # Rank 2 str
         case [str() as lit, *rst]:
-            return _rank2(_v2b(lbool._lit2vec(lit)), rst)
+            return _rank2(_v2b(lit2vec(lit)), rst)
         # Rank 2 logic_vector
         case [Bits() as b, *rst]:
             return _rank2(b, rst)
@@ -424,12 +425,12 @@ def bits(obj=None) -> Bits:
 
 def uint2bits(num: int, n: int | None = None) -> Bits:
     """Convert nonnegative int to logic_vector."""
-    return _v2b(lbool.uint2vec(num, n))
+    return _v2b(uint2vec(num, n))
 
 
 def int2bits(num: int, n: int | None = None) -> Bits:
     """Convert int to logic_vector."""
-    return _v2b(lbool.int2vec(num, n))
+    return _v2b(int2vec(num, n))
 
 
 def cat(objs: Collection[int | Bits], flatten: bool = False) -> Bits:
@@ -443,7 +444,7 @@ def cat(objs: Collection[int | Bits], flatten: bool = False) -> Bits:
     for obj in objs:
         match obj:
             case 0 | 1 as x:
-                v = lbool._bools2vec([x])
+                v = bools2vec([x])
                 bs.append(Bits((1,), v.data))
             case Bits() as b:
                 bs.append(b)

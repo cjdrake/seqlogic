@@ -1108,7 +1108,7 @@ _NUM_RE = re.compile(
 )
 
 
-def _bools2vec(xs: Iterable[int]) -> Vec:
+def bools2vec(xs: Iterable[int]) -> Vec:
     """Convert an iterable of bools to a vec.
 
     This is a convenience function.
@@ -1122,7 +1122,7 @@ def _bools2vec(xs: Iterable[int]) -> Vec:
     return Vec(i, data)
 
 
-def _lit2vec(lit: str) -> Vec:
+def lit2vec(lit: str) -> Vec:
     """Convert a string literal to a vec.
 
     A string literal is in the form {width}{base}{characters},
@@ -1195,11 +1195,11 @@ def vec(obj=None) -> Vec:
         case None:
             return Vec(0, 0)
         case 0 | 1 as x:
-            return _bools2vec([x])
+            return bools2vec([x])
         case [0 | 1 as x, *rst]:
-            return _bools2vec([x, *rst])
+            return bools2vec([x, *rst])
         case str() as lit:
-            return _lit2vec(lit)
+            return lit2vec(lit)
         case _:
             raise TypeError(f"Invalid input: {obj}")
 
