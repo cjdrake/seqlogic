@@ -205,7 +205,7 @@ class Sim:
         self._waiting: dict[State, set[Coroutine]] = defaultdict(set)
         self._triggers: dict[State, dict[Coroutine, Callable[[], bool]]] = defaultdict(dict)
         # Postponed actions
-        self._touched_state: set[State] = set()
+        self._touched: set[State] = set()
         # Processes
         self._procs = []
 
@@ -223,7 +223,7 @@ class Sim:
         self._task = None
         self._waiting.clear()
         self._triggers.clear()
-        self._touched_state.clear()
+        self._touched.clear()
 
     def reset(self):
         """Reset the simulation state."""
@@ -263,12 +263,6 @@ class Sim:
         """Add a process to run at start of simulation."""
         self._procs.append((proc, region, args, kwargs))
 
-    def add_hier_procs(self, hier):
-        """TODO(cjdrake): Write docstring."""
-        for node in hier.iter_bfs():
-            for proc, region in node.procs:
-                self.add_proc(proc, Region(region))
-
     def add_event(self, event: Callable[[], bool]):
         """Add a conditional state => task dependency."""
         assert self._task is not None
@@ -285,7 +279,7 @@ class Sim:
             del self._triggers[state][task]
 
         # Add state to update set
-        self._touched_state.add(state)
+        self._touched.add(state)
 
     def _limit(self, ticks: int | None, until: int | None) -> int | None:
         """Determine the run limit."""
@@ -395,8 +389,8 @@ class Sim:
 
     def _update_state(self):
         """Prepare state to enter the next time slot."""
-        while self._touched_state:
-            state = self._touched_state.pop()
+        while self._touched:
+            state = self._touched.pop()
             state.update()
 
 

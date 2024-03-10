@@ -9,7 +9,7 @@ from collections.abc import Generator
 
 from vcd.writer import VCDWriter as VcdWriter
 
-from .sim import notify
+from .sim import get_loop, notify
 
 
 class Hierarchy(ABC):
@@ -56,6 +56,13 @@ class Hierarchy(ABC):
 
     def dump_vcd(self, vcdw: VcdWriter, pattern: str):
         """TODO(cjdrake): Write docstring."""
+
+    def simify(self):
+        """TODO(cjdrake): Write docstring."""
+        loop = get_loop()
+        for node in self.iter_bfs():
+            for proc, region in node.procs:
+                loop.add_proc(proc, region)
 
     @property
     def procs(self):

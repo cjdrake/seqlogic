@@ -64,7 +64,7 @@ def test_singlecycle_dump():
     top.dump_waves(waves, r"/top/core/datapath.data_mem_addr")
     top.dump_waves(waves, r"/top/core/datapath.data_mem_wr_data")
 
-    loop.add_hier_procs(top)
+    top.simify()
 
     # Initialize instruction memory
     text = get_mem("tests/riscv/tests/add.text")
@@ -703,7 +703,7 @@ def run_riscv_test(name: str) -> int:
     # Create module hierarchy
     top = Top(name="top")
 
-    loop.add_hier_procs(top)
+    top.simify()
 
     # Initialize instruction memory
     text = get_mem(f"tests/riscv/tests/{name}.text")
