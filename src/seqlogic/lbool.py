@@ -1190,32 +1190,30 @@ def foo(obj=None) -> vec:
             raise TypeError(f"Invalid input: {obj}")
 
 
-def illogicals(n: int) -> vec:
-    """Return a vec packed with n ILLOGICAL items."""
+def _consts(x: int, n: int) -> vec:
     if n < 0:
         raise ValueError(f"Expected n ≥, got {n}")
-    return vec(n, _fill(_ILLOGICAL, n))
+    return vec(n, _fill(x, n))
+
+
+def illogicals(n: int) -> vec:
+    """Return a vec packed with n ILLOGICAL items."""
+    return _consts(_ILLOGICAL, n)
 
 
 def zeros(n: int) -> vec:
     """Return a vec packed with n ZERO items."""
-    if n < 0:
-        raise ValueError(f"Expected n ≥, got {n}")
-    return vec(n, _fill(_ZERO, n))
+    return _consts(_ZERO, n)
 
 
 def ones(n: int) -> vec:
     """Return a vec packed with n ONE items."""
-    if n < 0:
-        raise ValueError(f"Expected n ≥, got {n}")
-    return vec(n, _fill(_ONE, n))
+    return _consts(_ONE, n)
 
 
 def xes(n: int) -> vec:
     """Return a vec packed with n UNKNOWN items."""
-    if n < 0:
-        raise ValueError(f"Expected n ≥, got {n}")
-    return vec(n, _fill(_UNKNOWN, n))
+    return _consts(_UNKNOWN, n)
 
 
 # Empty
