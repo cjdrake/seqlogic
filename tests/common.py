@@ -8,7 +8,6 @@ from collections import defaultdict
 
 from seqlogic import Bit, notify, sleep
 from seqlogic.bits import F, T
-from seqlogic.var import TraceSingular
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
@@ -90,7 +89,7 @@ async def p_clk(
 
 
 async def p_dff(
-    q: TraceSingular,
+    q,
     d,
     reset_n: Bit,
     reset_value,

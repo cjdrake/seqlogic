@@ -1,16 +1,15 @@
 """Test hierarchy module."""
 
-from seqlogic import Module
-from seqlogic.hier import Variable
+from seqlogic.hier import Branch, Leaf
 
 
 def test_basic():
     """Test basic hierarchical naming."""
-    a = Module(name="a")
-    w = Variable(name="w", parent=a)
-    b = Module(name="b", parent=a)
-    x = Variable(name="x", parent=b)
-    y = Variable(name="y", parent=b)
+    a = Branch(name="a")
+    w = Leaf(name="w", parent=a)
+    b = Branch(name="b", parent=a)
+    x = Leaf(name="x", parent=b)
+    y = Leaf(name="y", parent=b)
 
     assert a.name == "a"
     assert a.qualname == "/a"

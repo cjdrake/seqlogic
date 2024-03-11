@@ -11,7 +11,7 @@ It merely serves as a non-trivial example design.
 
 from collections import defaultdict
 
-from seqlogic import get_loop
+from seqlogic import get_loop, simify
 from seqlogic.bits import F, T, X, bits, uint2bits, xes, zeros
 
 from .riscv.core.common.constants import AluOp, CtlAluA, CtlAluB, CtlPc
@@ -67,7 +67,7 @@ def test_singlecycle_dump():
     top.dump_waves(waves, r"/top/core/datapath.data_mem_addr")
     top.dump_waves(waves, r"/top/core/datapath.data_mem_wr_data")
 
-    top.simify()
+    simify(top)
 
     # Initialize instruction memory
     text = get_mem("tests/riscv/tests/add.text")
@@ -706,7 +706,7 @@ def run_riscv_test(name: str) -> int:
     # Create module hierarchy
     top = Top(name="top")
 
-    top.simify()
+    simify(top)
 
     # Initialize instruction memory
     text = get_mem(f"tests/riscv/tests/{name}.text")

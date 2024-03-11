@@ -1,20 +1,19 @@
 """Sequential Logic."""
 
-from .hier import Module
+from .design import Array, Bit, Bits, Enum, Module, simify
 from .sim import changed, get_loop, notify, sleep
-from .var import Array, Bit, Bits, Enum
 
 __all__ = [
-    # hier
+    # design
+    "Array",
+    "Bit",
+    "Bits",
+    "Enum",
     "Module",
+    "simify",
     # sim
     "changed",
     "get_loop",
     "notify",
     "sleep",
-    # var
-    "Array",
-    "Bit",
-    "Bits",
-    "Enum",
 ]

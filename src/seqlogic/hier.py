@@ -2,14 +2,8 @@
 
 from __future__ import annotations
 
-import inspect
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from collections.abc import Generator
-
-from vcd.writer import VCDWriter as VcdWriter
-
-from .sim import get_loop
 
 
 class Hierarchy(ABC):
@@ -19,14 +13,6 @@ class Hierarchy(ABC):
         """TODO(cjdrake): Write docstring."""
         self._name = name
         self._parent = parent
-
-        self._procs = set()
-
-        def is_proc_region(m):
-            return isinstance(m, tuple) and len(m) == 2 and inspect.iscoroutinefunction(m[0])
-
-        for _, (proc, region) in inspect.getmembers(self, is_proc_region):
-            self._procs.add((proc, region))
 
     @property
     def name(self) -> str:
@@ -51,29 +37,11 @@ class Hierarchy(ABC):
     def iter_dfs(self) -> Generator[Hierarchy, None, None]:
         """Iterate through the design hierarchy in DFS order."""
 
-    def dump_waves(self, waves: defaultdict, pattern: str):
-        """TODO(cjdrake): Write docstring."""
 
-    def dump_vcd(self, vcdw: VcdWriter, pattern: str):
-        """TODO(cjdrake): Write docstring."""
-
-    def simify(self):
-        """TODO(cjdrake): Write docstring."""
-        loop = get_loop()
-        for node in self.iter_bfs():
-            for proc, region in node.procs:
-                loop.add_proc(proc, region)
-
-    @property
-    def procs(self):
-        """TODO(cjdrake): Write docstring."""
-        return self._procs
-
-
-class Module(Hierarchy):
+class Branch(Hierarchy):
     """Design hierarchy branch node."""
 
-    def __init__(self, name: str, parent: Module | None = None):
+    def __init__(self, name: str, parent: Branch | None = None):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
         self._children: list[Hierarchy] = []
@@ -82,7 +50,7 @@ class Module(Hierarchy):
 
     @property
     def qualname(self) -> str:
-        """Return the module's fully qualified name."""
+        """Return the branch's fully qualified name."""
         if self._parent is None:
             return f"/{self._name}"
         else:
@@ -102,45 +70,35 @@ class Module(Hierarchy):
 
     @property
     def scope(self) -> str:
-        """Return the module's full name using dot separator syntax."""
+        """Return the branch's full name using dot separator syntax."""
         if self._parent is None:
             return self.name
-        assert isinstance(self._parent, Module)
+        assert isinstance(self._parent, Branch)
         return f"{self._parent.scope}.{self.name}"
 
     def add_child(self, child: Hierarchy):
-        """Add child module or variable."""
+        """Add child branch or leaf."""
         self._children.append(child)
 
-    def dump_waves(self, waves: defaultdict, pattern: str):
-        """TODO(cjdrake): Write docstring."""
-        for child in self._children:
-            child.dump_waves(waves, pattern)
 
-    def dump_vcd(self, vcdw: VcdWriter, pattern: str):
-        """TODO(cjdrake): Write docstring."""
-        for child in self._children:
-            child.dump_vcd(vcdw, pattern)
-
-
-class Variable(Hierarchy):
+class Leaf(Hierarchy):
     """Design hierarchy leaf node."""
 
-    def __init__(self, name: str, parent: Module):
+    def __init__(self, name: str, parent: Branch):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
         parent.add_child(self)
 
     @property
     def qualname(self) -> str:
-        """Return the variable's fully qualified name."""
+        """Return the leaf's fully qualified name."""
         assert self._parent is not None
         return f"{self._parent.qualname}/{self._name}"
 
-    def iter_bfs(self) -> Generator[Variable, None, None]:
+    def iter_bfs(self) -> Generator[Leaf, None, None]:
         """TODO(cjdrake): Write docstring."""
         yield self
 
-    def iter_dfs(self) -> Generator[Variable, None, None]:
+    def iter_dfs(self) -> Generator[Leaf, None, None]:
         """TODO(cjdrake): Write docstring."""
         yield self

@@ -1,14 +1,18 @@
 """TODO(cjdrake): Write docstring."""
 
+from __future__ import annotations
+
+import inspect
 import re
+from abc import ABC
 from collections import defaultdict
 
 from vcd.writer import VarValue
+from vcd.writer import VCDWriter as VcdWriter
 
-from . import bits, sim
+from . import bits, hier, sim
 from .bits import F, T, xes
-from .hier import Module, Variable
-from .sim import notify
+from .sim import changed, get_loop
 
 _item2char = {
     0b00: "x",
@@ -24,13 +28,62 @@ def _bits2vcd(b: bits.Bits) -> VarValue:
     return "".join(_item2char[b._v._get_item(i)] for i in range(b._v._n - 1, -1, -1))
 
 
-class TraceSingular(Variable, sim.Singular):
+class _TraceIf(ABC):
+    """TODO(cjdrake): Write docstring."""
+
+    def dump_waves(self, waves: defaultdict, pattern: str):
+        """TODO(cjdrake): Write docstring."""
+
+    def dump_vcd(self, vcdw: VcdWriter, pattern: str):
+        """TODO(cjdrake): Write docstring."""
+
+
+class _ProcIf(ABC):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self):
+        self._procs = set()
+
+        def is_proc_region(m):
+            return isinstance(m, tuple) and len(m) == 2 and inspect.iscoroutinefunction(m[0])
+
+        for _, (proc, region) in inspect.getmembers(self, is_proc_region):
+            self._procs.add((proc, region))
+
+    @property
+    def procs(self):
+        return self._procs
+
+
+class Module(hier.Branch, _TraceIf, _ProcIf):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, name: str, parent: Module | None = None):
+        """TODO(cjdrake): Write docstring."""
+        hier.Branch.__init__(self, name, parent)
+        _ProcIf.__init__(self)
+
+    def dump_waves(self, waves: defaultdict, pattern: str):
+        """TODO(cjdrake): Write docstring."""
+        for child in self._children:
+            assert isinstance(child, _TraceIf)
+            child.dump_waves(waves, pattern)
+
+    def dump_vcd(self, vcdw: VcdWriter, pattern: str):
+        """TODO(cjdrake): Write docstring."""
+        for child in self._children:
+            assert isinstance(child, _TraceIf)
+            child.dump_vcd(vcdw, pattern)
+
+
+class _TraceSingular(hier.Leaf, _TraceIf, sim.Singular, _ProcIf):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module, value):
         """TODO(cjdrake): Write docstring."""
-        Variable.__init__(self, name, parent)
+        hier.Leaf.__init__(self, name, parent)
         sim.Singular.__init__(self, value)
+        _ProcIf.__init__(self)
         self._waves_change = None
         self._vcd_change = None
 
@@ -77,51 +130,32 @@ class TraceSingular(Variable, sim.Singular):
 
         async def proc():
             while True:
-                await notify(src.changed)
+                await changed(src)
                 self.next = src.next
 
         self._procs.add((proc, 0))
 
 
-class TraceAggregate(Variable, sim.Aggregate):
+class _TraceAggregate(hier.Leaf, _TraceIf, sim.Aggregate, _ProcIf):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(
-        self,
-        name: str,
-        parent: Module,
-        shape: tuple[int, ...],
-        value,
-    ):
+    def __init__(self, name: str, parent: Module, shape: tuple[int, ...], value):
         """TODO(cjdrake): Write docstring."""
-        Variable.__init__(self, name, parent)
+        hier.Leaf.__init__(self, name, parent)
         sim.Aggregate.__init__(self, shape, value)
-
-    def dump_waves(self, waves: defaultdict, pattern: str):
-        """TODO(cjdrake): Write docstring."""
-
-    def dump_vcd(self, vcdw, pattern: str):
-        """TODO(cjdrake): Write docstring."""
+        _ProcIf.__init__(self)
 
     # def update(self):
     #    """TODO(cjdrake): Write docstring."""
     #    super().update()
 
 
-class Bits(TraceSingular):
+class Bits(_TraceSingular):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module, shape: tuple[int, ...]):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent, value=xes(shape))
-
-
-class Enum(TraceSingular):
-    """TODO(cjdrake): Write docstring."""
-
-    def __init__(self, name: str, parent: Module, cls):
-        """TODO(cjdrake): Write docstring."""
-        super().__init__(name, parent, value=cls.X)
 
 
 class Bit(Bits):
@@ -140,7 +174,15 @@ class Bit(Bits):
         return self._value == T and self._next_value == F
 
 
-class Array(TraceAggregate):
+class Enum(_TraceSingular):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, name: str, parent: Module, cls):
+        """TODO(cjdrake): Write docstring."""
+        super().__init__(name, parent, value=cls.X)
+
+
+class Array(_TraceAggregate):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(
@@ -152,3 +194,12 @@ class Array(TraceAggregate):
     ):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent, unpacked_shape, value=xes(packed_shape))
+
+
+def simify(d: Module | Bits | Enum | Array):
+    """TODO(cjdrake): Write docstring."""
+    loop = get_loop()
+    for node in d.iter_bfs():
+        assert isinstance(node, _ProcIf)
+        for proc, region in node.procs:
+            loop.add_proc(proc, region)
