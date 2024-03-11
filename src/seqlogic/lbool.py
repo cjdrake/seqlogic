@@ -304,9 +304,10 @@ class Vec:
 
     Though it is possible to construct an lbool Vec directly,
     it is easier to use one of the factory functions:
+
+    * vec
     * uint2vec
     * int2vec
-    * vec
     * illogicals
     * zeros
     * ones
@@ -321,7 +322,7 @@ class Vec:
 
         Args:
             n: Length
-            data: lbool items packed into an int
+            data: lbool items packed into an int.
 
         Raises:
             ValueError if n or data is invalid/inconsistent

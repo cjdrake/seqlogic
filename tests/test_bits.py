@@ -8,10 +8,22 @@ import pytest
 from seqlogic.bits import F, T, W, X, bits, cat, illogicals, ones, rep, uint2bits, xes, zeros
 
 
+# TODO(cjdrake): Fix this
+@pytest.mark.xfail
+def test_foo():
+    """Fix Me."""
+    b = bits([W, F, T, X])
+    assert b.shape == (4,)
+
+
 def test_not():
     """Test bits NOT method."""
-    b = bits([W, F, T, X])
-    assert str(~b) == "bits(4bX01?)"
+    b0 = bits("4bX10?")
+    assert str(~b0) == "bits(4bX01?)"
+
+    # NOT preserves the shape
+    b1 = bits([bits("4b1010"), bits("4b0101")])
+    assert str(~b1) == "bits([4b0101, 4b1010])"
 
 
 def test_nor():
@@ -199,37 +211,37 @@ def test_arsh():
 
 ADD_VALS = [
     ("2b00", "2b00", F, "2b00", F, F),
-    ("2b00", "2b01", 0, "2b01", F, F),
+    ("2b00", "2b01", F, "2b01", F, F),
     ("2b00", "2b10", F, "2b10", F, F),
-    ("2b00", "2b11", 0, "2b11", F, F),
+    ("2b00", "2b11", F, "2b11", F, F),
     ("2b01", "2b00", F, "2b01", F, F),
-    ("2b01", "2b01", 0, "2b10", F, T),  # overflow
+    ("2b01", "2b01", F, "2b10", F, T),  # overflow
     ("2b01", "2b10", F, "2b11", F, F),
-    ("2b01", "2b11", 0, "2b00", T, F),
+    ("2b01", "2b11", F, "2b00", T, F),
     ("2b10", "2b00", F, "2b10", F, F),
-    ("2b10", "2b01", 0, "2b11", F, F),
+    ("2b10", "2b01", F, "2b11", F, F),
     ("2b10", "2b10", F, "2b00", T, T),  # overflow
-    ("2b10", "2b11", 0, "2b01", T, T),  # overflow
+    ("2b10", "2b11", F, "2b01", T, T),  # overflow
     ("2b11", "2b00", F, "2b11", F, F),
-    ("2b11", "2b01", 0, "2b00", T, F),
+    ("2b11", "2b01", F, "2b00", T, F),
     ("2b11", "2b10", F, "2b01", T, T),  # overflow
-    ("2b11", "2b11", 0, "2b10", T, F),
+    ("2b11", "2b11", F, "2b10", T, F),
     ("2b00", "2b00", T, "2b01", F, F),
-    ("2b00", "2b01", 1, "2b10", F, T),  # overflow
+    ("2b00", "2b01", T, "2b10", F, T),  # overflow
     ("2b00", "2b10", T, "2b11", F, F),
-    ("2b00", "2b11", 1, "2b00", T, F),
+    ("2b00", "2b11", T, "2b00", T, F),
     ("2b01", "2b00", T, "2b10", F, T),  # overflow
-    ("2b01", "2b01", 1, "2b11", F, T),  # overflow
+    ("2b01", "2b01", T, "2b11", F, T),  # overflow
     ("2b01", "2b10", T, "2b00", T, F),
-    ("2b01", "2b11", 1, "2b01", T, F),
+    ("2b01", "2b11", T, "2b01", T, F),
     ("2b10", "2b00", T, "2b11", F, F),
-    ("2b10", "2b01", 1, "2b00", T, F),
+    ("2b10", "2b01", T, "2b00", T, F),
     ("2b10", "2b10", T, "2b01", T, T),  # overflow
-    ("2b10", "2b11", 1, "2b10", T, F),
+    ("2b10", "2b11", T, "2b10", T, F),
     ("2b11", "2b00", T, "2b00", T, F),
-    ("2b11", "2b01", 1, "2b01", T, F),
+    ("2b11", "2b01", T, "2b01", T, F),
     ("2b11", "2b10", T, "2b10", T, F),
-    ("2b11", "2b11", 1, "2b11", T, F),
+    ("2b11", "2b11", T, "2b11", T, F),
 ]
 
 

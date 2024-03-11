@@ -38,7 +38,7 @@ class Control(Module):
             await changed(self.inst_opcode, self.take_branch)
             match self.inst_opcode.next:
                 case Opcode.BRANCH:
-                    if self.take_branch.next == T:
+                    if self.take_branch.next:
                         self.next_pc_sel.next = CtlPc.PC_IMM
                     else:
                         self.next_pc_sel.next = CtlPc.PC4

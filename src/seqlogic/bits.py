@@ -16,14 +16,30 @@ class Bits:
     """Bit array data type.
 
     Do NOT instantiate this type directly.
-    Use the factory functions instead.
+    That requires you to understand the data encoding.
+    Use the factory functions instead:
+
+    * bits
+    * uint2bits
+    * int2bits
+    * illogicals
+    * zeros
+    * ones
+    * xes
     """
 
     def __class_getitem__(cls, key: int | tuple[int, ...]):
         pass  # pragma: no cover
 
     def __init__(self, shape: tuple[int, ...], data: int):
-        """TODO(cjdrake): Write docstring."""
+        """Initialize.
+
+        Do NOT instantiate this type directly.
+
+        Args:
+            shape: a tuple of int dimension sizes.
+            data: lbool items packed into an int.
+        """
         self._shape = shape
         self._data = data
 
@@ -63,7 +79,7 @@ class Bits:
 
     # Comparison
     def _eq(self, other: Bits) -> bool:
-        return self._shape == other._shape and self._data == other._data
+        return self._shape == other.shape and self._data == other.data
 
     def __eq__(self, other) -> bool:
         match other:
@@ -95,18 +111,23 @@ class Bits:
         return self.rsh(n)[0]
 
     def __add__(self, other: Bits) -> Bits:
-        return _v2b(self._v.__add__(other._v))
+        return self.add(other, ci=F)[0]
 
     def __sub__(self, other: Bits) -> Bits:
-        return _v2b(self._v.__sub__(other._v))
+        return self.sub(other)[0]
 
     def __neg__(self) -> Bits:
-        return _v2b(self._v.__neg__())
+        return self.neg()[0]
 
     @property
     def shape(self) -> tuple[int, ...]:
         """Return bit array shape."""
         return self._shape
+
+    @property
+    def data(self) -> int:
+        """Return bit array data."""
+        return self._data
 
     @cached_property
     def _v(self) -> Vec:
@@ -142,58 +163,184 @@ class Bits:
         return Bits((self.size,), self._data)
 
     def lnot(self) -> Bits:
-        """Return output of "lifted" NOT function."""
-        return _v2b(self._v.lnot())
+        """Bitwise lifted NOT.
+
+        Returns:
+            bit array of equal size and inverted data.
+        """
+        return Bits(self._shape, self._v.lnot().data)
 
     def lnor(self, other: Bits) -> Bits:
-        """Return output of "lifted" NOR function."""
+        """Bitwise lifted NOR.
+
+        Args:
+            other: bit array of equal size.
+
+        Returns:
+            bit array of equal size, data contains NOR result.
+
+        Raises:
+            ValueError: bit array shapes do not match.
+        """
         self._check_shape(other)
         return _v2b(self._v.lnor(other._v))
 
     def lor(self, other: Bits) -> Bits:
-        """Return output of "lifted" OR function."""
+        """Bitwise lifted OR.
+
+        Args:
+            other: bit array of equal size.
+
+        Returns:
+            bit array of equal size, data contains OR result.
+
+        Raises:
+            ValueError: bit array shapes do not match.
+        """
         self._check_shape(other)
         return _v2b(self._v.lor(other._v))
 
-    def ulor(self) -> Bits:
-        """Return unary "lifted" OR of bits."""
+    def ulor(self) -> Bits[1]:
+        """Unary lifted OR reduction.
+
+        Returns:
+            One-bit array, data contains OR reduction.
+        """
         return _v2b(self._v.ulor())
 
     def lnand(self, other: Bits) -> Bits:
-        """Return output of "lifted" NAND function."""
+        """Bitwise lifted NAND.
+
+        Args:
+            other: bit array of equal size.
+
+        Returns:
+            bit array of equal size, data contains NAND result.
+
+        Raises:
+            ValueError: bit array shapes do not match.
+        """
         self._check_shape(other)
         return _v2b(self._v.lnand(other._v))
 
     def land(self, other: Bits) -> Bits:
-        """Return output of "lifted" AND function."""
+        """Bitwise lifted AND.
+
+        Args:
+            other: bit array of equal size.
+
+        Returns:
+            bit array of equal size, data contains AND result.
+
+        Raises:
+            ValueError: bit array shapes do not match.
+        """
         self._check_shape(other)
         return _v2b(self._v.land(other._v))
 
-    def uland(self) -> Bits:
-        """Return unary "lifted" AND of bits."""
+    def uland(self) -> Bits[1]:
+        """Unary lifted AND reduction.
+
+        Returns:
+            One-bit array, data contains AND reduction.
+        """
         return _v2b(self._v.uland())
 
     def lxnor(self, other: Bits) -> Bits:
-        """Return output of "lifted" XNOR function."""
+        """Bitwise lifted XNOR.
+
+        Args:
+            other: bit array of equal size.
+
+        Returns:
+            bit array of equal size, data contains XNOR result.
+
+        Raises:
+            ValueError: bit array shapes do not match.
+        """
         self._check_shape(other)
         return _v2b(self._v.lxnor(other._v))
 
     def lxor(self, other: Bits) -> Bits:
-        """Return output of "lifted" XOR function."""
+        """Bitwise lifted XOR.
+
+        Args:
+            other: bit array of equal size.
+
+        Returns:
+            bit array of equal size, data contains XOR result.
+
+        Raises:
+            ValueError: bit array shapes do not match.
+        """
         self._check_shape(other)
         return _v2b(self._v.lxor(other._v))
 
-    def ulxor(self) -> Bits:
-        """Return unary "lifted" XOR of bits."""
+    def ulxnor(self) -> Bits[1]:
+        """Unary lifted XNOR reduction.
+
+        Returns:
+            One-bit array, data contains XOR reduction.
+        """
+        return _v2b(self._v.ulxnor())
+
+    def ulxor(self) -> Bits[1]:
+        """Unary lifted XOR reduction.
+
+        Returns:
+            One-bit array, data contains XOR reduction.
+        """
         return _v2b(self._v.ulxor())
 
     def to_uint(self) -> int:
-        """Convert vector to unsigned integer."""
+        """Convert to unsigned integer.
+
+        Returns:
+            An unsigned int.
+
+        Raises:
+            ValueError: bit array is partially unknown.
+        """
         return self._v.to_uint()
 
     def to_int(self) -> int:
-        """Convert vector to signed integer."""
+        """Convert to signed integer.
+
+        Returns:
+            A signed int, from two's complement encoding.
+
+        Raises:
+            ValueError: bit array is partially unknown.
+        """
         return self._v.to_int()
+
+    def ult(self, other: Bits) -> bool:
+        """Unsigned less than.
+
+        Args:
+            other: bit array of equal size.
+
+        Returns:
+            Boolean result of unsigned(self) < unsigned(other)
+
+        Raises:
+            ValueError: bit array sizes do not match.
+        """
+        return self._v.ult(other._v)
+
+    def slt(self, other: Bits) -> bool:
+        """Signed less than.
+
+        Args:
+            other: bit array of equal size.
+
+        Returns:
+            Boolean result of signed(self) < signed(other)
+
+        Raises:
+            ValueError: bit array sizes do not match.
+        """
+        return self._v.slt(other._v)
 
     def zext(self, n: int) -> Bits:
         """Return bit array zero extended by n bits.
@@ -211,7 +358,7 @@ class Bits:
         """
         return _v2b(self.flatten()._v.sext(n))
 
-    def lsh(self, n: int | Bits, ci: Bits | None = None) -> tuple[Bits, Bits]:
+    def lsh(self, n: int | Bits, ci: Bits[1] | None = None) -> tuple[Bits, Bits]:
         """Return bit array left shifted by n bits.
 
         Left shift is defined for 1-D vectors.
@@ -236,7 +383,7 @@ class Bits:
             y, co = self._v.lsh(n, ci._v)
         return _v2b(y), _v2b(co)
 
-    def rsh(self, n: int | Bits, ci: Bits | None = None) -> tuple[Bits, Bits]:
+    def rsh(self, n: int | Bits, ci: Bits[1] | None = None) -> tuple[Bits, Bits]:
         """Return bit array right shifted by n bits.
 
         Right shift is defined for 1-D vectors.
@@ -283,18 +430,42 @@ class Bits:
         y, co = self._v.arsh(n)
         return _v2b(y), _v2b(co)
 
-    def add(self, other: Bits, ci: object) -> tuple[Bits, Bits, Bits]:
-        """Return the sum of two bit arrays, carry out, and overflow.
+    def add(self, other: Bits, ci: Bits[1]) -> tuple[Bits, Bits[1], Bits[1]]:
+        """Twos complement additions.
 
-        The implementation propagates Xes according to the
-        ripple carry addition algorithm.
+        Args:
+            other: bit array of equal size.
+
+        Returns:
+            3-tuple of (sum, carry-out, overflow).
+
+        Raises:
+            ValueError: bit array lengths are invalid/inconsistent.
         """
-        match ci:
-            case Bits():
-                pass
-            case _:
-                ci = (F, T)[bool(ci)]
         s, co, ovf = self._v.add(other._v, ci._v)
+        return _v2b(s), _v2b(co), _v2b(ovf)
+
+    def sub(self, other: Bits) -> tuple[Bits, Bits[1], Bits[1]]:
+        """Twos complement subtraction.
+
+        Args:
+            other: bit array of equal size.
+
+        Raises:
+            ValueError: bit array lengths are invalid/inconsistent.
+        """
+        s, co, ovf = self._v.sub(other._v)
+        return _v2b(s), _v2b(co), _v2b(ovf)
+
+    def neg(self) -> tuple[Bits, Bits[1], Bits[1]]:
+        """Twos complement negation.
+
+        Computed using 0 - self.
+
+        Returns:
+            3-tuple of (sum, carry-out, overflow).
+        """
+        s, co, ovf = self._v.neg()
         return _v2b(s), _v2b(co), _v2b(ovf)
 
     def _check_shape(self, other: Bits):
@@ -387,7 +558,7 @@ def _v2b(v: Vec) -> Bits:
 def _rank2(fst: Bits, rst) -> Bits:
     shape = (len(rst) + 1,) + fst.shape
     size = len(fst._v)
-    data = fst._data
+    data = fst.data
     for i, b in enumerate(rst, start=1):
         match b:
             case str() as lit:
@@ -397,7 +568,7 @@ def _rank2(fst: Bits, rst) -> Bits:
                     raise TypeError(s)
                 data |= v.data << (fst._v.nbits * i)
             case Bits() if b.shape == fst.shape:
-                data |= b._data << (fst._v.nbits * i)
+                data |= b.data << (fst._v.nbits * i)
             case _:
                 s = ",".join(str(dim) for dim in fst.shape)
                 s = f"Expected item to be str or Bits[{s}]"
@@ -437,12 +608,34 @@ def bits(obj=None) -> Bits:
 
 
 def uint2bits(num: int, n: int | None = None) -> Bits:
-    """Convert nonnegative int to logic_vector."""
+    """Convert nonnegative int to bit array.
+
+    Args:
+        num: A nonnegative integer.
+        n: Optional output length.
+
+    Returns:
+        A bit array instance.
+
+    Raises:
+        ValueError: If num is negative or overflows the output length.
+    """
     return _v2b(uint2vec(num, n))
 
 
 def int2bits(num: int, n: int | None = None) -> Bits:
-    """Convert int to logic_vector."""
+    """Convert int to bit array.
+
+    Args:
+        num: An integer.
+        n: Optional output length.
+
+    Returns:
+        A bit array instance.
+
+    Raises:
+        ValueError: If num overflows the output length.
+    """
     return _v2b(int2vec(num, n))
 
 
@@ -472,7 +665,7 @@ def cat(objs: Collection[int | Bits], flatten: bool = False) -> Bits:
     regular = True
     dims = [fst.shape[0]]
     size = len(fst._v)
-    data = fst._data
+    data = fst.data
 
     pos = fst._v.nbits
     for b in rst:
@@ -483,7 +676,7 @@ def cat(objs: Collection[int | Bits], flatten: bool = False) -> Bits:
             raise ValueError(s)
         dims.append(b.shape[0])
         size += len(b._v)
-        data |= b._data << pos
+        data |= b.data << pos
         pos += b._v.nbits
 
     if not scalar and regular and not flatten:
@@ -512,12 +705,12 @@ def _sel(b: Bits, key: tuple[int | slice, ...]) -> Bits:
 
     match key[0]:
         case int() as i:
-            data = f(b._data, i)
+            data = f(b.data, i)
             if shape:
                 return _sel(Bits(shape, data), key[1:])
             return Bits((1,), data)
         case slice() as sl:
-            datas = (f(b._data, i) for i in range(sl.start, sl.stop, sl.step))
+            datas = (f(b.data, i) for i in range(sl.start, sl.stop, sl.step))
             if shape:
                 return cat([_sel(Bits(shape, data), key[1:]) for data in datas])
             return cat([Bits((1,), data) for data in datas])
