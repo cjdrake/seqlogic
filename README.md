@@ -2,7 +2,7 @@
 
 Sequential Logic (`seqlogic`) is a logic simulation library.
 It uses Python's `async` / `await` syntax to model time,
-and provides an N-dimensional `logicvec` data type for combinational logic.
+and provides an N-dimensional `bits` data type for combinational logic.
 
 The API design is a work in progress, and documentation has not started.
 See the `tests` directory for example usage.
