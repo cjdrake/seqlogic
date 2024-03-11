@@ -55,13 +55,27 @@ class Bits:
         d = f"0b{self._data:0{self._v.nbits}b}"
         return f"bits({repr(self._shape)}, {d})"
 
+    def __bool__(self) -> bool:
+        return bool(self._v)
+
+    def __int__(self) -> int:
+        return int(self._v)
+
+    # Comparison
+    def _eq(self, other: Bits) -> bool:
+        return self._shape == other._shape and self._data == other._data
+
     def __eq__(self, other) -> bool:
         match other:
             case Bits():
-                return self._shape == other.shape and self._data == other._data
+                return self._eq(other)
             case _:
                 return False
 
+    def __hash__(self) -> int:
+        return hash(self._shape) ^ hash(self._data)
+
+    # Bitwise Arithmetic
     def __invert__(self) -> Bits:
         return self.lnot()
 
@@ -126,11 +140,6 @@ class Bits:
         if self.ndim == 1:
             return self
         return Bits((self.size,), self._data)
-
-    def _check_shape(self, other: Bits):
-        if self._shape != other.shape:
-            s = f"Expected shape {self._shape}, got {other.shape}"
-            raise ValueError(s)
 
     def lnot(self) -> Bits:
         """Return output of "lifted" NOT function."""
@@ -288,6 +297,11 @@ class Bits:
         s, co, ovf = self._v.add(other._v, ci._v)
         return _v2b(s), _v2b(co), _v2b(ovf)
 
+    def _check_shape(self, other: Bits):
+        if self._shape != other.shape:
+            s = f"Expected shape {self._shape}, got {other.shape}"
+            raise ValueError(s)
+
     def _to_lit(self) -> str:
         return str(self._v)
 
@@ -302,7 +316,6 @@ class Bits:
         # 1D Vector
         if self.ndim == 1:
             return self._to_lit()
-
         # Tensor, ie N-dimensional vector
         if self.ndim == 2:
             sep = ", "

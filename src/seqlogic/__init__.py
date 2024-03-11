@@ -2,7 +2,7 @@
 
 from .hier import Module
 from .sim import changed, get_loop, notify, sleep
-from .var import Array, Bit, Bits
+from .var import Array, Bit, Bits, Enum
 
 __all__ = [
     # hier
@@ -16,4 +16,5 @@ __all__ = [
     "Array",
     "Bit",
     "Bits",
+    "Enum",
 ]

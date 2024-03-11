@@ -5,11 +5,10 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Bit, Module, get_loop, notify
+from seqlogic import Bit, Enum, Module, get_loop, notify
 from seqlogic.bits import F, T, X
-from seqlogic.enum import Enum
+from seqlogic.enum import Enum as EnumVal
 from seqlogic.sim import Region
-from seqlogic.var import TraceSingular
 
 from .common import p_clk, p_dff, p_rst
 
@@ -20,21 +19,13 @@ from .common import p_clk, p_dff, p_rst
 loop = get_loop()
 
 
-class SeqDetect(Enum):
+class SeqDetect(EnumVal):
     """Sequence Detector state."""
 
     A = "2b00"
     B = "2b01"
     C = "2b10"
     D = "2b11"
-
-
-class EnumVar(TraceSingular):
-    """TODO(cjdrake): Write docstring."""
-
-    def __init__(self, name: str, parent: Module):
-        """TODO(cjdrake): Write docstring."""
-        super().__init__(name, parent, SeqDetect.X)
 
 
 async def p_input(
@@ -71,7 +62,7 @@ def test_fsm():
     top = Module(name="top")
     clock = Bit(name="clock", parent=top)
     reset_n = Bit(name="reset_n", parent=top)
-    ps = EnumVar(name="ps", parent=top)
+    ps = Enum(name="ps", parent=top, cls=SeqDetect)
     x = Bit(name="x", parent=top)
 
     waves = defaultdict(dict)
@@ -80,26 +71,25 @@ def test_fsm():
     def ns() -> SeqDetect:
         match ps.value:
             case SeqDetect.A:
-                if x.value == T:
+                if x.value:
                     return SeqDetect.B
                 else:
                     return SeqDetect.A
             case SeqDetect.B:
-                if x.value == T:
+                if x.value:
                     return SeqDetect.C
                 else:
                     return SeqDetect.A
             case SeqDetect.C:
-                if x.value == T:
+                if x.value:
                     return SeqDetect.D
                 else:
                     return SeqDetect.A
             case SeqDetect.D:
-                if x.value == T:
+                if x.value:
                     return SeqDetect.D
                 else:
                     return SeqDetect.A
-
             case _:
                 return SeqDetect.X
 

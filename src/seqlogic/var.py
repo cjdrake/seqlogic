@@ -116,7 +116,12 @@ class Bits(TraceSingular):
         super().__init__(name, parent, value=xes(shape))
 
 
-# TODO(cjdrake): Create a generic type for enums
+class Enum(TraceSingular):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, name: str, parent: Module, cls):
+        """TODO(cjdrake): Write docstring."""
+        super().__init__(name, parent, value=cls.X)
 
 
 class Bit(Bits):

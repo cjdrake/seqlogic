@@ -386,7 +386,7 @@ class Vec:
             case _:
                 return False
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._n) ^ hash(self._data)
 
     # Bitwise Arithmetic
