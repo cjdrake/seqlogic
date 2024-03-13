@@ -68,14 +68,6 @@ class Branch(Hierarchy):
             yield from child.iter_dfs()
         yield self
 
-    @property
-    def scope(self) -> str:
-        """Return the branch's full name using dot separator syntax."""
-        if self._parent is None:
-            return self.name
-        assert isinstance(self._parent, Branch)
-        return f"{self._parent.scope}.{self.name}"
-
     def add_child(self, child: Hierarchy):
         """Add child branch or leaf."""
         self._children.append(child)

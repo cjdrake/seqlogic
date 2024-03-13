@@ -68,6 +68,14 @@ class Module(hier.Branch, _TraceIf, _ProcIf):
         hier.Branch.__init__(self, name, parent)
         _ProcIf.__init__(self)
 
+    @property
+    def scope(self) -> str:
+        """Return the branch's full name using dot separator syntax."""
+        if self._parent is None:
+            return self.name
+        assert isinstance(self._parent, Module)
+        return f"{self._parent.scope}.{self.name}"
+
     def dump_waves(self, waves: defaultdict, pattern: str):
         """TODO(cjdrake): Write docstring."""
         for child in self._children:
