@@ -57,7 +57,7 @@ def test_hello(capsys):
         await sleep(2)
         print(f"[{loop.time()}] World")
 
-    loop.add_proc(hello, Region(2))
+    loop.add_proc(Region(2), hello)
 
     # Invalid run limit
     with pytest.raises(TypeError):
@@ -101,9 +101,9 @@ def test_vars_run():
                 b.next = not b.value
             i += 1
 
-    loop.add_proc(p_clk, Region(2))
-    loop.add_proc(p_a, Region(1))
-    loop.add_proc(p_b, Region(1))
+    loop.add_proc(Region(2), p_clk)
+    loop.add_proc(Region(1), p_a)
+    loop.add_proc(Region(1), p_b)
 
     # Expected sim output
     exp = {
@@ -164,9 +164,9 @@ def test_vars_iter():
                 b.next = not b.value
             i += 1
 
-    loop.add_proc(p_clk, Region(2))
-    loop.add_proc(p_a, Region(1))
-    loop.add_proc(p_b, Region(1))
+    loop.add_proc(Region(2), p_clk)
+    loop.add_proc(Region(1), p_a)
+    loop.add_proc(Region(1), p_b)
 
     # Expected sim output
     exp = {

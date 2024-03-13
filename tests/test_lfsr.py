@@ -42,12 +42,12 @@ def test_lfsr():
     reset_value = bits("3b100")
 
     # Schedule LFSR
-    loop.add_proc(p_dff, Region(1), top.q, d, top.reset_n, reset_value, top.clock)
+    loop.add_proc(Region(1), p_dff, top.q, d, top.reset_n, reset_value, top.clock)
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(p_rst, Region(2), top.reset_n, init=T, phase1=6, phase2=10)
-    loop.add_proc(p_clk, Region(2), top.clock, init=F, shift=5, phase1=5, phase2=5)
+    loop.add_proc(Region(2), p_rst, top.reset_n, init=T, phase1=6, phase2=10)
+    loop.add_proc(Region(2), p_clk, top.clock, init=F, shift=5, phase1=5, phase2=5)
 
     loop.run(until=100)
 

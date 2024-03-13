@@ -259,9 +259,9 @@ class Sim:
         region = self._task_region[task]
         self._queue.push(when, region, task, None)
 
-    def add_proc(self, proc, region: Region, *args, **kwargs):
+    def add_proc(self, region: Region, func, *args, **kwargs):
         """Add a process to run at start of simulation."""
-        self._procs.append((proc, region, args, kwargs))
+        self._procs.append((region, func, args, kwargs))
 
     def add_event(self, event: Callable[[], bool]):
         """Add a conditional state => task dependency."""
@@ -298,8 +298,8 @@ class Sim:
                 raise TypeError(s)
 
     def _start(self):
-        for proc, region, args, kwargs in self._procs:
-            task = proc(*args, **kwargs)
+        for region, func, args, kwargs in self._procs:
+            task = func(*args, **kwargs)
             self._task_region[task] = region
             self.call_at(_START_TIME, task)
         self._started = True
@@ -427,13 +427,13 @@ def get_loop() -> Sim:
 class _Schedule:
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, func, region: Region):
+    def __init__(self, region: Region, func):
+        self._region = region
         assert inspect.iscoroutinefunction(func)
         self._func = func
-        self._region = region
 
     def __get__(self, obj, cls=None):
-        return (partial(self._func, obj), self._region)
+        return self._region, partial(self._func, obj)
 
 
 class initial(_Schedule):
@@ -441,7 +441,7 @@ class initial(_Schedule):
 
     def __init__(self, func):
         """TODO(cjdrake): Write docstring."""
-        super().__init__(func, Region(2))
+        super().__init__(Region(2), func)
 
 
 class always_ff(_Schedule):
@@ -449,7 +449,7 @@ class always_ff(_Schedule):
 
     def __init__(self, func):
         """TODO(cjdrake): Write docstring."""
-        super().__init__(func, Region(1))
+        super().__init__(Region(1), func)
 
 
 class always_comb(_Schedule):
@@ -457,4 +457,4 @@ class always_comb(_Schedule):
 
     def __init__(self, func):
         """TODO(cjdrake): Write docstring."""
-        super().__init__(func, Region(0))
+        super().__init__(Region(0), func)

@@ -6,13 +6,14 @@ import inspect
 import re
 from abc import ABC
 from collections import defaultdict
+from collections.abc import Callable
 
 from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
 
 from . import bits, hier, sim
 from .bits import F, T, xes
-from .sim import changed, get_loop
+from .sim import Region, changed, get_loop
 
 _item2char = {
     0b00: "x",
@@ -42,13 +43,17 @@ class _ProcIf(ABC):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self):
-        self._procs = set()
+        self._procs = []
 
-        def is_proc_region(m):
-            return isinstance(m, tuple) and len(m) == 2 and inspect.iscoroutinefunction(m[0])
+        def is_proc(m) -> bool:
+            match m:
+                case [int(), Callable() as f] if inspect.iscoroutinefunction(f):
+                    return True
+                case _:
+                    return False
 
-        for _, (proc, region) in inspect.getmembers(self, is_proc_region):
-            self._procs.add((proc, region))
+        for _, (region, func) in inspect.getmembers(self, is_proc):
+            self._procs.append((region, func, (), {}))
 
     @property
     def procs(self):
@@ -133,7 +138,7 @@ class _TraceSingular(hier.Leaf, _TraceIf, sim.Singular, _ProcIf):
                 await changed(src)
                 self.next = src.next
 
-        self._procs.add((proc, 0))
+        self._procs.append((Region(0), proc, (), {}))
 
 
 class _TraceAggregate(hier.Leaf, _TraceIf, sim.Aggregate, _ProcIf):
@@ -201,5 +206,5 @@ def simify(d: Module | Bits | Enum | Array):
     loop = get_loop()
     for node in d.iter_bfs():
         assert isinstance(node, _ProcIf)
-        for proc, region in node.procs:
-            loop.add_proc(proc, region)
+        for region, func, args, kwargs in node.procs:
+            loop.add_proc(region, func, *args, **kwargs)

@@ -94,15 +94,15 @@ def test_fsm():
                 return SeqDetect.X
 
     # Schedule input
-    loop.add_proc(p_input, Region(1), x, reset_n, clock)
+    loop.add_proc(Region(1), p_input, x, reset_n, clock)
 
     # Schedule LFSR
-    loop.add_proc(p_dff, Region(1), ps, ns, reset_n, SeqDetect.A, clock)
+    loop.add_proc(Region(1), p_dff, ps, ns, reset_n, SeqDetect.A, clock)
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(p_rst, Region(2), reset_n, init=T, phase1=6, phase2=10)
-    loop.add_proc(p_clk, Region(2), clock, init=F, shift=5, phase1=5, phase2=5)
+    loop.add_proc(Region(2), p_rst, reset_n, init=T, phase1=6, phase2=10)
+    loop.add_proc(Region(2), p_clk, clock, init=F, shift=5, phase1=5, phase2=5)
 
     loop.run(until=100)
 
