@@ -12,4 +12,4 @@ pytest-cov
 pytest-profiling
 
 # Notebooks
-ipython
+ipykernel
