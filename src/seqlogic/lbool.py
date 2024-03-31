@@ -1193,16 +1193,58 @@ def vec(obj=None) -> Vec:
         TypeError: If input obj is invalid.
     """
     match obj:
-        case None:
-            return Vec(0, 0)
+        case None | []:
+            return _E
         case 0 | 1 as x:
-            return bools2vec([x])
+            return (_F, _T)[x]
         case [0 | 1 as x, *rst]:
             return bools2vec([x, *rst])
         case str() as lit:
             return lit2vec(lit)
         case _:
             raise TypeError(f"Invalid input: {obj}")
+
+
+def cat(*objs: int | Vec) -> Vec:
+    """Concatenate a sequence of vectors.
+
+    Args:
+        objs: a sequence of bools.
+
+    Returns:
+        A Vec instance.
+
+    Raises:
+        TypeError: If input obj is invalid.
+    """
+    if len(objs) == 0:
+        return _E
+
+    # Convert inputs
+    vs = []
+    for obj in objs:
+        match obj:
+            case 0 | 1 as x:
+                vs.append((_F, _T)[x])
+            case Vec() as v:
+                vs.append(v)
+            case _:
+                raise TypeError(f"Invalid input: {obj}")
+
+    if len(vs) == 1:
+        return vs[0]
+
+    i, data = 0, 0
+    for v in vs:
+        data |= v.data << (_ITEM_BITS * i)
+        i += len(v)
+    return Vec(i, data)
+
+
+def rep(obj: int | Vec, n: int) -> Vec:
+    """Repeat a vector n times."""
+    objs = [obj] * n
+    return cat(*objs)
 
 
 def _consts(x: int, n: int) -> Vec:

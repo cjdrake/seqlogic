@@ -8,6 +8,7 @@ import pytest
 from seqlogic import lbool
 from seqlogic.lbool import (
     Vec,
+    cat,
     int2vec,
     land,
     limplies,
@@ -17,6 +18,7 @@ from seqlogic.lbool import (
     lor,
     lxnor,
     lxor,
+    rep,
     uint2vec,
     vec,
 )
@@ -794,3 +796,13 @@ def test_vec_basic():
         v["invalid"]  # pyright: ignore[reportArgumentType]
 
     assert list(v) == [Vec(1, 0b00), Vec(1, 0b01), Vec(1, 0b10), Vec(1, 0b11)]
+
+
+def test_cat():
+    """TODO(cjdrake): Write docstring."""
+    assert cat(vec("2b0?"), vec("2bX1")) == vec("4bX10?")
+
+
+def test_rep():
+    """TODO(cjdrake): Write docstring."""
+    assert rep(vec("4bX10?"), 2) == vec("8bX10?_X10?")
