@@ -111,11 +111,11 @@ class _TraceSingular(hier.Leaf, _TraceIf, sim.Singular, _ProcIf):
     def dump_waves(self, waves: defaultdict, pattern: str):
         """TODO(cjdrake): Write docstring."""
         if re.fullmatch(pattern, self.qualname):
-            t = self._sim.time()
+            t = self._sim.time
             waves[t][self] = self._value
 
             def change():
-                t = self._sim.time()
+                t = self._sim.time
                 waves[t][self] = self._next_value
 
             self._waves_change = change
@@ -133,7 +133,7 @@ class _TraceSingular(hier.Leaf, _TraceIf, sim.Singular, _ProcIf):
             )
 
             def change():
-                t = self._sim.time()
+                t = self._sim.time
                 vcdw.change(var, t, _bits2vcd(self._next_value))
 
             self._vcd_change = change

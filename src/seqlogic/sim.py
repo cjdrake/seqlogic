@@ -19,7 +19,6 @@ Region = NewType("Region", int)
 
 
 _INIT_TIME = -1
-_INIT_REGION = Region(-1)
 _START_TIME = 0
 
 
@@ -57,11 +56,7 @@ class Singular(State):
         """TODO(cjdrake): Write docstring."""
         return self._value
 
-    def set_value(self, value):
-        """TODO(cjdrake): Write docstring."""
-        self._value = self._next_value = value
-
-    value = property(fget=get_value, fset=set_value)
+    value = property(fget=get_value)
 
     def get_next(self):
         """TODO(cjdrake): Write docstring."""
@@ -107,10 +102,6 @@ class Aggregate(State):
     def get_value(self, index):
         """TODO(cjdrake): Write docstring."""
         return self._values[index]
-
-    def set_value(self, index, value):
-        """TODO(cjdrake): Write docstring."""
-        self._values[index] = self._next_values[index] = value
 
     def get_next(self, index):
         """TODO(cjdrake): Write docstring."""
@@ -195,7 +186,7 @@ class Sim:
         self._started: bool = False
         # Simulation time
         self._time: int = _INIT_TIME
-        self._region: Region = _INIT_REGION
+        self._region: Region | None = None
         # Task queue
         self._queue = _SimQueue()
         # Currently executing task
@@ -218,7 +209,7 @@ class Sim:
         """Restart the simulation."""
         self._started = False
         self._time = _INIT_TIME
-        self._region = _INIT_REGION
+        self._region = None
         self._queue.clear()
         self._task = None
         self._waiting.clear()
@@ -231,17 +222,19 @@ class Sim:
         self._procs.clear()
         self._task_region.clear()
 
+    @property
     def time(self) -> int:
         """TODO(cjdrake): Write docstring."""
         return self._time
 
-    def region(self) -> Region:
+    @property
+    def region(self) -> Region | None:
         """TODO(cjdrake): Write docstring."""
         return self._region
 
-    def task(self) -> Coroutine:
+    @property
+    def task(self) -> Coroutine | None:
         """TODO(cjdrake): Write docstring."""
-        assert self._task is not None
         return self._task
 
     def call_soon(self, task: Coroutine, state: State | None = None):
@@ -331,11 +324,13 @@ class Sim:
             elif time > self._time:
                 # Update all simulation state
                 self._update_state()
+
                 # Exit if we hit the run limit
                 if limit is not None and time >= limit:
                     break
                 # Otherwise, advance
                 self._time = time
+                self._region = region
 
             # Resume execution
             for _, _, self._task, state in self._queue.pop_region():
@@ -374,11 +369,13 @@ class Sim:
                 # Update all simulation state
                 self._update_state()
                 yield self._time
+
                 # Exit if we hit the run limit
                 if limit is not None and time >= limit:
                     return
                 # Otherwise, advance
                 self._time = time
+                self._region = region
 
             # Resume execution
             for _, _, self._task, state in self._queue.pop_region():
@@ -399,7 +396,8 @@ _sim = Sim()
 
 async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
-    _sim.call_later(delay, _sim.task())
+    assert _sim.task is not None
+    _sim.call_later(delay, _sim.task)
     await _SimAwaitable()
 
 
@@ -407,16 +405,16 @@ async def notify(*events: Callable[[], bool]) -> State:
     """Suspend the task, and wake up after an event notification."""
     for event in events:
         _sim.add_event(event)
-    var = await _SimAwaitable()
-    return var
+    state = await _SimAwaitable()
+    return state
 
 
 async def changed(*states: State) -> State:
     """TODO(cjdrake): Write docstring."""
     for state in states:
         _sim.add_event(state.changed)
-    var = await _SimAwaitable()
-    return var
+    state = await _SimAwaitable()
+    return state
 
 
 def get_loop() -> Sim:
