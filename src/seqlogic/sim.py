@@ -45,7 +45,6 @@ class Singular(State):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, value):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(value)
 
         self._value = self._init_value
@@ -73,11 +72,9 @@ class Singular(State):
     next = property(fget=get_next, fset=set_next)
 
     def changed(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
         return self._changed
 
     def update(self):
-        """TODO(cjdrake): Write docstring."""
         self._value = self._next_value
         self._changed = False
 
@@ -90,7 +87,6 @@ class Aggregate(State):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, shape: tuple[int, ...], value):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(value)
 
         # TODO(cjdrake): Use this for index checking
@@ -117,11 +113,9 @@ class Aggregate(State):
         _sim.touch(self)
 
     def changed(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
         return bool(self._changed)
 
     def update(self):
-        """TODO(cjdrake): Write docstring."""
         for index in self._changed:
             self._values[index] = self._next_values[index]
         self._changed.clear()
