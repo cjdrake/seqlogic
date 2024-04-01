@@ -38,6 +38,9 @@ _ONE = 0b10
 _UNKNOWN = 0b11
 
 
+_LNOT = (_ILLOGICAL, _ONE, _ZERO, _UNKNOWN)
+
+
 def lnot(x: int) -> int:
     """Lifted NOT function.
 
@@ -47,13 +50,15 @@ def lnot(x: int) -> int:
         1 => 0 | 10 => 01
         X => X | 11 => 11
     """
-    x_0 = x & 1
-    x_1 = x >> 1
+    return _LNOT[x]
 
-    y_0, y_1 = x_1, x_0
-    y = (y_1 << 1) | y_0
 
-    return y
+_LNOR = (
+    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
+    (_ILLOGICAL, _ONE, _ZERO, _UNKNOWN),
+    (_ILLOGICAL, _ZERO, _ZERO, _ZERO),
+    (_ILLOGICAL, _UNKNOWN, _ZERO, _UNKNOWN),
+)
 
 
 def lnor(x0: int, x1: int) -> int:
@@ -77,16 +82,15 @@ def lnor(x0: int, x1: int) -> int:
        10 |00|01|01|01|     | x0[1] & x1[1]
           +--+--+--+--+
     """
-    x0_0 = x0 & 1
-    x0_1 = x0 >> 1
-    x1_0 = x1 & 1
-    x1_1 = x1 >> 1
+    return _LNOR[x0][x1]
 
-    y_0 = x0_0 & x1_1 | x0_1 & x1_0 | x0_1 & x1_1
-    y_1 = x0_0 & x1_0
-    y = (y_1 << 1) | y_0
 
-    return y
+_LOR = (
+    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
+    (_ILLOGICAL, _ZERO, _ONE, _UNKNOWN),
+    (_ILLOGICAL, _ONE, _ONE, _ONE),
+    (_ILLOGICAL, _UNKNOWN, _ONE, _UNKNOWN),
+)
 
 
 def lor(x0: int, x1: int) -> int:
@@ -110,16 +114,15 @@ def lor(x0: int, x1: int) -> int:
        10 |00|10|10|10|
           +--+--+--+--+
     """
-    x0_0 = x0 & 1
-    x0_1 = x0 >> 1
-    x1_0 = x1 & 1
-    x1_1 = x1 >> 1
+    return _LOR[x0][x1]
 
-    y_0 = x0_0 & x1_0
-    y_1 = x0_0 & x1_1 | x0_1 & x1_0 | x0_1 & x1_1
-    y = (y_1 << 1) | y_0
 
-    return y
+_LNAND = (
+    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
+    (_ILLOGICAL, _ONE, _ONE, _ONE),
+    (_ILLOGICAL, _ONE, _ZERO, _UNKNOWN),
+    (_ILLOGICAL, _ONE, _UNKNOWN, _UNKNOWN),
+)
 
 
 def lnand(x0: int, x1: int) -> int:
@@ -143,16 +146,15 @@ def lnand(x0: int, x1: int) -> int:
        10 |00|10|11|01|
           +--+--+--+--+
     """
-    x0_0 = x0 & 1
-    x0_1 = x0 >> 1
-    x1_0 = x1 & 1
-    x1_1 = x1 >> 1
+    return _LNAND[x0][x1]
 
-    y_0 = x0_1 & x1_1
-    y_1 = x0_0 & x1_0 | x0_0 & x1_1 | x0_1 & x1_0
-    y = (y_1 << 1) | y_0
 
-    return y
+_LAND = (
+    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
+    (_ILLOGICAL, _ZERO, _ZERO, _ZERO),
+    (_ILLOGICAL, _ZERO, _ONE, _UNKNOWN),
+    (_ILLOGICAL, _ZERO, _UNKNOWN, _UNKNOWN),
+)
 
 
 def land(x0: int, x1: int) -> int:
@@ -176,16 +178,15 @@ def land(x0: int, x1: int) -> int:
        10 |00|01|11|10|     | x0[1] & x1[0]
           +--+--+--+--+
     """
-    x0_0 = x0 & 1
-    x0_1 = x0 >> 1
-    x1_0 = x1 & 1
-    x1_1 = x1 >> 1
+    return _LAND[x0][x1]
 
-    y_0 = x0_0 & x1_0 | x0_0 & x1_1 | x0_1 & x1_0
-    y_1 = x0_1 & x1_1
-    y = (y_1 << 1) | y_0
 
-    return y
+_LXNOR = (
+    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
+    (_ILLOGICAL, _ONE, _ZERO, _UNKNOWN),
+    (_ILLOGICAL, _ZERO, _ONE, _UNKNOWN),
+    (_ILLOGICAL, _UNKNOWN, _UNKNOWN, _UNKNOWN),
+)
 
 
 def lxnor(x0: int, x1: int) -> int:
@@ -212,16 +213,15 @@ def lxnor(x0: int, x1: int) -> int:
        10 |00|01|11|10|
           +--+--+--+--+
     """
-    x0_0 = x0 & 1
-    x0_1 = x0 >> 1
-    x1_0 = x1 & 1
-    x1_1 = x1 >> 1
+    return _LXNOR[x0][x1]
 
-    y_0 = x0_0 & x1_1 | x0_1 & x1_0
-    y_1 = x0_0 & x1_0 | x0_1 & x1_1
-    y = (y_1 << 1) | y_0
 
-    return y
+_LXOR = (
+    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
+    (_ILLOGICAL, _ZERO, _ONE, _UNKNOWN),
+    (_ILLOGICAL, _ONE, _ZERO, _UNKNOWN),
+    (_ILLOGICAL, _UNKNOWN, _UNKNOWN, _UNKNOWN),
+)
 
 
 def lxor(x0: int, x1: int) -> int:
@@ -248,16 +248,15 @@ def lxor(x0: int, x1: int) -> int:
        10 |00|10|11|01|
           +--+--+--+--+
     """
-    x0_0 = x0 & 1
-    x0_1 = x0 >> 1
-    x1_0 = x1 & 1
-    x1_1 = x1 >> 1
+    return _LXOR[x0][x1]
 
-    y_0 = x0_0 & x1_0 | x0_1 & x1_1
-    y_1 = x0_0 & x1_1 | x0_1 & x1_0
-    y = (y_1 << 1) | y_0
 
-    return y
+_LIMPLIES = (
+    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
+    (_ILLOGICAL, _ONE, _ONE, _ONE),
+    (_ILLOGICAL, _ZERO, _ONE, _UNKNOWN),
+    (_ILLOGICAL, _UNKNOWN, _ONE, _UNKNOWN),
+)
 
 
 def limplies(p: int, q: int) -> int:
@@ -287,16 +286,7 @@ def limplies(p: int, q: int) -> int:
        10 |00|01|11|10|
           +--+--+--+--+
     """
-    p_0 = p & 1
-    p_1 = p >> 1
-    q_0 = q & 1
-    q_1 = q >> 1
-
-    y_0 = p_1 & q_0
-    y_1 = p_0 & q_0 | p_0 & q_1 | p_1 & q_1
-    y = (y_1 << 1) | y_0
-
-    return y
+    return _LIMPLIES[p][q]
 
 
 class Vec:
