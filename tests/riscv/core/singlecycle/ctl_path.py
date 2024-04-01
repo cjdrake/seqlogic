@@ -35,8 +35,8 @@ class CtlPath(Module):
         self.next_pc_sel = Bits(name="next_pc_sel", parent=self, shape=(2,))
 
         # State
-        self.take_branch = Bit(name="take_branch", parent=self)
-        self.alu_op_type = Bits(name="alu_op_type", parent=self, shape=(2,))
+        self._take_branch = Bit(name="take_branch", parent=self)
+        self._alu_op_type = Bits(name="alu_op_type", parent=self, shape=(2,))
 
         # Submodules
         self.control = Control(name="control", parent=self)
@@ -49,19 +49,19 @@ class CtlPath(Module):
         self.regfile_wr_en.connect(self.control.regfile_wr_en)
         self.alu_op_a_sel.connect(self.control.alu_op_a_sel)
         self.alu_op_b_sel.connect(self.control.alu_op_b_sel)
-        self.alu_op_type.connect(self.control.alu_op_type)
+        self._alu_op_type.connect(self.control.alu_op_type)
         self.data_mem_rd_en.connect(self.control.data_mem_rd_en)
         self.data_mem_wr_en.connect(self.control.data_mem_wr_en)
         self.reg_writeback_sel.connect(self.control.reg_writeback_sel)
         self.next_pc_sel.connect(self.control.next_pc_sel)
         self.control.inst_opcode.connect(self.inst_opcode)
-        self.control.take_branch.connect(self.take_branch)
+        self.control.take_branch.connect(self._take_branch)
 
-        self.take_branch.connect(self.control_transfer.take_branch)
+        self._take_branch.connect(self.control_transfer.take_branch)
         self.control_transfer.inst_funct3.connect(self.inst_funct3)
         self.control_transfer.result_equal_zero.connect(self.alu_result_equal_zero)
 
         self.alu_function.connect(self.alu_control.alu_function)
-        self.alu_control.alu_op_type.connect(self.alu_op_type)
+        self.alu_control.alu_op_type.connect(self._alu_op_type)
         self.alu_control.inst_funct3.connect(self.inst_funct3)
         self.alu_control.inst_funct7.connect(self.inst_funct7)

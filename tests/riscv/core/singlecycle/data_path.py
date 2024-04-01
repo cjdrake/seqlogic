@@ -83,14 +83,16 @@ class DataPath(Module):
         self.adder_pc_plus_4 = Adder(name="adder_pc_plus_4", parent=self, width=32)
         self.adder_pc_plus_immediate = Adder(name="adder_pc_plus_immediate", parent=self, width=32)
         self.alu = Alu(name="alu", parent=self)
-        self.mux_next_pc = Mux(name="mux_next_pc", parent=self, n=4, width=32)
-        self.mux_op_a = Mux(name="mux_op_a", parent=self, n=2, width=32)
-        self.mux_op_b = Mux(name="mux_op_b", parent=self, n=2, width=32)
-        self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, width=32)
+        self.mux_next_pc = Mux(name="mux_next_pc", parent=self, n=4, shape=(32,))
+        self.mux_op_a = Mux(name="mux_op_a", parent=self, n=2, shape=(32,))
+        self.mux_op_b = Mux(name="mux_op_b", parent=self, n=2, shape=(32,))
+        self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, shape=(32,))
         self.instruction_decoder = InstructionDecoder(name="instruction_decoder", parent=self)
         self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
         pc_init = bits("32h0040_0000")
-        self.program_counter = Register(name="program_counter", parent=self, width=32, init=pc_init)
+        self.program_counter = Register(
+            name="program_counter", parent=self, shape=(32,), init=pc_init
+        )
         self.regfile = RegFile(name="regfile", parent=self)
 
     def connect(self):

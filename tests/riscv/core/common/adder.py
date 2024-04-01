@@ -13,15 +13,15 @@ class Adder(Module):
 
         # Parameters
         assert width > 1
-        self.width = width
+        self._width = width
 
         self.build()
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
-        self.result = Bits(name="result", parent=self, shape=(self.width,))
-        self.op_a = Bits(name="op_a", parent=self, shape=(self.width,))
-        self.op_b = Bits(name="op_b", parent=self, shape=(self.width,))
+        self.result = Bits(name="result", parent=self, shape=(self._width,))
+        self.op_a = Bits(name="op_a", parent=self, shape=(self._width,))
+        self.op_b = Bits(name="op_b", parent=self, shape=(self._width,))
 
     @always_comb
     async def p_c_0(self):

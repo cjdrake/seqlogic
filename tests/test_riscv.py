@@ -9,6 +9,8 @@ We are not presently interested in the details of RISC-V.
 It merely serves as a non-trivial example design.
 """
 
+# pylint: disable = protected-access
+
 from collections import defaultdict
 
 from seqlogic import get_loop, simify
@@ -72,7 +74,7 @@ def test_singlecycle_dump():
     # Initialize instruction memory
     text = get_mem("tests/riscv/tests/add.text")
     for i, d in enumerate(text):
-        top.text_memory_bus.text_memory.mem.set_next(i, uint2bits(d, 32))
+        top.text_memory_bus.text_memory._mem.set_next(i, uint2bits(d, 32))
 
     loop.run(until=50)
 
@@ -80,8 +82,8 @@ def test_singlecycle_dump():
         # Initialize everything to X'es
         -1: {
             # Top
-            top.pc: X32,
-            top.inst: X32,
+            top._pc: X32,
+            top._inst: X32,
             top.bus_addr: X32,
             top.bus_wr_en: X,
             top.bus_wr_data: X32,
@@ -123,8 +125,8 @@ def test_singlecycle_dump():
         },
         # @(posedge reset)
         5: {
-            top.pc: bits("32h0040_0000"),
-            top.inst: bits("32h0000_0093"),
+            top._pc: bits("32h0040_0000"),
+            top._inst: bits("32h0000_0093"),
             top.bus_addr: Z32,
             top.bus_wr_en: F,
             top.bus_wr_data: Z32,
@@ -166,8 +168,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         11: {
-            top.pc: bits("32h0040_0004"),
-            top.inst: bits("32h0000_0113"),
+            top._pc: bits("32h0040_0004"),
+            top._inst: bits("32h0000_0113"),
             # Decode
             top.core.datapath.inst: bits("32h0000_0113"),
             # PC
@@ -180,8 +182,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         13: {
-            top.pc: bits("32h0040_0008"),
-            top.inst: bits("32h0020_81B3"),
+            top._pc: bits("32h0040_0008"),
+            top._inst: bits("32h0020_81B3"),
             # Decode
             top.core.datapath.inst: bits("32h0020_81B3"),
             top.core.datapath.inst_opcode: bits("7b011_0011"),
@@ -199,8 +201,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         15: {
-            top.pc: bits("32h0040_000C"),
-            top.inst: bits("32h0000_0E93"),
+            top._pc: bits("32h0040_000C"),
+            top._inst: bits("32h0000_0E93"),
             # Decode
             top.core.datapath.inst: bits("32h0000_0E93"),
             top.core.datapath.inst_opcode: bits("7b001_0011"),
@@ -218,8 +220,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         17: {
-            top.pc: bits("32h0040_0010"),
-            top.inst: bits("32h0020_0E13"),
+            top._pc: bits("32h0040_0010"),
+            top._inst: bits("32h0020_0E13"),
             top.bus_addr: bits("32h0000_0002"),
             # Decode
             top.core.datapath.inst: bits("32h0020_0E13"),
@@ -242,8 +244,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         19: {
-            top.pc: bits("32h0040_0014"),
-            top.inst: bits("32h4DD1_9663"),
+            top._pc: bits("32h0040_0014"),
+            top._inst: bits("32h4DD1_9663"),
             top.bus_addr: bits("32h0000_0001"),
             # Decode
             top.core.datapath.inst: bits("32h4DD1_9663"),
@@ -273,8 +275,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         21: {
-            top.pc: bits("32h0040_0018"),
-            top.inst: bits("32h0010_0093"),
+            top._pc: bits("32h0040_0018"),
+            top._inst: bits("32h0010_0093"),
             # Decode
             top.core.datapath.inst: bits("32h0010_0093"),
             top.core.datapath.inst_funct7: bits("7b000_0000"),
@@ -299,8 +301,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         23: {
-            top.pc: bits("32h0040_001C"),
-            top.inst: bits("32h0010_0113"),
+            top._pc: bits("32h0040_001C"),
+            top._inst: bits("32h0010_0113"),
             top.bus_wr_data: bits("32h0000_0100"),
             # Decode
             top.core.datapath.inst: bits("32h0010_0113"),
@@ -317,8 +319,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         25: {
-            top.pc: bits("32h0040_0020"),
-            top.inst: bits("32h0020_81B3"),
+            top._pc: bits("32h0040_0020"),
+            top._inst: bits("32h0020_81B3"),
             top.bus_addr: bits("32h0000_0002"),
             top.bus_wr_data: bits("32h0001_0000"),
             # Decode
@@ -346,8 +348,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         27: {
-            top.pc: bits("32h0040_0024"),
-            top.inst: bits("32h0020_0E93"),
+            top._pc: bits("32h0040_0024"),
+            top._inst: bits("32h0020_0E93"),
             # Decode
             top.core.datapath.inst: bits("32h0020_0E93"),
             top.core.datapath.inst_opcode: bits("7b001_0011"),
@@ -369,8 +371,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         29: {
-            top.pc: bits("32h0040_0028"),
-            top.inst: bits("32h0030_0E13"),
+            top._pc: bits("32h0040_0028"),
+            top._inst: bits("32h0030_0E13"),
             top.bus_addr: bits("32h0000_0003"),
             top.bus_wr_data: bits("32h0200_0000"),
             # Decode
@@ -395,8 +397,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         31: {
-            top.pc: bits("32h0040_002C"),
-            top.inst: bits("32h4BD1_9A63"),
+            top._pc: bits("32h0040_002C"),
+            top._inst: bits("32h4BD1_9A63"),
             top.bus_addr: bits("32h0000_0001"),
             top.bus_wr_data: bits("32h0000_0200"),
             # Decode
@@ -429,8 +431,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         33: {
-            top.pc: bits("32h0040_0030"),
-            top.inst: bits("32h0030_0093"),
+            top._pc: bits("32h0040_0030"),
+            top._inst: bits("32h0030_0093"),
             top.bus_addr: bits("32h0000_0003"),
             top.bus_wr_data: bits("32h0200_0000"),
             # Decode
@@ -463,8 +465,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         35: {
-            top.pc: bits("32h0040_0034"),
-            top.inst: bits("32h0070_0113"),
+            top._pc: bits("32h0040_0034"),
+            top._inst: bits("32h0070_0113"),
             top.bus_addr: bits("32h0000_0007"),
             top.bus_wr_data: Z32,
             # Decode
@@ -489,8 +491,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         37: {
-            top.pc: bits("32h0040_0038"),
-            top.inst: bits("32h0020_81B3"),
+            top._pc: bits("32h0040_0038"),
+            top._inst: bits("32h0020_81B3"),
             top.bus_addr: bits("32h0000_000A"),
             top.bus_wr_data: bits("32h0007_0000"),
             # Decode
@@ -520,8 +522,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         39: {
-            top.pc: bits("32h0040_003C"),
-            top.inst: bits("32h00A0_0E93"),
+            top._pc: bits("32h0040_003C"),
+            top._inst: bits("32h00A0_0E93"),
             top.bus_wr_data: Z32,
             # Decode
             top.core.datapath.inst: bits("32h00A0_0E93"),
@@ -548,8 +550,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         41: {
-            top.pc: bits("32h0040_0040"),
-            top.inst: bits("32h0040_0E13"),
+            top._pc: bits("32h0040_0040"),
+            top._inst: bits("32h0040_0E13"),
             top.bus_addr: bits("32h0000_0004"),
             # Decode
             top.core.datapath.inst: bits("32h0040_0E13"),
@@ -571,8 +573,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         43: {
-            top.pc: bits("32h0040_0044"),
-            top.inst: bits("32h49D1_9E63"),
+            top._pc: bits("32h0040_0044"),
+            top._inst: bits("32h49D1_9E63"),
             top.bus_addr: bits("32h0000_0001"),
             top.bus_wr_data: bits("32h0000_0A00"),
             # Decode
@@ -606,8 +608,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         45: {
-            top.pc: bits("32h0040_0048"),
-            top.inst: bits("32h0000_0093"),
+            top._pc: bits("32h0040_0048"),
+            top._inst: bits("32h0000_0093"),
             top.bus_addr: Z32,
             top.bus_wr_data: Z32,
             # Decode
@@ -643,8 +645,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         47: {
-            top.pc: bits("32h0040_004C"),
-            top.inst: bits("32hFFFF_8137"),
+            top._pc: bits("32h0040_004C"),
+            top._inst: bits("32hFFFF_8137"),
             # Decode
             top.core.datapath.inst: bits("32hFFFF_8137"),
             top.core.datapath.inst_funct7: bits("7b111_1111"),
@@ -666,8 +668,8 @@ def test_singlecycle_dump():
         },
         # @(posedge clock)
         49: {
-            top.pc: bits("32h0040_0050"),
-            top.inst: bits("32h0020_81B3"),
+            top._pc: bits("32h0040_0050"),
+            top._inst: bits("32h0020_81B3"),
             top.bus_addr: bits("32hFFFF_8000"),
             top.bus_wr_data: bits("32hFFFF_8000"),
             # Decode
@@ -711,12 +713,12 @@ def run_riscv_test(name: str) -> int:
     # Initialize instruction memory
     text = get_mem(f"tests/riscv/tests/{name}.text")
     for i, d in enumerate(text):
-        top.text_memory_bus.text_memory.mem.set_next(i, uint2bits(d, 32))
+        top.text_memory_bus.text_memory._mem.set_next(i, uint2bits(d, 32))
 
     # Initialize data memory
     data = get_mem(f"tests/riscv/tests/{name}.data")
     for i, d in enumerate(data):
-        top.data_memory_bus.data_memory.mem.set_next(i, uint2bits(d, 32))
+        top.data_memory_bus.data_memory._mem.set_next(i, uint2bits(d, 32))
 
     # Run the simulation
     for _ in loop.iter(until=10000):

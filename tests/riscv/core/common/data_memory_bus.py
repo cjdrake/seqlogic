@@ -33,8 +33,8 @@ class DataMemoryBus(Module):
         self.clock = Bit(name="clock", parent=self)
 
         # State
-        self.data = Bits(name="data", parent=self, shape=(32,))
-        self.is_data = Bit(name="is_data", parent=self)
+        self._data = Bits(name="data", parent=self, shape=(32,))
+        self._is_data = Bit(name="is_data", parent=self)
 
         # Submodules
         self.data_memory = DataMemory("data_memory", parent=self)
@@ -43,7 +43,7 @@ class DataMemoryBus(Module):
         """TODO(cjdrake): Write docstring."""
         self.data_memory.wr_be.connect(self.wr_be)
         self.data_memory.wr_data.connect(self.wr_data)
-        self.data.connect(self.data_memory.rd_data)
+        self._data.connect(self.data_memory.rd_data)
         self.data_memory.clock.connect(self.clock)
 
     @always_comb
@@ -54,19 +54,19 @@ class DataMemoryBus(Module):
             try:
                 addr = self.addr.next.to_uint()
             except ValueError:
-                self.is_data.next = X
+                self._is_data.next = X
             else:
                 if DATA_BASE <= addr < (DATA_BASE + DATA_SIZE):
-                    self.is_data.next = T
+                    self._is_data.next = T
                 else:
-                    self.is_data.next = F
+                    self._is_data.next = F
 
     @always_comb
     async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await changed(self.wr_en, self.is_data)
-            self.data_memory.wr_en.next = self.wr_en.next & self.is_data.next
+            await changed(self.wr_en, self._is_data)
+            self.data_memory.wr_en.next = self.wr_en.next & self._is_data.next
 
     @always_comb
     async def p_c_2(self):
@@ -79,8 +79,8 @@ class DataMemoryBus(Module):
     async def p_c_3(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await changed(self.rd_en, self.is_data, self.data)
-            if self.rd_en.next == T and self.is_data.next == T:
-                self.rd_data.next = self.data.next
+            await changed(self.rd_en, self._is_data, self._data)
+            if self.rd_en.next == T and self._is_data.next == T:
+                self.rd_data.next = self._data.next
             else:
                 self.rd_data.next = xes((32,))

@@ -33,10 +33,6 @@ class DataMemoryInterface(Module):
         self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
         self.bus_rd_data = Bits(name="bus_rd_data", parent=self, shape=(32,))
 
-        # State
-        self.position_fix = Bits(name="position_fix", parent=self, shape=(32,))
-        self.sign_fix = Bits(name="sign_fix", parent=self, shape=(32,))
-
     def connect(self):
         """TODO(cjdrake): Write docstring."""
         self.bus_addr.connect(self.addr)

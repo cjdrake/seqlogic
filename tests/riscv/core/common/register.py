@@ -8,21 +8,21 @@ from seqlogic.sim import always_ff
 class Register(Module):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, name: str, parent: Module | None, width: int, init):
+    def __init__(self, name: str, parent: Module | None, shape: tuple[int, ...], init):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         # Parameters
-        self.width = width
-        self.init = init
+        self._shape = shape
+        self._init = init
 
         self.build()
 
     def build(self):
         """TODO(cjdrake): Write docstring."""
-        self.q = Bits(name="q", parent=self, shape=(self.width,))
+        self.q = Bits(name="q", parent=self, shape=self._shape)
         self.en = Bit(name="en", parent=self)
-        self.d = Bits(name="d", parent=self, shape=(self.width,))
+        self.d = Bits(name="d", parent=self, shape=self._shape)
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
 
@@ -37,7 +37,7 @@ class Register(Module):
             state = await resume((self.reset, self.reset.posedge), (self.clock, f))
             match state:
                 case self.reset:
-                    self.q.next = self.init
+                    self.q.next = self._init
                 case self.clock:
                     self.q.next = self.d.value
                 case _:

@@ -32,7 +32,7 @@ class DataMemory(Module):
         self.clock = Bit(name="clock", parent=self)
 
         # State
-        self.mem = Array(
+        self._mem = Array(
             name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WORD_BITS,)
         )
 
@@ -50,21 +50,21 @@ class DataMemory(Module):
                 word = self.wr_data.value
             else:
                 wr_val = self.wr_data.value.reshape((WORD_BYTES, 8))
-                mem_val = self.mem.get_value(word_addr).reshape((WORD_BYTES, 8))
+                mem_val = self._mem.get_value(word_addr).reshape((WORD_BYTES, 8))
                 bytes_ = [
                     wr_val[i] if self.wr_be.value[i] == T else mem_val[i] for i in range(WORD_BYTES)
                 ]
                 word = cat(bytes_, flatten=True)
-            self.mem.set_next(word_addr, word)
+            self._mem.set_next(word_addr, word)
 
     @always_comb
     async def p_c_0(self):
         """TODO(cjdrake): Write docstring."""
         while True:
-            await changed(self.addr, self.mem)
+            await changed(self.addr, self._mem)
             try:
                 i = self.addr.next.to_uint()
             except ValueError:
                 self.rd_data.next = xes((WORD_BITS,))
             else:
-                self.rd_data.next = self.mem.get_next(i)
+                self.rd_data.next = self._mem.get_next(i)
