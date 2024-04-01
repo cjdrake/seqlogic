@@ -1,7 +1,7 @@
 """Sequential Logic."""
 
 from .design import Array, Bit, Bits, Enum, Module, simify
-from .sim import changed, get_loop, notify, sleep
+from .sim import changed, get_loop, notify, resume, sleep
 
 __all__ = [
     # design
@@ -15,5 +15,6 @@ __all__ = [
     "changed",
     "get_loop",
     "notify",
+    "resume",
     "sleep",
 ]

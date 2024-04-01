@@ -256,12 +256,11 @@ class Sim:
         """Add a process to run at start of simulation."""
         self._procs.append((region, func, args, kwargs))
 
-    def add_event(self, event: Callable[[], bool]):
+    def add_event(self, state: State, cond: Callable[[], bool]):
         """Add a conditional state => task dependency."""
         assert self._task is not None
-        state = event.__self__
         self._waiting[state].add(self._task)
-        self._triggers[state][self._task] = event
+        self._triggers[state][self._task] = cond
 
     def touch(self, state: State):
         """Notify dependent tasks about state change."""
@@ -401,10 +400,11 @@ async def sleep(delay: int):
     await _SimAwaitable()
 
 
-async def notify(*events: Callable[[], bool]) -> State:
+async def notify(*methods: Callable[[], bool]) -> State:
     """Suspend the task, and wake up after an event notification."""
-    for event in events:
-        _sim.add_event(event)
+    for method in methods:
+        state = method.__self__
+        _sim.add_event(state, method)
     state = await _SimAwaitable()
     return state
 
@@ -412,7 +412,15 @@ async def notify(*events: Callable[[], bool]) -> State:
 async def changed(*states: State) -> State:
     """TODO(cjdrake): Write docstring."""
     for state in states:
-        _sim.add_event(state.changed)
+        _sim.add_event(state, state.changed)
+    state = await _SimAwaitable()
+    return state
+
+
+async def resume(*events: tuple[State, Callable[[], bool]]) -> State:
+    """TODO(cjdrake): Write docstring."""
+    for state, cond in events:
+        _sim.add_event(state, cond)
     state = await _SimAwaitable()
     return state
 

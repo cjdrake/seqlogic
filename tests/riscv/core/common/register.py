@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, notify
+from seqlogic import Bit, Bits, Module, resume
 from seqlogic.bits import F, T
 from seqlogic.sim import always_ff
 
@@ -29,9 +29,16 @@ class Register(Module):
     @always_ff
     async def p_f_0(self):
         """TODO(cjdrake): Write docstring."""
+
+        def f():
+            return self.clock.posedge() and self.reset.value == F and self.en.value == T
+
         while True:
-            v = await notify(self.clock.posedge, self.reset.posedge)
-            if v is self.reset:
-                self.q.next = self.init
-            elif self.reset.value == F and self.en.value == T:
-                self.q.next = self.d.value
+            state = await resume((self.reset, self.reset.posedge), (self.clock, f))
+            match state:
+                case self.reset:
+                    self.q.next = self.init
+                case self.clock:
+                    self.q.next = self.d.value
+                case _:
+                    assert False

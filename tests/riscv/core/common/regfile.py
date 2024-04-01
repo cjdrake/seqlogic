@@ -1,10 +1,10 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Array, Bit, Bits, Module, changed, notify
+from seqlogic import Array, Bit, Bits, Module, changed, resume
 from seqlogic.bits import T, xes, zeros
 from seqlogic.sim import always_comb, always_ff, initial
 
-WIDTH = 32
+WORD_BITS = 32
 DEPTH = 32
 
 
@@ -22,32 +22,37 @@ class RegFile(Module):
         # Ports
         self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_addr = Bits(name="wr_addr", parent=self, shape=(5,))
-        self.wr_data = Bits(name="wr_data", parent=self, shape=(WIDTH,))
+        self.wr_data = Bits(name="wr_data", parent=self, shape=(WORD_BITS,))
         self.rs1_addr = Bits(name="rs1_addr", parent=self, shape=(5,))
-        self.rs1_data = Bits(name="rs1_data", parent=self, shape=(WIDTH,))
+        self.rs1_data = Bits(name="rs1_data", parent=self, shape=(WORD_BITS,))
         self.rs2_addr = Bits(name="rs2_addr", parent=self, shape=(5,))
-        self.rs2_data = Bits(name="rs2_data", parent=self, shape=(WIDTH,))
+        self.rs2_data = Bits(name="rs2_data", parent=self, shape=(WORD_BITS,))
         self.clock = Bit(name="clock", parent=self)
 
         # State
-        self.regs = Array(name="regs", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WIDTH,))
+        self.regs = Array(
+            name="regs", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WORD_BITS,)
+        )
 
     @initial
     async def p_i_0(self):
         """TODO(cjdrake): Write docstring."""
-        self.regs.set_next(0, zeros((WIDTH,)))
+        self.regs.set_next(0, zeros((WORD_BITS,)))
         for i in range(1, DEPTH):
-            self.regs.set_next(i, zeros((WIDTH,)))
+            self.regs.set_next(i, zeros((WORD_BITS,)))
 
     @always_ff
     async def p_f_0(self):
         """TODO(cjdrake): Write docstring."""
+
+        def f():
+            return self.clock.posedge() and self.wr_en.value == T
+
         while True:
-            await notify(self.clock.posedge)
-            if self.wr_en.value == T:
-                i = self.wr_addr.value.to_uint()
-                if i != 0:
-                    self.regs.set_next(i, self.wr_data.value)
+            await resume((self.clock, f))
+            i = self.wr_addr.value.to_uint()
+            if i != 0:
+                self.regs.set_next(i, self.wr_data.value)
 
     @always_comb
     async def p_c_0(self):
@@ -57,7 +62,7 @@ class RegFile(Module):
             try:
                 i = self.rs1_addr.next.to_uint()
             except ValueError:
-                self.rs1_data.next = xes((WIDTH,))
+                self.rs1_data.next = xes((WORD_BITS,))
             else:
                 self.rs1_data.next = self.regs.get_next(i)
 
@@ -69,6 +74,6 @@ class RegFile(Module):
             try:
                 i = self.rs2_addr.next.to_uint()
             except ValueError:
-                self.rs2_data.next = xes((WIDTH,))
+                self.rs2_data.next = xes((WORD_BITS,))
             else:
                 self.rs2_data.next = self.regs.get_next(i)
