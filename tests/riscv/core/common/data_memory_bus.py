@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.bits import F, T, X, xes
+from seqlogic.lbool import ones, xes, zeros
 from seqlogic.sim import always_comb
 
 from .constants import DATA_BASE, DATA_SIZE
@@ -54,12 +54,12 @@ class DataMemoryBus(Module):
             try:
                 addr = self.addr.next.to_uint()
             except ValueError:
-                self._is_data.next = X
+                self._is_data.next = xes(1)
             else:
                 if DATA_BASE <= addr < (DATA_BASE + DATA_SIZE):
-                    self._is_data.next = T
+                    self._is_data.next = ones(1)
                 else:
-                    self._is_data.next = F
+                    self._is_data.next = zeros(1)
 
     @always_comb
     async def p_c_1(self):
@@ -80,7 +80,7 @@ class DataMemoryBus(Module):
         """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.rd_en, self._is_data, self._data)
-            if self.rd_en.next == T and self._is_data.next == T:
+            if self.rd_en.next == ones(1) and self._is_data.next == ones(1):
                 self.rd_data.next = self._data.next
             else:
-                self.rd_data.next = xes((32,))
+                self.rd_data.next = xes(32)

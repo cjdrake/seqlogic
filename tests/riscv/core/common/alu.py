@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.bits import F, T, xes, zeros
+from seqlogic.lbool import ones, xes, zeros
 from seqlogic.sim import always_comb
 
 from .constants import AluOp
@@ -46,27 +46,27 @@ class Alu(Module):
                         a = self.op_a.next.to_uint()
                         b = self.op_b.next.to_uint()
                     except ValueError:
-                        self.result.next = xes((32,))
+                        self.result.next = xes(32)
                     else:
-                        x = T if a == b else F
+                        x = ones(1) if a == b else zeros(1)
                         self.result.next = x.zext(31)
                 case AluOp.SLT:
                     try:
                         a = self.op_a.next.to_int()
                         b = self.op_b.next.to_int()
                     except ValueError:
-                        self.result.next = xes((32,))
+                        self.result.next = xes(32)
                     else:
-                        x = T if a < b else F
+                        x = ones(1) if a < b else zeros(1)
                         self.result.next = x.zext(31)
                 case AluOp.SLTU:
                     try:
                         a = self.op_a.next.to_uint()
                         b = self.op_b.next.to_uint()
                     except ValueError:
-                        self.result.next = xes((32,))
+                        self.result.next = xes(32)
                     else:
-                        x = T if a < b else F
+                        x = ones(1) if a < b else zeros(1)
                         self.result.next = x.zext(31)
                 case AluOp.XOR:
                     self.result.next = self.op_a.next ^ self.op_b.next
@@ -75,14 +75,14 @@ class Alu(Module):
                 case AluOp.AND:
                     self.result.next = self.op_a.next & self.op_b.next
                 case _:
-                    self.result.next = zeros((32,))
+                    self.result.next = zeros(32)
 
     @always_comb
     async def p_c_1(self):
         """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.result)
-            if self.result.next == zeros((32,)):
-                self.result_equal_zero.next = T
+            if self.result.next == zeros(32):
+                self.result_equal_zero.next = ones(1)
             else:
-                self.result_equal_zero.next = F
+                self.result_equal_zero.next = zeros(1)

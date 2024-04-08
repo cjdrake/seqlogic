@@ -1,7 +1,7 @@
 """Test Gray Code Algorithm."""
 
 from seqlogic.algorithms.gray import bin2gray, gray2bin
-from seqlogic.bits import uint2bits
+from seqlogic.lbool import uint2vec
 
 B2G_EXP = [
     0b0000,
@@ -26,10 +26,11 @@ B2G_EXP = [
 def test_bin2gray():
     """Test bin2gray function."""
     for b, g in enumerate(B2G_EXP):
-        assert bin2gray(uint2bits(b, 4)).to_uint() == g
+        assert bin2gray(uint2vec(b, 4)).to_uint() == g
 
 
 def test_gray2bin():
     """Test gray2bin function."""
     for b, g in enumerate(B2G_EXP):
-        assert gray2bin(uint2bits(g, 4)).to_uint() == b
+        temp = gray2bin(uint2vec(g, 4)).to_uint()
+        assert temp == b

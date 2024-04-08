@@ -369,9 +369,9 @@ class Bits:
             case int():
                 pass
             case Bits():
-                if n._v.has_illogical():
+                if n._v.has_x():
                     return illogicals((v.size,)), E
-                elif n._v.has_unknown():
+                elif n._v.has_dc():
                     return xes((v.size,)), E
                 else:
                     n = n.to_uint()
@@ -394,9 +394,9 @@ class Bits:
             case int():
                 pass
             case Bits():
-                if n._v.has_illogical():
+                if n._v.has_x():
                     return illogicals((v.size,)), E
-                elif n._v.has_unknown():
+                elif n._v.has_dc():
                     return xes((v.size,)), E
                 else:
                     n = n.to_uint()
@@ -419,9 +419,9 @@ class Bits:
             case int():
                 pass
             case Bits():
-                if n._v.has_illogical():
+                if n._v.has_x():
                     return illogicals((v.size,)), E
-                elif n._v.has_unknown():
+                elif n._v.has_dc():
                     return xes((v.size,)), E
                 else:
                     n = n.to_uint()
@@ -725,7 +725,7 @@ E = Bits((0,), 0)
 def illogicals(shape: tuple[int, ...]) -> Bits:
     """Return a new logic_vector of given shape, filled with ILLOGICAL."""
     n = math.prod(shape)
-    v = lbool.illogicals(n)
+    v = lbool.xes(n)
     return Bits(shape, v.data)
 
 
@@ -746,7 +746,7 @@ def ones(shape: tuple[int, ...]) -> Bits:
 def xes(shape: tuple[int, ...]) -> Bits:
     """Return a new logic_vector of given shape, filled with Xes."""
     n = math.prod(shape)
-    v = lbool.xes(n)
+    v = lbool.dcs(n)
     return Bits(shape, v.data)
 
 

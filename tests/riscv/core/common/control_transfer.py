@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.bits import X
+from seqlogic.lbool import xes
 from seqlogic.sim import always_comb
 
 from .constants import Funct3Branch
@@ -42,4 +42,4 @@ class ControlTransfer(Module):
                 case Funct3Branch.GEU:
                     self.take_branch.next = self.result_equal_zero.next
                 case _:
-                    self.take_branch.next = X
+                    self.take_branch.next = xes(1)

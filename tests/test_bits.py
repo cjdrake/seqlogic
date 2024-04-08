@@ -18,8 +18,8 @@ def test_foo():
 
 def test_not():
     """Test bits NOT method."""
-    b0 = bits("4bX10?")
-    assert str(~b0) == "bits(4bX01?)"
+    b0 = bits("4b-10X")
+    assert str(~b0) == "bits(4b-01X)"
 
     # NOT preserves the shape
     b1 = bits([bits("4b1010"), bits("4b0101")])
@@ -28,104 +28,104 @@ def test_not():
 
 def test_nor():
     """Test bits NOR method."""
-    b0 = bits("16bXXXX_1111_0000_????")
-    b1 = bits("16bX10?_X10?_X10?_X10?")
-    assert str(b0.lnor(b1)) == "bits(16bX0X?_000?_X01?_????)"
+    b0 = bits("16b----_1111_0000_XXXX")
+    b1 = bits("16b-10X_-10X_-10X_-10X")
+    assert str(b0.lnor(b1)) == "bits(16b-0-X_000X_-01X_XXXX)"
 
 
 def test_or():
     """Test bits OR method."""
-    b0 = bits("16bXXXX_1111_0000_????")
-    b1 = bits("16bX10?_X10?_X10?_X10?")
-    assert str(b0 | b1) == "bits(16bX1X?_111?_X10?_????)"
+    b0 = bits("16b----_1111_0000_XXXX")
+    b1 = bits("16b-10X_-10X_-10X_-10X")
+    assert str(b0 | b1) == "bits(16b-1-X_111X_-10X_XXXX)"
 
 
 def test_nand():
     """Test bits NAND method."""
-    b0 = bits("16bXXXX_1111_0000_????")
-    b1 = bits("16bX10?_X10?_X10?_X10?")
-    assert str(b0.lnand(b1)) == "bits(16bXX1?_X01?_111?_????)"
+    b0 = bits("16b----_1111_0000_XXXX")
+    b1 = bits("16b-10X_-10X_-10X_-10X")
+    assert str(b0.lnand(b1)) == "bits(16b--1X_-01X_111X_XXXX)"
 
 
 def test_and():
     """Test bits AND method."""
-    b0 = bits("16bXXXX_1111_0000_????")
-    b1 = bits("16bX10?_X10?_X10?_X10?")
-    assert str(b0 & b1) == "bits(16bXX0?_X10?_000?_????)"
+    b0 = bits("16b----_1111_0000_XXXX")
+    b1 = bits("16b-10X_-10X_-10X_-10X")
+    assert str(b0 & b1) == "bits(16b--0X_-10X_000X_XXXX)"
 
 
 def test_xnor():
     """Test bits XNOR method."""
-    b0 = bits("16bXXXX_1111_0000_????")
-    b1 = bits("16bX10?_X10?_X10?_X10?")
-    assert str(b0.lxnor(b1)) == "bits(16bXXX?_X10?_X01?_????)"
+    b0 = bits("16b----_1111_0000_XXXX")
+    b1 = bits("16b-10X_-10X_-10X_-10X")
+    assert str(b0.lxnor(b1)) == "bits(16b---X_-10X_-01X_XXXX)"
 
 
 def test_xor():
     """Test bits XOR method."""
-    b0 = bits("16bXXXX_1111_0000_????")
-    b1 = bits("16bX10?_X10?_X10?_X10?")
-    assert str(b0 ^ b1) == "bits(16bXXX?_X01?_X10?_????)"
+    b0 = bits("16b----_1111_0000_XXXX")
+    b1 = bits("16b-10X_-10X_-10X_-10X")
+    assert str(b0 ^ b1) == "bits(16b---X_-01X_-10X_XXXX)"
 
 
 def test_uor():
     """Test bits unary OR method."""
-    assert bits("2b??").ulor() == W
-    assert bits("2b0?").ulor() == W
-    assert bits("2b1?").ulor() == W
-    assert bits("2bX?").ulor() == W
-    assert bits("2b?0").ulor() == W
+    assert bits("2bXX").ulor() == W
+    assert bits("2b0X").ulor() == W
+    assert bits("2b1X").ulor() == W
+    assert bits("2b-X").ulor() == W
+    assert bits("2bX0").ulor() == W
     assert bits("2b00").ulor() == F
     assert bits("2b10").ulor() == T
-    assert bits("2bX0").ulor() == X
-    assert bits("2b?1").ulor() == W
+    assert bits("2b-0").ulor() == X
+    assert bits("2bX1").ulor() == W
     assert bits("2b01").ulor() == T
     assert bits("2b11").ulor() == T
-    assert bits("2bX1").ulor() == T
-    assert bits("2b?X").ulor() == W
-    assert bits("2b0X").ulor() == X
-    assert bits("2b1X").ulor() == T
-    assert bits("2bXX").ulor() == X
+    assert bits("2b-1").ulor() == T
+    assert bits("2bX-").ulor() == W
+    assert bits("2b0-").ulor() == X
+    assert bits("2b1-").ulor() == T
+    assert bits("2b--").ulor() == X
 
 
 def test_uand():
     """Test bits unary AND method."""
-    assert bits("2b??").uland() == W
-    assert bits("2b0?").uland() == W
-    assert bits("2b1?").uland() == W
-    assert bits("2bX?").uland() == W
-    assert bits("2b?0").uland() == W
+    assert bits("2bXX").uland() == W
+    assert bits("2b0X").uland() == W
+    assert bits("2b1X").uland() == W
+    assert bits("2b-X").uland() == W
+    assert bits("2bX0").uland() == W
     assert bits("2b00").uland() == F
     assert bits("2b10").uland() == F
-    assert bits("2bX0").uland() == F
-    assert bits("2b?1").uland() == W
+    assert bits("2b-0").uland() == F
+    assert bits("2bX1").uland() == W
     assert bits("2b01").uland() == F
     assert bits("2b11").uland() == T
-    assert bits("2bX1").uland() == X
-    assert bits("2b?X").uland() == W
-    assert bits("2b0X").uland() == F
-    assert bits("2b1X").uland() == X
-    assert bits("2bXX").uland() == X
+    assert bits("2b-1").uland() == X
+    assert bits("2bX-").uland() == W
+    assert bits("2b0-").uland() == F
+    assert bits("2b1-").uland() == X
+    assert bits("2b--").uland() == X
 
 
 def test_uxor():
     """Test bits unary XOR method."""
-    assert bits("2b??").ulxor() == W
-    assert bits("2b0?").ulxor() == W
-    assert bits("2b1?").ulxor() == W
-    assert bits("2bX?").ulxor() == W
-    assert bits("2b?0").ulxor() == W
+    assert bits("2bXX").ulxor() == W
+    assert bits("2b0X").ulxor() == W
+    assert bits("2b1X").ulxor() == W
+    assert bits("2b-X").ulxor() == W
+    assert bits("2bX0").ulxor() == W
     assert bits("2b00").ulxor() == F
     assert bits("2b10").ulxor() == T
-    assert bits("2bX0").ulxor() == X
-    assert bits("2b?1").ulxor() == W
+    assert bits("2b-0").ulxor() == X
+    assert bits("2bX1").ulxor() == W
     assert bits("2b01").ulxor() == T
     assert bits("2b11").ulxor() == F
-    assert bits("2bX1").ulxor() == X
-    assert bits("2b?X").ulxor() == W
-    assert bits("2b0X").ulxor() == X
-    assert bits("2b1X").ulxor() == X
-    assert bits("2bXX").ulxor() == X
+    assert bits("2b-1").ulxor() == X
+    assert bits("2bX-").ulxor() == W
+    assert bits("2b0-").ulxor() == X
+    assert bits("2b1-").ulxor() == X
+    assert bits("2b--").ulxor() == X
 
 
 def test_zext():
@@ -337,7 +337,7 @@ def test_parse_str_literal():
         bits("invalid")
 
     # Valid input
-    b = bits("4bX1_0?")
+    b = bits("4b-1_0X")
     assert b._v.data == 0b11_10_01_00
     b = bits("64hFeDc_Ba98_7654_3210")
     assert b._v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
@@ -430,10 +430,10 @@ def test_scalar():
     assert b0.flatten() == b0
 
     # Test __str__
-    assert str(bn) == "bits([?])"
+    assert str(bn) == "bits([X])"
     assert str(b0) == "bits([0])"
     assert str(b1) == "bits([1])"
-    assert str(bx) == "bits([X])"
+    assert str(bx) == "bits([-])"
 
     # Test __repr__
     assert repr(bn) == "bits((1,), 0b00)"
@@ -469,7 +469,7 @@ def test_scalar():
 
 def test_rank1_str():
     """Test bits rank1 string input."""
-    b = bits("8bX10?_X10?")
+    b = bits("8b-10X_-10X")
     data = 0b11100100_11100100
     xs = [W, F, T, X] * 2
 
@@ -484,7 +484,7 @@ def test_rank1_str():
     assert b.flatten() == b
 
     # Test __str__ and __repr__
-    assert str(b) == "bits(8bX10?_X10?)"
+    assert str(b) == "bits(8b-10X_-10X)"
     assert repr(b) == "bits((8,), 0b1110010011100100)"
 
     # Test __len__
@@ -500,7 +500,7 @@ def test_rank1_str():
     assert b[7] == X
 
     # Test __eq__
-    assert b == bits("8bX10?_X10?")
+    assert b == bits("8b-10X_-10X")
     # Same data, different shape
     assert b != b.reshape((2, 4))
     with pytest.raises(ValueError):
@@ -525,7 +525,7 @@ def test_rank1_str():
 def test_rank1_logic():
     """Test bits function w/ rank1 logic input."""
     xs = [W, F, T, X]
-    b1 = bits("4bX10?")
+    b1 = bits("4b-10X")
     b2 = bits([0, 1, 0, 1])
 
     # Test properties
@@ -537,7 +537,7 @@ def test_rank1_logic():
     assert list(b1.flat) == xs
 
     # Test __str__
-    assert str(b1) == "bits(4bX10?)"
+    assert str(b1) == "bits(4b-10X)"
     assert str(b2) == "bits(4b1010)"
 
     # Test __repr__
@@ -547,12 +547,12 @@ def test_rank1_logic():
 
 def test_rank2_str():
     """Test bits function w/ rank2 str input."""
-    b = bits(["4bX10?", "4bX10?"])
+    b = bits(["4b-10X", "4b-10X"])
 
-    assert b.flatten() == bits("8bX10?_X10?")
+    assert b.flatten() == bits("8b-10X_-10X")
 
     # Test __str__
-    assert str(b) == "bits([4bX10?, 4bX10?])"
+    assert str(b) == "bits([4b-10X, 4b-10X])"
 
     # Test __repr__
     assert repr(b) == "bits((2, 4), 0b1110010011100100)"
@@ -560,10 +560,10 @@ def test_rank2_str():
 
 def test_rank2_vec():
     """Test bits function w/ rank2 bits input."""
-    b = bits([bits("4bX10?"), bits("4bX10?")])
+    b = bits([bits("4b-10X"), bits("4b-10X")])
 
     # Test __str__
-    assert str(b) == "bits([4bX10?, 4bX10?])"
+    assert str(b) == "bits([4b-10X, 4b-10X])"
 
     # Test __repr__
     assert repr(b) == "bits((2, 4), 0b1110010011100100)"
@@ -573,27 +573,27 @@ def test_rank2_errors():
     """Test bits function rank2 errors."""
     # Mismatched str literal
     with pytest.raises(TypeError):
-        bits(["4bX10?", "3b10?"])
+        bits(["4b-10X", "3b10X"])
     # bits followed by some invalid type
     with pytest.raises(TypeError):
-        bits(["4bX10?", 42])
+        bits(["4b-10X", 42])
 
 
 R3VEC = """\
-bits([[4bX10?, 4bX10?],
-      [4bX10?, 4bX10?]])"""
+bits([[4b-10X, 4b-10X],
+      [4b-10X, 4b-10X]])"""
 
 
 def test_rank3_vec():
     """Test bits function w/ rank3 input."""
     b = bits(
         [
-            [bits("4bX10?"), bits("4bX10?")],
-            [bits("4bX10?"), bits("4bX10?")],
+            [bits("4b-10X"), bits("4b-10X")],
+            [bits("4b-10X"), bits("4b-10X")],
         ]
     )
 
-    assert b.flatten() == bits("16bX10?_X10?_X10?_X10?")
+    assert b.flatten() == bits("16b-10X_-10X_-10X_-10X")
 
     # Test __str__
     assert str(b) == R3VEC
@@ -603,19 +603,19 @@ def test_rank3_vec():
 
 
 R4VEC = """\
-bits([[[4bX10?, 4bX10?],
-       [4bX10?, 4bX10?]],
+bits([[[4b-10X, 4b-10X],
+       [4b-10X, 4b-10X]],
 
-      [[4bX10?, 4bX10?],
-       [4bX10?, 4bX10?]]])"""
+      [[4b-10X, 4b-10X],
+       [4b-10X, 4b-10X]]])"""
 
 
 def test_rank4_vec():
     """Test bits function w/ rank4 input."""
     b = bits(
         [
-            [[bits("4bX10?"), bits("4bX10?")], [bits("4bX10?"), bits("4bX10?")]],
-            [[bits("4bX10?"), bits("4bX10?")], [bits("4bX10?"), bits("4bX10?")]],
+            [[bits("4b-10X"), bits("4b-10X")], [bits("4b-10X"), bits("4b-10X")]],
+            [[bits("4b-10X"), bits("4b-10X")], [bits("4b-10X"), bits("4b-10X")]],
         ]
     )
 
@@ -675,10 +675,10 @@ def test_rep():
 
 def test_consts():
     """Test bits constants."""
-    assert illogicals((8,)) == bits("8b????_????")
+    assert illogicals((8,)) == bits("8bXXXX_XXXX")
     assert zeros((8,)) == bits("8b0000_0000")
     assert ones((8,)) == bits("8b1111_1111")
-    assert xes((8,)) == bits("8bXXXX_XXXX")
+    assert xes((8,)) == bits("8b----_----")
 
 
 def test_slicing():
@@ -752,11 +752,11 @@ def test_slicing():
 
 def test_countbits():
     """Test bits countbits methods."""
-    b = bits("8bX10?_X10?")
-    assert b._v.count_illogicals() == 2
+    b = bits("8b-10X_-10X")
+    assert b._v.count_xes() == 2
     assert b._v.count_zeros() == 2
     assert b._v.count_ones() == 2
-    assert b._v.count_unknowns() == 2
+    assert b._v.count_dcs() == 2
 
     assert bits("4b0000")._v.count_ones() == 0
     assert bits("4b0001")._v.count_ones() == 1
@@ -775,7 +775,7 @@ def test_countbits():
     assert not bits("4b1010")._v.onehot0()
     assert not bits("4b1011")._v.onehot0()
 
-    assert not bits("4b0000")._v.has_unknown()
-    assert not bits("4b1111")._v.has_unknown()
-    assert bits("4b0X01")._v.has_unknown()
-    assert bits("4b01?1")._v.has_illogical()
+    assert not bits("4b0000")._v.has_dc()
+    assert not bits("4b1111")._v.has_dc()
+    assert bits("4b0-01")._v.has_dc()
+    assert bits("4b01X1")._v.has_x()

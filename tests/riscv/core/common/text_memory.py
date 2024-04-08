@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Array, Bits, Module, changed
-from seqlogic.bits import xes
+from seqlogic.lbool import xes
 from seqlogic.sim import always_comb
 
 from .. import WORD_BITS
@@ -38,6 +38,6 @@ class TextMemory(Module):
             try:
                 i = self.rd_addr.next.to_uint()
             except ValueError:
-                self.rd_data.next = xes((WORD_BITS,))
+                self.rd_data.next = xes(WORD_BITS)
             else:
                 self.rd_data.next = self._mem.get_next(i)

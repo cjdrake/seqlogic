@@ -1,15 +1,13 @@
 """Gray Code."""
 
-from ..bits import Bits, bits, cat
+from ..lbool import Vec, cat
 
 
-def bin2gray(b: Bits) -> Bits:
+def bin2gray(b: Vec) -> Vec:
     """Convert binary to gray."""
-    b = b.flatten()
-    return cat([b[:-1] ^ b[1:]] + [b[-1]])
+    return cat(b[:-1] ^ b[1:], b[-1])
 
 
-def gray2bin(g: Bits) -> Bits:
+def gray2bin(g: Vec) -> Vec:
     """Convert gray to binary."""
-    g = g.flatten()
-    return bits([g[i:].ulxor() for i, _ in enumerate(g)])
+    return cat(*[g[i:].ulxor() for i, _ in enumerate(g)])

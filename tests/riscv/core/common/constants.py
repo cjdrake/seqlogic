@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic.enum import Enum
+from seqlogic.lbool import VecEnum
 
 TEXT_BASE = 0x0040_0000
 TEXT_BITS = 16
@@ -11,7 +11,7 @@ DATA_BITS = 17
 DATA_SIZE = 2**DATA_BITS
 
 
-class Opcode(Enum):
+class Opcode(VecEnum):
     """Instruction opcodes."""
 
     LOAD = "7b000_0011"
@@ -30,7 +30,7 @@ class Opcode(Enum):
     SYSTEM = "7b111_0011"
 
 
-class CtlPc(Enum):
+class CtlPc(VecEnum):
     """TODO(cjdrake): Write docstring."""
 
     PC4 = "2b00"
@@ -39,7 +39,7 @@ class CtlPc(Enum):
     PC4_BR = "2b11"
 
 
-class CtlAlu(Enum):
+class CtlAlu(VecEnum):
     """ALU op types."""
 
     ADD = "2b00"
@@ -48,7 +48,7 @@ class CtlAlu(Enum):
     OP_IMM = "2b11"
 
 
-class AluOp(Enum):
+class AluOp(VecEnum):
     """ALU Operations."""
 
     ADD = "5b0_0001"
@@ -72,21 +72,21 @@ class AluOp(Enum):
     REMU = "5b1_0011"
 
 
-class CtlAluA(Enum):
+class CtlAluA(VecEnum):
     """ALU 1st operand source."""
 
     RS1 = "1b0"
     PC = "1b1"
 
 
-class CtlAluB(Enum):
+class CtlAluB(VecEnum):
     """ALU 2nd operand source."""
 
     RS2 = "1b0"
     IMM = "1b1"
 
 
-class Funct3AluLogic(Enum):
+class Funct3AluLogic(VecEnum):
     """Interpretations of the "funct3" field."""
 
     ADD_SUB = "3b000"
@@ -99,7 +99,7 @@ class Funct3AluLogic(Enum):
     AND = "3b111"
 
 
-class Funct3Branch(Enum):
+class Funct3Branch(VecEnum):
     """Interpretations of the "funct3" field for branches."""
 
     EQ = "3b000"
@@ -110,7 +110,7 @@ class Funct3Branch(Enum):
     GEU = "3b111"
 
 
-class Funct3AluMul(Enum):
+class Funct3AluMul(VecEnum):
     """Interpretations of the "funct3" field for extension M."""
 
     MUL = "3b000"
@@ -123,7 +123,7 @@ class Funct3AluMul(Enum):
     REMU = "3b111"
 
 
-class CtlWriteBack(Enum):
+class CtlWriteBack(VecEnum):
     """Register data sources."""
 
     ALU = "3b000"

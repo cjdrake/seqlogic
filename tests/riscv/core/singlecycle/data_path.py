@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.bits import F, bits, cat, zeros
+from seqlogic.lbool import cat, vec, zeros
 from seqlogic.sim import always_comb, initial
 
 from ..common.adder import Adder
@@ -89,7 +89,7 @@ class DataPath(Module):
         self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, shape=(32,))
         self.instruction_decoder = InstructionDecoder(name="instruction_decoder", parent=self)
         self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
-        pc_init = bits("32h0040_0000")
+        pc_init = vec("32h0040_0000")
         self.program_counter = Register(
             name="program_counter", parent=self, shape=(32,), init=pc_init
         )
@@ -171,14 +171,14 @@ class DataPath(Module):
     @initial
     async def p_i_0(self):
         """TODO(cjdrake): Write docstring."""
-        self.adder_pc_plus_4.op_a.next = bits("32h0000_0004")
+        self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
         # mux_next_pc.in3(32'h0000_0000)
-        self.mux_next_pc.ins[3].next = zeros((32,))
+        self.mux_next_pc.ins[3].next = zeros(32)
         # mux_reg_writeback.{in4, in5, in6, in7}
-        self.mux_reg_writeback.ins[4].next = zeros((32,))
-        self.mux_reg_writeback.ins[5].next = zeros((32,))
-        self.mux_reg_writeback.ins[6].next = zeros((32,))
-        self.mux_reg_writeback.ins[7].next = zeros((32,))
+        self.mux_reg_writeback.ins[4].next = zeros(32)
+        self.mux_reg_writeback.ins[5].next = zeros(32)
+        self.mux_reg_writeback.ins[6].next = zeros(32)
+        self.mux_reg_writeback.ins[7].next = zeros(32)
 
     @always_comb
     async def p_c_0(self):
@@ -186,4 +186,4 @@ class DataPath(Module):
         while True:
             await changed(self.alu_result)
             # mux_next_pc.in2({alu_result[31:1], 1'b0})
-            self.mux_next_pc.ins[2].next = cat([F, self.alu_result.next[1:32]])
+            self.mux_next_pc.ins[2].next = cat(zeros(1), self.alu_result.next[1:32])

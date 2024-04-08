@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, sleep
-from seqlogic.bits import bits
+from seqlogic.lbool import vec
 from seqlogic.sim import initial
 
 from .. import WORD_BITS, WORD_BYTES
@@ -74,7 +74,7 @@ class Top(Module):
     @initial
     async def p_i_0(self):
         """TODO(cjdrake): Write docstring."""
-        self.clock.next = bits("1b0")
+        self.clock.next = vec("1b0")
         await sleep(_CLOCK_PHASE_SHIFT)
         while True:
             self.clock.next = ~self.clock.value
@@ -85,7 +85,7 @@ class Top(Module):
     @initial
     async def p_i_1(self):
         """TODO(cjdrake): Write docstring."""
-        self.reset.next = bits("1b0")
+        self.reset.next = vec("1b0")
         await sleep(_RESET_PHASE1)
         self.reset.next = ~self.reset.value
         await sleep(_RESET_PHASE2)

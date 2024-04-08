@@ -86,24 +86,21 @@ class Singular(State):
 class Aggregate(State):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, shape: tuple[int, ...], value):
+    def __init__(self, value):
         super().__init__(value)
-
-        # TODO(cjdrake): Use this for index checking
-        self._shape = shape
         self._values = defaultdict(lambda: self._init_value)
         self._next_values = defaultdict(lambda: self._init_value)
         self._changed = set()
 
-    def get_value(self, index):
+    def get_value(self, index: int):
         """TODO(cjdrake): Write docstring."""
         return self._values[index]
 
-    def get_next(self, index):
+    def get_next(self, index: int):
         """TODO(cjdrake): Write docstring."""
         return self._next_values[index]
 
-    def set_next(self, index, value):
+    def set_next(self, index: int, value):
         """TODO(cjdrake): Write docstring."""
         if value != self._next_values[index]:
             self._changed.add(index)

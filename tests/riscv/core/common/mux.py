@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bits, Module, changed, clog2
-from seqlogic.bits import xes
+from seqlogic.lbool import xes
 from seqlogic.sim import always_comb
 
 
@@ -32,6 +32,6 @@ class Mux(Module):
             try:
                 index = self.sel.next.to_uint()
             except ValueError:
-                self.out.next = xes(self._shape)
+                self.out.next = xes(self._shape[0])
             else:
                 self.out.next = self.ins[index].next

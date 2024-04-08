@@ -6,8 +6,7 @@ Demonstrate usage of an enum.
 from collections import defaultdict
 
 from seqlogic import Bit, Enum, Module, get_loop, notify
-from seqlogic.bits import F, T, X
-from seqlogic.enum import Enum as EnumVal
+from seqlogic.lbool import VecEnum, ones, xes, zeros
 from seqlogic.sim import Region
 
 from .common import p_clk, p_dff, p_rst
@@ -19,7 +18,7 @@ from .common import p_clk, p_dff, p_rst
 loop = get_loop()
 
 
-class SeqDetect(EnumVal):
+class SeqDetect(VecEnum):
     """Sequence Detector state."""
 
     A = "2b00"
@@ -35,24 +34,24 @@ async def p_input(
 ):
     """TODO(cjdrake): Write docstring."""
     await notify(reset_n.negedge)
-    x.next = F
+    x.next = zeros(1)
 
     await notify(reset_n.posedge)
     await notify(clock.posedge)
     await notify(clock.posedge)
-    x.next = T  # A => B
+    x.next = ones(1)  # A => B
 
     await notify(clock.posedge)
-    x.next = T  # B => C
+    x.next = ones(1)  # B => C
 
     await notify(clock.posedge)
-    x.next = T  # C => D
+    x.next = ones(1)  # C => D
 
     await notify(clock.posedge)
-    x.next = T  # D => D
+    x.next = ones(1)  # D => D
 
     await notify(clock.posedge)
-    x.next = F  # D => A
+    x.next = zeros(1)  # D => A
 
 
 def test_fsm():
@@ -101,106 +100,106 @@ def test_fsm():
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(Region(2), p_rst, reset_n, init=T, phase1=6, phase2=10)
-    loop.add_proc(Region(2), p_clk, clock, init=F, shift=5, phase1=5, phase2=5)
+    loop.add_proc(Region(2), p_rst, reset_n, init=ones(1), phase1=6, phase2=10)
+    loop.add_proc(Region(2), p_clk, clock, init=zeros(1), shift=5, phase1=5, phase2=5)
 
     loop.run(until=100)
 
     exp = {
         # Initialize everything to X'es
         -1: {
-            reset_n: X,
-            clock: X,
-            x: X,
+            reset_n: xes(1),
+            clock: xes(1),
+            x: xes(1),
             ps: SeqDetect.X,
         },
         0: {
-            reset_n: T,
-            clock: F,
+            reset_n: ones(1),
+            clock: zeros(1),
         },
         # clock.posedge; reset_n = 1
         5: {
-            clock: T,
+            clock: ones(1),
         },
         # reset_n.negedge
         6: {
-            reset_n: F,
-            x: F,
+            reset_n: zeros(1),
+            x: zeros(1),
             ps: SeqDetect.A,
         },
         10: {
-            clock: F,
+            clock: zeros(1),
         },
         # clock.posedge; reset_n = 0
         15: {
-            clock: T,
+            clock: ones(1),
         },
         # reset_n.posedge
         16: {
-            reset_n: T,
+            reset_n: ones(1),
         },
         20: {
-            clock: F,
+            clock: zeros(1),
         },
         # clock.posedge; reset_n = 1
         25: {
-            clock: T,
+            clock: ones(1),
         },
         30: {
-            clock: F,
+            clock: zeros(1),
         },
         # clock.posedge
         35: {
-            clock: T,
-            x: T,
+            clock: ones(1),
+            x: ones(1),
         },
         40: {
-            clock: F,
+            clock: zeros(1),
         },
         # clock.posedge
         45: {
-            clock: T,
+            clock: ones(1),
             ps: SeqDetect.B,
         },
         50: {
-            clock: F,
+            clock: zeros(1),
         },
         # clock.posedge
         55: {
-            clock: T,
+            clock: ones(1),
             ps: SeqDetect.C,
         },
         60: {
-            clock: F,
+            clock: zeros(1),
         },
         # clock.posedge
         65: {
-            clock: T,
+            clock: ones(1),
             ps: SeqDetect.D,
         },
         70: {
-            clock: F,
+            clock: zeros(1),
         },
         # clock.posedge
         75: {
-            clock: T,
-            x: F,
+            clock: ones(1),
+            x: zeros(1),
             # ps: D => D
         },
         80: {
-            clock: F,
+            clock: zeros(1),
         },
         # clock.posedge
         85: {
-            clock: T,
+            clock: ones(1),
             ps: SeqDetect.A,
         },
         90: {
-            clock: F,
+            clock: zeros(1),
         },
         # clock.posedge
         95: {
-            clock: T,
+            clock: ones(1),
         },
     }
 

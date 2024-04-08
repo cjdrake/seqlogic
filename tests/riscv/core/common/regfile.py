@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Array, Bit, Bits, Module, changed, clog2, resume
-from seqlogic.bits import T, xes, zeros
+from seqlogic.lbool import ones, xes, zeros
 from seqlogic.sim import always_comb, always_ff, initial
 
 from .. import WORD_BITS
@@ -38,16 +38,16 @@ class RegFile(Module):
     @initial
     async def p_i_0(self):
         """TODO(cjdrake): Write docstring."""
-        self._regs.set_next(0, zeros((WORD_BITS,)))
+        self._regs.set_next(0, zeros(WORD_BITS))
         for i in range(1, DEPTH):
-            self._regs.set_next(i, zeros((WORD_BITS,)))
+            self._regs.set_next(i, zeros(WORD_BITS))
 
     @always_ff
     async def p_f_0(self):
         """TODO(cjdrake): Write docstring."""
 
         def f():
-            return self.clock.posedge() and self.wr_en.value == T
+            return self.clock.posedge() and self.wr_en.value == ones(1)
 
         while True:
             await resume((self.clock, f))
@@ -63,7 +63,7 @@ class RegFile(Module):
             try:
                 i = self.rs1_addr.next.to_uint()
             except ValueError:
-                self.rs1_data.next = xes((WORD_BITS,))
+                self.rs1_data.next = xes(WORD_BITS)
             else:
                 self.rs1_data.next = self._regs.get_next(i)
 
@@ -75,6 +75,6 @@ class RegFile(Module):
             try:
                 i = self.rs2_addr.next.to_uint()
             except ValueError:
-                self.rs2_data.next = xes((WORD_BITS,))
+                self.rs2_data.next = xes(WORD_BITS)
             else:
                 self.rs2_data.next = self._regs.get_next(i)

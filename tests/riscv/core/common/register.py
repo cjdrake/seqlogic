@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, resume
-from seqlogic.bits import F, T
+from seqlogic.lbool import ones, zeros
 from seqlogic.sim import always_ff
 
 
@@ -31,7 +31,9 @@ class Register(Module):
         """TODO(cjdrake): Write docstring."""
 
         def f():
-            return self.clock.posedge() and self.reset.value == F and self.en.value == T
+            return (
+                self.clock.posedge() and self.reset.value == zeros(1) and self.en.value == ones(1)
+            )
 
         while True:
             state = await resume((self.reset, self.reset.posedge), (self.clock, f))

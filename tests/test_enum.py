@@ -2,14 +2,13 @@
 
 import pytest
 
-from seqlogic.bits import F, T, X
-from seqlogic.enum import Enum
+from seqlogic.lbool import VecEnum, ones, xes, zeros
 
 # pylint: disable = no-value-for-parameter
 # pyright: reportAttributeAccessIssue=false
 
 
-class Color(Enum):
+class Color(VecEnum):
     """Boilerplate bit array enum."""
 
     RED = "2b00"
@@ -30,21 +29,20 @@ def test_basic():
 
 def test_bits():
     """Test behaviors of bits subclass."""
-    assert Color.GREEN[0] == T
-    assert Color.GREEN[1] == F
+    assert Color.GREEN[0] == ones(1)
+    assert Color.GREEN[1] == zeros(1)
 
 
 def test_x():
     """Test X item."""
-    assert Color.X[0] == X
-    assert Color.X[1] == X
+    assert Color.X == xes(2)
 
 
 def test_enum_error():
     """Test various enum spec errors."""
     with pytest.raises(TypeError):
         # The literal must be a str
-        class InvalidType(Enum):
+        class InvalidType(VecEnum):
             FOO = 42
 
         _ = InvalidType()  # pyright: ignore[reportCallIssue]

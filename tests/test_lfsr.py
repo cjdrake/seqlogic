@@ -3,7 +3,7 @@
 from collections import defaultdict
 
 from seqlogic import Bit, Bits, Module, get_loop
-from seqlogic.bits import F, T, X, bits, cat
+from seqlogic.lbool import cat, ones, vec, xes, zeros
 from seqlogic.sim import Region
 
 from .common import p_clk, p_dff, p_rst
@@ -37,111 +37,111 @@ def test_lfsr():
 
     def d():
         v = top.q.value
-        return cat([v[0] ^ v[2], v[:2]])
+        return cat(v[0] ^ v[2], v[:2])
 
-    reset_value = bits("3b100")
+    reset_value = vec("3b100")
 
     # Schedule LFSR
     loop.add_proc(Region(1), p_dff, top.q, d, top.reset_n, reset_value, top.clock)
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(Region(2), p_rst, top.reset_n, init=T, phase1=6, phase2=10)
-    loop.add_proc(Region(2), p_clk, top.clock, init=F, shift=5, phase1=5, phase2=5)
+    loop.add_proc(Region(2), p_rst, top.reset_n, init=ones(1), phase1=6, phase2=10)
+    loop.add_proc(Region(2), p_clk, top.clock, init=zeros(1), shift=5, phase1=5, phase2=5)
 
     loop.run(until=100)
 
     exp = {
         # Initialize everything to X'es
         -1: {
-            top.reset_n: X,
-            top.clock: X,
-            top.q: bits("3bXXX"),
+            top.reset_n: xes(1),
+            top.clock: xes(1),
+            top.q: xes(3),
         },
         0: {
-            top.reset_n: T,
-            top.clock: F,
+            top.reset_n: ones(1),
+            top.clock: zeros(1),
         },
         # clock.posedge; reset_n = 1
         # q = xxx
         5: {
-            top.clock: T,
+            top.clock: ones(1),
         },
         # reset_n.negedge
         # q = reset_value
         6: {
-            top.reset_n: F,
-            top.q: bits("3b100"),
+            top.reset_n: zeros(1),
+            top.q: vec("3b100"),
         },
         10: {
-            top.clock: F,
+            top.clock: zeros(1),
         },
         # clock.posedge; reset_n = 0
         15: {
-            top.clock: T,
+            top.clock: ones(1),
         },
         # reset_n.posedge
         16: {
-            top.reset_n: T,
+            top.reset_n: ones(1),
         },
         20: {
-            top.clock: F,
+            top.clock: zeros(1),
         },
         # clock.posedge; reset_n = 1
         # q = 001
         25: {
-            top.clock: T,
-            top.q: bits("3b001"),
+            top.clock: ones(1),
+            top.q: vec("3b001"),
         },
         30: {
-            top.clock: F,
+            top.clock: zeros(1),
         },
         35: {
-            top.clock: T,
-            top.q: bits("3b011"),
+            top.clock: ones(1),
+            top.q: vec("3b011"),
         },
         40: {
-            top.clock: F,
+            top.clock: zeros(1),
         },
         45: {
-            top.clock: T,
-            top.q: bits("3b111"),
+            top.clock: ones(1),
+            top.q: vec("3b111"),
         },
         50: {
-            top.clock: F,
+            top.clock: zeros(1),
         },
         55: {
-            top.clock: T,
-            top.q: bits("3b110"),
+            top.clock: ones(1),
+            top.q: vec("3b110"),
         },
         60: {
-            top.clock: F,
+            top.clock: zeros(1),
         },
         65: {
-            top.clock: T,
-            top.q: bits("3b101"),
+            top.clock: ones(1),
+            top.q: vec("3b101"),
         },
         70: {
-            top.clock: F,
+            top.clock: zeros(1),
         },
         75: {
-            top.clock: T,
-            top.q: bits("3b010"),
+            top.clock: ones(1),
+            top.q: vec("3b010"),
         },
         80: {
-            top.clock: F,
+            top.clock: zeros(1),
         },
         # Repeat cycle
         85: {
-            top.clock: T,
-            top.q: bits("3b100"),
+            top.clock: ones(1),
+            top.q: vec("3b100"),
         },
         90: {
-            top.clock: F,
+            top.clock: zeros(1),
         },
         95: {
-            top.clock: T,
-            top.q: bits("3b001"),
+            top.clock: ones(1),
+            top.q: vec("3b001"),
         },
     }
 

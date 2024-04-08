@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bits, Module, changed
-from seqlogic.bits import xes
+from seqlogic.lbool import xes
 from seqlogic.sim import always_comb
 
 from .. import WORD_BITS
@@ -43,7 +43,7 @@ class TextMemoryBus(Module):
             if is_text:
                 self.rd_data.next = self._text.next
             else:
-                self.rd_data.next = xes((WORD_BITS,))
+                self.rd_data.next = xes(WORD_BITS)
 
     @always_comb
     async def p_c_1(self):

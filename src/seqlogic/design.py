@@ -11,9 +11,9 @@ from collections.abc import Callable
 from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
 
-from . import bits, hier, sim
-from .bits import F, T, xes
-from .sim import Region, changed, get_loop
+from .hier import Branch, Leaf
+from .lbool import Vec, ones, xes, zeros
+from .sim import Aggregate, Region, Singular, changed, get_loop
 
 _item2char = {
     0b00: "x",
@@ -23,10 +23,10 @@ _item2char = {
 }
 
 
-def _bits2vcd(b: bits.Bits) -> VarValue:
+def _vec2vcd(v: Vec) -> VarValue:
     """Convert bit array to VCD value."""
     # pylint: disable = protected-access
-    return "".join(_item2char[b._v._get_item(i)] for i in range(b._v._n - 1, -1, -1))
+    return "".join(_item2char[v._get_item(i)] for i in range(v._n - 1, -1, -1))
 
 
 class _TraceIf(ABC):
@@ -60,12 +60,12 @@ class _ProcIf(ABC):
         return self._procs
 
 
-class Module(hier.Branch, _TraceIf, _ProcIf):
+class Module(Branch, _TraceIf, _ProcIf):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None = None):
         """TODO(cjdrake): Write docstring."""
-        hier.Branch.__init__(self, name, parent)
+        Branch.__init__(self, name, parent)
         _ProcIf.__init__(self)
 
     @property
@@ -89,13 +89,13 @@ class Module(hier.Branch, _TraceIf, _ProcIf):
             child.dump_vcd(vcdw, pattern)
 
 
-class _TraceSingular(hier.Leaf, _TraceIf, sim.Singular, _ProcIf):
+class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module, value):
         """TODO(cjdrake): Write docstring."""
-        hier.Leaf.__init__(self, name, parent)
-        sim.Singular.__init__(self, value)
+        Leaf.__init__(self, name, parent)
+        Singular.__init__(self, value)
         _ProcIf.__init__(self)
         self._waves_change = None
         self._vcd_change = None
@@ -128,13 +128,13 @@ class _TraceSingular(hier.Leaf, _TraceIf, sim.Singular, _ProcIf):
                 scope=self._parent.scope,
                 name=self.name,
                 var_type="reg",
-                size=self._value.size,
-                init=_bits2vcd(self._value),
+                size=len(self._value),
+                init=_vec2vcd(self._value),
             )
 
             def change():
                 t = self._sim.time
-                vcdw.change(var, t, _bits2vcd(self._next_value))
+                vcdw.change(var, t, _vec2vcd(self._next_value))
 
             self._vcd_change = change
 
@@ -149,18 +149,14 @@ class _TraceSingular(hier.Leaf, _TraceIf, sim.Singular, _ProcIf):
         self._procs.append((Region(0), proc, (), {}))
 
 
-class _TraceAggregate(hier.Leaf, _TraceIf, sim.Aggregate, _ProcIf):
+class _TraceAggregate(Leaf, _TraceIf, Aggregate, _ProcIf):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, name: str, parent: Module, shape: tuple[int, ...], value):
+    def __init__(self, name: str, parent: Module, value):
         """TODO(cjdrake): Write docstring."""
-        hier.Leaf.__init__(self, name, parent)
-        sim.Aggregate.__init__(self, shape, value)
+        Leaf.__init__(self, name, parent)
+        Aggregate.__init__(self, value)
         _ProcIf.__init__(self)
-
-    # def update(self):
-    #    """TODO(cjdrake): Write docstring."""
-    #    super().update()
 
 
 class Bits(_TraceSingular):
@@ -168,7 +164,9 @@ class Bits(_TraceSingular):
 
     def __init__(self, name: str, parent: Module, shape: tuple[int, ...]):
         """TODO(cjdrake): Write docstring."""
-        super().__init__(name, parent, value=xes(shape))
+        assert len(shape) == 1
+        n = shape[0]
+        super().__init__(name, parent, value=xes(n))
 
 
 class Bit(Bits):
@@ -180,11 +178,11 @@ class Bit(Bits):
 
     def posedge(self) -> bool:
         """TODO(cjdrake): Write docstring."""
-        return self._value == F and self._next_value == T
+        return self._value == zeros(1) and self._next_value == ones(1)
 
     def negedge(self) -> bool:
         """TODO(cjdrake): Write docstring."""
-        return self._value == T and self._next_value == F
+        return self._value == ones(1) and self._next_value == zeros(1)
 
 
 class Enum(_TraceSingular):
@@ -206,7 +204,10 @@ class Array(_TraceAggregate):
         packed_shape: tuple[int, ...],
     ):
         """TODO(cjdrake): Write docstring."""
-        super().__init__(name, parent, unpacked_shape, value=xes(packed_shape))
+        assert len(unpacked_shape) == 1
+        assert len(packed_shape) == 1
+        n = packed_shape[0]
+        super().__init__(name, parent, value=xes(n))
 
 
 def simify(d: Module | Bits | Enum | Array):

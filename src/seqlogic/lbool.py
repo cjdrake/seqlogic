@@ -3,14 +3,15 @@
 The conventional Boolean type consists of {False, True}, or {0, 1}.
 You can pack Booleans using an int, e.g. hex(0xaa | 0x55) == '0xff'.
 
-The "lifted" Boolean data type expands {0, 1} to {0, 1, Unknown, Illogical}.
+The "lifted" Boolean data type expands {0, 1} to {0, 1, Neither, DontCare}.
 
 Zero and One retain their original meanings.
 
-"Illogical" means neither zero nor one.
+"Neither" means neither zero nor one.
 This is an illogical or metastable value that always dominates other values.
+We will use a shorthand character 'X'.
 
-"Unknown" means either zero or one.
+"DontCare" means either zero or one.
 This is an unknown or uninitialized value that may either dominate or be
 dominated by other values, depending on the operation.
 
@@ -18,7 +19,14 @@ The 'vec' class packs multiple lifted Booleans into a vector,
 which enables efficient, bit-wise operations and arithmetic.
 """
 
+# Simplify access to friend object attributes
 # pylint: disable = protected-access
+
+# PyLint is confused by MetaClass behavior
+# pylint: disable = no-value-for-parameter
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportCallIssue=false
+
 
 from __future__ import annotations
 
@@ -32,32 +40,32 @@ _ITEM_BITS = 2
 _ITEM_MASK = 0b11
 
 # Scalars
-_ILLOGICAL = 0b00
-_ZERO = 0b01
-_ONE = 0b10
-_UNKNOWN = 0b11
+_X = 0b00
+_0 = 0b01
+_1 = 0b10
+_W = 0b11
 
 
-_LNOT = (_ILLOGICAL, _ONE, _ZERO, _UNKNOWN)
+_LNOT = (_X, _1, _0, _W)
 
 
 def lnot(x: int) -> int:
     """Lifted NOT function.
 
     f(x) -> y:
-        ? => ? | 00 => 00
+        X => X | 00 => 00
         0 => 1 | 01 => 10
         1 => 0 | 10 => 01
-        X => X | 11 => 11
+        - => - | 11 => 11
     """
     return _LNOT[x]
 
 
 _LNOR = (
-    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
-    (_ILLOGICAL, _ONE, _ZERO, _UNKNOWN),
-    (_ILLOGICAL, _ZERO, _ZERO, _ZERO),
-    (_ILLOGICAL, _UNKNOWN, _ZERO, _UNKNOWN),
+    (_X, _X, _X, _X),
+    (_X, _1, _0, _W),
+    (_X, _0, _0, _0),
+    (_X, _W, _0, _W),
 )
 
 
@@ -66,9 +74,9 @@ def lnor(x0: int, x1: int) -> int:
 
     f(x0, x1) -> y:
         0 0 => 1
-        1 X => 0
-        ? X => ?
-        X 0 => X
+        1 - => 0
+        X - => X
+        - 0 => -
 
            x1
            00 01 11 10
@@ -86,10 +94,10 @@ def lnor(x0: int, x1: int) -> int:
 
 
 _LOR = (
-    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
-    (_ILLOGICAL, _ZERO, _ONE, _UNKNOWN),
-    (_ILLOGICAL, _ONE, _ONE, _ONE),
-    (_ILLOGICAL, _UNKNOWN, _ONE, _UNKNOWN),
+    (_X, _X, _X, _X),
+    (_X, _0, _1, _W),
+    (_X, _1, _1, _1),
+    (_X, _W, _1, _W),
 )
 
 
@@ -98,9 +106,9 @@ def lor(x0: int, x1: int) -> int:
 
     f(x0, x1) -> y:
         0 0 => 0
-        1 X => 1
-        ? X => ?
-        X 0 => X
+        1 - => 1
+        X - => X
+        - 0 => -
 
            x1
            00 01 11 10
@@ -118,10 +126,10 @@ def lor(x0: int, x1: int) -> int:
 
 
 _LNAND = (
-    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
-    (_ILLOGICAL, _ONE, _ONE, _ONE),
-    (_ILLOGICAL, _ONE, _ZERO, _UNKNOWN),
-    (_ILLOGICAL, _ONE, _UNKNOWN, _UNKNOWN),
+    (_X, _X, _X, _X),
+    (_X, _1, _1, _1),
+    (_X, _1, _0, _W),
+    (_X, _1, _W, _W),
 )
 
 
@@ -130,9 +138,9 @@ def lnand(x0: int, x1: int) -> int:
 
     f(x0, x1) -> y:
         1 1 => 0
-        0 X => 1
-        ? X => ?
-        X 1 => X
+        0 - => 1
+        X - => X
+        - 1 => -
 
            x1
            00 01 11 10
@@ -150,10 +158,10 @@ def lnand(x0: int, x1: int) -> int:
 
 
 _LAND = (
-    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
-    (_ILLOGICAL, _ZERO, _ZERO, _ZERO),
-    (_ILLOGICAL, _ZERO, _ONE, _UNKNOWN),
-    (_ILLOGICAL, _ZERO, _UNKNOWN, _UNKNOWN),
+    (_X, _X, _X, _X),
+    (_X, _0, _0, _0),
+    (_X, _0, _1, _W),
+    (_X, _0, _W, _W),
 )
 
 
@@ -162,9 +170,9 @@ def land(x0: int, x1: int) -> int:
 
     f(x0, x1) -> y:
         1 1 => 1
-        0 X => 0
-        ? X => ?
-        X 1 => X
+        0 - => 0
+        X - => X
+        - 1 => -
 
            x1
            00 01 11 10
@@ -182,10 +190,10 @@ def land(x0: int, x1: int) -> int:
 
 
 _LXNOR = (
-    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
-    (_ILLOGICAL, _ONE, _ZERO, _UNKNOWN),
-    (_ILLOGICAL, _ZERO, _ONE, _UNKNOWN),
-    (_ILLOGICAL, _UNKNOWN, _UNKNOWN, _UNKNOWN),
+    (_X, _X, _X, _X),
+    (_X, _1, _0, _W),
+    (_X, _0, _1, _W),
+    (_X, _W, _W, _W),
 )
 
 
@@ -197,9 +205,9 @@ def lxnor(x0: int, x1: int) -> int:
         0 1 => 0
         1 0 => 0
         1 1 => 1
-        ? X => ?
-        X 0 => X
-        X 1 => X
+        X - => X
+        - 0 => -
+        - 1 => -
 
            x1
            00 01 11 10
@@ -217,10 +225,10 @@ def lxnor(x0: int, x1: int) -> int:
 
 
 _LXOR = (
-    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
-    (_ILLOGICAL, _ZERO, _ONE, _UNKNOWN),
-    (_ILLOGICAL, _ONE, _ZERO, _UNKNOWN),
-    (_ILLOGICAL, _UNKNOWN, _UNKNOWN, _UNKNOWN),
+    (_X, _X, _X, _X),
+    (_X, _0, _1, _W),
+    (_X, _1, _0, _W),
+    (_X, _W, _W, _W),
 )
 
 
@@ -232,9 +240,9 @@ def lxor(x0: int, x1: int) -> int:
         0 1 => 1
         1 0 => 1
         1 1 => 0
-        ? X => ?
-        X 0 => X
-        X 1 => X
+        X - => X
+        - 0 => -
+        - 1 => -
 
            x1
            00 01 11 10
@@ -252,10 +260,10 @@ def lxor(x0: int, x1: int) -> int:
 
 
 _LIMPLIES = (
-    (_ILLOGICAL, _ILLOGICAL, _ILLOGICAL, _ILLOGICAL),
-    (_ILLOGICAL, _ONE, _ONE, _ONE),
-    (_ILLOGICAL, _ZERO, _ONE, _UNKNOWN),
-    (_ILLOGICAL, _UNKNOWN, _ONE, _UNKNOWN),
+    (_X, _X, _X, _X),
+    (_X, _1, _1, _1),
+    (_X, _0, _1, _W),
+    (_X, _W, _1, _W),
 )
 
 
@@ -267,12 +275,12 @@ def limplies(p: int, q: int) -> int:
         0 1 => 1
         1 0 => 0
         1 1 => 1
-        N X => N
-        0 X => 1
-        1 X => X
-        X 0 => X
-        X 1 => 1
-        X X => X
+        N - => N
+        0 - => 1
+        1 - => -
+        - 0 => -
+        - 1 => 1
+        - - => -
 
            q
            00 01 11 10
@@ -298,10 +306,10 @@ class Vec:
     * vec
     * uint2vec
     * int2vec
-    * illogicals
+    * xes
     * zeros
     * ones
-    * xes
+    * dcs
     """
 
     def __class_getitem__(cls, key: int):
@@ -400,7 +408,7 @@ class Vec:
         return self.rsh(n)[0]
 
     def __add__(self, other: Vec) -> Vec:
-        return self.add(other, ci=_F)[0]
+        return self.add(other, ci=_Vec0)[0]
 
     def __sub__(self, other: Vec) -> Vec:
         return self.sub(other)[0]
@@ -499,7 +507,7 @@ class Vec:
         Returns:
             One-bit vec, data contains OR reduction.
         """
-        data = _ZERO
+        data = _0
         for i in range(self._n):
             data = lor(data, self._get_item(i))
         return Vec(1, data)
@@ -568,7 +576,7 @@ class Vec:
         Returns:
             One-bit vec, data contains AND reduction.
         """
-        data = _ONE
+        data = _1
         for i in range(self._n):
             data = land(data, self._get_item(i))
         return Vec(1, data)
@@ -639,7 +647,7 @@ class Vec:
         Returns:
             One-bit vec, data contains XNOR reduction.
         """
-        data = _ONE
+        data = _1
         for i in range(self._n):
             data = lxnor(data, self._get_item(i))
         return Vec(1, data)
@@ -650,7 +658,7 @@ class Vec:
         Returns:
             One-bit vec, data contains XOR reduction.
         """
-        data = _ZERO
+        data = _0
         for i in range(self._n):
             data = lxor(data, self._get_item(i))
         return Vec(1, data)
@@ -666,7 +674,7 @@ class Vec:
         """
         y = 0
 
-        if self.has_illogical() or self.has_unknown():
+        if self.has_unknown():
             raise ValueError("Cannot convert unknown to uint")
 
         i, data = 0, self._data
@@ -697,7 +705,7 @@ class Vec:
         if self._n == 0:
             return 0
         sign = self._get_item(self._n - 1)
-        if sign == _ONE:
+        if sign == _1:
             return -(self.lnot().to_uint() + 1)
         return self.to_uint()
 
@@ -747,7 +755,7 @@ class Vec:
             raise ValueError(f"Expected n ≥ 0, got {n}")
         if n == 0:
             return self
-        prefix = _fill(_ZERO, n)
+        prefix = _fill(_0, n)
         return Vec(self._n + n, self._data | (prefix << self.nbits))
 
     def sext(self, n: int) -> Vec:
@@ -770,7 +778,7 @@ class Vec:
         prefix = _fill(sign, n)
         return Vec(self._n + n, self._data | (prefix << self.nbits))
 
-    def lsh(self, n: int, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
+    def lsh(self, n: int | Vec, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
         """Left shift by n bits.
 
         Args:
@@ -784,19 +792,31 @@ class Vec:
         Raises:
             ValueError: If n or ci are invalid/inconsistent.
         """
+        match n:
+            case int():
+                pass
+            case Vec():
+                if n.has_x():
+                    return xes(self._n), _VecE
+                elif n.has_dc():
+                    return dcs(self._n), _VecE
+                else:
+                    n = n.to_uint()
+            case _:
+                raise TypeError("Expected n to be int or Vec")
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
-            return self, _E
+            return self, _VecE
         if ci is None:
-            ci = Vec(n, _fill(_ZERO, n))
+            ci = Vec(n, _fill(_0, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         sh, co = self[:-n], self[-n:]
         y = Vec(self._n, ci._data | (sh._data << ci.nbits))
         return y, co
 
-    def rsh(self, n: int, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
+    def rsh(self, n: int | Vec, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
         """Right shift by n bits.
 
         Args:
@@ -810,19 +830,31 @@ class Vec:
         Raises:
             ValueError: If n or ci are invalid/inconsistent.
         """
+        match n:
+            case int():
+                pass
+            case Vec():
+                if n.has_x():
+                    return xes(self._n), _VecE
+                elif n.has_dc():
+                    return dcs(self._n), _VecE
+                else:
+                    n = n.to_uint()
+            case _:
+                raise TypeError("Expected n to be int or Vec")
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
-            return self, _E
+            return self, _VecE
         if ci is None:
-            ci = Vec(n, _fill(_ZERO, n))
+            ci = Vec(n, _fill(_0, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         co, sh = self[:n], self[n:]
         y = Vec(self._n, sh._data | (ci._data << sh.nbits))
         return y, co
 
-    def arsh(self, n: int) -> tuple[Vec, Vec]:
+    def arsh(self, n: int | Vec) -> tuple[Vec, Vec]:
         """Arithmetically right shift by n bits.
 
         Args:
@@ -834,10 +866,22 @@ class Vec:
         Raises:
             ValueError: If n is invalid.
         """
+        match n:
+            case int():
+                pass
+            case Vec():
+                if n.has_x():
+                    return xes(self._n), _VecE
+                elif n.has_dc():
+                    return dcs(self._n), _VecE
+                else:
+                    n = n.to_uint()
+            case _:
+                raise TypeError("Expected n to be int or Vec")
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
-            return self, _E
+            return self, _VecE
         sign = self._get_item(self._n - 1)
         ci_data = _fill(sign, n)
         co, sh = self[:n], self[n:]
@@ -861,10 +905,10 @@ class Vec:
         # Rename for readability
         n, a, b = self._n, self, other
 
-        if a.has_illogical() or b.has_illogical() or ci.has_illogical():
-            return Vec(n, _fill(_ILLOGICAL, n)), _W, _W
-        if a.has_unknown() or b.has_unknown() or ci.has_unknown():
-            return Vec(n, _fill(_UNKNOWN, n)), _X, _X
+        if a.has_x() or b.has_x() or ci.has_x():
+            return Vec(n, _fill(_X, n)), _VecX, _VecX
+        if a.has_dc() or b.has_dc() or ci.has_dc():
+            return Vec(n, _fill(_W, n)), _VecW, _VecW
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
 
@@ -874,7 +918,7 @@ class Vec:
             s >>= 1
 
         # Carry out is True if there is leftover sum data
-        co = (_F, _T)[s != 0]
+        co = (_Vec0, _Vec1)[s != 0]
 
         s = Vec(n, data)
 
@@ -898,7 +942,7 @@ class Vec:
         Raises:
             ValueError: vec lengths are invalid/inconsistent.
         """
-        return self.add(other.lnot(), ci=_T)
+        return self.add(other.lnot(), ci=_Vec1)
 
     def neg(self) -> tuple[Vec, Vec[1], Vec[1]]:
         """Twos complement negation.
@@ -908,7 +952,7 @@ class Vec:
         Returns:
             3-tuple of (sum, carry-out, overflow).
         """
-        zero = Vec(self._n, _fill(_ZERO, self._n))
+        zero = Vec(self._n, _fill(_0, self._n))
         return zero.sub(self)
 
     def _check_len(self, other: Vec):
@@ -931,37 +975,45 @@ class Vec:
 
         return y
 
-    def count_illogicals(self) -> int:
-        """Return number of ILLOGICAL items."""
-        return self._count(_byte_cnt_illogicals, _ILLOGICAL)
+    def count_xes(self) -> int:
+        """Return number of X items."""
+        return self._count(_byte_cnt_xes, _X)
 
     def count_zeros(self) -> int:
-        """Return number of ZERO items."""
-        return self._count(_byte_cnt_zeros, _ZERO)
+        """Return number of 0 items."""
+        return self._count(_byte_cnt_zeros, _0)
 
     def count_ones(self) -> int:
-        """Return number of ONE items."""
-        return self._count(_byte_cnt_ones, _ONE)
+        """Return number of 1 items."""
+        return self._count(_byte_cnt_ones, _1)
 
-    def count_unknowns(self) -> int:
-        """Return number of UNKNOWN items."""
-        return self._count(_byte_cnt_unknowns, _UNKNOWN)
+    def count_dcs(self) -> int:
+        """Return number of DC items."""
+        return self._count(_byte_cnt_dcs, _W)
+
+    def count_unknown(self) -> int:
+        """Return number of X/DC items."""
+        return self.count_xes() + self.count_dcs()
 
     def onehot(self) -> bool:
-        """Return True if vec contains exactly one ONE item."""
-        return not self.has_illogical() and not self.has_unknown() and self.count_ones() == 1
+        """Return True if vec contains exactly one 1 item."""
+        return not self.has_unknown() and self.count_ones() == 1
 
     def onehot0(self) -> bool:
-        """Return True if vec contains at most one ONE item."""
-        return not self.has_illogical() and not self.has_unknown() and self.count_ones() <= 1
+        """Return True if vec contains at most one 1 item."""
+        return not self.has_unknown() and self.count_ones() <= 1
 
-    def has_illogical(self) -> bool:
-        """Return True if vec contains at least one ILLOGICAL item."""
-        return self.count_illogicals() != 0
+    def has_x(self) -> bool:
+        """Return True if vec contains at least one X item."""
+        return self.count_xes() != 0
+
+    def has_dc(self) -> bool:
+        """Return True if vec contains at least one DC item."""
+        return self.count_dcs() != 0
 
     def has_unknown(self) -> bool:
-        """Return True if vec contains at least one UNKNOWN item."""
-        return self.count_unknowns() != 0
+        """Return True if vec contains at least one X/DC item."""
+        return self.count_unknown() != 0
 
     def _norm_index(self, index: int) -> int:
         a, b = -self._n, self._n
@@ -1002,7 +1054,7 @@ class Vec:
 
     @cached_property
     def _mask(self) -> tuple[int, int]:
-        zero_mask = _fill(_ZERO, self._n)
+        zero_mask = _fill(_0, self._n)
         one_mask = zero_mask << 1
         return zero_mask, one_mask
 
@@ -1093,12 +1145,6 @@ def int2vec(num: int, n: int | None = None) -> Vec:
     return v.neg()[0] if neg else v
 
 
-_NUM_RE = re.compile(
-    r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[?01X_]+))|"
-    r"((?P<HexSize>[0-9]+)h(?P<HexDigits>[0-9a-fA-F_]+))"
-)
-
-
 def bools2vec(xs: Iterable[int]) -> Vec:
     """Convert an iterable of bools to a vec.
 
@@ -1113,6 +1159,12 @@ def bools2vec(xs: Iterable[int]) -> Vec:
     return Vec(i, data)
 
 
+_NUM_RE = re.compile(
+    r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[X01\-_]+))|"
+    r"((?P<HexSize>[0-9]+)h(?P<HexDigits>[0-9a-fA-F_]+))"
+)
+
+
 def lit2vec(lit: str) -> Vec:
     """Convert a string literal to a vec.
 
@@ -1123,7 +1175,7 @@ def lit2vec(lit: str) -> Vec:
 
     For example:
         4b1010
-        6b11_X10?
+        6b11_-10X
         64hdead_beef_feed_face
 
     Returns:
@@ -1184,9 +1236,9 @@ def vec(obj=None) -> Vec:
     """
     match obj:
         case None | []:
-            return _E
+            return _VecE
         case 0 | 1 as x:
-            return (_F, _T)[x]
+            return (_Vec0, _Vec1)[x]
         case [0 | 1 as x, *rst]:
             return bools2vec([x, *rst])
         case str() as lit:
@@ -1208,14 +1260,14 @@ def cat(*objs: int | Vec) -> Vec:
         TypeError: If input obj is invalid.
     """
     if len(objs) == 0:
-        return _E
+        return _VecE
 
     # Convert inputs
     vs = []
     for obj in objs:
         match obj:
             case 0 | 1 as x:
-                vs.append((_F, _T)[x])
+                vs.append((_Vec0, _Vec1)[x])
             case Vec() as v:
                 vs.append(v)
             case _:
@@ -1243,50 +1295,113 @@ def _consts(x: int, n: int) -> Vec:
     return Vec(n, _fill(x, n))
 
 
-def illogicals(n: int) -> Vec:
-    """Return a vec packed with n ILLOGICAL items."""
-    return _consts(_ILLOGICAL, n)
+def xes(n: int) -> Vec:
+    """Return a vec packed with n X items."""
+    return _consts(_X, n)
 
 
 def zeros(n: int) -> Vec:
-    """Return a vec packed with n ZERO items."""
-    return _consts(_ZERO, n)
+    """Return a vec packed with n 0 items."""
+    return _consts(_0, n)
 
 
 def ones(n: int) -> Vec:
-    """Return a vec packed with n ONE items."""
-    return _consts(_ONE, n)
+    """Return a vec packed with n 1 items."""
+    return _consts(_1, n)
 
 
-def xes(n: int) -> Vec:
-    """Return a vec packed with n UNKNOWN items."""
-    return _consts(_UNKNOWN, n)
+def dcs(n: int) -> Vec:
+    """Return a vec packed with n DC items."""
+    return _consts(_W, n)
 
 
 # Empty
-_E = Vec(0, 0)
+_VecE = Vec(0, 0)
 
 # One bit values
-_W = Vec(1, _ILLOGICAL)
-_F = Vec(1, _ZERO)
-_T = Vec(1, _ONE)
-_X = Vec(1, _UNKNOWN)
+_VecX = Vec(1, _X)
+_Vec0 = Vec(1, _0)
+_Vec1 = Vec(1, _1)
+_VecW = Vec(1, _W)
 
 
-_from_bit = (_ZERO, _ONE)
+class _VecEnumMeta(type):
+    """Enum Metaclass: Create enum base classes."""
+
+    def __new__(mcs, name, bases, attrs):
+        base_attrs = {}
+        lit2name = {}
+        size = None
+        for key, val in attrs.items():
+            if key.startswith("__"):
+                base_attrs[key] = val
+            else:
+                if key == "X":
+                    raise ValueError("Cannot use reserved name 'X'")
+                if size is None:
+                    size = len(lit2vec(val))
+                else:
+                    n = len(lit2vec(val))
+                    if n != size:
+                        s = f"Expected lit size {size}, got {n}"
+                        raise ValueError(s)
+                lit2name[val] = key
+
+        # Add the 'X' item
+        if size is not None:
+            lit2name[f"{size}b" + "X" * size] = "X"
+
+        # Create enum class, save lit => name mapping
+        cls = super().__new__(mcs, name, bases + (Vec,), base_attrs)
+        cls._lit2name = lit2name
+
+        return cls
+
+    def __init__(cls, unused_name, unused_bases, unused_attrs):
+        # Populate the enum items
+        for lit in cls._lit2name:
+            _ = cls(lit)
+
+
+class VecEnum(metaclass=_VecEnumMeta):
+    """Enum Base Class: Create enums."""
+
+    def __new__(cls, lit: str):
+        if lit not in cls._lit2name:
+            valid = ", ".join(cls._lit2name)
+            s = f"Expected literal in {{{valid}}}, got {lit}"
+            raise ValueError(s)
+        name = cls._lit2name[lit]
+        obj = getattr(cls, name, None)
+        if obj is None:
+            obj = super().__new__(cls)
+            setattr(cls, name, obj)
+        return obj
+
+    def __init__(self, lit: str):
+        v = lit2vec(lit)
+        super().__init__(len(v), v.data)
+        # Override string representation from base class
+        self._name = self.__class__._lit2name[lit]
+
+    def __str__(self) -> str:
+        return self._name
+
+
+_from_bit = (_0, _1)
 
 _from_char = {
-    "?": _ILLOGICAL,
-    "0": _ZERO,
-    "1": _ONE,
-    "X": _UNKNOWN,
+    "X": _X,
+    "0": _0,
+    "1": _1,
+    "-": _W,
 }
 
 _to_char = {
-    _ILLOGICAL: "?",
-    _ZERO: "0",
-    _ONE: "1",
-    _UNKNOWN: "X",
+    _X: "X",
+    _0: "0",
+    _1: "1",
+    _W: "-",
 }
 
 _from_hexchar = {
@@ -1314,7 +1429,7 @@ _from_hexchar = {
     "F": 0b10_10_10_10,
 }
 
-_byte_cnt_illogicals = {
+_byte_cnt_xes = {
     0b00_00_00_00: 4,
     0b00_00_00_01: 3,
     0b00_00_00_10: 3,
@@ -2091,7 +2206,7 @@ _byte_cnt_ones = {
     0b11_11_11_11: 0,
 }
 
-_byte_cnt_unknowns = {
+_byte_cnt_dcs = {
     0b00_00_00_00: 0,
     0b00_00_00_01: 0,
     0b00_00_00_10: 0,
