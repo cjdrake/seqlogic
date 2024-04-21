@@ -22,7 +22,7 @@ which enables efficient, bit-wise operations and arithmetic.
 # Simplify access to friend object attributes
 # pylint: disable = protected-access
 
-# PyLint is confused by MetaClass behavior
+# PyLint/PyRight are confused by MetaClass behavior
 # pylint: disable = no-value-for-parameter
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportCallIssue=false
@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Generator, Iterable
-from functools import cached_property
+from functools import cached_property, partial
 
 from .util import clog2
 
@@ -324,7 +324,8 @@ class Vec:
         def init(self, data: int):
             Vec.__init__(self, n, data)
 
-        _VecN[n] = vec_n = type(f"Vec{n}", (Vec,), {"__init__": init})
+        vec_n = type(f"Vec{n}", (Vec,), {"__init__": init})
+        _VecN[n] = vec_n
         return vec_n
 
     def __init__(self, n: int, data: int):
@@ -1398,6 +1399,78 @@ class VecEnum(metaclass=_VecEnumMeta):
 
     def __str__(self) -> str:
         return self._name
+
+
+def _vec_struct_init(fields: list[tuple[str, type]]) -> str:
+    """Return code for a Struct __init__ method w/ fields."""
+    parts = []
+    parts.append("def init(self")
+    for attr_name, attr_type in fields:
+        n = int(attr_type.__name__[3:])
+        parts.append(f", {attr_name}: Vec[{n}]")
+    parts.append("):\n")
+    parts.append("    n = 0\n")
+    parts.append("    data = 0\n")
+    for attr_name, attr_type in fields:
+        parts.append(f"    self._{attr_name}_base = n\n")
+        parts.append(f"    self._{attr_name}_size = len({attr_name})\n")
+        parts.append(f"    n += self._{attr_name}_size\n")
+        parts.append(f"    data |= {attr_name}.data << (2 * self._{attr_name}_base)\n")
+    parts.append("    Vec.__init__(self, n, data)\n")
+    return "".join(parts)
+
+
+class _VecStructMeta(type):
+    """Struct Metaclass: Create struct base classes."""
+
+    def __new__(mcs, name, bases, attrs):
+        base_attrs = {}
+        fields = []
+        for key, val in attrs.items():
+            if key == "__annotations__":
+                for attr_name, attr_type in val.items():
+                    fields.append((attr_name, attr_type))
+            else:
+                base_attrs[key] = val
+
+        # Create Struct class
+        cls = super().__new__(mcs, name, bases + (Vec,), base_attrs)
+
+        # Create Struct.__init__
+        d = {}
+        exec(_vec_struct_init(fields), None, d)  # pylint: disable=exec-used
+        cls.__init__ = d["init"]
+
+        # Create Struct.__str__
+        def _str(self):
+            args = ", ".join(f"{an}={getattr(self, an)}" for an, _ in fields)
+            return f"{name}({args})"
+
+        cls.__str__ = _str
+
+        # Create Struct.__repr__
+        def _repr(self):
+            args = ", ".join(f'{an}=vec("{getattr(self, an)}")' for an, _ in fields)
+            return f"{name}({args})"
+
+        cls.__repr__ = _repr
+
+        # Create Struct properties
+        def _fget(name, self):
+            base = getattr(self, f"_{name}_base")
+            n = getattr(self, f"_{name}_size")
+            mask = (1 << (2 * n)) - 1
+            data = (self.data >> (2 * base)) & mask
+            return Vec(n, data)
+
+        for attr_name, _ in fields:
+            setattr(cls, attr_name, property(fget=partial(_fget, attr_name)))
+
+        return cls
+
+
+class VecStruct(metaclass=_VecStructMeta):
+    """Struct Base Class: Create struct."""
 
 
 _from_bit = (_0, _1)

@@ -1,4 +1,4 @@
-"""Test seqlogic.enum module."""
+"""Test seqlogic.lbool.VecEnum."""
 
 import pytest
 
@@ -17,7 +17,6 @@ class Color(VecEnum):
 
 
 def test_basic():
-    """Test basic usage model."""
     assert str(Color.RED) == "RED"
     assert str(Color.GREEN) == "GREEN"
     assert str(Color.BLUE) == "BLUE"
@@ -27,19 +26,18 @@ def test_basic():
     assert Color("2b10") is Color.BLUE
 
 
-def test_bits():
-    """Test behaviors of bits subclass."""
+def test_slicing():
     assert Color.GREEN[0] == ones(1)
     assert Color.GREEN[1] == zeros(1)
 
 
 def test_x():
-    """Test X item."""
+    """Test Enum auto X attribute."""
     assert Color.X == xes(2)
 
 
 def test_enum_error():
-    """Test various enum spec errors."""
+    """Test enum spec errors."""
     with pytest.raises(TypeError):
         # The literal must be a str
         class InvalidType(VecEnum):
@@ -47,5 +45,6 @@ def test_enum_error():
 
         _ = InvalidType()  # pyright: ignore[reportCallIssue]
 
+    # Not a valid color
     with pytest.raises(ValueError):
         _ = Color("2b11")
