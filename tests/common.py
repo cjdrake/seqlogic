@@ -6,7 +6,7 @@ It might be useful to add to seqlogic library.
 
 from collections import defaultdict
 
-from seqlogic import Bit, notify, sleep
+from seqlogic import Bit, resume, sleep
 from seqlogic.lbool import ones, zeros
 
 # [Time][Var] = Val
@@ -97,7 +97,7 @@ async def p_dff(
 ):
     """D Flop Flop with asynchronous, negedge-triggered reset."""
     while True:
-        var = await notify(reset_n.negedge, clock.posedge)
+        var = await resume((reset_n, reset_n.is_negedge), (clock, clock.is_posedge))
         assert var in {reset_n, clock}
         if var is reset_n:
             q.next = reset_value

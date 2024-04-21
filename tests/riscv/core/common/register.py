@@ -32,11 +32,13 @@ class Register(Module):
 
         def f():
             return (
-                self.clock.posedge() and self.reset.value == zeros(1) and self.en.value == ones(1)
+                self.clock.is_posedge()
+                and self.reset.value == zeros(1)  # noqa
+                and self.en.value == ones(1)  # noqa
             )
 
         while True:
-            state = await resume((self.reset, self.reset.posedge), (self.clock, f))
+            state = await resume((self.reset, self.reset.is_posedge), (self.clock, f))
             match state:
                 case self.reset:
                     self.q.next = self._init

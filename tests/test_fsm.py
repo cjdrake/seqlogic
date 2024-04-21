@@ -5,7 +5,7 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Bit, Enum, Module, get_loop, notify
+from seqlogic import Bit, Enum, Module, get_loop
 from seqlogic.lbool import VecEnum, ones, xes, zeros
 from seqlogic.sim import Region
 
@@ -33,24 +33,24 @@ async def p_input(
     clock: Bit,
 ):
     """TODO(cjdrake): Write docstring."""
-    await notify(reset_n.negedge)
+    await reset_n.negedge()
     x.next = zeros(1)
 
-    await notify(reset_n.posedge)
-    await notify(clock.posedge)
-    await notify(clock.posedge)
+    await reset_n.posedge()
+    await clock.posedge()
+    await clock.posedge()
     x.next = ones(1)  # A => B
 
-    await notify(clock.posedge)
+    await clock.posedge()
     x.next = ones(1)  # B => C
 
-    await notify(clock.posedge)
+    await clock.posedge()
     x.next = ones(1)  # C => D
 
-    await notify(clock.posedge)
+    await clock.posedge()
     x.next = ones(1)  # D => D
 
-    await notify(clock.posedge)
+    await clock.posedge()
     x.next = zeros(1)  # D => A
 
 

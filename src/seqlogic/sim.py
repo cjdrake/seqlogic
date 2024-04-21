@@ -160,7 +160,7 @@ class _SimQueue:
                 break
 
 
-class _SimAwaitable(Awaitable):
+class SimAwaitable(Awaitable):
     """Suspend execution of the current task."""
 
     def __await__(self):
@@ -387,23 +387,14 @@ async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
     assert _sim.task is not None
     _sim.call_later(delay, _sim.task)
-    await _SimAwaitable()
-
-
-async def notify(*methods: Callable[[], bool]) -> State:
-    """Suspend the task, and wake up after an event notification."""
-    for method in methods:
-        state = method.__self__
-        _sim.add_event(state, method)
-    state = await _SimAwaitable()
-    return state
+    await SimAwaitable()
 
 
 async def changed(*states: State) -> State:
     """TODO(cjdrake): Write docstring."""
     for state in states:
         _sim.add_event(state, state.changed)
-    state = await _SimAwaitable()
+    state = await SimAwaitable()
     return state
 
 
@@ -411,7 +402,7 @@ async def resume(*events: tuple[State, Callable[[], bool]]) -> State:
     """TODO(cjdrake): Write docstring."""
     for state, cond in events:
         _sim.add_event(state, cond)
-    state = await _SimAwaitable()
+    state = await SimAwaitable()
     return state
 
 

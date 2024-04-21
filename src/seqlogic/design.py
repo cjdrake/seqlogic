@@ -13,7 +13,7 @@ from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
 from .lbool import Vec, ones, xes, zeros
-from .sim import Aggregate, Region, Singular, changed, get_loop
+from .sim import Aggregate, Region, SimAwaitable, Singular, State, changed, get_loop
 
 _item2char = {
     0b00: "x",
@@ -176,13 +176,25 @@ class Bit(Bits):
         """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent, shape=(1,))
 
-    def posedge(self) -> bool:
+    def is_posedge(self) -> bool:
         """TODO(cjdrake): Write docstring."""
         return self._value == zeros(1) and self._next_value == ones(1)
 
-    def negedge(self) -> bool:
+    async def posedge(self) -> State:
+        """TODO(cjdrake): Write docstring."""
+        self._sim.add_event(self, self.is_posedge)
+        state = await SimAwaitable()
+        return state
+
+    def is_negedge(self) -> bool:
         """TODO(cjdrake): Write docstring."""
         return self._value == ones(1) and self._next_value == zeros(1)
+
+    async def negedge(self) -> State:
+        """TODO(cjdrake): Write docstring."""
+        self._sim.add_event(self, self.is_negedge)
+        state = await SimAwaitable()
+        return state
 
 
 class Enum(_TraceSingular):

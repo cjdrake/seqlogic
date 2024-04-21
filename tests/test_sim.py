@@ -4,8 +4,8 @@ from collections import defaultdict
 
 import pytest
 
-from seqlogic import get_loop, notify, sleep
-from seqlogic.sim import Region, Singular
+from seqlogic import get_loop, sleep
+from seqlogic.sim import Region, SimAwaitable, Singular, State
 
 loop = get_loop()
 waves = defaultdict(dict)
@@ -29,17 +29,19 @@ class Bool(Singular):
             _waves_add(self._sim.time, self, self._next_value)
         super().update()
 
-    def posedge(self) -> bool:
+    def is_posedge(self) -> bool:
         """TODO(cjdrake): Write docstring."""
         return not self._value and self._next_value
 
-    def negedge(self) -> bool:
+    def is_negedge(self) -> bool:
         """TODO(cjdrake): Write docstring."""
         return self._value and not self._next_value
 
-    def edge(self) -> bool:
+    async def edge(self) -> State:
         """TODO(cjdrake): Write docstring."""
-        return self.posedge() or self.negedge()
+        self._sim.add_event(self, lambda: self.is_posedge() or self.is_negedge())
+        state = await SimAwaitable()
+        return state
 
 
 HELLO_OUT = """\
@@ -87,7 +89,7 @@ def test_vars_run():
     async def p_a():
         i = 0
         while True:
-            await notify(clk.edge)
+            await clk.edge()
             if i % 2 == 0:
                 a.next = not a.value
             else:
@@ -97,7 +99,7 @@ def test_vars_run():
     async def p_b():
         i = 0
         while True:
-            await notify(clk.edge)
+            await clk.edge()
             if i % 3 == 0:
                 b.next = not b.value
             i += 1
@@ -150,7 +152,7 @@ def test_vars_iter():
     async def p_a():
         i = 0
         while True:
-            await notify(clk.edge)
+            await clk.edge()
             if i % 2 == 0:
                 a.next = not a.value
             else:
@@ -160,7 +162,7 @@ def test_vars_iter():
     async def p_b():
         i = 0
         while True:
-            await notify(clk.edge)
+            await clk.edge()
             if i % 3 == 0:
                 b.next = not b.value
             i += 1

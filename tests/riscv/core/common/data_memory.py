@@ -41,7 +41,7 @@ class DataMemory(Module):
         """TODO(cjdrake): Write docstring."""
 
         def f():
-            return self.clock.posedge() and self.wr_en.value == ones(1)
+            return self.clock.is_posedge() and self.wr_en.value == ones(1)
 
         while True:
             await resume((self.clock, f))
