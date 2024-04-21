@@ -46,7 +46,6 @@ class Singular(State):
 
     def __init__(self, value):
         super().__init__(value)
-
         self._value = self._init_value
         self._next_value = self._init_value
         self._changed = False
