@@ -297,6 +297,9 @@ def limplies(p: int, q: int) -> int:
     return _LIMPLIES[p][q]
 
 
+_VecN = {}
+
+
 class Vec:
     """One dimensional vector of lbool items.
 
@@ -312,8 +315,17 @@ class Vec:
     * dcs
     """
 
-    def __class_getitem__(cls, key: int):
-        pass  # pragma: no cover
+    def __class_getitem__(cls, n: int):
+        assert isinstance(n, int) and n >= 0
+
+        if (vec_n := _VecN.get(n)) is not None:
+            return vec_n
+
+        def init(self, data: int):
+            Vec.__init__(self, n, data)
+
+        _VecN[n] = vec_n = type(f"Vec{n}", (Vec,), {"__init__": init})
+        return vec_n
 
     def __init__(self, n: int, data: int):
         """Initialize.

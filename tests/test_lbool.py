@@ -24,6 +24,9 @@ from seqlogic.lbool import (
 )
 
 E = Vec(0, 0)
+F = vec(False)
+T = vec(True)
+
 
 LNOT = {
     "X": "X",
@@ -34,7 +37,6 @@ LNOT = {
 
 
 def test_vec():
-    """Test seqlogic.lbool.vec function."""
     assert vec() == Vec(0, 0)
     assert vec(None) == Vec(0, 0)
     assert vec(False) == Vec(1, 0b01)
@@ -49,7 +51,6 @@ def test_vec():
 
 
 def test_lnot():
-    """Test seqlogic.lbool.lnot function."""
     for x, y in LNOT.items():
         x = lbool._from_char[x]
         y = lbool._from_char[y]
@@ -77,7 +78,6 @@ LNOR = {
 
 
 def test_lnor():
-    """Test seqlogic.lbool.lnor function."""
     for xs, y in LNOR.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
@@ -106,7 +106,6 @@ LOR = {
 
 
 def test_lor():
-    """Test seqlogic.lbool.lor function."""
     for xs, y in LOR.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
@@ -135,7 +134,6 @@ LNAND = {
 
 
 def test_lnand():
-    """Test seqlogic.lbool.lnand function."""
     for xs, y in LNAND.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
@@ -164,7 +162,6 @@ LAND = {
 
 
 def test_land():
-    """Test seqlogic.lbool.land function."""
     for xs, y in LAND.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
@@ -193,7 +190,6 @@ LXNOR = {
 
 
 def test_lxnor():
-    """Test seqlogic.lbool.lnand function."""
     for xs, y in LXNOR.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
@@ -222,7 +218,6 @@ LXOR = {
 
 
 def test_lxor():
-    """Test seqlogic.lbool.land function."""
     for xs, y in LXOR.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
@@ -251,7 +246,6 @@ LIMPLIES = {
 
 
 def test_limplies():
-    """Test seqlogic.lbool.limplies function."""
     for xs, y in LIMPLIES.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
@@ -259,14 +253,20 @@ def test_limplies():
         assert limplies(x0, x1) == y
 
 
+def test_vec_cls_getitem():
+    vec_4 = Vec[4]
+    v = vec_4(42)  # pyright: ignore[reportCallIssue]
+    assert len(v) == 4 and v.data == 42
+    # Always return the same class instance
+    assert Vec[4] is vec_4
+
+
 def test_vec_repr():
-    """Test seqlogic.lbool.Vec.__repr__ method."""
     assert repr(Vec(0, 0)) == "vec(0, 0b0)"
     assert repr(Vec(4, 0b1110_0100)) == "vec(4, 0b11100100)"
 
 
 def test_vec_bool():
-    """Test seqlogic.lbool.Vec.__bool__ method."""
     assert bool(Vec(0, 0)) is False
     assert bool(Vec(1, 0b01)) is False
     assert bool(Vec(1, 0b10)) is True
@@ -277,7 +277,6 @@ def test_vec_bool():
 
 
 def test_vec_int():
-    """Test seqlogic.lbool.Vec.__int__ method."""
     assert int(Vec(0, 0)) == 0
     assert int(Vec(1, 0b01)) == 0
     assert int(Vec(1, 0b10)) == -1
@@ -289,7 +288,6 @@ def test_vec_int():
 
 
 def test_vec_eq():
-    """Test seqlogic.lbool.Vec.__eq__ method."""
     assert Vec(0, 0) == Vec(0, 0)
     assert Vec(4, 0b10_01_10_01) == Vec(4, 0b10_01_10_01)
     assert Vec(4, 0b10_01_10_01) != Vec(4, 0b01_10_01_10)
@@ -297,7 +295,6 @@ def test_vec_eq():
 
 
 def test_vec_hash():
-    """Test seqlogic.lbool.vec.__hash__ method."""
     s = set()
     s.add(lbool.uint2vec(0))
     s.add(lbool.uint2vec(1))
@@ -309,14 +306,12 @@ def test_vec_hash():
 
 
 def test_vec_lnot():
-    """Test seqlogic.lbool.Vec.lnot method."""
     x = Vec(4, 0b11_10_01_00)
     assert x.lnot() == Vec(4, 0b11_01_10_00)
     assert ~x == Vec(4, 0b11_01_10_00)
 
 
 def test_vec_lnor():
-    """Test seqlogic.lbool.Vec.lnor method."""
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
     assert x0.lnor(x1) == Vec(16, 0b11011100_01010100_11011000_00000000)
@@ -324,7 +319,6 @@ def test_vec_lnor():
 
 
 def test_vec_lor():
-    """Test seqlogic.lbool.Vec.lor method."""
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
     assert x0.lor(x1) == Vec(16, 0b11101100_10101000_11100100_00000000)
@@ -332,7 +326,6 @@ def test_vec_lor():
 
 
 def test_vec_lnand():
-    """Test seqlogic.lbool.Vec.lnand method."""
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
     assert x0.lnand(x1) == Vec(16, 0b11111000_11011000_10101000_00000000)
@@ -340,7 +333,6 @@ def test_vec_lnand():
 
 
 def test_vec_land():
-    """Test seqlogic.lbool.Vec.lnand method."""
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
     assert x0.land(x1) == Vec(16, 0b11110100_11100100_01010100_00000000)
@@ -348,7 +340,6 @@ def test_vec_land():
 
 
 def test_vec_lxnor():
-    """Test seqlogic.lbool.Vec.lxnor method."""
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
     assert x0.lxnor(x1) == Vec(16, 0b11111100_11100100_11011000_00000000)
@@ -356,7 +347,6 @@ def test_vec_lxnor():
 
 
 def test_vec_lxor():
-    """Test seqlogic.lbool.Vec.lxor method."""
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
     assert x0.lxor(x1) == Vec(16, 0b11111100_11011000_11100100_00000000)
@@ -388,7 +378,6 @@ ULOR = {
 
 
 def test_vec_ulor():
-    """Test seqlogic.lbool.Vec.ulor method."""
     for k, v in ULOR.items():
         assert Vec(2, k).ulor() == Vec(1, v)
 
@@ -414,7 +403,6 @@ UAND = {
 
 
 def test_vec_uand():
-    """Test seqlogic.lbool.Vec.uand method."""
     for k, v in UAND.items():
         assert Vec(2, k).uland() == Vec(1, v)
 
@@ -440,7 +428,6 @@ UXNOR = {
 
 
 def test_vec_uxnor():
-    """Test seqlogic.lbool.Vec.uxnor method."""
     for k, v in UXNOR.items():
         assert Vec(2, k).ulxnor() == Vec(1, v)
 
@@ -466,7 +453,6 @@ UXOR = {
 
 
 def test_vec_ult():
-    """Test seqlogic.lbool.Vec.ult method."""
     zero = uint2vec(0, 8)
     one = uint2vec(1, 8)
     two = uint2vec(2, 8)
@@ -482,7 +468,6 @@ def test_vec_ult():
 
 
 def test_vec_slt():
-    """Test seqlogic.lbool.Vec.slt method."""
     n_one = int2vec(-1, 8)
     zero = int2vec(0, 8)
     one = int2vec(1, 8)
@@ -498,13 +483,11 @@ def test_vec_slt():
 
 
 def test_vec_uxor():
-    """Test seqlogic.lbool.Vec.uxor method."""
     for k, v in UXOR.items():
         assert Vec(2, k).ulxor() == Vec(1, v)
 
 
 def test_vec_zext():
-    """Test seqlogic.lbool.Vec.zext method."""
     v = Vec(4, 0b10_01_10_01)
     with pytest.raises(ValueError):
         v.zext(-1)
@@ -513,7 +496,6 @@ def test_vec_zext():
 
 
 def test_vec_sext():
-    """Test seqlogic.lbool.Vec.sext method."""
     v1 = Vec(4, 0b10_01_10_01)
     v2 = Vec(4, 0b01_10_01_10)
     with pytest.raises(ValueError):
@@ -525,7 +507,6 @@ def test_vec_sext():
 
 
 def test_vec_lsh():
-    """Test seqlogic.lbool.Vec.lsh method."""
     v = Vec(4, 0b10_10_10_10)
     y, co = v.lsh(0)
     assert y is v and co == E
@@ -546,7 +527,6 @@ def test_vec_lsh():
 
 
 def test_vec_rsh():
-    """Test seqlogic.lbool.Vec.rsh method."""
     v = Vec(4, 0b10_10_10_10)
     y, co = v.rsh(0)
     assert y is v and co == E
@@ -567,7 +547,6 @@ def test_vec_rsh():
 
 
 def test_vec_arsh():
-    """Test seqlogic.lbool.Vec.arsh method."""
     v = Vec(4, 0b10_10_10_10)
     assert v.arsh(0) == (Vec(4, 0b10_10_10_10), E)
     assert v.arsh(1) == (Vec(4, 0b10_10_10_10), Vec(1, 0b10))
@@ -586,6 +565,120 @@ def test_vec_arsh():
         v.arsh(-1)
     with pytest.raises(ValueError):
         v.arsh(5)
+
+
+ADD_VALS = [
+    ("2b00", "2b00", F, "2b00", F, F),
+    ("2b00", "2b01", F, "2b01", F, F),
+    ("2b00", "2b10", F, "2b10", F, F),
+    ("2b00", "2b11", F, "2b11", F, F),
+    ("2b01", "2b00", F, "2b01", F, F),
+    ("2b01", "2b01", F, "2b10", F, T),  # overflow
+    ("2b01", "2b10", F, "2b11", F, F),
+    ("2b01", "2b11", F, "2b00", T, F),
+    ("2b10", "2b00", F, "2b10", F, F),
+    ("2b10", "2b01", F, "2b11", F, F),
+    ("2b10", "2b10", F, "2b00", T, T),  # overflow
+    ("2b10", "2b11", F, "2b01", T, T),  # overflow
+    ("2b11", "2b00", F, "2b11", F, F),
+    ("2b11", "2b01", F, "2b00", T, F),
+    ("2b11", "2b10", F, "2b01", T, T),  # overflow
+    ("2b11", "2b11", F, "2b10", T, F),
+    ("2b00", "2b00", T, "2b01", F, F),
+    ("2b00", "2b01", T, "2b10", F, T),  # overflow
+    ("2b00", "2b10", T, "2b11", F, F),
+    ("2b00", "2b11", T, "2b00", T, F),
+    ("2b01", "2b00", T, "2b10", F, T),  # overflow
+    ("2b01", "2b01", T, "2b11", F, T),  # overflow
+    ("2b01", "2b10", T, "2b00", T, F),
+    ("2b01", "2b11", T, "2b01", T, F),
+    ("2b10", "2b00", T, "2b11", F, F),
+    ("2b10", "2b01", T, "2b00", T, F),
+    ("2b10", "2b10", T, "2b01", T, T),  # overflow
+    ("2b10", "2b11", T, "2b10", T, F),
+    ("2b11", "2b00", T, "2b00", T, F),
+    ("2b11", "2b01", T, "2b01", T, F),
+    ("2b11", "2b10", T, "2b10", T, F),
+    ("2b11", "2b11", T, "2b11", T, F),
+]
+
+
+def test_vec_add():
+    """Test bits add method."""
+    for a, b, ci, s, co, v in ADD_VALS:
+        a, b, s = vec(a), vec(b), vec(s)
+        assert a.add(b, ci) == (s, co, v)
+
+
+def test_vec_addsubnegops():
+    """Test bits add/substract operators."""
+    assert vec("2b00") + vec("2b00") == vec("2b00")
+    assert vec("2b00") + vec("2b01") == vec("2b01")
+    assert vec("2b01") + vec("2b00") == vec("2b01")
+    assert vec("2b00") + vec("2b10") == vec("2b10")
+    assert vec("2b01") + vec("2b01") == vec("2b10")
+    assert vec("2b10") + vec("2b00") == vec("2b10")
+    assert vec("2b00") + vec("2b11") == vec("2b11")
+    assert vec("2b01") + vec("2b10") == vec("2b11")
+    assert vec("2b10") + vec("2b01") == vec("2b11")
+    assert vec("2b11") + vec("2b00") == vec("2b11")
+    assert vec("2b01") + vec("2b11") == vec("2b00")
+    assert vec("2b10") + vec("2b10") == vec("2b00")
+    assert vec("2b11") + vec("2b01") == vec("2b00")
+    assert vec("2b10") + vec("2b11") == vec("2b01")
+    assert vec("2b11") + vec("2b10") == vec("2b01")
+    assert vec("2b11") + vec("2b11") == vec("2b10")
+
+    assert vec("2b00") - vec("2b11") == vec("2b01")
+    assert vec("2b00") - vec("2b10") == vec("2b10")
+    assert vec("2b01") - vec("2b11") == vec("2b10")
+    assert vec("2b00") - vec("2b01") == vec("2b11")
+    assert vec("2b01") - vec("2b10") == vec("2b11")
+    assert vec("2b10") - vec("2b11") == vec("2b11")
+    assert vec("2b00") - vec("2b00") == vec("2b00")
+    assert vec("2b01") - vec("2b01") == vec("2b00")
+    assert vec("2b10") - vec("2b10") == vec("2b00")
+    assert vec("2b11") - vec("2b11") == vec("2b00")
+    assert vec("2b01") - vec("2b00") == vec("2b01")
+    assert vec("2b10") - vec("2b01") == vec("2b01")
+    assert vec("2b11") - vec("2b10") == vec("2b01")
+    assert vec("2b10") - vec("2b00") == vec("2b10")
+    assert vec("2b11") - vec("2b01") == vec("2b10")
+    assert vec("2b11") - vec("2b00") == vec("2b11")
+
+    assert -vec("3b000") == vec("3b000")
+    assert -vec("3b001") == vec("3b111")
+    assert -vec("3b111") == vec("3b001")
+    assert -vec("3b010") == vec("3b110")
+    assert -vec("3b110") == vec("3b010")
+    assert -vec("3b011") == vec("3b101")
+    assert -vec("3b101") == vec("3b011")
+    assert -vec("3b100") == vec("3b100")
+
+
+def test_count():
+    v = vec("8b-10X_-10X")
+    assert v.count_xes() == 2
+    assert v.count_zeros() == 2
+    assert v.count_ones() == 2
+    assert v.count_dcs() == 2
+
+    assert vec("4b0000").count_ones() == 0
+    assert vec("4b0001").count_ones() == 1
+    assert vec("4b0011").count_ones() == 2
+    assert vec("4b0111").count_ones() == 3
+    assert vec("4b1111").count_ones() == 4
+
+    assert not vec("4b0000").onehot()
+    assert vec("4b1000").onehot()
+    assert vec("4b0001").onehot()
+    assert not vec("4b1001").onehot()
+    assert not vec("4b1101").onehot()
+
+    assert vec("4b0000").onehot0()
+    assert vec("4b1000").onehot0()
+    assert not vec("4b1010").onehot0()
+    assert not vec("4b1011").onehot0()
 
 
 UINT2VEC_VALS = {
@@ -621,7 +714,6 @@ UINT2VEC_N_VALS = {
 
 
 def test_uint2vec():
-    """Test seqlogic.lbool.uint2vec function."""
     # Negative inputs are invalid
     with pytest.raises(ValueError):
         uint2vec(-1)
@@ -703,7 +795,6 @@ INT2VEC_N_VALS = {
 
 
 def test_int2vec():
-    """Test seqlogic.lbool.int2vec function."""
     for i, s in INT2VEC_VALS.items():
         v = int2vec(i)
         assert str(v) == s
@@ -737,7 +828,6 @@ def test_int2vec():
 
 
 def test_lit2vec():
-    """Test parsing of vector string literals."""
     # literal doesn't match size
     with pytest.raises(ValueError):
         vec("4b1010_1010")
@@ -762,7 +852,6 @@ def test_lit2vec():
 
 
 def test_vec_basic():
-    """Test seqlogic.lbool.Vec basic functionality."""
     # n is non-negative
     with pytest.raises(ValueError):
         Vec(-1, 42)
@@ -799,10 +888,8 @@ def test_vec_basic():
 
 
 def test_cat():
-    """TODO(cjdrake): Write docstring."""
     assert cat(vec("2b0X"), vec("2b-1")) == vec("4b-10X")
 
 
 def test_rep():
-    """TODO(cjdrake): Write docstring."""
     assert rep(vec("4b-10X"), 2) == vec("8b-10X_-10X")
