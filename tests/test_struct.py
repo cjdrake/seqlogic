@@ -3,6 +3,7 @@
 from seqlogic.lbool import Vec, VecStruct, vec
 
 # PyRight is confused by MetaClass behavior
+# pyright: reportArgumentType=false
 # pyright: reportCallIssue=false
 
 
