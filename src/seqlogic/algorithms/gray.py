@@ -10,4 +10,4 @@ def bin2gray(b: Vec) -> Vec:
 
 def gray2bin(g: Vec) -> Vec:
     """Convert gray to binary."""
-    return cat(*[g[i:].ulxor() for i, _ in enumerate(g)])
+    return cat(*[g[i:].uxor() for i, _ in enumerate(g)])

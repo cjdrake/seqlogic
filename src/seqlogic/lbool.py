@@ -49,7 +49,7 @@ _W = 0b11
 _LNOT = (_X, _1, _0, _W)
 
 
-def lnot(x: int) -> int:
+def not_(x: int) -> int:
     """Lifted NOT function.
 
     f(x) -> y:
@@ -69,7 +69,7 @@ _LNOR = (
 )
 
 
-def lnor(x0: int, x1: int) -> int:
+def nor(x0: int, x1: int) -> int:
     """Lifted NOR function.
 
     f(x0, x1) -> y:
@@ -101,7 +101,7 @@ _LOR = (
 )
 
 
-def lor(x0: int, x1: int) -> int:
+def or_(x0: int, x1: int) -> int:
     """Lifted OR function.
 
     f(x0, x1) -> y:
@@ -133,7 +133,7 @@ _LNAND = (
 )
 
 
-def lnand(x0: int, x1: int) -> int:
+def nand(x0: int, x1: int) -> int:
     """Lifted NAND function.
 
     f(x0, x1) -> y:
@@ -165,7 +165,7 @@ _LAND = (
 )
 
 
-def land(x0: int, x1: int) -> int:
+def and_(x0: int, x1: int) -> int:
     """Lifted AND function.
 
     f(x0, x1) -> y:
@@ -197,7 +197,7 @@ _LXNOR = (
 )
 
 
-def lxnor(x0: int, x1: int) -> int:
+def xnor(x0: int, x1: int) -> int:
     """Lifted XNOR function.
 
     f(x0, x1) -> y:
@@ -232,7 +232,7 @@ _LXOR = (
 )
 
 
-def lxor(x0: int, x1: int) -> int:
+def xor(x0: int, x1: int) -> int:
     """Lifted XOR function.
 
     f(x0, x1) -> y:
@@ -267,7 +267,7 @@ _LIMPLIES = (
 )
 
 
-def limplies(p: int, q: int) -> int:
+def implies(p: int, q: int) -> int:
     """Lifted IMPLIES function.
 
     f(p, q) -> y:
@@ -403,16 +403,16 @@ class Vec:
 
     # Bitwise Arithmetic
     def __invert__(self) -> Vec:
-        return self.lnot()
+        return self.not_()
 
     def __or__(self, other: Vec) -> Vec:
-        return self.lor(other)
+        return self.or_(other)
 
     def __and__(self, other: Vec) -> Vec:
-        return self.land(other)
+        return self.and_(other)
 
     def __xor__(self, other: Vec) -> Vec:
-        return self.lxor(other)
+        return self.xor(other)
 
     def __lshift__(self, n: int) -> Vec:
         return self.lsh(n)[0]
@@ -439,7 +439,7 @@ class Vec:
         """Number of bits of data."""
         return _ITEM_BITS * self._n
 
-    def lnot(self) -> Vec:
+    def not_(self) -> Vec:
         """Bitwise lifted NOT.
 
         Returns:
@@ -456,7 +456,7 @@ class Vec:
 
         return Vec(self._n, y)
 
-    def lnor(self, other: Vec) -> Vec:
+    def nor(self, other: Vec) -> Vec:
         """Bitwise lifted NOR.
 
         Args:
@@ -486,7 +486,7 @@ class Vec:
 
         return Vec(self._n, y)
 
-    def lor(self, other: Vec) -> Vec:
+    def or_(self, other: Vec) -> Vec:
         """Bitwise lifted OR.
 
         Args:
@@ -514,7 +514,7 @@ class Vec:
 
         return Vec(self._n, y)
 
-    def ulor(self) -> Vec[1]:
+    def uor(self) -> Vec[1]:
         """Unary lifted OR reduction.
 
         Returns:
@@ -522,10 +522,10 @@ class Vec:
         """
         data = _0
         for i in range(self._n):
-            data = lor(data, self._get_item(i))
+            data = or_(data, self._get_item(i))
         return Vec(1, data)
 
-    def lnand(self, other: Vec) -> Vec:
+    def nand(self, other: Vec) -> Vec:
         """Bitwise lifted NAND.
 
         Args:
@@ -555,7 +555,7 @@ class Vec:
 
         return Vec(self._n, y)
 
-    def land(self, other: Vec) -> Vec:
+    def and_(self, other: Vec) -> Vec:
         """Bitwise lifted AND.
 
         Args:
@@ -583,7 +583,7 @@ class Vec:
 
         return Vec(self._n, y)
 
-    def uland(self) -> Vec[1]:
+    def uand(self) -> Vec[1]:
         """Unary lifted AND reduction.
 
         Returns:
@@ -591,10 +591,10 @@ class Vec:
         """
         data = _1
         for i in range(self._n):
-            data = land(data, self._get_item(i))
+            data = and_(data, self._get_item(i))
         return Vec(1, data)
 
-    def lxnor(self, other: Vec) -> Vec:
+    def xnor(self, other: Vec) -> Vec:
         """Bitwise lifted XNOR.
 
         Args:
@@ -624,7 +624,7 @@ class Vec:
 
         return Vec(self._n, y)
 
-    def lxor(self, other: Vec) -> Vec:
+    def xor(self, other: Vec) -> Vec:
         """Bitwise lifted XOR.
 
         Args:
@@ -654,7 +654,7 @@ class Vec:
 
         return Vec(self._n, y)
 
-    def ulxnor(self) -> Vec[1]:
+    def uxnor(self) -> Vec[1]:
         """Unary lifted XNOR reduction.
 
         Returns:
@@ -662,10 +662,10 @@ class Vec:
         """
         data = _1
         for i in range(self._n):
-            data = lxnor(data, self._get_item(i))
+            data = xnor(data, self._get_item(i))
         return Vec(1, data)
 
-    def ulxor(self) -> Vec[1]:
+    def uxor(self) -> Vec[1]:
         """Unary lifted XOR reduction.
 
         Returns:
@@ -673,7 +673,7 @@ class Vec:
         """
         data = _0
         for i in range(self._n):
-            data = lxor(data, self._get_item(i))
+            data = xor(data, self._get_item(i))
         return Vec(1, data)
 
     def to_uint(self) -> int:
@@ -719,7 +719,7 @@ class Vec:
             return 0
         sign = self._get_item(self._n - 1)
         if sign == _1:
-            return -(self.lnot().to_uint() + 1)
+            return -(self.not_().to_uint() + 1)
         return self.to_uint()
 
     def ult(self, other: Vec) -> bool:
@@ -955,7 +955,7 @@ class Vec:
         Raises:
             ValueError: vec lengths are invalid/inconsistent.
         """
-        return self.add(other.lnot(), ci=_Vec1)
+        return self.add(other.not_(), ci=_Vec1)
 
     def neg(self) -> tuple[Vec, Vec[1], Vec[1]]:
         """Twos complement negation.

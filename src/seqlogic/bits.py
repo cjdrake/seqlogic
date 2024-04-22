@@ -168,7 +168,7 @@ class Bits:
         Returns:
             bit array of equal size and inverted data.
         """
-        return Bits(self._shape, self._v.lnot().data)
+        return Bits(self._shape, self._v.not_().data)
 
     def lnor(self, other: Bits) -> Bits:
         """Bitwise lifted NOR.
@@ -183,7 +183,7 @@ class Bits:
             ValueError: bit array shapes do not match.
         """
         self._check_shape(other)
-        return _v2b(self._v.lnor(other._v))
+        return _v2b(self._v.nor(other._v))
 
     def lor(self, other: Bits) -> Bits:
         """Bitwise lifted OR.
@@ -198,7 +198,7 @@ class Bits:
             ValueError: bit array shapes do not match.
         """
         self._check_shape(other)
-        return _v2b(self._v.lor(other._v))
+        return _v2b(self._v.or_(other._v))
 
     def ulor(self) -> Bits[1]:
         """Unary lifted OR reduction.
@@ -206,7 +206,7 @@ class Bits:
         Returns:
             One-bit array, data contains OR reduction.
         """
-        return _v2b(self._v.ulor())
+        return _v2b(self._v.uor())
 
     def lnand(self, other: Bits) -> Bits:
         """Bitwise lifted NAND.
@@ -221,7 +221,7 @@ class Bits:
             ValueError: bit array shapes do not match.
         """
         self._check_shape(other)
-        return _v2b(self._v.lnand(other._v))
+        return _v2b(self._v.nand(other._v))
 
     def land(self, other: Bits) -> Bits:
         """Bitwise lifted AND.
@@ -236,7 +236,7 @@ class Bits:
             ValueError: bit array shapes do not match.
         """
         self._check_shape(other)
-        return _v2b(self._v.land(other._v))
+        return _v2b(self._v.and_(other._v))
 
     def uland(self) -> Bits[1]:
         """Unary lifted AND reduction.
@@ -244,7 +244,7 @@ class Bits:
         Returns:
             One-bit array, data contains AND reduction.
         """
-        return _v2b(self._v.uland())
+        return _v2b(self._v.uand())
 
     def lxnor(self, other: Bits) -> Bits:
         """Bitwise lifted XNOR.
@@ -259,7 +259,7 @@ class Bits:
             ValueError: bit array shapes do not match.
         """
         self._check_shape(other)
-        return _v2b(self._v.lxnor(other._v))
+        return _v2b(self._v.xnor(other._v))
 
     def lxor(self, other: Bits) -> Bits:
         """Bitwise lifted XOR.
@@ -274,7 +274,7 @@ class Bits:
             ValueError: bit array shapes do not match.
         """
         self._check_shape(other)
-        return _v2b(self._v.lxor(other._v))
+        return _v2b(self._v.xor(other._v))
 
     def ulxnor(self) -> Bits[1]:
         """Unary lifted XNOR reduction.
@@ -282,7 +282,7 @@ class Bits:
         Returns:
             One-bit array, data contains XOR reduction.
         """
-        return _v2b(self._v.ulxnor())
+        return _v2b(self._v.uxnor())
 
     def ulxor(self) -> Bits[1]:
         """Unary lifted XOR reduction.
@@ -290,7 +290,7 @@ class Bits:
         Returns:
             One-bit array, data contains XOR reduction.
         """
-        return _v2b(self._v.ulxor())
+        return _v2b(self._v.uxor())
 
     def to_uint(self) -> int:
         """Convert to unsigned integer.

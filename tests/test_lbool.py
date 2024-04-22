@@ -8,19 +8,19 @@ import pytest
 from seqlogic import lbool
 from seqlogic.lbool import (
     Vec,
+    and_,
     cat,
+    implies,
     int2vec,
-    land,
-    limplies,
-    lnand,
-    lnor,
-    lnot,
-    lor,
-    lxnor,
-    lxor,
+    nand,
+    nor,
+    not_,
+    or_,
     rep,
     uint2vec,
     vec,
+    xnor,
+    xor,
 )
 
 E = Vec(0, 0)
@@ -54,10 +54,10 @@ def test_lnot():
     for x, y in LNOT.items():
         x = lbool._from_char[x]
         y = lbool._from_char[y]
-        assert lnot(x) == y
+        assert not_(x) == y
 
 
-LNOR = {
+NOR = {
     "XX": "X",
     "X0": "X",
     "X1": "X",
@@ -78,14 +78,14 @@ LNOR = {
 
 
 def test_lnor():
-    for xs, y in LNOR.items():
+    for xs, y in NOR.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
         y = lbool._from_char[y]
-        assert lnor(x0, x1) == y
+        assert nor(x0, x1) == y
 
 
-LOR = {
+OR = {
     "XX": "X",
     "X0": "X",
     "X1": "X",
@@ -106,14 +106,14 @@ LOR = {
 
 
 def test_lor():
-    for xs, y in LOR.items():
+    for xs, y in OR.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
         y = lbool._from_char[y]
-        assert lor(x0, x1) == y
+        assert or_(x0, x1) == y
 
 
-LNAND = {
+NAND = {
     "XX": "X",
     "X0": "X",
     "X1": "X",
@@ -134,14 +134,14 @@ LNAND = {
 
 
 def test_lnand():
-    for xs, y in LNAND.items():
+    for xs, y in NAND.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
         y = lbool._from_char[y]
-        assert lnand(x0, x1) == y
+        assert nand(x0, x1) == y
 
 
-LAND = {
+AND = {
     "XX": "X",
     "X0": "X",
     "X1": "X",
@@ -162,14 +162,14 @@ LAND = {
 
 
 def test_land():
-    for xs, y in LAND.items():
+    for xs, y in AND.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
         y = lbool._from_char[y]
-        assert land(x0, x1) == y
+        assert and_(x0, x1) == y
 
 
-LXNOR = {
+XNOR = {
     "XX": "X",
     "X0": "X",
     "X1": "X",
@@ -190,14 +190,14 @@ LXNOR = {
 
 
 def test_lxnor():
-    for xs, y in LXNOR.items():
+    for xs, y in XNOR.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
         y = lbool._from_char[y]
-        assert lxnor(x0, x1) == y
+        assert xnor(x0, x1) == y
 
 
-LXOR = {
+XOR = {
     "XX": "X",
     "X0": "X",
     "X1": "X",
@@ -218,14 +218,14 @@ LXOR = {
 
 
 def test_lxor():
-    for xs, y in LXOR.items():
+    for xs, y in XOR.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
         y = lbool._from_char[y]
-        assert lxor(x0, x1) == y
+        assert xor(x0, x1) == y
 
 
-LIMPLIES = {
+IMPLIES = {
     "XX": "X",
     "X0": "X",
     "X1": "X",
@@ -246,11 +246,11 @@ LIMPLIES = {
 
 
 def test_limplies():
-    for xs, y in LIMPLIES.items():
+    for xs, y in IMPLIES.items():
         x0 = lbool._from_char[xs[0]]
         x1 = lbool._from_char[xs[1]]
         y = lbool._from_char[y]
-        assert limplies(x0, x1) == y
+        assert implies(x0, x1) == y
 
 
 def test_vec_cls_getitem():
@@ -307,57 +307,57 @@ def test_vec_hash():
 
 def test_vec_lnot():
     x = Vec(4, 0b11_10_01_00)
-    assert x.lnot() == Vec(4, 0b11_01_10_00)
+    assert x.not_() == Vec(4, 0b11_01_10_00)
     assert ~x == Vec(4, 0b11_01_10_00)
 
 
 def test_vec_lnor():
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.lnor(x1) == Vec(16, 0b11011100_01010100_11011000_00000000)
+    assert x0.nor(x1) == Vec(16, 0b11011100_01010100_11011000_00000000)
     assert ~(x0 | x1) == Vec(16, 0b11011100_01010100_11011000_00000000)
 
 
 def test_vec_lor():
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.lor(x1) == Vec(16, 0b11101100_10101000_11100100_00000000)
+    assert x0.or_(x1) == Vec(16, 0b11101100_10101000_11100100_00000000)
     assert x0 | x1 == Vec(16, 0b11101100_10101000_11100100_00000000)
 
 
 def test_vec_lnand():
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.lnand(x1) == Vec(16, 0b11111000_11011000_10101000_00000000)
+    assert x0.nand(x1) == Vec(16, 0b11111000_11011000_10101000_00000000)
     assert ~(x0 & x1) == Vec(16, 0b11111000_11011000_10101000_00000000)
 
 
 def test_vec_land():
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.land(x1) == Vec(16, 0b11110100_11100100_01010100_00000000)
+    assert x0.and_(x1) == Vec(16, 0b11110100_11100100_01010100_00000000)
     assert (x0 & x1) == Vec(16, 0b11110100_11100100_01010100_00000000)
 
 
 def test_vec_lxnor():
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.lxnor(x1) == Vec(16, 0b11111100_11100100_11011000_00000000)
+    assert x0.xnor(x1) == Vec(16, 0b11111100_11100100_11011000_00000000)
     assert ~(x0 ^ x1) == Vec(16, 0b11111100_11100100_11011000_00000000)
 
 
 def test_vec_lxor():
     x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
     x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.lxor(x1) == Vec(16, 0b11111100_11011000_11100100_00000000)
+    assert x0.xor(x1) == Vec(16, 0b11111100_11011000_11100100_00000000)
     assert (x0 ^ x1) == Vec(16, 0b11111100_11011000_11100100_00000000)
 
     # Vector length mismatch
     with pytest.raises(ValueError):
-        x0.lxor(Vec(8, 0b11111111_00000000))
+        x0.xor(Vec(8, 0b11111111_00000000))
 
 
-ULOR = {
+UOR = {
     0b00_00: 0b00,
     0b01_00: 0b00,
     0b10_00: 0b00,
@@ -378,8 +378,8 @@ ULOR = {
 
 
 def test_vec_ulor():
-    for k, v in ULOR.items():
-        assert Vec(2, k).ulor() == Vec(1, v)
+    for k, v in UOR.items():
+        assert Vec(2, k).uor() == Vec(1, v)
 
 
 UAND = {
@@ -404,7 +404,7 @@ UAND = {
 
 def test_vec_uand():
     for k, v in UAND.items():
-        assert Vec(2, k).uland() == Vec(1, v)
+        assert Vec(2, k).uand() == Vec(1, v)
 
 
 UXNOR = {
@@ -429,7 +429,7 @@ UXNOR = {
 
 def test_vec_uxnor():
     for k, v in UXNOR.items():
-        assert Vec(2, k).ulxnor() == Vec(1, v)
+        assert Vec(2, k).uxnor() == Vec(1, v)
 
 
 UXOR = {
@@ -484,7 +484,7 @@ def test_vec_slt():
 
 def test_vec_uxor():
     for k, v in UXOR.items():
-        assert Vec(2, k).ulxor() == Vec(1, v)
+        assert Vec(2, k).uxor() == Vec(1, v)
 
 
 def test_vec_zext():
