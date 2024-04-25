@@ -685,24 +685,27 @@ class Vec:
         Raises:
             ValueError: vec is partially unknown.
         """
-        y = 0
-
         if self.has_unknown():
             raise ValueError("Cannot convert unknown to uint")
 
-        i, data = 0, self._data
-        while i <= (self._n - 8):
-            y |= _wyde_uint[data & _WYDE_MASK] << i
-            data >>= 16
-            i += 8
-        while i <= (self._n - 4):
-            y |= _byte_uint[data & _BYTE_MASK] << i
-            data >>= 8
-            i += 4
-        while i <= (self._n - 1):
-            y |= _item_uint[data & _ITEM_MASK] << i
-            data >>= 2
-            i += 1
+        y = 0
+        n, data = 0, self._data
+
+        stride = 8
+        while n <= (self._n - stride):
+            y |= _wyde_uint[data & _WYDE_MASK] << n
+            n += stride
+            data >>= _ITEM_BITS * stride
+        stride = 4
+        while n <= (self._n - stride):
+            y |= _byte_uint[data & _BYTE_MASK] << n
+            n += stride
+            data >>= _ITEM_BITS * stride
+        stride = 1
+        while n <= (self._n - stride):
+            y |= _item_uint[data & _ITEM_MASK] << n
+            n += stride
+            data >>= _ITEM_BITS * stride
 
         return y
 
@@ -927,7 +930,7 @@ class Vec:
 
         data = 0
         for i in range(n):
-            data |= _from_bit[s & 1] << (2 * i)
+            data |= _from_bit[s & 1] << (_ITEM_BITS * i)
             s >>= 1
 
         # Carry out is True if there is leftover sum data
@@ -975,16 +978,18 @@ class Vec:
 
     def _count(self, byte_cnt: dict[int, int], item: int) -> int:
         y = 0
-
         n, data = self._n, self._data
-        while n >= 4:
+
+        stride = 4
+        while n >= stride:
             y += byte_cnt[data & _BYTE_MASK]
-            n -= 4
-            data >>= 8
-        while n >= 1:
+            n -= stride
+            data >>= _ITEM_BITS * stride
+        stride = 1
+        while n >= stride:
             y += (data & _ITEM_MASK) == item
-            n -= 1
-            data >>= 2
+            n -= stride
+            data >>= _ITEM_BITS * stride
 
         return y
 
@@ -1415,7 +1420,7 @@ def _vec_struct_init(fields: list[tuple[str, type]]) -> str:
         parts.append(f"    self._{attr_name}_base = n\n")
         parts.append(f"    self._{attr_name}_size = len({attr_name})\n")
         parts.append(f"    n += self._{attr_name}_size\n")
-        parts.append(f"    data |= {attr_name}.data << (2 * self._{attr_name}_base)\n")
+        parts.append(f"    data |= {attr_name}.data << ({_ITEM_BITS} * self._{attr_name}_base)\n")
     parts.append("    Vec.__init__(self, n, data)\n")
     return "".join(parts)
 
@@ -1459,8 +1464,8 @@ class _VecStructMeta(type):
         def _fget(name, self):
             base = getattr(self, f"_{name}_base")
             n = getattr(self, f"_{name}_size")
-            mask = (1 << (2 * n)) - 1
-            data = (self.data >> (2 * base)) & mask
+            mask = (1 << (_ITEM_BITS * n)) - 1
+            data = (self.data >> (_ITEM_BITS * base)) & mask
             return Vec(n, data)
 
         for attr_name, _ in fields:
