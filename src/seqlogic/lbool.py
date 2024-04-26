@@ -1408,21 +1408,27 @@ class VecEnum(metaclass=_VecEnumMeta):
 
 def _vec_struct_init(fields: list[tuple[str, type]]) -> str:
     """Return code for a Struct __init__ method w/ fields."""
-    parts = []
-    parts.append("def init(self")
+    lines = []
+    line = "def init(self"
     for attr_name, attr_type in fields:
         n = int(attr_type.__name__[3:])
-        parts.append(f", {attr_name}: Vec[{n}]")
-    parts.append("):\n")
-    parts.append("    n = 0\n")
-    parts.append("    data = 0\n")
+        line += f", {attr_name}: Vec[{n}] | None = None"
+    line += "):\n"
+    lines.append(line)
+    lines.append("    n = 0\n")
+    lines.append("    data = 0\n")
     for attr_name, attr_type in fields:
-        parts.append(f"    self._{attr_name}_base = n\n")
-        parts.append(f"    self._{attr_name}_size = len({attr_name})\n")
-        parts.append(f"    n += self._{attr_name}_size\n")
-        parts.append(f"    data |= {attr_name}.data << ({_ITEM_BITS} * self._{attr_name}_base)\n")
-    parts.append("    Vec.__init__(self, n, data)\n")
-    return "".join(parts)
+        n = int(attr_type.__name__[3:])
+        offset = f"({_ITEM_BITS} * self._{attr_name}_base)"
+        lines.append(f"    self._{attr_name}_base = n\n")
+        lines.append(f"    self._{attr_name}_size = {n}\n")
+        lines.append(f"    n += self._{attr_name}_size\n")
+        lines.append(f"    if {attr_name} is None:\n")
+        lines.append(f"        data |= xes({n}).data << {offset}\n")
+        lines.append("    else:\n")
+        lines.append(f"        data |= {attr_name}.data << {offset}\n")
+    lines.append("    Vec.__init__(self, n, data)\n")
+    return "".join(lines)
 
 
 class _VecStructMeta(type):
