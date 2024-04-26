@@ -1183,6 +1183,40 @@ _NUM_RE = re.compile(
 )
 
 
+def _lit2vec(lit: str) -> tuple[int, int]:
+    if m := _NUM_RE.match(lit):
+        # Binary
+        if m.group("BinSize"):
+            size = int(m.group("BinSize"))
+            digits = m.group("BinDigits").replace("_", "")
+            ndigits = len(digits)
+            if ndigits != size:
+                s = f"Expected {size} digits, got {ndigits}"
+                raise ValueError(s)
+            i, data = 0, 0
+            for c in reversed(digits):
+                data |= _from_char[c] << (i * _ITEM_BITS)
+                i += 1
+            return i, data
+        # Hexadecimal
+        elif m.group("HexSize"):
+            size = int(m.group("HexSize"))
+            digits = m.group("HexDigits").replace("_", "")
+            ndigits = len(digits)
+            if 4 * ndigits != size:
+                s = f"Expected size to match # digits, got {size} ≠ {4 * ndigits}"
+                raise ValueError(s)
+            i, data = 0, 0
+            for c in reversed(digits):
+                data |= _from_hexchar[c] << (i * _ITEM_BITS)
+                i += 4
+            return i, data
+        else:  # pragma: no cover
+            assert False
+    else:
+        raise ValueError(f"Expected str literal, got {lit}")
+
+
 def lit2vec(lit: str) -> Vec:
     """Convert a string literal to a vec.
 
@@ -1202,37 +1236,8 @@ def lit2vec(lit: str) -> Vec:
     Raises:
         ValueError: If input literal has a syntax error.
     """
-    if m := _NUM_RE.match(lit):
-        # Binary
-        if m.group("BinSize"):
-            size = int(m.group("BinSize"))
-            digits = m.group("BinDigits").replace("_", "")
-            ndigits = len(digits)
-            if ndigits != size:
-                s = f"Expected {size} digits, got {ndigits}"
-                raise ValueError(s)
-            i, data = 0, 0
-            for c in reversed(digits):
-                data |= _from_char[c] << (i * _ITEM_BITS)
-                i += 1
-            return Vec(i, data)
-        # Hexadecimal
-        elif m.group("HexSize"):
-            size = int(m.group("HexSize"))
-            digits = m.group("HexDigits").replace("_", "")
-            ndigits = len(digits)
-            if 4 * ndigits != size:
-                s = f"Expected size to match # digits, got {size} ≠ {4 * ndigits}"
-                raise ValueError(s)
-            i, data = 0, 0
-            for c in reversed(digits):
-                data |= _from_hexchar[c] << (i * _ITEM_BITS)
-                i += 4
-            return Vec(i, data)
-        else:  # pragma: no cover
-            assert False
-    else:
-        raise ValueError(f"Expected str literal, got {lit}")
+    n, data = _lit2vec(lit)
+    return Vec(n, data)
 
 
 def vec(obj=None) -> Vec:
