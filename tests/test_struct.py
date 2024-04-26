@@ -26,3 +26,19 @@ def test_basic():
     assert repr(p) == 'Pixel(r=vec("8b0001_0001"), g=vec("8b0010_0010"), b=vec("8b0100_0100"))'
 
     assert len(p) == 24
+
+    # Partial assignment
+    p = Pixel()
+    assert str(p) == "Pixel(r=8bXXXX_XXXX, g=8bXXXX_XXXX, b=8bXXXX_XXXX)"
+    p = Pixel(r=vec("8b0001_0001"))
+    assert str(p) == "Pixel(r=8b0001_0001, g=8bXXXX_XXXX, b=8bXXXX_XXXX)"
+    p = Pixel(g=vec("8b0010_0010"))
+    assert str(p) == "Pixel(r=8bXXXX_XXXX, g=8b0010_0010, b=8bXXXX_XXXX)"
+    p = Pixel(b=vec("8b0100_0100"))
+    assert str(p) == "Pixel(r=8bXXXX_XXXX, g=8bXXXX_XXXX, b=8b0100_0100)"
+    p = Pixel(r=vec("8b0001_0001"), g=vec("8b0010_0010"))
+    assert str(p) == "Pixel(r=8b0001_0001, g=8b0010_0010, b=8bXXXX_XXXX)"
+    p = Pixel(r=vec("8b0001_0001"), b=vec("8b0100_0100"))
+    assert str(p) == "Pixel(r=8b0001_0001, g=8bXXXX_XXXX, b=8b0100_0100)"
+    p = Pixel(g=vec("8b0010_0010"), b=vec("8b0100_0100"))
+    assert str(p) == "Pixel(r=8bXXXX_XXXX, g=8b0010_0010, b=8b0100_0100)"
