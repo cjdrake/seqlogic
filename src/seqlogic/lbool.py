@@ -23,9 +23,7 @@ which enables efficient, bit-wise operations and arithmetic.
 # pylint: disable = protected-access
 
 # PyLint/PyRight are confused by MetaClass behavior
-# pylint: disable = no-value-for-parameter
 # pyright: reportAttributeAccessIssue=false
-# pyright: reportCallIssue=false
 
 
 from __future__ import annotations
@@ -316,32 +314,23 @@ class Vec:
     """
 
     def __class_getitem__(cls, n: int):
-        assert isinstance(n, int) and n >= 0
+        if n < 0:
+            raise ValueError(f"Expected n ≥ 0, got {n}")
 
-        if (vec_n := _VecN.get(n)) is not None:
-            return vec_n
-
-        def init(self, data: int):
-            Vec.__init__(self, n, data)
-
-        vec_n = type(f"Vec{n}", (Vec,), {"__init__": init})
-        _VecN[n] = vec_n
+        if (vec_n := _VecN.get(n)) is None:
+            _VecN[n] = vec_n = type(f"Vec_{n}", (Vec,), {"_n": n})
         return vec_n
 
-    def __init__(self, n: int, data: int):
+    def __init__(self, data: int):
         """Initialize.
 
         Args:
-            n: Length
             data: lbool items packed into an int.
 
         Raises:
-            ValueError if n or data is invalid/inconsistent
+            ValueError if data is invalid/inconsistent
         """
-        if n < 0:
-            raise ValueError(f"Expected n ≥ 0, got {n}")
-        self._n = n
-
+        assert hasattr(self, "_n")
         a, b = 0, 1 << self.nbits
         if not a <= data < b:
             raise ValueError(f"Expected data in [{a}, {b}), got {data}")
@@ -354,11 +343,11 @@ class Vec:
         match key:
             case int() as i:
                 d = self._get_item(self._norm_index(i))
-                return Vec(1, d)
+                return Vec[1](d)
             case slice() as sl:
                 i, j = self._norm_slice(sl)
                 n, d = self._get_items(i, j)
-                return Vec(n, d)
+                return Vec[n](d)
             case _:
                 raise TypeError("Expected key to be int or slice")
 
@@ -454,7 +443,7 @@ class Vec:
         y1 = x_01
         y = y1 | y0
 
-        return Vec(self._n, y)
+        return Vec[self._n](y)
 
     def nor(self, other: Vec) -> Vec:
         """Bitwise lifted NOR.
@@ -484,7 +473,7 @@ class Vec:
         y1 = x0_01 & x1_01
         y = y1 | y0
 
-        return Vec(self._n, y)
+        return Vec[self._n](y)
 
     def or_(self, other: Vec) -> Vec:
         """Bitwise lifted OR.
@@ -512,7 +501,7 @@ class Vec:
         y1 = x0_01 & x1_1 | x0_1 & x1_01 | x0_1 & x1_1
         y = y1 | y0
 
-        return Vec(self._n, y)
+        return Vec[self._n](y)
 
     def uor(self) -> Vec[1]:
         """Unary lifted OR reduction.
@@ -523,7 +512,7 @@ class Vec:
         data = _0
         for i in range(self._n):
             data = or_(data, self._get_item(i))
-        return Vec(1, data)
+        return Vec[1](data)
 
     def nand(self, other: Vec) -> Vec:
         """Bitwise lifted NAND.
@@ -553,7 +542,7 @@ class Vec:
         y1 = x0_01 & x1_01 | x0_01 & x1_1 | x0_1 & x1_01
         y = y1 | y0
 
-        return Vec(self._n, y)
+        return Vec[self._n](y)
 
     def and_(self, other: Vec) -> Vec:
         """Bitwise lifted AND.
@@ -581,7 +570,7 @@ class Vec:
         y1 = x0_1 & x1_1
         y = y1 | y0
 
-        return Vec(self._n, y)
+        return Vec[self._n](y)
 
     def uand(self) -> Vec[1]:
         """Unary lifted AND reduction.
@@ -592,7 +581,7 @@ class Vec:
         data = _1
         for i in range(self._n):
             data = and_(data, self._get_item(i))
-        return Vec(1, data)
+        return Vec[1](data)
 
     def xnor(self, other: Vec) -> Vec:
         """Bitwise lifted XNOR.
@@ -622,7 +611,7 @@ class Vec:
         y1 = x0_01 & x1_01 | x0_1 & x1_1
         y = y1 | y0
 
-        return Vec(self._n, y)
+        return Vec[self._n](y)
 
     def xor(self, other: Vec) -> Vec:
         """Bitwise lifted XOR.
@@ -652,7 +641,7 @@ class Vec:
         y1 = x0_01 & x1_1 | x0_1 & x1_01
         y = y1 | y0
 
-        return Vec(self._n, y)
+        return Vec[self._n](y)
 
     def uxnor(self) -> Vec[1]:
         """Unary lifted XNOR reduction.
@@ -663,7 +652,7 @@ class Vec:
         data = _1
         for i in range(self._n):
             data = xnor(data, self._get_item(i))
-        return Vec(1, data)
+        return Vec[1](data)
 
     def uxor(self) -> Vec[1]:
         """Unary lifted XOR reduction.
@@ -674,7 +663,7 @@ class Vec:
         data = _0
         for i in range(self._n):
             data = xor(data, self._get_item(i))
-        return Vec(1, data)
+        return Vec[1](data)
 
     def to_uint(self) -> int:
         """Convert to unsigned integer.
@@ -772,7 +761,7 @@ class Vec:
         if n == 0:
             return self
         prefix = _fill(_0, n)
-        return Vec(self._n + n, self._data | (prefix << self.nbits))
+        return Vec[self._n + n](self._data | (prefix << self.nbits))
 
     def sext(self, n: int) -> Vec:
         """Sign extend by n bits.
@@ -792,7 +781,7 @@ class Vec:
             return self
         sign = self._get_item(self._n - 1)
         prefix = _fill(sign, n)
-        return Vec(self._n + n, self._data | (prefix << self.nbits))
+        return Vec[self._n + n](self._data | (prefix << self.nbits))
 
     def lsh(self, n: int | Vec, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
         """Left shift by n bits.
@@ -825,11 +814,11 @@ class Vec:
         if n == 0:
             return self, _VecE
         if ci is None:
-            ci = Vec(n, _fill(_0, n))
+            ci = Vec[n](_fill(_0, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         sh, co = self[:-n], self[-n:]
-        y = Vec(self._n, ci._data | (sh._data << ci.nbits))
+        y = Vec[self._n](ci._data | (sh._data << ci.nbits))
         return y, co
 
     def rsh(self, n: int | Vec, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
@@ -863,11 +852,11 @@ class Vec:
         if n == 0:
             return self, _VecE
         if ci is None:
-            ci = Vec(n, _fill(_0, n))
+            ci = Vec[n](_fill(_0, n))
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
         co, sh = self[:n], self[n:]
-        y = Vec(self._n, sh._data | (ci._data << sh.nbits))
+        y = Vec[self._n](sh._data | (ci._data << sh.nbits))
         return y, co
 
     def arsh(self, n: int | Vec) -> tuple[Vec, Vec]:
@@ -901,7 +890,7 @@ class Vec:
         sign = self._get_item(self._n - 1)
         ci_data = _fill(sign, n)
         co, sh = self[:n], self[n:]
-        y = Vec(self._n, sh._data | (ci_data << sh.nbits))
+        y = Vec[self._n](sh._data | (ci_data << sh.nbits))
         return y, co
 
     def add(self, other: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1], Vec[1]]:
@@ -922,9 +911,9 @@ class Vec:
         n, a, b = self._n, self, other
 
         if a.has_x() or b.has_x() or ci.has_x():
-            return Vec(n, _fill(_X, n)), _VecX, _VecX
+            return Vec[n](_fill(_X, n)), _VecX, _VecX
         if a.has_dc() or b.has_dc() or ci.has_dc():
-            return Vec(n, _fill(_W, n)), _VecW, _VecW
+            return Vec[n](_fill(_W, n)), _VecW, _VecW
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
 
@@ -936,7 +925,7 @@ class Vec:
         # Carry out is True if there is leftover sum data
         co = (_Vec0, _Vec1)[s != 0]
 
-        s = Vec(n, data)
+        s = Vec[n](data)
 
         # Overflow is true if sign A matches sign B, and mismatches sign S
         aa = a[-1]
@@ -968,7 +957,7 @@ class Vec:
         Returns:
             3-tuple of (sum, carry-out, overflow).
         """
-        zero = Vec(self._n, _fill(_0, self._n))
+        zero = Vec[self._n](_fill(_0, self._n))
         return zero.sub(self)
 
     def _check_len(self, other: Vec):
@@ -1121,7 +1110,7 @@ def uint2vec(num: int, n: int | None = None) -> Vec:
         s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
         raise ValueError(s)
 
-    return Vec(i, data).zext(n - i)
+    return Vec[i](data).zext(n - i)
 
 
 def int2vec(num: int, n: int | None = None) -> Vec:
@@ -1159,7 +1148,7 @@ def int2vec(num: int, n: int | None = None) -> Vec:
         s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
         raise ValueError(s)
 
-    v = Vec(i, data).zext(n - i)
+    v = Vec[i](data).zext(n - i)
     return v.neg()[0] if neg else v
 
 
@@ -1174,7 +1163,7 @@ def bools2vec(xs: Iterable[int]) -> Vec:
     for x in xs:
         data |= _from_bit[x] << (_ITEM_BITS * i)
         i += 1
-    return Vec(i, data)
+    return Vec[i](data)
 
 
 _NUM_RE = re.compile(
@@ -1237,7 +1226,7 @@ def lit2vec(lit: str) -> Vec:
         ValueError: If input literal has a syntax error.
     """
     n, data = _lit2vec(lit)
-    return Vec(n, data)
+    return Vec[n](data)
 
 
 def vec(obj=None) -> Vec:
@@ -1303,7 +1292,7 @@ def cat(*objs: int | Vec) -> Vec:
     for v in vs:
         data |= v.data << (_ITEM_BITS * i)
         i += len(v)
-    return Vec(i, data)
+    return Vec[i](data)
 
 
 def rep(obj: int | Vec, n: int) -> Vec:
@@ -1315,7 +1304,7 @@ def rep(obj: int | Vec, n: int) -> Vec:
 def _consts(x: int, n: int) -> Vec:
     if n < 0:
         raise ValueError(f"Expected n ≥, got {n}")
-    return Vec(n, _fill(x, n))
+    return Vec[n](_fill(x, n))
 
 
 def xes(n: int) -> Vec:
@@ -1339,100 +1328,109 @@ def dcs(n: int) -> Vec:
 
 
 # Empty
-_VecE = Vec(0, 0)
+_VecE = Vec[0](0)
 
 # One bit values
-_VecX = Vec(1, _X)
-_Vec0 = Vec(1, _0)
-_Vec1 = Vec(1, _1)
-_VecW = Vec(1, _W)
+_VecX = Vec[1](_X)
+_Vec0 = Vec[1](_0)
+_Vec1 = Vec[1](_1)
+_VecW = Vec[1](_W)
 
 
 class _VecEnumMeta(type):
     """Enum Metaclass: Create enum base classes."""
 
     def __new__(mcs, name, bases, attrs):
+        # Base case for API
+        if name == "VecEnum":
+            return super().__new__(mcs, name, bases, attrs)
+
         base_attrs = {}
-        lit2name = {}
-        size = None
+        # ident = literal
+        members: dict[str, str] = {}
+        n = None
         for key, val in attrs.items():
             if key.startswith("__"):
                 base_attrs[key] = val
             else:
                 if key == "X":
                     raise ValueError("Cannot use reserved name 'X'")
-                if size is None:
-                    size = len(lit2vec(val))
+                if n is None:
+                    n, _ = _lit2vec(val)
                 else:
-                    n = len(lit2vec(val))
-                    if n != size:
-                        s = f"Expected lit size {size}, got {n}"
-                        raise ValueError(s)
-                lit2name[val] = key
+                    n_i, _ = _lit2vec(val)
+                    if n_i != n:
+                        raise ValueError(f"Expected lit len {n}, got {n_i}")
+                members[val] = key
 
-        # Add the 'X' item
-        if size is not None:
-            lit2name[f"{size}b" + "X" * size] = "X"
+        # Empty Enum
+        if n is None:
+            # Create class
+            super_cls = Vec[0]
+            cls = super().__new__(mcs, name, bases + (super_cls,), base_attrs)
+            # Instantiate member
+            obj = object.__new__(cls)  # pyright: ignore[reportArgumentType]
+            super_cls.__init__(obj, 0)
+            # Define methods
+            cls.__new__ = lambda c: obj
+            cls.__init__ = lambda s: None
+            cls.name = property(fget=lambda self: "")
 
-        # Create enum class, save lit => name mapping
-        cls = super().__new__(mcs, name, bases + (Vec,), base_attrs)
-        cls._lit2name = lit2name
+            return cls
+
+        # Add X member
+        x_lit = f"{n}b" + "X" * n
+        members[x_lit] = "X"
+
+        def _new(cls, lit: str):
+            try:
+                name = members[lit]
+            except KeyError as e:
+                s = f"Expected lit in {{{", ".join(members.keys())}}}, got {lit}"
+                raise ValueError(s) from e
+            return getattr(cls, name)
+
+        # Create class
+        super_cls = Vec[n]
+        cls = super().__new__(mcs, name, bases + (super_cls,), base_attrs)
+        # Instantiate members
+        for lit, name in members.items():
+            obj = object.__new__(cls)  # pyright: ignore[reportArgumentType]
+            super_cls.__init__(obj, _lit2vec(lit)[1])
+            obj._name = name
+            setattr(cls, name, obj)
+        # Define methods
+        cls.__new__ = _new
+        cls.__init__ = lambda s, lit: None
+        cls.name = property(fget=lambda self: self._name)
 
         return cls
-
-    def __init__(cls, unused_name, unused_bases, unused_attrs):
-        # Populate the enum items
-        for lit in cls._lit2name:
-            _ = cls(lit)
 
 
 class VecEnum(metaclass=_VecEnumMeta):
     """Enum Base Class: Create enums."""
-
-    def __new__(cls, lit: str):
-        if lit not in cls._lit2name:
-            valid = ", ".join(cls._lit2name)
-            s = f"Expected literal in {{{valid}}}, got {lit}"
-            raise ValueError(s)
-        name = cls._lit2name[lit]
-        obj = getattr(cls, name, None)
-        if obj is None:
-            obj = super().__new__(cls)
-            setattr(cls, name, obj)
-        return obj
-
-    def __init__(self, lit: str):
-        v = lit2vec(lit)
-        super().__init__(len(v), v.data)
-        # Override string representation from base class
-        self._name = self.__class__._lit2name[lit]
-
-    def __str__(self) -> str:
-        return self._name
 
 
 def _vec_struct_init(fields: list[tuple[str, type]]) -> str:
     """Return code for a Struct __init__ method w/ fields."""
     lines = []
     line = "def init(self"
-    for attr_name, attr_type in fields:
-        n = int(attr_type.__name__[3:])
-        line += f", {attr_name}: Vec[{n}] | None = None"
+    for field_name, field_type in fields:
+        line += f", {field_name}: Vec[{field_type._n}] | None = None"
     line += "):\n"
     lines.append(line)
-    lines.append("    n = 0\n")
-    lines.append("    data = 0\n")
-    for attr_name, attr_type in fields:
-        n = int(attr_type.__name__[3:])
-        offset = f"({_ITEM_BITS} * self._{attr_name}_base)"
-        lines.append(f"    self._{attr_name}_base = n\n")
-        lines.append(f"    self._{attr_name}_size = {n}\n")
-        lines.append(f"    n += self._{attr_name}_size\n")
-        lines.append(f"    if {attr_name} is None:\n")
-        lines.append(f"        data |= xes({n}).data << {offset}\n")
+    lines.append("    _n = 0\n")
+    lines.append("    _data = 0\n")
+    for field_name, field_type in fields:
+        offset = f"({_ITEM_BITS} * self._{field_name}_base)"
+        lines.append(f"    self._{field_name}_base = _n\n")
+        lines.append(f"    self._{field_name}_size = {field_type._n}\n")
+        lines.append(f"    _n += self._{field_name}_size\n")
+        lines.append(f"    if {field_name} is None:\n")
+        lines.append(f"        _data |= _fill(_X, {field_type._n}) << {offset}\n")
         lines.append("    else:\n")
-        lines.append(f"        data |= {attr_name}.data << {offset}\n")
-    lines.append("    Vec.__init__(self, n, data)\n")
+        lines.append(f"        _data |= {field_name}.data << {offset}\n")
+    lines.append("    self._data = _data\n")
     return "".join(lines)
 
 
@@ -1440,17 +1438,24 @@ class _VecStructMeta(type):
     """Struct Metaclass: Create struct base classes."""
 
     def __new__(mcs, name, bases, attrs):
+        # Base case for API
+        if name == "VecStruct":
+            return super().__new__(mcs, name, bases, attrs)
+
+        # Scan attributes for field_name: field_type items
         base_attrs = {}
-        fields = []
+        # ident: vec_type
+        fields: list[tuple[str, type]] = []
         for key, val in attrs.items():
             if key == "__annotations__":
-                for attr_name, attr_type in val.items():
-                    fields.append((attr_name, attr_type))
+                for field_name, field_type in val.items():
+                    fields.append((field_name, field_type))
             else:
                 base_attrs[key] = val
 
         # Create Struct class
-        cls = super().__new__(mcs, name, bases + (Vec,), base_attrs)
+        n = sum(field_type._n for _, field_type in fields)
+        cls = super().__new__(mcs, name, bases + (Vec[n],), base_attrs)
 
         # Create Struct.__init__
         d = {}
@@ -1459,28 +1464,29 @@ class _VecStructMeta(type):
 
         # Create Struct.__str__
         def _str(self):
-            args = ", ".join(f"{an}={getattr(self, an)}" for an, _ in fields)
+            args = ", ".join(f"{fn}={getattr(self, fn)}" for fn, _ in fields)
             return f"{name}({args})"
 
         cls.__str__ = _str
 
         # Create Struct.__repr__
         def _repr(self):
-            args = ", ".join(f'{an}=vec("{getattr(self, an)}")' for an, _ in fields)
+            args = ", ".join(f'{fn}=vec("{getattr(self, fn)}")' for fn, _ in fields)
             return f"{name}({args})"
 
         cls.__repr__ = _repr
 
-        # Create Struct properties
+        # Create Struct fields
         def _fget(name, self):
-            base = getattr(self, f"_{name}_base")
             n = getattr(self, f"_{name}_size")
-            mask = (1 << (_ITEM_BITS * n)) - 1
-            data = (self.data >> (_ITEM_BITS * base)) & mask
-            return Vec(n, data)
+            nbits = _ITEM_BITS * n
+            mask = (1 << nbits) - 1
+            i = getattr(self, f"_{name}_base")
+            data = (self._data >> (_ITEM_BITS * i)) & mask
+            return Vec[n](data)
 
-        for attr_name, _ in fields:
-            setattr(cls, attr_name, property(fget=partial(_fget, attr_name)))
+        for field_name, _ in fields:
+            setattr(cls, field_name, property(fget=partial(_fget, field_name)))
 
         return cls
 

@@ -4,6 +4,7 @@ from seqlogic.lbool import Vec, VecStruct, vec
 
 # PyRight is confused by MetaClass behavior
 # pyright: reportArgumentType=false
+# pyright: reportAttributeAccessIssue=false
 # pyright: reportCallIssue=false
 
 
@@ -13,6 +14,16 @@ class Pixel(VecStruct):
     r: Vec[8]
     g: Vec[8]
     b: Vec[8]
+
+
+def test_empty():
+    class EmptyStruct(VecStruct):
+        pass
+
+    s = EmptyStruct()
+    assert len(s) == 0
+    assert s.data == 0
+    assert str(s) == "EmptyStruct()"
 
 
 def test_basic():

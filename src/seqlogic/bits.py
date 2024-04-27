@@ -131,7 +131,7 @@ class Bits:
 
     @cached_property
     def _v(self) -> Vec:
-        return Vec(self.size, self._data)
+        return Vec[self.size](self._data)
 
     def reshape(self, shape: tuple[int, ...]) -> Bits:
         """Return an equivalent bit array with modified shape."""

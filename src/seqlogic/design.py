@@ -26,7 +26,7 @@ _item2char = {
 def _vec2vcd(v: Vec) -> VarValue:
     """Convert bit array to VCD value."""
     # pylint: disable = protected-access
-    return "".join(_item2char[v._get_item(i)] for i in range(v._n - 1, -1, -1))
+    return "".join(_item2char[v._get_item(i)] for i in range(len(v) - 1, -1, -1))
 
 
 class _TraceIf(ABC):

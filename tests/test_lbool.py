@@ -23,7 +23,7 @@ from seqlogic.lbool import (
     xor,
 )
 
-E = Vec(0, 0)
+E = Vec[0](0)
 F = vec(False)
 T = vec(True)
 
@@ -37,13 +37,13 @@ LNOT = {
 
 
 def test_vec():
-    assert vec() == Vec(0, 0)
-    assert vec(None) == Vec(0, 0)
-    assert vec(False) == Vec(1, 0b01)
-    assert vec(True) == Vec(1, 0b10)
-    assert vec(0) == Vec(1, 0b01)
-    assert vec(1) == Vec(1, 0b10)
-    assert vec([False, True, 0, 1]) == Vec(4, 0b10_01_10_01)
+    assert vec() == Vec[0](0)
+    assert vec(None) == Vec[0](0)
+    assert vec(False) == Vec[1](0b01)
+    assert vec(True) == Vec[1](0b10)
+    assert vec(0) == Vec[1](0b01)
+    assert vec(1) == Vec[1](0b10)
+    assert vec([False, True, 0, 1]) == Vec[4](0b10_01_10_01)
 
     # Invalid input type
     with pytest.raises(TypeError):
@@ -262,36 +262,36 @@ def test_vec_cls_getitem():
 
 
 def test_vec_repr():
-    assert repr(Vec(0, 0)) == "vec(0, 0b0)"
-    assert repr(Vec(4, 0b1110_0100)) == "vec(4, 0b11100100)"
+    assert repr(Vec[0](0)) == "vec(0, 0b0)"
+    assert repr(Vec[4](0b1110_0100)) == "vec(4, 0b11100100)"
 
 
 def test_vec_bool():
-    assert bool(Vec(0, 0)) is False
-    assert bool(Vec(1, 0b01)) is False
-    assert bool(Vec(1, 0b10)) is True
-    assert bool(Vec(4, 0b01_01_01_01)) is False
-    assert bool(Vec(4, 0b10_01_10_01)) is True
+    assert bool(Vec[0](0)) is False
+    assert bool(Vec[1](0b01)) is False
+    assert bool(Vec[1](0b10)) is True
+    assert bool(Vec[4](0b01_01_01_01)) is False
+    assert bool(Vec[4](0b10_01_10_01)) is True
     with pytest.raises(ValueError):
-        bool(Vec(4, 0b11_10_01_00))
+        bool(Vec[4](0b11_10_01_00))
 
 
 def test_vec_int():
-    assert int(Vec(0, 0)) == 0
-    assert int(Vec(1, 0b01)) == 0
-    assert int(Vec(1, 0b10)) == -1
-    assert int(Vec(4, 0b01_01_01_01)) == 0
-    assert int(Vec(4, 0b10_01_10_01)) == -6
-    assert int(Vec(4, 0b01_10_01_10)) == 5
+    assert int(Vec[0](0)) == 0
+    assert int(Vec[1](0b01)) == 0
+    assert int(Vec[1](0b10)) == -1
+    assert int(Vec[4](0b01_01_01_01)) == 0
+    assert int(Vec[4](0b10_01_10_01)) == -6
+    assert int(Vec[4](0b01_10_01_10)) == 5
     with pytest.raises(ValueError):
-        int(Vec(4, 0b11_10_01_00))
+        int(Vec[4](0b11_10_01_00))
 
 
 def test_vec_eq():
-    assert Vec(0, 0) == Vec(0, 0)
-    assert Vec(4, 0b10_01_10_01) == Vec(4, 0b10_01_10_01)
-    assert Vec(4, 0b10_01_10_01) != Vec(4, 0b01_10_01_10)
-    assert Vec(4, 0b11_10_01_00) != "foo"
+    assert Vec[0](0) == Vec[0](0)
+    assert Vec[4](0b10_01_10_01) == Vec[4](0b10_01_10_01)
+    assert Vec[4](0b10_01_10_01) != Vec[4](0b01_10_01_10)
+    assert Vec[4](0b11_10_01_00) != "foo"
 
 
 def test_vec_hash():
@@ -306,55 +306,55 @@ def test_vec_hash():
 
 
 def test_vec_lnot():
-    x = Vec(4, 0b11_10_01_00)
-    assert x.not_() == Vec(4, 0b11_01_10_00)
-    assert ~x == Vec(4, 0b11_01_10_00)
+    x = Vec[4](0b11_10_01_00)
+    assert x.not_() == Vec[4](0b11_01_10_00)
+    assert ~x == Vec[4](0b11_01_10_00)
 
 
 def test_vec_lnor():
-    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.nor(x1) == Vec(16, 0b11011100_01010100_11011000_00000000)
-    assert ~(x0 | x1) == Vec(16, 0b11011100_01010100_11011000_00000000)
+    x0 = Vec[16](0b11111111_10101010_01010101_00000000)
+    x1 = Vec[16](0b11100100_11100100_11100100_11100100)
+    assert x0.nor(x1) == Vec[16](0b11011100_01010100_11011000_00000000)
+    assert ~(x0 | x1) == Vec[16](0b11011100_01010100_11011000_00000000)
 
 
 def test_vec_lor():
-    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.or_(x1) == Vec(16, 0b11101100_10101000_11100100_00000000)
-    assert x0 | x1 == Vec(16, 0b11101100_10101000_11100100_00000000)
+    x0 = Vec[16](0b11111111_10101010_01010101_00000000)
+    x1 = Vec[16](0b11100100_11100100_11100100_11100100)
+    assert x0.or_(x1) == Vec[16](0b11101100_10101000_11100100_00000000)
+    assert x0 | x1 == Vec[16](0b11101100_10101000_11100100_00000000)
 
 
 def test_vec_lnand():
-    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.nand(x1) == Vec(16, 0b11111000_11011000_10101000_00000000)
-    assert ~(x0 & x1) == Vec(16, 0b11111000_11011000_10101000_00000000)
+    x0 = Vec[16](0b11111111_10101010_01010101_00000000)
+    x1 = Vec[16](0b11100100_11100100_11100100_11100100)
+    assert x0.nand(x1) == Vec[16](0b11111000_11011000_10101000_00000000)
+    assert ~(x0 & x1) == Vec[16](0b11111000_11011000_10101000_00000000)
 
 
 def test_vec_land():
-    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.and_(x1) == Vec(16, 0b11110100_11100100_01010100_00000000)
-    assert (x0 & x1) == Vec(16, 0b11110100_11100100_01010100_00000000)
+    x0 = Vec[16](0b11111111_10101010_01010101_00000000)
+    x1 = Vec[16](0b11100100_11100100_11100100_11100100)
+    assert x0.and_(x1) == Vec[16](0b11110100_11100100_01010100_00000000)
+    assert (x0 & x1) == Vec[16](0b11110100_11100100_01010100_00000000)
 
 
 def test_vec_lxnor():
-    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.xnor(x1) == Vec(16, 0b11111100_11100100_11011000_00000000)
-    assert ~(x0 ^ x1) == Vec(16, 0b11111100_11100100_11011000_00000000)
+    x0 = Vec[16](0b11111111_10101010_01010101_00000000)
+    x1 = Vec[16](0b11100100_11100100_11100100_11100100)
+    assert x0.xnor(x1) == Vec[16](0b11111100_11100100_11011000_00000000)
+    assert ~(x0 ^ x1) == Vec[16](0b11111100_11100100_11011000_00000000)
 
 
 def test_vec_lxor():
-    x0 = Vec(16, 0b11111111_10101010_01010101_00000000)
-    x1 = Vec(16, 0b11100100_11100100_11100100_11100100)
-    assert x0.xor(x1) == Vec(16, 0b11111100_11011000_11100100_00000000)
-    assert (x0 ^ x1) == Vec(16, 0b11111100_11011000_11100100_00000000)
+    x0 = Vec[16](0b11111111_10101010_01010101_00000000)
+    x1 = Vec[16](0b11100100_11100100_11100100_11100100)
+    assert x0.xor(x1) == Vec[16](0b11111100_11011000_11100100_00000000)
+    assert (x0 ^ x1) == Vec[16](0b11111100_11011000_11100100_00000000)
 
     # Vector length mismatch
     with pytest.raises(ValueError):
-        x0.xor(Vec(8, 0b11111111_00000000))
+        x0.xor(Vec[8](0b11111111_00000000))
 
 
 UOR = {
@@ -379,7 +379,7 @@ UOR = {
 
 def test_vec_ulor():
     for k, v in UOR.items():
-        assert Vec(2, k).uor() == Vec(1, v)
+        assert Vec[2](k).uor() == Vec[1](v)
 
 
 UAND = {
@@ -404,7 +404,7 @@ UAND = {
 
 def test_vec_uand():
     for k, v in UAND.items():
-        assert Vec(2, k).uand() == Vec(1, v)
+        assert Vec[2](k).uand() == Vec[1](v)
 
 
 UXNOR = {
@@ -429,7 +429,7 @@ UXNOR = {
 
 def test_vec_uxnor():
     for k, v in UXNOR.items():
-        assert Vec(2, k).uxnor() == Vec(1, v)
+        assert Vec[2](k).uxnor() == Vec[1](v)
 
 
 UXOR = {
@@ -484,82 +484,82 @@ def test_vec_slt():
 
 def test_vec_uxor():
     for k, v in UXOR.items():
-        assert Vec(2, k).uxor() == Vec(1, v)
+        assert Vec[2](k).uxor() == Vec[1](v)
 
 
 def test_vec_zext():
-    v = Vec(4, 0b10_01_10_01)
+    v = Vec[4](0b10_01_10_01)
     with pytest.raises(ValueError):
         v.zext(-1)
     assert v.zext(0) is v
-    assert v.zext(4) == Vec(8, 0b01_01_01_01_10_01_10_01)
+    assert v.zext(4) == Vec[8](0b01_01_01_01_10_01_10_01)
 
 
 def test_vec_sext():
-    v1 = Vec(4, 0b10_01_10_01)
-    v2 = Vec(4, 0b01_10_01_10)
+    v1 = Vec[4](0b10_01_10_01)
+    v2 = Vec[4](0b01_10_01_10)
     with pytest.raises(ValueError):
         v1.sext(-1)
     assert v1.sext(0) is v1
-    assert v1.sext(4) == Vec(8, 0b10_10_10_10_10_01_10_01)
+    assert v1.sext(4) == Vec[8](0b10_10_10_10_10_01_10_01)
     assert v2.sext(0) is v2
-    assert v2.sext(4) == Vec(8, 0b01_01_01_01_01_10_01_10)
+    assert v2.sext(4) == Vec[8](0b01_01_01_01_01_10_01_10)
 
 
 def test_vec_lsh():
-    v = Vec(4, 0b10_10_10_10)
+    v = Vec[4](0b10_10_10_10)
     y, co = v.lsh(0)
     assert y is v and co == E
-    assert v.lsh(1) == (Vec(4, 0b10_10_10_01), Vec(1, 0b10))
-    assert v.lsh(2) == (Vec(4, 0b10_10_01_01), Vec(2, 0b10_10))
-    assert v << 2 == Vec(4, 0b10_10_01_01)
-    assert v.lsh(3) == (Vec(4, 0b10_01_01_01), Vec(3, 0b10_10_10))
-    assert v.lsh(4) == (Vec(4, 0b01_01_01_01), Vec(4, 0b10_10_10_10))
+    assert v.lsh(1) == (Vec[4](0b10_10_10_01), Vec[1](0b10))
+    assert v.lsh(2) == (Vec[4](0b10_10_01_01), Vec[2](0b10_10))
+    assert v << 2 == Vec[4](0b10_10_01_01)
+    assert v.lsh(3) == (Vec[4](0b10_01_01_01), Vec[3](0b10_10_10))
+    assert v.lsh(4) == (Vec[4](0b01_01_01_01), Vec[4](0b10_10_10_10))
 
     with pytest.raises(ValueError):
         v.lsh(-1)
     with pytest.raises(ValueError):
         v.lsh(5)
 
-    assert v.lsh(2, Vec(2, 0b01_10)) == (Vec(4, 0b10_10_01_10), Vec(2, 0b10_10))
+    assert v.lsh(2, Vec[2](0b01_10)) == (Vec[4](0b10_10_01_10), Vec[2](0b10_10))
     with pytest.raises(ValueError):
-        v.lsh(2, Vec(3, 0b01_01_01))
+        v.lsh(2, Vec[3](0b01_01_01))
 
 
 def test_vec_rsh():
-    v = Vec(4, 0b10_10_10_10)
+    v = Vec[4](0b10_10_10_10)
     y, co = v.rsh(0)
     assert y is v and co == E
-    assert v.rsh(1) == (Vec(4, 0b01_10_10_10), Vec(1, 0b10))
-    assert v.rsh(2) == (Vec(4, 0b01_01_10_10), Vec(2, 0b10_10))
-    assert v >> 2 == Vec(4, 0b01_01_10_10)
-    assert v.rsh(3) == (Vec(4, 0b01_01_01_10), Vec(3, 0b10_10_10))
-    assert v.rsh(4) == (Vec(4, 0b01_01_01_01), Vec(4, 0b10_10_10_10))
+    assert v.rsh(1) == (Vec[4](0b01_10_10_10), Vec[1](0b10))
+    assert v.rsh(2) == (Vec[4](0b01_01_10_10), Vec[2](0b10_10))
+    assert v >> 2 == Vec[4](0b01_01_10_10)
+    assert v.rsh(3) == (Vec[4](0b01_01_01_10), Vec[3](0b10_10_10))
+    assert v.rsh(4) == (Vec[4](0b01_01_01_01), Vec[4](0b10_10_10_10))
 
     with pytest.raises(ValueError):
         v.rsh(-1)
     with pytest.raises(ValueError):
         v.rsh(5)
 
-    assert v.rsh(2, Vec(2, 0b01_10)) == (Vec(4, 0b01_10_10_10), Vec(2, 0b10_10))
+    assert v.rsh(2, Vec[2](0b01_10)) == (Vec[4](0b01_10_10_10), Vec[2](0b10_10))
     with pytest.raises(ValueError):
-        v.rsh(2, Vec(3, 0b01_01_01))
+        v.rsh(2, Vec[3](0b01_01_01))
 
 
 def test_vec_arsh():
-    v = Vec(4, 0b10_10_10_10)
-    assert v.arsh(0) == (Vec(4, 0b10_10_10_10), E)
-    assert v.arsh(1) == (Vec(4, 0b10_10_10_10), Vec(1, 0b10))
-    assert v.arsh(2) == (Vec(4, 0b10_10_10_10), Vec(2, 0b10_10))
-    assert v.arsh(3) == (Vec(4, 0b10_10_10_10), Vec(3, 0b10_10_10))
-    assert v.arsh(4) == (Vec(4, 0b10_10_10_10), Vec(4, 0b10_10_10_10))
+    v = Vec[4](0b10_10_10_10)
+    assert v.arsh(0) == (Vec[4](0b10_10_10_10), E)
+    assert v.arsh(1) == (Vec[4](0b10_10_10_10), Vec[1](0b10))
+    assert v.arsh(2) == (Vec[4](0b10_10_10_10), Vec[2](0b10_10))
+    assert v.arsh(3) == (Vec[4](0b10_10_10_10), Vec[3](0b10_10_10))
+    assert v.arsh(4) == (Vec[4](0b10_10_10_10), Vec[4](0b10_10_10_10))
 
-    v = Vec(4, 0b01_10_10_10)
-    assert v.arsh(0) == (Vec(4, 0b01_10_10_10), E)
-    assert v.arsh(1) == (Vec(4, 0b01_01_10_10), Vec(1, 0b10))
-    assert v.arsh(2) == (Vec(4, 0b01_01_01_10), Vec(2, 0b10_10))
-    assert v.arsh(3) == (Vec(4, 0b01_01_01_01), Vec(3, 0b10_10_10))
-    assert v.arsh(4) == (Vec(4, 0b01_01_01_01), Vec(4, 0b01_10_10_10))
+    v = Vec[4](0b01_10_10_10)
+    assert v.arsh(0) == (Vec[4](0b01_10_10_10), E)
+    assert v.arsh(1) == (Vec[4](0b01_01_10_10), Vec[1](0b10))
+    assert v.arsh(2) == (Vec[4](0b01_01_01_10), Vec[2](0b10_10))
+    assert v.arsh(3) == (Vec[4](0b01_01_01_01), Vec[3](0b10_10_10))
+    assert v.arsh(4) == (Vec[4](0b01_01_01_01), Vec[4](0b01_10_10_10))
 
     with pytest.raises(ValueError):
         v.arsh(-1)
@@ -854,37 +854,37 @@ def test_lit2vec():
 def test_vec_basic():
     # n is non-negative
     with pytest.raises(ValueError):
-        Vec(-1, 42)
+        Vec[-1](42)
 
     # data in [0, 2**nbits)
     with pytest.raises(ValueError):
-        Vec(4, -1)
+        Vec[4](-1)
     with pytest.raises(ValueError):
-        Vec(4, 2 ** (2 * 4))
+        Vec[4](2 ** (2 * 4))
 
-    v = Vec(4, 0b11_10_01_00)
+    v = Vec[4](0b11_10_01_00)
     assert len(v) == 4
 
-    assert v[3] == Vec(1, 0b11)
-    assert v[2] == Vec(1, 0b10)
-    assert v[1] == Vec(1, 0b01)
-    assert v[0] == Vec(1, 0b00)
+    assert v[3] == Vec[1](0b11)
+    assert v[2] == Vec[1](0b10)
+    assert v[1] == Vec[1](0b01)
+    assert v[0] == Vec[1](0b00)
 
-    assert v[0:1] == Vec(1, 0b00)
-    assert v[0:2] == Vec(2, 0b01_00)
-    assert v[0:3] == Vec(3, 0b10_01_00)
-    assert v[0:4] == Vec(4, 0b11_10_01_00)
-    assert v[1:2] == Vec(1, 0b01)
-    assert v[1:3] == Vec(2, 0b10_01)
-    assert v[1:4] == Vec(3, 0b11_10_01)
-    assert v[2:3] == Vec(1, 0b10)
-    assert v[2:4] == Vec(2, 0b11_10)
-    assert v[3:4] == Vec(1, 0b11)
+    assert v[0:1] == Vec[1](0b00)
+    assert v[0:2] == Vec[2](0b01_00)
+    assert v[0:3] == Vec[3](0b10_01_00)
+    assert v[0:4] == Vec[4](0b11_10_01_00)
+    assert v[1:2] == Vec[1](0b01)
+    assert v[1:3] == Vec[2](0b10_01)
+    assert v[1:4] == Vec[3](0b11_10_01)
+    assert v[2:3] == Vec[1](0b10)
+    assert v[2:4] == Vec[2](0b11_10)
+    assert v[3:4] == Vec[1](0b11)
 
     with pytest.raises(TypeError):
         v["invalid"]  # pyright: ignore[reportArgumentType]
 
-    assert list(v) == [Vec(1, 0b00), Vec(1, 0b01), Vec(1, 0b10), Vec(1, 0b11)]
+    assert list(v) == [Vec[1](0b00), Vec[1](0b01), Vec[1](0b10), Vec[1](0b11)]
 
 
 def test_cat():
