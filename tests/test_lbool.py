@@ -888,7 +888,14 @@ def test_vec_basic():
 
 
 def test_cat():
+    v = vec("4b-10X")
+    assert cat() == vec()
+    assert cat(v) == v
     assert cat(vec("2b0X"), vec("2b-1")) == vec("4b-10X")
+    assert cat(0, 1) == vec("2b10")
+
+    with pytest.raises(TypeError):
+        _ = cat(v, 42)
 
 
 def test_rep():
