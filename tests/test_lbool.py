@@ -10,6 +10,7 @@ from seqlogic.lbool import (
     Vec,
     and_,
     cat,
+    dcs,
     implies,
     int2vec,
     nand,
@@ -19,6 +20,7 @@ from seqlogic.lbool import (
     rep,
     uint2vec,
     vec,
+    xes,
     xnor,
     xor,
 )
@@ -900,3 +902,11 @@ def test_cat():
 
 def test_rep():
     assert rep(vec("4b-10X"), 2) == vec("8b-10X_-10X")
+
+
+def test_misc():
+    assert str(xes(4)) == "4bXXXX"
+    assert str(dcs(4)) == "4b----"
+
+    with pytest.raises(ValueError):
+        _ = xes(-4)
