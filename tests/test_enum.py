@@ -70,7 +70,7 @@ def test_enum_error():
         class InvalidName(VecEnum):
             X = "4bXXXX"
 
-        _ = InvalidName()  # pyright: ignore[reportCallIssue]
+        _ = InvalidName()
 
     # The literal must be a str
     with pytest.raises(TypeError):
@@ -78,4 +78,12 @@ def test_enum_error():
         class InvalidType(VecEnum):
             FOO = 42
 
-        _ = InvalidType()  # pyright: ignore[reportCallIssue]
+        _ = InvalidType()
+
+    with pytest.raises(ValueError):
+
+        class InvalidMembers(VecEnum):
+            A = "2b00"
+            B = "3b000"
+
+        _ = InvalidMembers()
