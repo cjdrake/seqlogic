@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import ones, vec, zeros
 from seqlogic.sim import always_comb
 
-from ..common.constants import CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Opcode
+from .. import CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Opcode
 
 
 class Control(Module):

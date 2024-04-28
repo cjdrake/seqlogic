@@ -4,8 +4,7 @@ from seqlogic import Bits, Module, changed
 from seqlogic.lbool import xes
 from seqlogic.sim import always_comb
 
-from .. import WORD_BITS
-from .constants import TEXT_BASE, TEXT_BITS, TEXT_SIZE
+from .. import TEXT_BASE, TEXT_BITS, TEXT_SIZE, WORD_BITS
 from .text_memory import TextMemory
 
 

@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import xes
 from seqlogic.sim import always_comb
 
-from .constants import Funct3Branch
+from .. import Funct3Branch
 
 
 class ControlTransfer(Module):

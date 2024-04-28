@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import ones, xes, zeros
 from seqlogic.sim import always_comb
 
-from .constants import DATA_BASE, DATA_SIZE
+from .. import DATA_BASE, DATA_SIZE
 from .data_memory import DataMemory
 
 

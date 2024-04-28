@@ -4,7 +4,7 @@ from seqlogic import Bits, Module, changed
 from seqlogic.lbool import cat, rep, vec, zeros
 from seqlogic.sim import always_comb
 
-from .constants import Opcode
+from .. import Opcode
 
 
 class ImmedateGenerator(Module):

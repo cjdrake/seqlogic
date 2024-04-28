@@ -17,7 +17,7 @@ from collections import defaultdict
 from seqlogic import get_loop, simify
 from seqlogic.lbool import ones, uint2vec, vec, xes, zeros
 
-from .riscv.core.common.constants import AluOp, CtlAluA, CtlAluB, CtlPc
+from .riscv.core import AluOp, CtlAluA, CtlAluB, CtlPc
 from .riscv.core.singlecycle.top import Top
 
 loop = get_loop()

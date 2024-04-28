@@ -4,7 +4,7 @@ from seqlogic import Bits, Module, changed
 from seqlogic.lbool import ones, vec
 from seqlogic.sim import always_comb
 
-from .constants import AluOp, CtlAlu, Funct3AluLogic, Funct3Branch
+from .. import AluOp, CtlAlu, Funct3AluLogic, Funct3Branch
 
 # pyright: reportAttributeAccessIssue=false
 
