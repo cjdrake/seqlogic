@@ -86,9 +86,6 @@ def test_singlecycle_dump():
             top.bus_rd_en: xes(1),
             # Decode
             top.core.datapath.inst: X32,
-            top.core.datapath.inst_funct7: xes(7),
-            top.core.datapath.inst_funct3: xes(3),
-            top.core.datapath.inst_opcode: xes(7),
             top.core.datapath.immediate: X32,
             # Control
             top.core.datapath.alu_op_a_sel: CtlAluA.X,
@@ -109,11 +106,8 @@ def test_singlecycle_dump():
             top.core.datapath.pc: X32,
             # Regfile
             top.core.datapath.regfile_wr_en: xes(1),
-            top.core.datapath.inst_rd: xes(5),
             top.core.datapath.wr_data: X32,
-            top.core.datapath.inst_rs1: xes(5),
             top.core.datapath.rs1_data: X32,
-            top.core.datapath.inst_rs2: xes(5),
             top.core.datapath.rs2_data: X32,
             # Data Mem
             top.core.datapath.data_mem_addr: X32,
@@ -129,9 +123,6 @@ def test_singlecycle_dump():
             top.bus_rd_en: zeros(1),
             # Decode
             top.core.datapath.inst: vec("32h0000_0093"),
-            top.core.datapath.inst_funct7: vec("7b000_0000"),
-            top.core.datapath.inst_funct3: vec("3b000"),
-            top.core.datapath.inst_opcode: vec("7b001_0011"),
             top.core.datapath.immediate: Z32,
             # Control
             top.core.datapath.alu_op_a_sel: CtlAluA.RS1,
@@ -152,11 +143,8 @@ def test_singlecycle_dump():
             top.core.datapath.pc: vec("32h0040_0000"),
             # Regfile
             top.core.datapath.regfile_wr_en: ones(1),
-            top.core.datapath.inst_rd: vec("5b0_0001"),
             top.core.datapath.wr_data: Z32,
-            top.core.datapath.inst_rs1: vec("5b0_0000"),
             top.core.datapath.rs1_data: Z32,
-            top.core.datapath.inst_rs2: vec("5b0_0000"),
             top.core.datapath.rs2_data: Z32,
             # Data Mem
             top.core.datapath.data_mem_addr: Z32,
@@ -174,7 +162,6 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_0004"),
             top.core.datapath.pc: vec("32h0040_0004"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b0_0010"),
         },
         # @(posedge clock)
         13: {
@@ -182,7 +169,6 @@ def test_singlecycle_dump():
             top._inst: vec("32h0020_81B3"),
             # Decode
             top.core.datapath.inst: vec("32h0020_81B3"),
-            top.core.datapath.inst_opcode: vec("7b011_0011"),
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # PC
@@ -190,10 +176,6 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_4: vec("32h0040_000C"),
             top.core.datapath.pc_plus_immediate: vec("32h0040_0008"),
             top.core.datapath.pc: vec("32h0040_0008"),
-            # Regfile
-            top.core.datapath.inst_rd: vec("5b0_0011"),
-            top.core.datapath.inst_rs1: vec("5b0_0001"),
-            top.core.datapath.inst_rs2: vec("5b0_0010"),
         },
         # @(posedge clock)
         15: {
@@ -201,7 +183,6 @@ def test_singlecycle_dump():
             top._inst: vec("32h0000_0E93"),
             # Decode
             top.core.datapath.inst: vec("32h0000_0E93"),
-            top.core.datapath.inst_opcode: vec("7b001_0011"),
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # PC
@@ -209,10 +190,6 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_4: vec("32h0040_0010"),
             top.core.datapath.pc_plus_immediate: vec("32h0040_000C"),
             top.core.datapath.pc: vec("32h0040_000C"),
-            # Regfile
-            top.core.datapath.inst_rd: vec("5b1_1101"),
-            top.core.datapath.inst_rs1: vec("5b0_0000"),
-            top.core.datapath.inst_rs2: vec("5b0_0000"),
         },
         # @(posedge clock)
         17: {
@@ -232,9 +209,7 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_0012"),
             top.core.datapath.pc: vec("32h0040_0010"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b1_1100"),
             top.core.datapath.wr_data: vec("32h0000_0002"),
-            top.core.datapath.inst_rs2: vec("5b0_0010"),
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32h0000_0002"),
         },
@@ -245,9 +220,6 @@ def test_singlecycle_dump():
             top.bus_addr: vec("32h0000_0001"),
             # Decode
             top.core.datapath.inst: vec("32h4DD1_9663"),
-            top.core.datapath.inst_funct7: vec("7b010_0110"),
-            top.core.datapath.inst_funct3: vec("3b001"),
-            top.core.datapath.inst_opcode: vec("7b110_0011"),
             top.core.datapath.immediate: vec("32h0000_04CC"),
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
@@ -262,10 +234,7 @@ def test_singlecycle_dump():
             top.core.datapath.pc: vec("32h0040_0014"),
             # Regfile
             top.core.datapath.regfile_wr_en: zeros(1),
-            top.core.datapath.inst_rd: vec("5b0_1100"),
             top.core.datapath.wr_data: vec("32h0000_0001"),
-            top.core.datapath.inst_rs1: vec("5b0_0011"),
-            top.core.datapath.inst_rs2: vec("5b1_1101"),
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32h0000_0001"),
         },
@@ -275,9 +244,6 @@ def test_singlecycle_dump():
             top._inst: vec("32h0010_0093"),
             # Decode
             top.core.datapath.inst: vec("32h0010_0093"),
-            top.core.datapath.inst_funct7: vec("7b000_0000"),
-            top.core.datapath.inst_funct3: vec("3b000"),
-            top.core.datapath.inst_opcode: vec("7b001_0011"),
             top.core.datapath.immediate: vec("32h0000_0001"),
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
@@ -291,9 +257,6 @@ def test_singlecycle_dump():
             top.core.datapath.pc: vec("32h0040_0018"),
             # Regfile
             top.core.datapath.regfile_wr_en: ones(1),
-            top.core.datapath.inst_rd: vec("5b0_0001"),
-            top.core.datapath.inst_rs1: vec("5b0_0000"),
-            top.core.datapath.inst_rs2: vec("5b0_0001"),
         },
         # @(posedge clock)
         23: {
@@ -308,7 +271,6 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_001D"),
             top.core.datapath.pc: vec("32h0040_001C"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b0_0010"),
             top.core.datapath.rs2_data: vec("32h0000_0001"),
             # Data Mem
             top.core.datapath.data_mem_wr_data: vec("32h0000_0001"),
@@ -321,7 +283,6 @@ def test_singlecycle_dump():
             top.bus_wr_data: vec("32h0001_0000"),
             # Decode
             top.core.datapath.inst: vec("32h0020_81B3"),
-            top.core.datapath.inst_opcode: vec("7b011_0011"),
             top.core.datapath.immediate: Z32,
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
@@ -334,11 +295,8 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_0020"),
             top.core.datapath.pc: vec("32h0040_0020"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b0_0011"),
             top.core.datapath.wr_data: vec("32h0000_0002"),
-            top.core.datapath.inst_rs1: vec("5b0_0001"),
             top.core.datapath.rs1_data: vec("32h0000_0001"),
-            top.core.datapath.inst_rs2: vec("5b0_0010"),
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32h0000_0002"),
         },
@@ -348,7 +306,6 @@ def test_singlecycle_dump():
             top._inst: vec("32h0020_0E93"),
             # Decode
             top.core.datapath.inst: vec("32h0020_0E93"),
-            top.core.datapath.inst_opcode: vec("7b001_0011"),
             top.core.datapath.immediate: vec("32h0000_0002"),
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
@@ -361,8 +318,6 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_0026"),
             top.core.datapath.pc: vec("32h0040_0024"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b1_1101"),
-            top.core.datapath.inst_rs1: vec("5b0_0000"),
             top.core.datapath.rs1_data: Z32,
         },
         # @(posedge clock)
@@ -383,9 +338,7 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_002B"),
             top.core.datapath.pc: vec("32h0040_0028"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b1_1100"),
             top.core.datapath.wr_data: vec("32h0000_0003"),
-            top.core.datapath.inst_rs2: vec("5b0_0011"),
             top.core.datapath.rs2_data: vec("32h0000_0002"),
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32h0000_0003"),
@@ -399,9 +352,6 @@ def test_singlecycle_dump():
             top.bus_wr_data: vec("32h0000_0200"),
             # Decode
             top.core.datapath.inst: vec("32h4BD1_9A63"),
-            top.core.datapath.inst_funct7: vec("7b010_0101"),
-            top.core.datapath.inst_funct3: vec("3b001"),
-            top.core.datapath.inst_opcode: vec("7b110_0011"),
             top.core.datapath.immediate: vec("32h0000_04B4"),
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
@@ -417,11 +367,8 @@ def test_singlecycle_dump():
             top.core.datapath.pc: vec("32h0040_002C"),
             # Regfile
             top.core.datapath.regfile_wr_en: zeros(1),
-            top.core.datapath.inst_rd: vec("5b1_0100"),
             top.core.datapath.wr_data: vec("32h0000_0001"),
-            top.core.datapath.inst_rs1: vec("5b0_0011"),
             top.core.datapath.rs1_data: vec("32h0000_0002"),
-            top.core.datapath.inst_rs2: vec("5b1_1101"),
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32h0000_0001"),
         },
@@ -433,9 +380,6 @@ def test_singlecycle_dump():
             top.bus_wr_data: vec("32h0200_0000"),
             # Decode
             top.core.datapath.inst: vec("32h0030_0093"),
-            top.core.datapath.inst_funct7: vec("7b000_0000"),
-            top.core.datapath.inst_funct3: vec("3b000"),
-            top.core.datapath.inst_opcode: vec("7b001_0011"),
             top.core.datapath.immediate: vec("32h0000_0003"),
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
@@ -451,11 +395,8 @@ def test_singlecycle_dump():
             top.core.datapath.pc: vec("32h0040_0030"),
             # Regfile
             top.core.datapath.regfile_wr_en: ones(1),
-            top.core.datapath.inst_rd: vec("5b0_0001"),
             top.core.datapath.wr_data: vec("32h0000_0003"),
-            top.core.datapath.inst_rs1: vec("5b0_0000"),
             top.core.datapath.rs1_data: Z32,
-            top.core.datapath.inst_rs2: vec("5b0_0011"),
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32h0000_0003"),
         },
@@ -477,9 +418,7 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_003B"),
             top.core.datapath.pc: vec("32h0040_0034"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b0_0010"),
             top.core.datapath.wr_data: vec("32h0000_0007"),
-            top.core.datapath.inst_rs2: vec("5b0_0111"),
             top.core.datapath.rs2_data: Z32,
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32h0000_0007"),
@@ -493,7 +432,6 @@ def test_singlecycle_dump():
             top.bus_wr_data: vec("32h0007_0000"),
             # Decode
             top.core.datapath.inst: vec("32h0020_81B3"),
-            top.core.datapath.inst_opcode: vec("7b011_0011"),
             top.core.datapath.immediate: Z32,
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
@@ -506,11 +444,8 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_0038"),
             top.core.datapath.pc: vec("32h0040_0038"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b0_0011"),
             top.core.datapath.wr_data: vec("32h0000_000A"),
-            top.core.datapath.inst_rs1: vec("5b0_0001"),
             top.core.datapath.rs1_data: vec("32h0000_0003"),
-            top.core.datapath.inst_rs2: vec("5b0_0010"),
             top.core.datapath.rs2_data: vec("32h0000_0007"),
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32h0000_000A"),
@@ -523,7 +458,6 @@ def test_singlecycle_dump():
             top.bus_wr_data: Z32,
             # Decode
             top.core.datapath.inst: vec("32h00A0_0E93"),
-            top.core.datapath.inst_opcode: vec("7b001_0011"),
             top.core.datapath.immediate: vec("32h0000_000A"),
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
@@ -536,10 +470,7 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_0046"),
             top.core.datapath.pc: vec("32h0040_003C"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b1_1101"),
-            top.core.datapath.inst_rs1: vec("5b0_0000"),
             top.core.datapath.rs1_data: Z32,
-            top.core.datapath.inst_rs2: vec("5b0_1010"),
             top.core.datapath.rs2_data: Z32,
             # Data Mem
             top.core.datapath.data_mem_wr_data: Z32,
@@ -561,9 +492,7 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_0044"),
             top.core.datapath.pc: vec("32h0040_0040"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b1_1100"),
             top.core.datapath.wr_data: vec("32h0000_0004"),
-            top.core.datapath.inst_rs2: vec("5b0_0100"),
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32h0000_0004"),
         },
@@ -575,9 +504,6 @@ def test_singlecycle_dump():
             top.bus_wr_data: vec("32h0000_0A00"),
             # Decode
             top.core.datapath.inst: vec("32h49D1_9E63"),
-            top.core.datapath.inst_funct7: vec("7b010_0100"),
-            top.core.datapath.inst_funct3: vec("3b001"),
-            top.core.datapath.inst_opcode: vec("7b110_0011"),
             top.core.datapath.immediate: vec("32h0000_049C"),
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
@@ -594,9 +520,7 @@ def test_singlecycle_dump():
             # Regfile
             top.core.datapath.regfile_wr_en: zeros(1),
             top.core.datapath.wr_data: vec("32h0000_0001"),
-            top.core.datapath.inst_rs1: vec("5b0_0011"),
             top.core.datapath.rs1_data: vec("32h0000_000A"),
-            top.core.datapath.inst_rs2: vec("5b1_1101"),
             top.core.datapath.rs2_data: vec("32h0000_000A"),
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32h0000_0001"),
@@ -610,9 +534,6 @@ def test_singlecycle_dump():
             top.bus_wr_data: Z32,
             # Decode
             top.core.datapath.inst: vec("32h0000_0093"),
-            top.core.datapath.inst_funct7: vec("7b000_0000"),
-            top.core.datapath.inst_funct3: vec("3b000"),
-            top.core.datapath.inst_opcode: vec("7b001_0011"),
             top.core.datapath.immediate: Z32,
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
@@ -629,11 +550,8 @@ def test_singlecycle_dump():
             top.core.datapath.pc: vec("32h0040_0048"),
             # Regfile
             top.core.datapath.regfile_wr_en: ones(1),
-            top.core.datapath.inst_rd: vec("5b0_0001"),
             top.core.datapath.wr_data: Z32,
-            top.core.datapath.inst_rs1: vec("5b0_0000"),
             top.core.datapath.rs1_data: Z32,
-            top.core.datapath.inst_rs2: vec("5b0_0000"),
             top.core.datapath.rs2_data: Z32,
             # Data Mem
             top.core.datapath.data_mem_addr: Z32,
@@ -645,8 +563,6 @@ def test_singlecycle_dump():
             top._inst: vec("32hFFFF_8137"),
             # Decode
             top.core.datapath.inst: vec("32hFFFF_8137"),
-            top.core.datapath.inst_funct7: vec("7b111_1111"),
-            top.core.datapath.inst_opcode: vec("7b011_0111"),
             top.core.datapath.immediate: vec("32hFFFF_8000"),
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
@@ -657,10 +573,7 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h003F_804C"),
             top.core.datapath.pc: vec("32h0040_004C"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b0_0010"),
             top.core.datapath.wr_data: vec("32hFFFF_8000"),
-            top.core.datapath.inst_rs1: vec("5b1_1111"),
-            top.core.datapath.inst_rs2: vec("5b1_1111"),
         },
         # @(posedge clock)
         49: {
@@ -670,8 +583,6 @@ def test_singlecycle_dump():
             top.bus_wr_data: vec("32hFFFF_8000"),
             # Decode
             top.core.datapath.inst: vec("32h0020_81B3"),
-            top.core.datapath.inst_funct7: vec("7b000_0000"),
-            top.core.datapath.inst_opcode: vec("7b011_0011"),
             top.core.datapath.immediate: Z32,
             # Control
             top.core.datapath.reg_writeback_sel: vec("3b000"),
@@ -685,9 +596,6 @@ def test_singlecycle_dump():
             top.core.datapath.pc_plus_immediate: vec("32h0040_0050"),
             top.core.datapath.pc: vec("32h0040_0050"),
             # Regfile
-            top.core.datapath.inst_rd: vec("5b0_0011"),
-            top.core.datapath.inst_rs1: vec("5b0_0001"),
-            top.core.datapath.inst_rs2: vec("5b0_0010"),
             top.core.datapath.rs2_data: vec("32hFFFF_8000"),
             # Data Mem
             top.core.datapath.data_mem_addr: vec("32hFFFF_8000"),

@@ -1,13 +1,13 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, changed
+from seqlogic import Bit, Bits, Module, Struct, changed
 from seqlogic.lbool import cat, vec, zeros
 from seqlogic.sim import always_comb, initial
 
+from .. import Inst
 from ..common.adder import Adder
 from ..common.alu import Alu
 from ..common.immediate_generator import ImmedateGenerator
-from ..common.instruction_decoder import InstructionDecoder
 from ..common.mux import Mux
 from ..common.regfile import RegFile
 from ..common.register import Register
@@ -27,16 +27,8 @@ class DataPath(Module):
         self.data_mem_wr_data = Bits(name="data_mem_wr_data", parent=self, shape=(32,))
         self.data_mem_rd_data = Bits(name="data_mem_rd_data", parent=self, shape=(32,))
 
-        self.inst = Bits(name="inst", parent=self, shape=(32,))
+        self.inst = Struct(name="inst", parent=self, cls=Inst)
         self.pc = Bits(name="pc", parent=self, shape=(32,))
-
-        # Instruction decode
-        self.inst_funct7 = Bits(name="inst_funct7", parent=self, shape=(7,))
-        self.inst_rs2 = Bits(name="inst_rs2", parent=self, shape=(5,))
-        self.inst_rs1 = Bits(name="inst_rs1", parent=self, shape=(5,))
-        self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
-        self.inst_rd = Bits(name="inst_rd", parent=self, shape=(5,))
-        self.inst_opcode = Bits(name="inst_opcode", parent=self, shape=(7,))
 
         # Immedate generate
         self.immediate = Bits(name="immediate", parent=self, shape=(32,))
@@ -85,7 +77,6 @@ class DataPath(Module):
         self.mux_op_a = Mux(name="mux_op_a", parent=self, n=2, shape=(32,))
         self.mux_op_b = Mux(name="mux_op_b", parent=self, n=2, shape=(32,))
         self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, shape=(32,))
-        self.instruction_decoder = InstructionDecoder(name="instruction_decoder", parent=self)
         self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
         pc_init = vec("32h0040_0000")
         self.program_counter = Register(
@@ -139,14 +130,6 @@ class DataPath(Module):
         # .in6(32'h0000_0000)
         # .in7(32'h0000_0000)
 
-        self.instruction_decoder.inst.connect(self.inst)
-        self.inst_funct7.connect(self.instruction_decoder.inst_funct7)
-        self.inst_rs2.connect(self.instruction_decoder.inst_rs2)
-        self.inst_rs1.connect(self.instruction_decoder.inst_rs1)
-        self.inst_funct3.connect(self.instruction_decoder.inst_funct3)
-        self.inst_rd.connect(self.instruction_decoder.inst_rd)
-        self.inst_opcode.connect(self.instruction_decoder.inst_opcode)
-
         self.immediate.connect(self.immediate_generator.immediate)
         self.immediate_generator.inst.connect(self.inst)
 
@@ -157,11 +140,8 @@ class DataPath(Module):
         self.program_counter.reset.connect(self.reset)
 
         self.regfile.wr_en.connect(self.regfile_wr_en)
-        self.regfile.wr_addr.connect(self.inst_rd)
         self.regfile.wr_data.connect(self.wr_data)
-        self.regfile.rs1_addr.connect(self.inst_rs1)
         self.rs1_data.connect(self.regfile.rs1_data)
-        self.regfile.rs2_addr.connect(self.inst_rs2)
         self.rs2_data.connect(self.regfile.rs2_data)
         self.regfile.clock.connect(self.clock)
 
@@ -182,3 +162,11 @@ class DataPath(Module):
             await changed(self.alu_result)
             # mux_next_pc.in2({alu_result[31:1], 1'b0})
             self.mux_next_pc.ins[2].next = cat(zeros(1), self.alu_result.next[1:32])
+
+    @always_comb
+    async def p_c_1(self):
+        while True:
+            await changed(self.inst)
+            self.regfile.rs2_addr.next = self.inst.next.rs2
+            self.regfile.rs1_addr.next = self.inst.next.rs1
+            self.regfile.wr_addr.next = self.inst.next.rd

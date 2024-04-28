@@ -1,10 +1,10 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, sleep
+from seqlogic import Bit, Bits, Module, Struct, changed, sleep
 from seqlogic.lbool import vec
-from seqlogic.sim import initial
+from seqlogic.sim import always_comb, initial
 
-from .. import WORD_BITS, WORD_BYTES
+from .. import WORD_BITS, WORD_BYTES, Inst
 from ..common.data_memory_bus import DataMemoryBus
 from ..common.text_memory_bus import TextMemoryBus
 from .core import Core
@@ -35,7 +35,7 @@ class Top(Module):
         self.bus_rd_data = Bits(name="bus_rd_data", parent=self, shape=(WORD_BITS,))
 
         self._pc = Bits(name="pc", parent=self, shape=(32,))
-        self._inst = Bits(name="inst", parent=self, shape=(WORD_BITS,))
+        self._inst = Struct(name="inst", parent=self, cls=Inst)
 
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
@@ -47,7 +47,7 @@ class Top(Module):
 
     def connect(self):
         self.text_memory_bus.rd_addr.connect(self._pc)
-        self._inst.connect(self.text_memory_bus.rd_data)
+        # self._inst.connect(self.text_memory_bus.rd_data)
 
         self.data_memory_bus.addr.connect(self.bus_addr)
         self.data_memory_bus.wr_en.connect(self.bus_wr_en)
@@ -85,3 +85,16 @@ class Top(Module):
         self.reset.next = ~self.reset.value
         await sleep(_RESET_PHASE2)
         self.reset.next = ~self.reset.value
+
+    @always_comb
+    async def p_c_0(self):
+        while True:
+            await changed(self.text_memory_bus.rd_data)
+            self._inst.next = Inst(  # pyright: ignore[reportCallIssue]
+                opcode=self.text_memory_bus.rd_data.next[0:7],
+                rd=self.text_memory_bus.rd_data.next[7:12],
+                funct3=self.text_memory_bus.rd_data.next[12:15],
+                rs1=self.text_memory_bus.rd_data.next[15:20],
+                rs2=self.text_memory_bus.rd_data.next[20:25],
+                funct7=self.text_memory_bus.rd_data.next[25:32],
+            )

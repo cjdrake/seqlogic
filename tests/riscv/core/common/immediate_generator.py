@@ -1,10 +1,10 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bits, Module, changed
-from seqlogic.lbool import cat, rep, vec, zeros
+from seqlogic import Bits, Module, Struct, changed
+from seqlogic.lbool import cat, rep, zeros
 from seqlogic.sim import always_comb
 
-from .. import Opcode
+from .. import Inst, Opcode
 
 
 class ImmedateGenerator(Module):
@@ -18,21 +18,21 @@ class ImmedateGenerator(Module):
     def build(self):
         # Ports
         self.immediate = Bits(name="immediate", parent=self, shape=(32,))
-        self.inst = Bits(name="inst", parent=self, shape=(32,))
+        self.inst = Struct(name="inst", parent=self, cls=Inst)
 
     @always_comb
     async def p_c_0(self):
         while True:
             await changed(self.inst)
-            if self.inst.next[0:7] in [Opcode.LOAD, Opcode.LOAD_FP, Opcode.OP_IMM, Opcode.JALR]:
+            if self.inst.next.opcode in [Opcode.LOAD, Opcode.LOAD_FP, Opcode.OP_IMM, Opcode.JALR]:
                 self.immediate.next = cat(
                     self.inst.next[20:25], self.inst.next[25:31], rep(self.inst.next[31], 21)
                 )
-            elif self.inst.next[0:7] in [Opcode.STORE_FP, Opcode.STORE]:
+            elif self.inst.next.opcode in [Opcode.STORE_FP, Opcode.STORE]:
                 self.immediate.next = cat(
                     self.inst.next[7:12], self.inst.next[25:31], rep(self.inst.next[31], 21)
                 )
-            elif self.inst.next[0:7] == Opcode.BRANCH:
+            elif self.inst.next.opcode == Opcode.BRANCH:
                 self.immediate.next = cat(
                     zeros(1),
                     self.inst.next[8:12],
@@ -40,14 +40,14 @@ class ImmedateGenerator(Module):
                     self.inst.next[7],
                     rep(self.inst.next[31], 20),
                 )
-            elif self.inst.next[0:7] in [Opcode.AUIPC, Opcode.LUI]:
+            elif self.inst.next.opcode in [Opcode.AUIPC, Opcode.LUI]:
                 self.immediate.next = cat(
-                    vec("12b0000_0000_0000"),
+                    zeros(12),
                     self.inst.next[12:20],
                     self.inst.next[20:31],
                     self.inst.next[31],
                 )
-            elif self.inst.next[0:7] == Opcode.JAL:
+            elif self.inst.next.opcode == Opcode.JAL:
                 self.immediate.next = cat(
                     zeros(1),
                     self.inst.next[21:25],

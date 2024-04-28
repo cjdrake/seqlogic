@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic.lbool import VecEnum
+from seqlogic.lbool import Vec, VecEnum, VecStruct
 
 WORD_BITS = 32
 BYTE_BITS = 8
@@ -134,3 +134,14 @@ class CtlWriteBack(VecEnum):
     DATA = "3b001"
     PC4 = "3b010"
     IMM = "3b011"
+
+
+class Inst(VecStruct):
+    """Instruction"""
+
+    opcode: Vec[7]
+    rd: Vec[5]
+    funct3: Vec[3]
+    rs1: Vec[5]
+    rs2: Vec[5]
+    funct7: Vec[7]
