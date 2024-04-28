@@ -1,11 +1,11 @@
 """Test seqlogic.lbool.VecStruct."""
 
-from seqlogic.lbool import Vec, VecStruct, vec
-
 # PyRight is confused by MetaClass behavior
 # pyright: reportArgumentType=false
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportCallIssue=false
+
+from seqlogic.lbool import Vec, VecStruct, vec
 
 
 class Pixel(VecStruct):

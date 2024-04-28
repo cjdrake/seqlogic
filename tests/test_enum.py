@@ -1,12 +1,12 @@
 """Test seqlogic.lbool.VecEnum."""
 
-import pytest
-
-from seqlogic.lbool import VecEnum, ones, zeros
-
 # pyright: reportArgumentType=false
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportCallIssue=false
+
+import pytest
+
+from seqlogic.lbool import VecEnum, ones, zeros
 
 
 class Color(VecEnum):

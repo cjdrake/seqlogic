@@ -10,6 +10,7 @@ It merely serves as a non-trivial example design.
 """
 
 # pylint: disable = protected-access
+# pyright: reportAttributeAccessIssue=false
 
 from collections import defaultdict
 
@@ -18,9 +19,6 @@ from seqlogic.lbool import ones, uint2vec, vec, xes, zeros
 
 from .riscv.core.common.constants import AluOp, CtlAluA, CtlAluB, CtlPc
 from .riscv.core.singlecycle.top import Top
-
-# pyright: reportAttributeAccessIssue=false
-
 
 loop = get_loop()
 
