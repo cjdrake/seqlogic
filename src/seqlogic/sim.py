@@ -136,7 +136,7 @@ class _SimQueue:
         self._items.clear()
         self._index = 0
 
-    def push(self, time: int, region: Region, task: Coroutine, state: State | None):
+    def push(self, time: int, region: Region, task: Coroutine, state: State | None = None):
         heapq.heappush(self._items, (time, region, self._index, task, state))
         self._index += 1
 
@@ -235,12 +235,12 @@ class Sim:
     def call_later(self, delay: int, task: Coroutine):
         """Schedule the task after a relative delay."""
         region = self._task_region[task]
-        self._queue.push(self._time + delay, region, task, None)
+        self._queue.push(self._time + delay, region, task)
 
     def call_at(self, when: int, task: Coroutine):
         """Schedule the task for an absolute timeslot."""
         region = self._task_region[task]
-        self._queue.push(when, region, task, None)
+        self._queue.push(when, region, task)
 
     def add_proc(self, region: Region, func, *args, **kwargs):
         """Add a process to run at start of simulation."""
