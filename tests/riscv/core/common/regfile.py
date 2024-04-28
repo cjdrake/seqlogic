@@ -35,9 +35,9 @@ class RegFile(Module):
 
     @initial
     async def p_i_0(self):
-        self._regs.set_next(0, zeros(WORD_BITS))
+        self._regs[0].next = zeros(WORD_BITS)
         for i in range(1, DEPTH):
-            self._regs.set_next(i, zeros(WORD_BITS))
+            self._regs[i].next = zeros(WORD_BITS)
 
     @always_ff
     async def p_f_0(self):
@@ -48,7 +48,7 @@ class RegFile(Module):
             await resume((self.clock, f))
             i = self.wr_addr.value.to_uint()
             if i != 0:
-                self._regs.set_next(i, self.wr_data.value)
+                self._regs[i].next = self.wr_data.value
 
     @always_comb
     async def p_c_0(self):
@@ -59,7 +59,7 @@ class RegFile(Module):
             except ValueError:
                 self.rs1_data.next = xes(WORD_BITS)
             else:
-                self.rs1_data.next = self._regs.get_next(i)
+                self.rs1_data.next = self._regs[i].next
 
     @always_comb
     async def p_c_1(self):
@@ -70,4 +70,4 @@ class RegFile(Module):
             except ValueError:
                 self.rs2_data.next = xes(WORD_BITS)
             else:
-                self.rs2_data.next = self._regs.get_next(i)
+                self.rs2_data.next = self._regs[i].next

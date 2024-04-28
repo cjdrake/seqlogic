@@ -57,7 +57,7 @@ class DataMemory(Module):
                     for i in range(WORD_BYTES)
                 ]
                 word = cat(*bytes_)
-            self._mem.set_next(word_addr, word)
+            self._mem[word_addr].next = word
 
     @always_comb
     async def p_c_0(self):
@@ -68,4 +68,4 @@ class DataMemory(Module):
             except ValueError:
                 self.rd_data.next = xes(WORD_BITS)
             else:
-                self.rd_data.next = self._mem.get_next(i)
+                self.rd_data.next = self._mem[i].next

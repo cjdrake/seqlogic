@@ -108,6 +108,9 @@ class Aggregate(State):
         # Notify the event loop
         _sim.touch(self)
 
+    def __getitem__(self, key: int):
+        return _ItemWrap(self, key)
+
     def changed(self) -> bool:
         return bool(self._changed)
 
@@ -115,6 +118,22 @@ class Aggregate(State):
         for index in self._changed:
             self._values[index] = self._next_values[index]
         self._changed.clear()
+
+
+class _ItemWrap:
+    """Wrap Aggregate item getter/setter"""
+
+    def __init__(self, obj: Aggregate, index: int):
+        self._obj = obj
+        self._index = index
+
+    def _get_next(self):
+        return self._obj.get_next(self._index)
+
+    def _set_next(self, value):
+        self._obj.set_next(self._index, value)
+
+    next = property(fget=_get_next, fset=_set_next)
 
 
 _SimQueueItem: TypeAlias = tuple[int, Region, Coroutine, State | None]
