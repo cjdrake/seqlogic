@@ -20,14 +20,12 @@ class Top(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent=None)
 
         self.build()
         self.connect()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.bus_addr = Bits(name="bus_addr", parent=self, shape=(32,))
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
@@ -48,7 +46,6 @@ class Top(Module):
         self.core = Core(name="core", parent=self)
 
     def connect(self):
-        """TODO(cjdrake): Write docstring."""
         self.text_memory_bus.rd_addr.connect(self._pc)
         self._inst.connect(self.text_memory_bus.rd_data)
 
@@ -73,7 +70,6 @@ class Top(Module):
 
     @initial
     async def p_i_0(self):
-        """TODO(cjdrake): Write docstring."""
         self.clock.next = vec("1b0")
         await sleep(_CLOCK_PHASE_SHIFT)
         while True:
@@ -84,7 +80,6 @@ class Top(Module):
 
     @initial
     async def p_i_1(self):
-        """TODO(cjdrake): Write docstring."""
         self.reset.next = vec("1b0")
         await sleep(_RESET_PHASE1)
         self.reset.next = ~self.reset.value

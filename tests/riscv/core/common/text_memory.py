@@ -14,13 +14,11 @@ class TextMemory(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.rd_addr = Bits(name="rd_addr", parent=self, shape=(14,))
         self.rd_data = Bits(name="rd_data", parent=self, shape=(WORD_BITS,))
@@ -32,7 +30,6 @@ class TextMemory(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.rd_addr, self._mem)
             try:

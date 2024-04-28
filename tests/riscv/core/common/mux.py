@@ -9,7 +9,6 @@ class Mux(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None, n: int, shape: tuple[int, ...]):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self._n = n
@@ -18,7 +17,6 @@ class Mux(Module):
         self.build()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.out = Bits(name="out", parent=self, shape=self._shape)
         self.sel = Bits(name="sel", parent=self, shape=(clog2(self._n),))
@@ -26,7 +24,6 @@ class Mux(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.sel, *self.ins)
             try:

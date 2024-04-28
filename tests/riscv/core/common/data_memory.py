@@ -13,7 +13,6 @@ class DataMemory(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
@@ -38,8 +37,6 @@ class DataMemory(Module):
 
     @always_ff
     async def p_f_0(self):
-        """TODO(cjdrake): Write docstring."""
-
         def f():
             return self.clock.is_posedge() and self.wr_en.value == ones(1)
 
@@ -64,7 +61,6 @@ class DataMemory(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.addr, self._mem)
             try:

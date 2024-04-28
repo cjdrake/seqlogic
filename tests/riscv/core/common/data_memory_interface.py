@@ -9,14 +9,12 @@ class DataMemoryInterface(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
         self.connect()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.data_format = Bits(name="data_format", parent=self, shape=(3,))
 
@@ -34,14 +32,12 @@ class DataMemoryInterface(Module):
         self.bus_rd_data = Bits(name="bus_rd_data", parent=self, shape=(32,))
 
     def connect(self):
-        """TODO(cjdrake): Write docstring."""
         self.bus_addr.connect(self.addr)
         self.bus_wr_en.connect(self.wr_en)
         self.bus_rd_en.connect(self.rd_en)
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.data_format, self.addr)
             if self.data_format.next[:2] == vec("2b00"):
@@ -57,7 +53,6 @@ class DataMemoryInterface(Module):
 
     @always_comb
     async def p_c_1(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.addr, self.wr_data)
             n = cat(vec("3b000"), self.addr.next[:2])
@@ -65,7 +60,6 @@ class DataMemoryInterface(Module):
 
     @always_comb
     async def p_c_2(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.data_format, self.addr, self.bus_rd_data)
             n = cat(vec("3b000"), self.addr.next[:2])

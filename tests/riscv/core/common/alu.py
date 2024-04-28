@@ -11,13 +11,11 @@ class Alu(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.result = Bits(name="result", parent=self, shape=(32,))
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
@@ -27,7 +25,6 @@ class Alu(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.alu_function, self.op_a, self.op_b)
             match self.alu_function.next:
@@ -79,7 +76,6 @@ class Alu(Module):
 
     @always_comb
     async def p_c_1(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.result)
             if self.result.next == zeros(32):

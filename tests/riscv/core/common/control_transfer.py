@@ -11,13 +11,11 @@ class ControlTransfer(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.take_branch = Bit(name="take_branch", parent=self)
         self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
@@ -25,7 +23,6 @@ class ControlTransfer(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.inst_funct3, self.result_equal_zero)
             match self.inst_funct3.next:

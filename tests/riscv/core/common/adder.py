@@ -8,7 +8,6 @@ class Adder(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None, width: int):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         # Parameters
@@ -18,14 +17,12 @@ class Adder(Module):
         self.build()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         self.result = Bits(name="result", parent=self, shape=(self._width,))
         self.op_a = Bits(name="op_a", parent=self, shape=(self._width,))
         self.op_b = Bits(name="op_b", parent=self, shape=(self._width,))
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.op_a, self.op_b)
             self.result.next = self.op_a.next + self.op_b.next

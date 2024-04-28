@@ -15,7 +15,6 @@ class Top(Module):
     """Top level module."""
 
     def __init__(self):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name="top", parent=None)
         # Control
         self.reset_n = Bit(name="reset_n", parent=self)

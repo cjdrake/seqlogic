@@ -32,7 +32,6 @@ async def p_input(
     reset_n: Bit,
     clock: Bit,
 ):
-    """TODO(cjdrake): Write docstring."""
     await reset_n.negedge()
     x.next = zeros(1)
 

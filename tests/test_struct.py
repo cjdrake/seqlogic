@@ -9,8 +9,6 @@ from seqlogic.lbool import Vec, VecStruct, vec
 
 
 class Pixel(VecStruct):
-    """TODO(cjdrake): Write docstring."""
-
     r: Vec[8]
     g: Vec[8]
     b: Vec[8]

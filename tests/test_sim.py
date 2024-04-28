@@ -19,26 +19,21 @@ class Bool(Singular):
     """Variable that supports dumping to memory."""
 
     def __init__(self):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(value=False)
         _waves_add(self._sim.time, self, self._value)
 
     def update(self):
-        """TODO(cjdrake): Write docstring."""
         if self.dirty():
             _waves_add(self._sim.time, self, self._next_value)
         super().update()
 
     def is_posedge(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
         return not self._value and self._next_value
 
     def is_negedge(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
         return self._value and not self._next_value
 
     async def edge(self) -> State:
-        """TODO(cjdrake): Write docstring."""
         self._sim.add_event(self, lambda: self.is_posedge() or self.is_negedge())
         state = await SimAwaitable()
         return state

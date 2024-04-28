@@ -12,14 +12,12 @@ class Core(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
         self.connect()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.bus_addr = Bits(name="bus_addr", parent=self, shape=(32,))
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
@@ -58,7 +56,6 @@ class Core(Module):
         self.data_memory_interface = DataMemoryInterface(name="data_memory_interface", parent=self)
 
     def connect(self):
-        """TODO(cjdrake): Write docstring."""
         self.ctlpath.inst_opcode.connect(self._inst_opcode)
         self.ctlpath.inst_funct3.connect(self._inst_funct3)
         self.ctlpath.inst_funct7.connect(self._inst_funct7)

@@ -13,13 +13,11 @@ class RegFile(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_addr = Bits(name="wr_addr", parent=self, shape=(clog2(DEPTH),))
@@ -37,15 +35,12 @@ class RegFile(Module):
 
     @initial
     async def p_i_0(self):
-        """TODO(cjdrake): Write docstring."""
         self._regs.set_next(0, zeros(WORD_BITS))
         for i in range(1, DEPTH):
             self._regs.set_next(i, zeros(WORD_BITS))
 
     @always_ff
     async def p_f_0(self):
-        """TODO(cjdrake): Write docstring."""
-
         def f():
             return self.clock.is_posedge() and self.wr_en.value == ones(1)
 
@@ -57,7 +52,6 @@ class RegFile(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.rs1_addr, self._regs)
             try:
@@ -69,7 +63,6 @@ class RegFile(Module):
 
     @always_comb
     async def p_c_1(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.rs2_addr, self._regs)
             try:

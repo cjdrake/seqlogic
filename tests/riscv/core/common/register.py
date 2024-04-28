@@ -9,7 +9,6 @@ class Register(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None, shape: tuple[int, ...], init):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         # Parameters
@@ -19,7 +18,6 @@ class Register(Module):
         self.build()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         self.q = Bits(name="q", parent=self, shape=self._shape)
         self.en = Bit(name="en", parent=self)
         self.d = Bits(name="d", parent=self, shape=self._shape)
@@ -28,8 +26,6 @@ class Register(Module):
 
     @always_ff
     async def p_f_0(self):
-        """TODO(cjdrake): Write docstring."""
-
         def f():
             return (
                 self.clock.is_posedge()

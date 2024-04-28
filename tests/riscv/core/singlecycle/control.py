@@ -11,13 +11,11 @@ class Control(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
@@ -33,7 +31,6 @@ class Control(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.inst_opcode, self.take_branch)
             match self.inst_opcode.next:
@@ -51,7 +48,6 @@ class Control(Module):
 
     @always_comb
     async def p_c_1(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.inst_opcode)
 

@@ -12,14 +12,12 @@ class DataMemoryBus(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
         self.connect()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.addr = Bits(name="addr", parent=self, shape=(32,))
 
@@ -40,7 +38,6 @@ class DataMemoryBus(Module):
         self.data_memory = DataMemory("data_memory", parent=self)
 
     def connect(self):
-        """TODO(cjdrake): Write docstring."""
         self.data_memory.wr_be.connect(self.wr_be)
         self.data_memory.wr_data.connect(self.wr_data)
         self._data.connect(self.data_memory.rd_data)
@@ -48,7 +45,6 @@ class DataMemoryBus(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.addr)
             try:
@@ -63,21 +59,18 @@ class DataMemoryBus(Module):
 
     @always_comb
     async def p_c_1(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.wr_en, self._is_data)
             self.data_memory.wr_en.next = self.wr_en.next & self._is_data.next
 
     @always_comb
     async def p_c_2(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.addr)
             self.data_memory.addr.next = self.addr.next[2:17]
 
     @always_comb
     async def p_c_3(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.rd_en, self._is_data, self._data)
             if self.rd_en.next == ones(1) and self._is_data.next == ones(1):

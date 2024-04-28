@@ -34,7 +34,6 @@ PASS, FAIL, TIMEOUT = 0, 1, 2
 
 
 def get_mem(name: str) -> list[int]:
-    """TODO(cjdrake): Write docstring."""
     text = []
     with open(name, encoding="utf-8") as f:
         for line in f:
@@ -44,7 +43,6 @@ def get_mem(name: str) -> list[int]:
 
 
 def test_singlecycle_dump():
-    """TODO(cjdrake): Write docstring."""
     loop.reset()
     waves = defaultdict(dict)
 
@@ -702,7 +700,6 @@ def test_singlecycle_dump():
 
 
 def run_riscv_test(name: str) -> int:
-    """TODO(cjdrake): Write docstring."""
     loop.reset()
 
     # Create module hierarchy
@@ -731,190 +728,152 @@ def run_riscv_test(name: str) -> int:
 
 
 def test_singlecycle_add():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("add") == PASS
 
 
 def test_singlecycle_addi():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("addi") == PASS
 
 
 def test_singlecycle_and():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("and") == PASS
 
 
 def test_singlecycle_andi():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("andi") == PASS
 
 
 def test_singlecycle_auipc():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("auipc") == PASS
 
 
 def test_singlecycle_beq():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("beq") == PASS
 
 
 def test_singlecycle_bge():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("bge") == PASS
 
 
 def test_singlecycle_bgeu():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("bgeu") == PASS
 
 
 def test_singlecycle_blt():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("blt") == PASS
 
 
 def test_singlecycle_bltu():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("bltu") == PASS
 
 
 def test_singlecycle_bne():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("bne") == PASS
 
 
 def test_singlecycle_jal():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("jal") == PASS
 
 
 def test_singlecycle_jalr():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("jalr") == PASS
 
 
 def test_singlecycle_lb():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("lb") == PASS
 
 
 def test_singlecycle_lbu():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("lbu") == PASS
 
 
 def test_singlecycle_lh():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("lh") == PASS
 
 
 def test_singlecycle_lhu():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("lhu") == PASS
 
 
 def test_singlecycle_lui():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("lui") == PASS
 
 
 def test_singlecycle_lw():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("lw") == PASS
 
 
 def test_singlecycle_or():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("or") == PASS
 
 
 def test_singlecycle_ori():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("ori") == PASS
 
 
 def test_singlecycle_sb():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("sb") == PASS
 
 
 def test_singlecycle_sh():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("sh") == PASS
 
 
 def test_singlecycle_simple():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("simple") == PASS
 
 
 def test_singlecycle_sll():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("sll") == PASS
 
 
 def test_singlecycle_slli():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("slli") == PASS
 
 
 def test_singlecycle_slt():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("slt") == PASS
 
 
 def test_singlecycle_slti():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("slti") == PASS
 
 
 def test_singlecycle_sltiu():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("sltiu") == PASS
 
 
 def test_singlecycle_sltu():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("sltu") == PASS
 
 
 def test_singlecycle_sra():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("sra") == PASS
 
 
 def test_singlecycle_srai():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("srai") == PASS
 
 
 def test_singlecycle_srl():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("srl") == PASS
 
 
 def test_singlecycle_srli():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("srli") == PASS
 
 
 def test_singlecycle_sub():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("sub") == PASS
 
 
 def test_singlecycle_sw():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("sw") == PASS
 
 
 def test_singlecycle_xor():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("xor") == PASS
 
 
 def test_singlecycle_xori():
-    """TODO(cjdrake): Write docstring."""
     assert run_riscv_test("xori") == PASS

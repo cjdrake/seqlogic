@@ -13,14 +13,12 @@ class TextMemoryBus(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
         self.connect()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.rd_addr = Bits(name="rd_addr", parent=self, shape=(32,))
         self.rd_data = Bits(name="rd_data", parent=self, shape=(WORD_BITS,))
@@ -30,12 +28,10 @@ class TextMemoryBus(Module):
         self.text_memory = TextMemory("text_memory", parent=self)
 
     def connect(self):
-        """TODO(cjdrake): Write docstring."""
         self._text.connect(self.text_memory.rd_data)
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.rd_addr, self._text)
             addr = self.rd_addr.next.to_uint()
@@ -47,7 +43,6 @@ class TextMemoryBus(Module):
 
     @always_comb
     async def p_c_1(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.rd_addr)
             self.text_memory.rd_addr.next = self.rd_addr.next[2:TEXT_BITS]

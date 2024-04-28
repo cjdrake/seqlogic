@@ -17,14 +17,12 @@ class DataPath(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
         self.connect()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         self.data_mem_addr = Bits(name="data_mem_addr", parent=self, shape=(32,))
         self.data_mem_wr_data = Bits(name="data_mem_wr_data", parent=self, shape=(32,))
         self.data_mem_rd_data = Bits(name="data_mem_rd_data", parent=self, shape=(32,))
@@ -96,7 +94,6 @@ class DataPath(Module):
         self.regfile = RegFile(name="regfile", parent=self)
 
     def connect(self):
-        """TODO(cjdrake): Write docstring."""
         self.data_mem_addr.connect(self.alu_result)
         self.data_mem_wr_data.connect(self.rs2_data)
 
@@ -170,7 +167,6 @@ class DataPath(Module):
 
     @initial
     async def p_i_0(self):
-        """TODO(cjdrake): Write docstring."""
         self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
         # mux_next_pc.in3(32'h0000_0000)
         self.mux_next_pc.ins[3].next = zeros(32)
@@ -182,7 +178,6 @@ class DataPath(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.alu_result)
             # mux_next_pc.in2({alu_result[31:1], 1'b0})

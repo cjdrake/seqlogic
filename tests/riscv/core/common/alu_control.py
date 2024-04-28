@@ -13,13 +13,11 @@ class AluControl(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.alu_function = Bits(name="alu_function", parent=self, shape=(5,))
         self.alu_op_type = Bits(name="alu_op_type", parent=self, shape=(2,))
@@ -33,7 +31,6 @@ class AluControl(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.inst_funct3)
             match self.inst_funct3.next:
@@ -58,7 +55,6 @@ class AluControl(Module):
 
     @always_comb
     async def p_c_1(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.inst_funct3)
             match self.inst_funct3.next:
@@ -71,7 +67,6 @@ class AluControl(Module):
 
     @always_comb
     async def p_c_2(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.inst_funct3)
             match self.inst_funct3.next:
@@ -86,7 +81,6 @@ class AluControl(Module):
 
     @always_comb
     async def p_c_3(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(
                 self.alu_op_type,

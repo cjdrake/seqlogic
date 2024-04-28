@@ -11,14 +11,12 @@ class CtlPath(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
         self.connect()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.inst_opcode = Bits(name="inst_opcode", parent=self, shape=(7,))
         self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
@@ -44,7 +42,6 @@ class CtlPath(Module):
         self.alu_control = AluControl(name="alu_control", parent=self)
 
     def connect(self):
-        """TODO(cjdrake): Write docstring."""
         self.pc_wr_en.connect(self.control.pc_wr_en)
         self.regfile_wr_en.connect(self.control.regfile_wr_en)
         self.alu_op_a_sel.connect(self.control.alu_op_a_sel)

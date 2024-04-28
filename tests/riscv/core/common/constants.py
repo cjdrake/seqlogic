@@ -12,7 +12,7 @@ DATA_SIZE = 2**DATA_BITS
 
 
 class Opcode(VecEnum):
-    """Instruction opcodes."""
+    """Instruction Opcodes"""
 
     LOAD = "7b000_0011"
     LOAD_FP = "7b000_0111"
@@ -31,7 +31,7 @@ class Opcode(VecEnum):
 
 
 class CtlPc(VecEnum):
-    """TODO(cjdrake): Write docstring."""
+    """Program Counter (PC) Select"""
 
     PC4 = "2b00"
     PC_IMM = "2b01"
@@ -40,7 +40,7 @@ class CtlPc(VecEnum):
 
 
 class CtlAlu(VecEnum):
-    """ALU op types."""
+    """ALU Op Types"""
 
     ADD = "2b00"
     BRANCH = "2b01"
@@ -49,7 +49,7 @@ class CtlAlu(VecEnum):
 
 
 class AluOp(VecEnum):
-    """ALU Operations."""
+    """ALU Operations"""
 
     ADD = "5b0_0001"
     SUB = "5b0_0010"
@@ -73,21 +73,21 @@ class AluOp(VecEnum):
 
 
 class CtlAluA(VecEnum):
-    """ALU 1st operand source."""
+    """ALU First Operand Source"""
 
     RS1 = "1b0"
     PC = "1b1"
 
 
 class CtlAluB(VecEnum):
-    """ALU 2nd operand source."""
+    """ALU Second Operand Source"""
 
     RS2 = "1b0"
     IMM = "1b1"
 
 
 class Funct3AluLogic(VecEnum):
-    """Interpretations of the "funct3" field."""
+    """Interpretations of the 'funct3' field."""
 
     ADD_SUB = "3b000"
     SLL = "3b001"
@@ -100,7 +100,7 @@ class Funct3AluLogic(VecEnum):
 
 
 class Funct3Branch(VecEnum):
-    """Interpretations of the "funct3" field for branches."""
+    """Interpretations of the 'funct3' field for branches."""
 
     EQ = "3b000"
     NE = "3b001"

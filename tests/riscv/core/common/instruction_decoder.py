@@ -8,13 +8,11 @@ class InstructionDecoder(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent)
 
         self.build()
 
     def build(self):
-        """TODO(cjdrake): Write docstring."""
         # Ports
         self.inst_funct7 = Bits(name="inst_funct7", parent=self, shape=(7,))
         self.inst_rs2 = Bits(name="inst_rs2", parent=self, shape=(5,))
@@ -26,7 +24,6 @@ class InstructionDecoder(Module):
 
     @always_comb
     async def p_c_0(self):
-        """TODO(cjdrake): Write docstring."""
         while True:
             await changed(self.inst)
             self.inst_funct7.next = self.inst.next[25:32]
