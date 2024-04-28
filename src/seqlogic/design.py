@@ -205,6 +205,14 @@ class Enum(_TraceSingular):
         super().__init__(name, parent, value=cls.X)
 
 
+class Struct(_TraceSingular):
+    """TODO(cjdrake): Write docstring."""
+
+    def __init__(self, name: str, parent: Module, cls):
+        """TODO(cjdrake): Write docstring."""
+        super().__init__(name, parent, value=cls())
+
+
 class Array(_TraceAggregate):
     """TODO(cjdrake): Write docstring."""
 
