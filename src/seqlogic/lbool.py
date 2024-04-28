@@ -318,7 +318,7 @@ class Vec:
             raise ValueError(f"Expected n ≥ 0, got {n}")
 
         if (vec_n := _VecN.get(n)) is None:
-            _VecN[n] = vec_n = type(f"Vec_{n}", (Vec,), {"_n": n})
+            _VecN[n] = vec_n = type(f"Vec[{n}]", (Vec,), {"_n": n})
         return vec_n
 
     def __init__(self, data: int):
@@ -1416,7 +1416,7 @@ def _vec_struct_init(fields: list[tuple[str, type]]) -> str:
     lines = []
     line = "def init(self"
     for field_name, field_type in fields:
-        line += f", {field_name}: Vec[{field_type._n}] | None = None"
+        line += f", {field_name}: {field_type.__name__} | None = None"
     line += "):\n"
     lines.append(line)
     lines.append("    _n = 0\n")
@@ -1458,8 +1458,9 @@ class _VecStructMeta(type):
         cls = super().__new__(mcs, name, bases + (Vec[n],), base_attrs)
 
         # Create Struct.__init__
+        code = _vec_struct_init(fields)
         d = {}
-        exec(_vec_struct_init(fields), None, d)  # pylint: disable=exec-used
+        exec(code, None, d)  # pylint: disable=exec-used
         cls.__init__ = d["init"]
 
         # Create Struct.__str__
