@@ -264,8 +264,8 @@ def test_vec_cls_getitem():
 
 
 def test_vec_repr():
-    assert repr(Vec[0](0)) == "vec(0, 0b0)"
-    assert repr(Vec[4](0b1110_0100)) == "vec(4, 0b11100100)"
+    assert repr(Vec[0](0)) == "Vec[0](0b0)"
+    assert repr(Vec[4](0b1110_0100)) == "Vec[4](0b11100100)"
 
 
 def test_vec_bool():

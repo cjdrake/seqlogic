@@ -32,7 +32,12 @@ def test_basic():
     assert str(p.b) == "8b0100_0100"
 
     assert str(p) == "Pixel(r=8b0001_0001, g=8b0010_0010, b=8b0100_0100)"
-    assert repr(p) == 'Pixel(r=vec("8b0001_0001"), g=vec("8b0010_0010"), b=vec("8b0100_0100"))'
+    assert repr(p) == (
+        "Pixel("
+        "r=Vec[8](0b0101011001010110)"
+        ", g=Vec[8](0b0101100101011001)"
+        ", b=Vec[8](0b0110010101100101))"
+    )
 
     assert len(p) == 24
 

@@ -139,7 +139,7 @@ class CtlWriteBack(VecEnum):
 class Inst(VecStruct):
     """Instruction"""
 
-    opcode: Vec[7]
+    opcode: Opcode
     rd: Vec[5]
     funct3: Vec[3]
     rs1: Vec[5]

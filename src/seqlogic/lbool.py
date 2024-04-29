@@ -367,8 +367,7 @@ class Vec:
         return prefix + "".join(reversed(chars))
 
     def __repr__(self) -> str:
-        d = f"0b{self._data:0{self.nbits}b}"
-        return f"vec({self._n}, {d})"
+        return f"Vec[{self._n}](0b{self._data:0{self.nbits}b})"
 
     def __bool__(self) -> bool:
         return self.to_uint() != 0
@@ -1347,27 +1346,32 @@ class _VecEnumMeta(type):
 
         base_attrs = {}
         # ident = literal
-        members: dict[str, str] = {}
+        lit2name: dict[str, str] = {}
+        data2name: dict[int, str] = {}
         n = None
         for key, val in attrs.items():
             if key.startswith("__"):
                 base_attrs[key] = val
             else:
-                if key == "X":
-                    raise ValueError("Cannot use reserved name 'X'")
                 if n is None:
-                    n, _ = _lit2vec(val)
+                    n, data = _lit2vec(val)
                 else:
-                    n_i, _ = _lit2vec(val)
+                    n_i, data = _lit2vec(val)
                     if n_i != n:
                         raise ValueError(f"Expected lit len {n}, got {n_i}")
-                members[val] = key
+                if key == "X":
+                    raise ValueError("Cannot use reserved name = 'X'")
+                if data == 0:
+                    raise ValueError("Cannot use reserved data = 0")
+                lit2name[val] = key
+                data2name[data] = key
 
         # Empty Enum
         if n is None:
             # Create class
             super_cls = Vec[0]
             cls = super().__new__(mcs, name, bases + (super_cls,), base_attrs)
+            cls._data2name = data2name
             # Instantiate member
             obj = object.__new__(cls)  # pyright: ignore[reportArgumentType]
             super_cls.__init__(obj, 0)
@@ -1380,25 +1384,37 @@ class _VecEnumMeta(type):
 
         # Add X member
         x_lit = f"{n}b" + "X" * n
-        members[x_lit] = "X"
+        lit2name[x_lit] = "X"
+        data2name[0] = "X"
 
-        def _new(cls, lit: str):
-            try:
-                name = members[lit]
-            except KeyError as e:
-                s = f"Expected lit in {{{", ".join(members.keys())}}}, got {lit}"
-                raise ValueError(s) from e
+        def _new(cls, arg: str | int):
+            match arg:
+                case str() as lit:
+                    try:
+                        name = lit2name[lit]
+                    except KeyError as e:
+                        raise ValueError(f"Invalid lit: {lit}") from e
+                case int() as data:
+                    try:
+                        name = data2name[data]
+                    except KeyError as e:
+                        raise ValueError(f"Invalid data: {data}") from e
+                case _:
+                    raise TypeError("Expected arg to be str or int")
             return getattr(cls, name)
 
         # Create class
         super_cls = Vec[n]
         cls = super().__new__(mcs, name, bases + (super_cls,), base_attrs)
+        cls._data2name = data2name
+
         # Instantiate members
-        for lit, name in members.items():
+        for data, name in data2name.items():
             obj = object.__new__(cls)  # pyright: ignore[reportArgumentType]
-            super_cls.__init__(obj, _lit2vec(lit)[1])
+            super_cls.__init__(obj, data)
             obj._name = name
             setattr(cls, name, obj)
+
         # Define methods
         cls.__new__ = _new
         cls.__init__ = lambda s, lit: None
@@ -1426,9 +1442,7 @@ def _vec_struct_init(fields: list[tuple[str, type]]) -> str:
         lines.append(f"    self._{field_name}_base = _n\n")
         lines.append(f"    self._{field_name}_size = {field_type._n}\n")
         lines.append(f"    _n += self._{field_name}_size\n")
-        lines.append(f"    if {field_name} is None:\n")
-        lines.append(f"        _data |= _fill(_X, {field_type._n}) << {offset}\n")
-        lines.append("    else:\n")
+        lines.append(f"    if {field_name} is not None:\n")
         lines.append(f"        _data |= {field_name}.data << {offset}\n")
     lines.append("    self._data = _data\n")
     return "".join(lines)
@@ -1465,29 +1479,43 @@ class _VecStructMeta(type):
 
         # Create Struct.__str__
         def _str(self):
-            args = ", ".join(f"{fn}={getattr(self, fn)}" for fn, _ in fields)
-            return f"{name}({args})"
+            args = []
+            for fn, ft in fields:
+                v = getattr(self, fn)
+                if issubclass(ft, VecEnum):
+                    arg = f"{fn}={ft.__name__}.{ft._data2name[v.data]}"
+                else:
+                    arg = f"{fn}={v!s}"
+                args.append(arg)
+            return f'{name}({", ".join(args)})'
 
         cls.__str__ = _str
 
         # Create Struct.__repr__
         def _repr(self):
-            args = ", ".join(f'{fn}=vec("{getattr(self, fn)}")' for fn, _ in fields)
-            return f"{name}({args})"
+            args = []
+            for fn, ft in fields:
+                v = getattr(self, fn)
+                if issubclass(ft, VecEnum):
+                    arg = f"{fn}={ft.__name__}.{ft._data2name[v.data]}"
+                else:
+                    arg = f"{fn}={v!r}"
+                args.append(arg)
+            return f'{name}({", ".join(args)})'
 
         cls.__repr__ = _repr
 
         # Create Struct fields
-        def _fget(name, self):
+        def _fget(name, cls, self):
             n = getattr(self, f"_{name}_size")
             nbits = _ITEM_BITS * n
             mask = (1 << nbits) - 1
             i = getattr(self, f"_{name}_base")
             data = (self._data >> (_ITEM_BITS * i)) & mask
-            return Vec[n](data)
+            return cls(data)
 
-        for field_name, _ in fields:
-            setattr(cls, field_name, property(fget=partial(_fget, field_name)))
+        for fn, ft in fields:
+            setattr(cls, fn, property(fget=partial(_fget, fn, ft)))
 
         return cls
 
