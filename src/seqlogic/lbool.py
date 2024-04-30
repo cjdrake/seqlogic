@@ -1158,11 +1158,11 @@ def bools2vec(xs: Iterable[int]) -> Vec:
     For data in the form of [0, 1, 0, 1, ...],
     or [False, True, False, True, ...].
     """
-    i, data = 0, 0
+    n, data = 0, 0
     for x in xs:
-        data |= _from_bit[x] << (_ITEM_BITS * i)
-        i += 1
-    return Vec[i](data)
+        data |= _from_bit[x] << (_ITEM_BITS * n)
+        n += 1
+    return Vec[n](data)
 
 
 _NUM_RE = re.compile(
@@ -1181,11 +1181,11 @@ def _lit2vec(lit: str) -> tuple[int, int]:
             if ndigits != size:
                 s = f"Expected {size} digits, got {ndigits}"
                 raise ValueError(s)
-            i, data = 0, 0
+            n, data = 0, 0
             for c in reversed(digits):
-                data |= _from_char[c] << (i * _ITEM_BITS)
-                i += 1
-            return i, data
+                data |= _from_char[c] << (n * _ITEM_BITS)
+                n += 1
+            return n, data
         # Hexadecimal
         elif m.group("HexSize"):
             size = int(m.group("HexSize"))
@@ -1194,11 +1194,11 @@ def _lit2vec(lit: str) -> tuple[int, int]:
             if 4 * ndigits != size:
                 s = f"Expected size to match # digits, got {size} ≠ {4 * ndigits}"
                 raise ValueError(s)
-            i, data = 0, 0
+            n, data = 0, 0
             for c in reversed(digits):
-                data |= _from_hexchar[c] << (i * _ITEM_BITS)
-                i += 4
-            return i, data
+                data |= _from_hexchar[c] << (n * _ITEM_BITS)
+                n += 4
+            return n, data
         else:  # pragma: no cover
             assert False
     else:
@@ -1287,11 +1287,11 @@ def cat(*objs: int | Vec) -> Vec:
     if len(vs) == 1:
         return vs[0]
 
-    i, data = 0, 0
+    n, data = 0, 0
     for v in vs:
-        data |= v.data << (_ITEM_BITS * i)
-        i += len(v)
-    return Vec[i](data)
+        data |= v.data << (_ITEM_BITS * n)
+        n += len(v)
+    return Vec[n](data)
 
 
 def rep(obj: int | Vec, n: int) -> Vec:
