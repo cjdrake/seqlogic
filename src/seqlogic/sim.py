@@ -23,26 +23,23 @@ _START_TIME = 0
 
 
 class State(ABC):
-    """TODO(cjdrake): Write docstring."""
+    """Model component."""
 
     def __init__(self, value):
-        """TODO(cjdrake): Write docstring."""
         self._init_value = value
 
         # Reference to the event loop
         self._sim = _sim
 
     def changed(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
         raise NotImplementedError
 
     def update(self):
-        """TODO(cjdrake): Write docstring."""
         raise NotImplementedError()
 
 
 class Singular(State):
-    """TODO(cjdrake): Write docstring."""
+    """Model state organized as a single unit."""
 
     def __init__(self, value):
         super().__init__(value)
@@ -51,17 +48,14 @@ class Singular(State):
         self._changed = False
 
     def get_value(self):
-        """TODO(cjdrake): Write docstring."""
         return self._value
 
     value = property(fget=get_value)
 
     def get_next(self):
-        """TODO(cjdrake): Write docstring."""
         return self._next_value
 
     def set_next(self, value):
-        """TODO(cjdrake): Write docstring."""
         self._changed = value != self._next_value
         self._next_value = value
 
@@ -78,12 +72,11 @@ class Singular(State):
         self._changed = False
 
     def dirty(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
         return self._next_value != self._value
 
 
 class Aggregate(State):
-    """TODO(cjdrake): Write docstring."""
+    """Model state organized as multiple units."""
 
     def __init__(self, value):
         super().__init__(value)
@@ -91,25 +84,22 @@ class Aggregate(State):
         self._next_values = defaultdict(lambda: self._init_value)
         self._changed = set()
 
+    def __getitem__(self, key: int):
+        return _AggrItem(self, key)
+
     def get_value(self, index: int):
-        """TODO(cjdrake): Write docstring."""
         return self._values[index]
 
     def get_next(self, index: int):
-        """TODO(cjdrake): Write docstring."""
         return self._next_values[index]
 
     def set_next(self, index: int, value):
-        """TODO(cjdrake): Write docstring."""
         if value != self._next_values[index]:
             self._changed.add(index)
         self._next_values[index] = value
 
         # Notify the event loop
         _sim.touch(self)
-
-    def __getitem__(self, key: int):
-        return _ItemWrap(self, key)
 
     def changed(self) -> bool:
         return bool(self._changed)
@@ -120,20 +110,25 @@ class Aggregate(State):
         self._changed.clear()
 
 
-class _ItemWrap:
-    """Wrap Aggregate item getter/setter"""
+class _AggrItem:
+    """Wrap Aggregate item getter/setter."""
 
     def __init__(self, obj: Aggregate, index: int):
         self._obj = obj
         self._index = index
 
-    def _get_next(self):
+    def get_value(self):
+        return self._obj.get_value(self._index)
+
+    value = property(fget=get_value)
+
+    def get_next(self):
         return self._obj.get_next(self._index)
 
-    def _set_next(self, value):
+    def set_next(self, value):
         self._obj.set_next(self._index, value)
 
-    next = property(fget=_get_next, fset=_set_next)
+    next = property(fget=get_next, fset=set_next)
 
 
 _SimQueueItem: TypeAlias = tuple[int, Region, Coroutine, State | None]
@@ -191,7 +186,7 @@ class Sim:
     """Simulation event loop."""
 
     def __init__(self):
-        """TODO(cjdrake): Write docstring."""
+        """Initialize simulation."""
         self._started: bool = False
         # Simulation time
         self._time: int = _INIT_TIME
@@ -211,11 +206,10 @@ class Sim:
 
     @property
     def started(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
         return self._started
 
     def restart(self):
-        """Restart the simulation."""
+        """Restart simulation."""
         self._started = False
         self._time = _INIT_TIME
         self._region = None
@@ -226,38 +220,35 @@ class Sim:
         self._touched.clear()
 
     def reset(self):
-        """Reset the simulation state."""
+        """Reset simulation state."""
         self.restart()
         self._procs.clear()
         self._task_region.clear()
 
     @property
     def time(self) -> int:
-        """TODO(cjdrake): Write docstring."""
         return self._time
 
     @property
     def region(self) -> Region | None:
-        """TODO(cjdrake): Write docstring."""
         return self._region
 
     @property
     def task(self) -> Coroutine | None:
-        """TODO(cjdrake): Write docstring."""
         return self._task
 
     def call_soon(self, task: Coroutine, state: State | None = None):
-        """Schedule the task in the current timeslot."""
+        """Schedule task in the current timeslot."""
         region = self._task_region[task]
         self._queue.push(self._time, region, task, state)
 
     def call_later(self, delay: int, task: Coroutine):
-        """Schedule the task after a relative delay."""
+        """Schedule task after a relative delay."""
         region = self._task_region[task]
         self._queue.push(self._time + delay, region, task)
 
     def call_at(self, when: int, task: Coroutine):
-        """Schedule the task for an absolute timeslot."""
+        """Schedule task for an absolute timeslot."""
         region = self._task_region[task]
         self._queue.push(when, region, task)
 
@@ -410,7 +401,7 @@ async def sleep(delay: int):
 
 
 async def changed(*states: State) -> State:
-    """TODO(cjdrake): Write docstring."""
+    """Resume execution upon state change."""
     for state in states:
         _sim.add_event(state, state.changed)
     state = await SimAwaitable()
@@ -418,7 +409,7 @@ async def changed(*states: State) -> State:
 
 
 async def resume(*events: tuple[State, Callable[[], bool]]) -> State:
-    """TODO(cjdrake): Write docstring."""
+    """Resume execution upon event."""
     for state, cond in events:
         _sim.add_event(state, cond)
     state = await SimAwaitable()
@@ -431,7 +422,7 @@ def get_loop() -> Sim:
 
 
 class _Schedule:
-    """TODO(cjdrake): Write docstring."""
+    """Add scheduling semantics to coroutine functions."""
 
     def __init__(self, region: Region, func):
         self._region = region
@@ -443,24 +434,21 @@ class _Schedule:
 
 
 class initial(_Schedule):
-    """TODO(cjdrake): Write docstring."""
+    """Decorate a coroutine to run during initial scheduling region."""
 
     def __init__(self, func):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(Region(2), func)
 
 
 class always_ff(_Schedule):
-    """TODO(cjdrake): Write docstring."""
+    """Decorate a coroutine to run during flop scheduling region."""
 
     def __init__(self, func):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(Region(1), func)
 
 
 class always_comb(_Schedule):
-    """TODO(cjdrake): Write docstring."""
+    """Decorate a coroutine to run during combi scheduling region."""
 
     def __init__(self, func):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(Region(0), func)
