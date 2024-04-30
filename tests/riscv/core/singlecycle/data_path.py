@@ -1,10 +1,10 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, Struct, changed
-from seqlogic.lbool import cat, vec, zeros
+from seqlogic.lbool import cat, uint2vec, vec, zeros
 from seqlogic.sim import always_comb, initial
 
-from .. import Inst
+from .. import TEXT_BASE, Inst
 from ..common.adder import Adder
 from ..common.alu import Alu
 from ..common.immediate_generator import ImmedateGenerator
@@ -78,9 +78,8 @@ class DataPath(Module):
         self.mux_op_b = Mux(name="mux_op_b", parent=self, n=2, shape=(32,))
         self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, shape=(32,))
         self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
-        pc_init = vec("32h0040_0000")
         self.program_counter = Register(
-            name="program_counter", parent=self, shape=(32,), init=pc_init
+            name="program_counter", parent=self, shape=(32,), init=uint2vec(TEXT_BASE, 32)
         )
         self.regfile = RegFile(name="regfile", parent=self)
 
