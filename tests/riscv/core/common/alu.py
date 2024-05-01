@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import ones, xes, zeros
+from seqlogic.lbool import zeros
 from seqlogic.sim import always_comb
 
 from .. import AluOp
@@ -39,32 +39,11 @@ class Alu(Module):
                 case AluOp.SRA:
                     self.result.next, _ = self.op_a.next.arsh(self.op_b.next[0:5])
                 case AluOp.SEQ:
-                    try:
-                        a = self.op_a.next.to_uint()
-                        b = self.op_b.next.to_uint()
-                    except ValueError:
-                        self.result.next = xes(32)
-                    else:
-                        x = ones(1) if a == b else zeros(1)
-                        self.result.next = x.zext(31)
+                    self.result.next = self.op_a.next.eq(self.op_b.next).zext(32 - 1)
                 case AluOp.SLT:
-                    try:
-                        a = self.op_a.next.to_int()
-                        b = self.op_b.next.to_int()
-                    except ValueError:
-                        self.result.next = xes(32)
-                    else:
-                        x = ones(1) if a < b else zeros(1)
-                        self.result.next = x.zext(31)
+                    self.result.next = self.op_a.next.lt(self.op_b.next).zext(32 - 1)
                 case AluOp.SLTU:
-                    try:
-                        a = self.op_a.next.to_uint()
-                        b = self.op_b.next.to_uint()
-                    except ValueError:
-                        self.result.next = xes(32)
-                    else:
-                        x = ones(1) if a < b else zeros(1)
-                        self.result.next = x.zext(31)
+                    self.result.next = self.op_a.next.ltu(self.op_b.next).zext(32 - 1)
                 case AluOp.XOR:
                     self.result.next = self.op_a.next ^ self.op_b.next
                 case AluOp.OR:
@@ -78,7 +57,4 @@ class Alu(Module):
     async def p_c_1(self):
         while True:
             await changed(self.result)
-            if self.result.next == zeros(32):
-                self.result_equal_zero.next = ones(1)
-            else:
-                self.result_equal_zero.next = zeros(1)
+            self.result_equal_zero.next = self.result.next.eq(zeros(32))

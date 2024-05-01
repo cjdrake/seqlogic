@@ -713,35 +713,50 @@ class Vec:
             return -(self.not_().to_uint() + 1)
         return self.to_uint()
 
-    def ult(self, other: Vec) -> bool:
-        """Unsigned less than.
+    def eq(self, other: Vec) -> Vec[1]:
+        """Equal operator.
 
         Args:
             other: vec of equal length.
 
         Returns:
-            Boolean result of unsigned(self) < unsigned(other)
-
-        Raises:
-            ValueError: vec lengths do not match.
+            Vec[1] result of self == other
         """
         self._check_len(other)
-        return self.to_uint() < other.to_uint()
+        try:
+            return (_Vec0, _Vec1)[self.to_uint() == other.to_uint()]
+        except ValueError:
+            return xes(1)
 
-    def slt(self, other: Vec) -> bool:
-        """Signed less than.
+    def ltu(self, other: Vec) -> Vec[1]:
+        """Less than operator (unsigned).
 
         Args:
             other: vec of equal length.
 
         Returns:
-            Boolean result of signed(self) < signed(other)
-
-        Raises:
-            ValueError: vec lengths do not match.
+            Vec[1] result of unsigned(self) < unsigned(other)
         """
         self._check_len(other)
-        return self.to_int() < other.to_int()
+        try:
+            return (_Vec0, _Vec1)[self.to_uint() < other.to_uint()]
+        except ValueError:
+            return xes(1)
+
+    def lt(self, other: Vec) -> Vec[1]:
+        """Less than operator (signed).
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Vec[1] result of signed(self) < signed(other)
+        """
+        self._check_len(other)
+        try:
+            return (_Vec0, _Vec1)[self.to_int() < other.to_int()]
+        except ValueError:
+            return xes(1)
 
     def zext(self, n: int) -> Vec:
         """Zero extend by n bits.

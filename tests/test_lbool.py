@@ -454,34 +454,34 @@ UXOR = {
 }
 
 
-def test_vec_ult():
+def test_vec_ltu():
     zero = uint2vec(0, 8)
     one = uint2vec(1, 8)
     two = uint2vec(2, 8)
-    assert not zero.ult(zero)
-    assert zero.ult(one)
-    assert zero.ult(two)
-    assert not one.ult(zero)
-    assert not one.ult(one)
-    assert one.ult(two)
-    assert not two.ult(zero)
-    assert not two.ult(one)
-    assert not two.ult(two)
+    assert not zero.ltu(zero)
+    assert zero.ltu(one)
+    assert zero.ltu(two)
+    assert not one.ltu(zero)
+    assert not one.ltu(one)
+    assert one.ltu(two)
+    assert not two.ltu(zero)
+    assert not two.ltu(one)
+    assert not two.ltu(two)
 
 
-def test_vec_slt():
+def test_vec_lt():
     n_one = int2vec(-1, 8)
     zero = int2vec(0, 8)
     one = int2vec(1, 8)
-    assert not n_one.slt(n_one)
-    assert n_one.slt(zero)
-    assert n_one.slt(one)
-    assert not zero.slt(n_one)
-    assert not zero.slt(zero)
-    assert zero.slt(one)
-    assert not one.slt(n_one)
-    assert not one.slt(zero)
-    assert not one.slt(one)
+    assert not n_one.lt(n_one)
+    assert n_one.lt(zero)
+    assert n_one.lt(one)
+    assert not zero.lt(n_one)
+    assert not zero.lt(zero)
+    assert zero.lt(one)
+    assert not one.lt(n_one)
+    assert not one.lt(zero)
+    assert not one.lt(one)
 
 
 def test_vec_uxor():
