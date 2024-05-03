@@ -12,14 +12,17 @@ import inspect
 from abc import ABC
 from collections import defaultdict
 from collections.abc import Awaitable, Callable, Coroutine, Generator
+from enum import IntEnum, auto
 from functools import partial
-from typing import NewType, TypeAlias
-
-Region = NewType("Region", int)
-
+from typing import TypeAlias
 
 _INIT_TIME = -1
 _START_TIME = 0
+
+
+class Region(IntEnum):
+    REACTIVE = auto()
+    ACTIVE = auto()
 
 
 class State(ABC):
@@ -46,12 +49,15 @@ class Singular(State):
         self._changed = False
 
     def get_value(self):
-        return self._value
+        if self._sim.region is None:
+            return self._value
+        if self._sim.region == Region.REACTIVE:
+            return self._next_value
+        if self._sim.region == Region.ACTIVE:
+            return self._value
+        assert False
 
     value = property(fget=get_value)
-
-    def get_next(self):
-        return self._next_value
 
     def set_next(self, value):
         self._changed = value != self._next_value
@@ -60,7 +66,7 @@ class Singular(State):
         # Notify the event loop
         _sim.touch(self)
 
-    next = property(fget=get_next, fset=set_next)
+    next = property(fset=set_next)
 
     def changed(self) -> bool:
         return self._changed
@@ -86,10 +92,13 @@ class Aggregate(State):
         return _AggrItem(self, key)
 
     def get_value(self, index: int):
-        return self._values[index]
-
-    def get_next(self, index: int):
-        return self._next_values[index]
+        if self._sim.region is None:
+            return self._values[index]
+        if self._sim.region == Region.REACTIVE:
+            return self._next_values[index]
+        if self._sim.region == Region.ACTIVE:
+            return self._values[index]
+        assert False
 
     def set_next(self, index: int, value):
         if value != self._next_values[index]:
@@ -120,13 +129,10 @@ class _AggrItem:
 
     value = property(fget=get_value)
 
-    def get_next(self):
-        return self._obj.get_next(self._index)
-
     def set_next(self, value):
         self._obj.set_next(self._index, value)
 
-    next = property(fget=get_next, fset=set_next)
+    next = property(fset=set_next)
 
 
 _SimQueueItem: TypeAlias = tuple[int, Region, Coroutine, State | None]
@@ -435,18 +441,18 @@ class initial(_Schedule):
     """Decorate a coroutine to run during initial scheduling region."""
 
     def __init__(self, func):
-        super().__init__(Region(2), func)
+        super().__init__(Region.ACTIVE, func)
 
 
 class always_ff(_Schedule):
     """Decorate a coroutine to run during flop scheduling region."""
 
     def __init__(self, func):
-        super().__init__(Region(1), func)
+        super().__init__(Region.ACTIVE, func)
 
 
 class always_comb(_Schedule):
     """Decorate a coroutine to run during combi scheduling region."""
 
     def __init__(self, func):
-        super().__init__(Region(0), func)
+        super().__init__(Region.REACTIVE, func)

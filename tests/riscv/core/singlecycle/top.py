@@ -91,10 +91,10 @@ class Top(Module):
         while True:
             await changed(self.text_memory_bus.rd_data)
             self._inst.next = Inst(  # pyright: ignore[reportCallIssue]
-                opcode=self.text_memory_bus.rd_data.next[0:7],
-                rd=self.text_memory_bus.rd_data.next[7:12],
-                funct3=self.text_memory_bus.rd_data.next[12:15],
-                rs1=self.text_memory_bus.rd_data.next[15:20],
-                rs2=self.text_memory_bus.rd_data.next[20:25],
-                funct7=self.text_memory_bus.rd_data.next[25:32],
+                opcode=self.text_memory_bus.rd_data.value[0:7],
+                rd=self.text_memory_bus.rd_data.value[7:12],
+                funct3=self.text_memory_bus.rd_data.value[12:15],
+                rs1=self.text_memory_bus.rd_data.value[15:20],
+                rs2=self.text_memory_bus.rd_data.value[20:25],
+                funct7=self.text_memory_bus.rd_data.value[25:32],
             )

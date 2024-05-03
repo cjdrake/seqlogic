@@ -48,7 +48,7 @@ class DataMemoryBus(Module):
         while True:
             await changed(self.addr)
             try:
-                addr = self.addr.next.to_uint()
+                addr = self.addr.value.to_uint()
             except ValueError:
                 self._is_data.next = xes(1)
             else:
@@ -61,19 +61,19 @@ class DataMemoryBus(Module):
     async def p_c_1(self):
         while True:
             await changed(self.wr_en, self._is_data)
-            self.data_memory.wr_en.next = self.wr_en.next & self._is_data.next
+            self.data_memory.wr_en.next = self.wr_en.value & self._is_data.value
 
     @always_comb
     async def p_c_2(self):
         while True:
             await changed(self.addr)
-            self.data_memory.addr.next = self.addr.next[2:17]
+            self.data_memory.addr.next = self.addr.value[2:17]
 
     @always_comb
     async def p_c_3(self):
         while True:
             await changed(self.rd_en, self._is_data, self._data)
-            if self.rd_en.next == ones(1) and self._is_data.next == ones(1):
-                self.rd_data.next = self._data.next
+            if self.rd_en.value == ones(1) and self._is_data.value == ones(1):
+                self.rd_data.next = self._data.value
             else:
                 self.rd_data.next = xes(32)

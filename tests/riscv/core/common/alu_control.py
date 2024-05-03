@@ -33,7 +33,7 @@ class AluControl(Module):
     async def p_c_0(self):
         while True:
             await changed(self.inst_funct3)
-            match self.inst_funct3.next:
+            match self.inst_funct3.value:
                 case Funct3AluLogic.ADD_SUB:
                     self._default_funct.next = AluOp.ADD
                 case Funct3AluLogic.SLL:
@@ -57,7 +57,7 @@ class AluControl(Module):
     async def p_c_1(self):
         while True:
             await changed(self.inst_funct3)
-            match self.inst_funct3.next:
+            match self.inst_funct3.value:
                 case Funct3AluLogic.ADD_SUB:
                     self._secondary_funct.next = AluOp.SUB
                 case Funct3AluLogic.SHIFTR:
@@ -69,7 +69,7 @@ class AluControl(Module):
     async def p_c_2(self):
         while True:
             await changed(self.inst_funct3)
-            match self.inst_funct3.next:
+            match self.inst_funct3.value:
                 case Funct3Branch.EQ | Funct3Branch.NE:
                     self._branch_funct.next = AluOp.SEQ
                 case Funct3Branch.LT | Funct3Branch.GE:
@@ -90,22 +90,22 @@ class AluControl(Module):
                 self._default_funct,
                 self._branch_funct,
             )
-            match self.alu_op_type.next:
+            match self.alu_op_type.value:
                 case CtlAlu.ADD:
                     self.alu_function.next = AluOp.ADD
                 case CtlAlu.OP:
-                    if self.inst_funct7.next[5] == ones(1):
-                        self.alu_function.next = self._secondary_funct.next
+                    if self.inst_funct7.value[5] == ones(1):
+                        self.alu_function.next = self._secondary_funct.value
                     else:
-                        self.alu_function.next = self._default_funct.next
+                        self.alu_function.next = self._default_funct.value
                 case CtlAlu.OP_IMM:
-                    if self.inst_funct7.next[5] == ones(1) and self.inst_funct3.next[0:2] == vec(
+                    if self.inst_funct7.value[5] == ones(1) and self.inst_funct3.value[0:2] == vec(
                         "2b01"
                     ):
-                        self.alu_function.next = self._secondary_funct.next
+                        self.alu_function.next = self._secondary_funct.value
                     else:
-                        self.alu_function.next = self._default_funct.next
+                        self.alu_function.next = self._default_funct.value
                 case CtlAlu.BRANCH:
-                    self.alu_function.next = self._branch_funct.next
+                    self.alu_function.next = self._branch_funct.value
                 case _:
                     self.alu_function.next = AluOp.X

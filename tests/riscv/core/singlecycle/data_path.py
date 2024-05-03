@@ -160,12 +160,12 @@ class DataPath(Module):
         while True:
             await changed(self.alu_result)
             # mux_next_pc.in2({alu_result[31:1], 1'b0})
-            self.mux_next_pc.ins[2].next = cat(zeros(1), self.alu_result.next[1:32])
+            self.mux_next_pc.ins[2].next = cat(zeros(1), self.alu_result.value[1:32])
 
     @always_comb
     async def p_c_1(self):
         while True:
             await changed(self.inst)
-            self.regfile.rs2_addr.next = self.inst.next.rs2
-            self.regfile.rs1_addr.next = self.inst.next.rs1
-            self.regfile.wr_addr.next = self.inst.next.rd
+            self.regfile.rs2_addr.next = self.inst.value.rs2
+            self.regfile.rs1_addr.next = self.inst.value.rs1
+            self.regfile.wr_addr.next = self.inst.value.rd

@@ -27,8 +27,8 @@ class Mux(Module):
         while True:
             await changed(self.sel, *self.ins)
             try:
-                index = self.sel.next.to_uint()
+                index = self.sel.value.to_uint()
             except ValueError:
                 self.out.next = xes(self._shape[0])
             else:
-                self.out.next = self.ins[index].next
+                self.out.next = self.ins[index].value

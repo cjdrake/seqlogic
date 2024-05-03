@@ -64,8 +64,8 @@ class DataMemory(Module):
         while True:
             await changed(self.addr, self._mem)
             try:
-                i = self.addr.next.to_uint()
+                i = self.addr.value.to_uint()
             except ValueError:
                 self.rd_data.next = xes(WORD_BITS)
             else:
-                self.rd_data.next = self._mem[i].next
+                self.rd_data.next = self._mem[i].value

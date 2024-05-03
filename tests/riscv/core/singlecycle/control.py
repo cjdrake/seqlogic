@@ -33,9 +33,9 @@ class Control(Module):
     async def p_c_0(self):
         while True:
             await changed(self.inst_opcode, self.take_branch)
-            match self.inst_opcode.next:
+            match self.inst_opcode.value:
                 case Opcode.BRANCH:
-                    if self.take_branch.next:
+                    if self.take_branch.value:
                         self.next_pc_sel.next = CtlPc.PC_IMM
                     else:
                         self.next_pc_sel.next = CtlPc.PC4
@@ -60,7 +60,7 @@ class Control(Module):
             self.data_mem_wr_en.next = zeros(1)
             self.reg_writeback_sel.next = vec("3b000")
 
-            match self.inst_opcode.next:
+            match self.inst_opcode.value:
                 case Opcode.LOAD:
                     self.regfile_wr_en.next = ones(1)
                     self.alu_op_a_sel.next = CtlAluA.RS1

@@ -27,29 +27,29 @@ class Alu(Module):
     async def p_c_0(self):
         while True:
             await changed(self.alu_function, self.op_a, self.op_b)
-            match self.alu_function.next:
+            match self.alu_function.value:
                 case AluOp.ADD:
-                    self.result.next = self.op_a.next + self.op_b.next
+                    self.result.next = self.op_a.value + self.op_b.value
                 case AluOp.SUB:
-                    self.result.next = self.op_a.next - self.op_b.next
+                    self.result.next = self.op_a.value - self.op_b.value
                 case AluOp.SLL:
-                    self.result.next = self.op_a.next << self.op_b.next[0:5]
+                    self.result.next = self.op_a.value << self.op_b.value[0:5]
                 case AluOp.SRL:
-                    self.result.next = self.op_a.next >> self.op_b.next[0:5]
+                    self.result.next = self.op_a.value >> self.op_b.value[0:5]
                 case AluOp.SRA:
-                    self.result.next, _ = self.op_a.next.arsh(self.op_b.next[0:5])
+                    self.result.next, _ = self.op_a.value.arsh(self.op_b.value[0:5])
                 case AluOp.SEQ:
-                    self.result.next = self.op_a.next.eq(self.op_b.next).zext(32 - 1)
+                    self.result.next = self.op_a.value.eq(self.op_b.value).zext(32 - 1)
                 case AluOp.SLT:
-                    self.result.next = self.op_a.next.lt(self.op_b.next).zext(32 - 1)
+                    self.result.next = self.op_a.value.lt(self.op_b.value).zext(32 - 1)
                 case AluOp.SLTU:
-                    self.result.next = self.op_a.next.ltu(self.op_b.next).zext(32 - 1)
+                    self.result.next = self.op_a.value.ltu(self.op_b.value).zext(32 - 1)
                 case AluOp.XOR:
-                    self.result.next = self.op_a.next ^ self.op_b.next
+                    self.result.next = self.op_a.value ^ self.op_b.value
                 case AluOp.OR:
-                    self.result.next = self.op_a.next | self.op_b.next
+                    self.result.next = self.op_a.value | self.op_b.value
                 case AluOp.AND:
-                    self.result.next = self.op_a.next & self.op_b.next
+                    self.result.next = self.op_a.value & self.op_b.value
                 case _:
                     self.result.next = zeros(32)
 
@@ -57,4 +57,4 @@ class Alu(Module):
     async def p_c_1(self):
         while True:
             await changed(self.result)
-            self.result_equal_zero.next = self.result.next.eq(zeros(32))
+            self.result_equal_zero.next = self.result.value.eq(zeros(32))

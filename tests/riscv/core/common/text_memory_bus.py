@@ -33,10 +33,10 @@ class TextMemoryBus(Module):
     async def p_c_0(self):
         while True:
             await changed(self.rd_addr, self._text)
-            addr = self.rd_addr.next.to_uint()
+            addr = self.rd_addr.value.to_uint()
             is_text = TEXT_BASE <= addr < (TEXT_BASE + TEXT_SIZE)
             if is_text:
-                self.rd_data.next = self._text.next
+                self.rd_data.next = self._text.value
             else:
                 self.rd_data.next = xes(WORD_BITS)
 
@@ -44,4 +44,4 @@ class TextMemoryBus(Module):
     async def p_c_1(self):
         while True:
             await changed(self.rd_addr)
-            self.text_memory.rd_addr.next = self.rd_addr.next[2:TEXT_BITS]
+            self.text_memory.rd_addr.next = self.rd_addr.value[2:TEXT_BITS]

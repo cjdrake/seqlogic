@@ -144,9 +144,9 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
         async def proc():
             while True:
                 await changed(src)
-                self.next = src.next
+                self.next = src.value
 
-        self._procs.append((Region(0), proc, (), {}))
+        self._procs.append((Region.REACTIVE, proc, (), {}))
 
 
 class _TraceAggregate(Leaf, _TraceIf, Aggregate, _ProcIf):

@@ -25,4 +25,4 @@ class Adder(Module):
     async def p_c_0(self):
         while True:
             await changed(self.op_a, self.op_b)
-            self.result.next = self.op_a.next + self.op_b.next
+            self.result.next = self.op_a.value + self.op_b.value

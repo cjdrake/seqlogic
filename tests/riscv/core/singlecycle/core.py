@@ -97,7 +97,7 @@ class Core(Module):
     async def p_c_0(self):
         while True:
             await changed(self.inst)
-            self.ctlpath.inst_opcode.next = self.inst.next.opcode
-            self.ctlpath.inst_funct3.next = self.inst.next.funct3
-            self.ctlpath.inst_funct7.next = self.inst.next.funct7
-            self.data_memory_interface.data_format.next = self.inst.next.funct3
+            self.ctlpath.inst_opcode.next = self.inst.value.opcode
+            self.ctlpath.inst_funct3.next = self.inst.value.funct3
+            self.ctlpath.inst_funct7.next = self.inst.value.funct7
+            self.data_memory_interface.data_format.next = self.inst.value.funct3

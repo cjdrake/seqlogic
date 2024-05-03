@@ -40,13 +40,13 @@ class DataMemoryInterface(Module):
     async def p_c_0(self):
         while True:
             await changed(self.data_format, self.addr)
-            if self.data_format.next[:2] == vec("2b00"):
-                self.bus_wr_be.next = vec("4b0001") << self.addr.next[:2]
-            elif self.data_format.next[:2] == vec("2b01"):
-                self.bus_wr_be.next = vec("4b0011") << self.addr.next[:2]
-            elif self.data_format.next[:2] == vec("2b10"):
-                self.bus_wr_be.next = vec("4b1111") << self.addr.next[:2]
-            elif self.data_format.next[:2] == vec("2b11"):
+            if self.data_format.value[:2] == vec("2b00"):
+                self.bus_wr_be.next = vec("4b0001") << self.addr.value[:2]
+            elif self.data_format.value[:2] == vec("2b01"):
+                self.bus_wr_be.next = vec("4b0011") << self.addr.value[:2]
+            elif self.data_format.value[:2] == vec("2b10"):
+                self.bus_wr_be.next = vec("4b1111") << self.addr.value[:2]
+            elif self.data_format.value[:2] == vec("2b11"):
                 self.bus_wr_be.next = vec("4b0000")
             else:
                 self.bus_wr_be.next = xes(4)
@@ -55,22 +55,22 @@ class DataMemoryInterface(Module):
     async def p_c_1(self):
         while True:
             await changed(self.addr, self.wr_data)
-            n = cat(vec("3b000"), self.addr.next[:2])
-            self.bus_wr_data.next = self.wr_data.next << n
+            n = cat(vec("3b000"), self.addr.value[:2])
+            self.bus_wr_data.next = self.wr_data.value << n
 
     @always_comb
     async def p_c_2(self):
         while True:
             await changed(self.data_format, self.addr, self.bus_rd_data)
-            n = cat(vec("3b000"), self.addr.next[:2])
-            temp = self.bus_rd_data.next >> n
-            if self.data_format.next[:2] == vec("2b00"):
-                x = ~(self.data_format.next[2]) & temp[7]
+            n = cat(vec("3b000"), self.addr.value[:2])
+            temp = self.bus_rd_data.value >> n
+            if self.data_format.value[:2] == vec("2b00"):
+                x = ~(self.data_format.value[2]) & temp[7]
                 self.rd_data.next = cat(temp[:8], rep(x, 24))
-            elif self.data_format.next[:2] == vec("2b01"):
-                x = ~(self.data_format.next[2]) & temp[15]
+            elif self.data_format.value[:2] == vec("2b01"):
+                x = ~(self.data_format.value[2]) & temp[15]
                 self.rd_data.next = cat(temp[:16], rep(x, 16))
-            elif self.data_format.next[:2] == vec("2b10"):
+            elif self.data_format.value[:2] == vec("2b10"):
                 self.rd_data.next = temp
             else:
                 self.rd_data.next = xes(32)

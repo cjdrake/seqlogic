@@ -46,7 +46,10 @@ class RegFile(Module):
 
         while True:
             await resume((self.clock, f))
-            i = self.wr_addr.value.to_uint()
+            try:
+                i = self.wr_addr.value.to_uint()
+            except ValueError:
+                i = 0
             if i != 0:
                 self._regs[i].next = self.wr_data.value
 
@@ -55,19 +58,19 @@ class RegFile(Module):
         while True:
             await changed(self.rs1_addr, self._regs)
             try:
-                i = self.rs1_addr.next.to_uint()
+                i = self.rs1_addr.value.to_uint()
             except ValueError:
                 self.rs1_data.next = xes(WORD_BITS)
             else:
-                self.rs1_data.next = self._regs[i].next
+                self.rs1_data.next = self._regs[i].value
 
     @always_comb
     async def p_c_1(self):
         while True:
             await changed(self.rs2_addr, self._regs)
             try:
-                i = self.rs2_addr.next.to_uint()
+                i = self.rs2_addr.value.to_uint()
             except ValueError:
                 self.rs2_data.next = xes(WORD_BITS)
             else:
-                self.rs2_data.next = self._regs[i].next
+                self.rs2_data.next = self._regs[i].value
