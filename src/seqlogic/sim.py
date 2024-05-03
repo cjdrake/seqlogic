@@ -25,9 +25,7 @@ _START_TIME = 0
 class State(ABC):
     """Model component."""
 
-    def __init__(self, value):
-        self._init_value = value
-
+    def __init__(self):
         # Reference to the event loop
         self._sim = _sim
 
@@ -42,9 +40,9 @@ class Singular(State):
     """Model state organized as a single unit."""
 
     def __init__(self, value):
-        super().__init__(value)
-        self._value = self._init_value
-        self._next_value = self._init_value
+        super().__init__()
+        self._value = value
+        self._next_value = value
         self._changed = False
 
     def get_value(self):
@@ -79,9 +77,9 @@ class Aggregate(State):
     """Model state organized as multiple units."""
 
     def __init__(self, value):
-        super().__init__(value)
-        self._values = defaultdict(lambda: self._init_value)
-        self._next_values = defaultdict(lambda: self._init_value)
+        super().__init__()
+        self._values = defaultdict(lambda: value)
+        self._next_values = defaultdict(lambda: value)
         self._changed = set()
 
     def __getitem__(self, key: int):
