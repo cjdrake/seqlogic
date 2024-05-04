@@ -32,7 +32,7 @@ import re
 from collections.abc import Generator, Iterable
 from functools import cached_property, partial
 
-from .util import clog2
+from .util import classproperty, clog2
 
 _ITEM_BITS = 2
 _ITEM_MASK = 0b11
@@ -321,6 +321,11 @@ class Vec:
             _VecN[n] = vec_n = type(f"Vec[{n}]", (Vec,), {"_n": n})
         return vec_n
 
+    @classproperty
+    def nbits(cls):  # pylint: disable=no-self-argument
+        """Number of bits of data."""
+        return _ITEM_BITS * cls._n
+
     def __init__(self, data: int):
         """Initialize.
 
@@ -421,11 +426,6 @@ class Vec:
     def data(self) -> int:
         """Packed items."""
         return self._data
-
-    @cached_property
-    def nbits(self) -> int:
-        """Number of bits of data."""
-        return _ITEM_BITS * self._n
 
     def not_(self) -> Vec:
         """Bitwise lifted NOT.
