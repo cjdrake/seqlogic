@@ -47,6 +47,7 @@ def test_basic():
     assert Color.BLUE.data == 0b1001
     assert str(Color.BLUE) == "2b10"
     assert Color("2b10") is Color.BLUE
+    assert Color(0b1001) is Color.BLUE
 
     assert len(Color.X) == 2
     assert Color.X.name == "X"
@@ -56,6 +57,10 @@ def test_basic():
 
     with pytest.raises(ValueError):
         _ = Color("2b11")
+    with pytest.raises(ValueError):
+        _ = Color(0b1010)
+    with pytest.raises(TypeError):
+        _ = Color(1.23e4)
 
 
 def test_slicing():
@@ -71,6 +76,13 @@ def test_enum_error():
             X = "4bXXXX"
 
         _ = InvalidName()
+
+    with pytest.raises(ValueError):
+
+        class InvalidData(VecEnum):
+            FOO = "4bXXXX"
+
+        _ = InvalidData()
 
     # The literal must be a str
     with pytest.raises(TypeError):
