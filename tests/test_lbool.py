@@ -612,6 +612,13 @@ def test_vec_lsh():
     with pytest.raises(ValueError):
         v.lsh(2, Vec[3](0b01_01_01))
 
+    assert vec("2b01").lsh(vec("1bX")) == (vec("2bXX"), E)
+    assert vec("2b01").lsh(vec("1b-")) == (vec("2b--"), E)
+    assert vec("2b01").lsh(vec("1b1")) == (vec("2b10"), F)
+
+    with pytest.raises(TypeError):
+        v.lsh("foo")  # pyright: ignore[reportArgumentType]
+
 
 def test_vec_rsh():
     v = Vec[4](0b10_10_10_10)
@@ -631,6 +638,13 @@ def test_vec_rsh():
     assert v.rsh(2, Vec[2](0b01_10)) == (Vec[4](0b01_10_10_10), Vec[2](0b10_10))
     with pytest.raises(ValueError):
         v.rsh(2, Vec[3](0b01_01_01))
+
+    assert vec("2b01").rsh(vec("1bX")) == (vec("2bXX"), E)
+    assert vec("2b01").rsh(vec("1b-")) == (vec("2b--"), E)
+    assert vec("2b01").rsh(vec("1b1")) == (vec("2b00"), T)
+
+    with pytest.raises(TypeError):
+        v.rsh("foo")  # pyright: ignore[reportArgumentType]
 
 
 def test_vec_arsh():
@@ -652,6 +666,13 @@ def test_vec_arsh():
         v.arsh(-1)
     with pytest.raises(ValueError):
         v.arsh(5)
+
+    assert vec("2b01").arsh(vec("1bX")) == (vec("2bXX"), E)
+    assert vec("2b01").arsh(vec("1b-")) == (vec("2b--"), E)
+    assert vec("2b01").arsh(vec("1b1")) == (vec("2b00"), T)
+
+    with pytest.raises(TypeError):
+        v.arsh("foo")  # pyright: ignore[reportArgumentType]
 
 
 ADD_VALS = [
