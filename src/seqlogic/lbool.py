@@ -1308,14 +1308,12 @@ def rep(obj: int | Vec, n: int) -> Vec:
 
 
 def _consts(x: int, n: int) -> Vec:
-    if n < 0:
-        raise ValueError(f"Expected n ≥, got {n}")
     return Vec[n](_fill(x, n))
 
 
 def xes(n: int) -> Vec:
     """Return a vec packed with n X items."""
-    return _consts(_X, n)
+    return Vec[n](0)
 
 
 def zeros(n: int) -> Vec:
