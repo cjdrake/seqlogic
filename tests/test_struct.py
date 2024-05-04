@@ -5,13 +5,23 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportCallIssue=false
 
-from seqlogic.lbool import Vec, VecStruct, vec
+from seqlogic.lbool import Vec, VecEnum, VecStruct, vec
 
 
 class Pixel(VecStruct):
     r: Vec[8]
     g: Vec[8]
     b: Vec[8]
+
+
+class MyEnum(VecEnum):
+    A = "2b01"
+    B = "2b10"
+
+
+class Mixed(VecStruct):
+    a: Vec[4]
+    b: MyEnum
 
 
 def test_empty():
@@ -56,3 +66,13 @@ def test_basic():
     assert str(p) == "Pixel(r=8b0001_0001, g=8bXXXX_XXXX, b=8b0100_0100)"
     p = Pixel(g=vec("8b0010_0010"), b=vec("8b0100_0100"))
     assert str(p) == "Pixel(r=8bXXXX_XXXX, g=8b0010_0010, b=8b0100_0100)"
+
+
+def test_mixed():
+    mx = Mixed()
+    assert str(mx) == "Mixed(a=4bXXXX, b=MyEnum.X)"
+    assert repr(mx) == "Mixed(a=Vec[4](0b00000000), b=MyEnum.X)"
+
+    m1 = Mixed(a=vec("4b1010"), b=MyEnum.A)
+    assert str(m1) == "Mixed(a=4b1010, b=MyEnum.A)"
+    assert m1.b.B.name == "B"
