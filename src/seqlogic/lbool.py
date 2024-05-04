@@ -792,6 +792,7 @@ class Vec:
         for i in range(self._n):
             a = self._get_item(i)
             b = pattern._get_item(i)
+            # Mismatch on (0b01, 0b10) or (0b10, 0b01)
             if a ^ b == 0b11:
                 return _Vec0
         return _Vec1
