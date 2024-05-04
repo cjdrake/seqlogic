@@ -326,7 +326,7 @@ class Bits:
         Raises:
             ValueError: bit array sizes do not match.
         """
-        return self._v.ult(other._v)
+        return bool(self._v.ltu(other._v))
 
     def slt(self, other: Bits) -> bool:
         """Signed less than.
@@ -340,7 +340,7 @@ class Bits:
         Raises:
             ValueError: bit array sizes do not match.
         """
-        return self._v.slt(other._v)
+        return bool(self._v.lt(other._v))
 
     def zext(self, n: int) -> Bits:
         """Return bit array zero extended by n bits.
