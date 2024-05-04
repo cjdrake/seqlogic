@@ -907,7 +907,7 @@ class Vec:
         y = Vec[self._n](sh._data | (ci_data << sh.nbits))
         return y, co
 
-    def add(self, other: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1], Vec[1]]:
+    def add(self, other: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
         """Twos complement addition.
 
         Args:
@@ -925,9 +925,9 @@ class Vec:
         n, a, b = self._n, self, other
 
         if a.has_x() or b.has_x() or ci.has_x():
-            return Vec[n](_fill(_X, n)), _VecX, _VecX
+            return Vec[n](_fill(_X, n)), _VecX
         if a.has_dc() or b.has_dc() or ci.has_dc():
-            return Vec[n](_fill(_W, n)), _VecW, _VecW
+            return Vec[n](_fill(_W, n)), _VecW
 
         s = a.to_uint() + b.to_uint() + ci.to_uint()
 
@@ -939,17 +939,9 @@ class Vec:
         # Carry out is True if there is leftover sum data
         co = (_Vec0, _Vec1)[s != 0]
 
-        s = Vec[n](data)
+        return Vec[n](data), co
 
-        # Overflow is true if sign A matches sign B, and mismatches sign S
-        aa = a[-1]
-        bb = b[-1]
-        ss = s[-1]
-        ovf = ~aa & ~bb & ss | aa & bb & ~ss
-
-        return s, co, ovf
-
-    def sub(self, other: Vec) -> tuple[Vec, Vec[1], Vec[1]]:
+    def sub(self, other: Vec) -> tuple[Vec, Vec[1]]:
         """Twos complement subtraction.
 
         Args:
@@ -963,7 +955,7 @@ class Vec:
         """
         return self.add(other.not_(), ci=_Vec1)
 
-    def neg(self) -> tuple[Vec, Vec[1], Vec[1]]:
+    def neg(self) -> tuple[Vec, Vec[1]]:
         """Twos complement negation.
 
         Computed using 0 - self.

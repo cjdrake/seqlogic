@@ -607,9 +607,9 @@ ADD_VALS = [
 
 def test_vec_add():
     """Test bits add method."""
-    for a, b, ci, s, co, v in ADD_VALS:
+    for a, b, ci, s, co, _ in ADD_VALS:
         a, b, s = vec(a), vec(b), vec(s)
-        assert a.add(b, ci) == (s, co, v)
+        assert a.add(b, ci) == (s, co)
 
 
 def test_vec_addsubnegops():

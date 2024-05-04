@@ -430,7 +430,7 @@ class Bits:
         y, co = self._v.arsh(n)
         return _v2b(y), _v2b(co)
 
-    def add(self, other: Bits, ci: Bits[1]) -> tuple[Bits, Bits[1], Bits[1]]:
+    def add(self, other: Bits, ci: Bits[1]) -> tuple[Bits, Bits[1]]:
         """Twos complement additions.
 
         Args:
@@ -442,10 +442,10 @@ class Bits:
         Raises:
             ValueError: bit array lengths are invalid/inconsistent.
         """
-        s, co, ovf = self._v.add(other._v, ci._v)
-        return _v2b(s), _v2b(co), _v2b(ovf)
+        s, co = self._v.add(other._v, ci._v)
+        return _v2b(s), _v2b(co)
 
-    def sub(self, other: Bits) -> tuple[Bits, Bits[1], Bits[1]]:
+    def sub(self, other: Bits) -> tuple[Bits, Bits[1]]:
         """Twos complement subtraction.
 
         Args:
@@ -454,10 +454,10 @@ class Bits:
         Raises:
             ValueError: bit array lengths are invalid/inconsistent.
         """
-        s, co, ovf = self._v.sub(other._v)
-        return _v2b(s), _v2b(co), _v2b(ovf)
+        s, co = self._v.sub(other._v)
+        return _v2b(s), _v2b(co)
 
-    def neg(self) -> tuple[Bits, Bits[1], Bits[1]]:
+    def neg(self) -> tuple[Bits, Bits[1]]:
         """Twos complement negation.
 
         Computed using 0 - self.
@@ -465,8 +465,8 @@ class Bits:
         Returns:
             3-tuple of (sum, carry-out, overflow).
         """
-        s, co, ovf = self._v.neg()
-        return _v2b(s), _v2b(co), _v2b(ovf)
+        s, co = self._v.neg()
+        return _v2b(s), _v2b(co)
 
     def _check_shape(self, other: Bits):
         if self._shape != other.shape:
