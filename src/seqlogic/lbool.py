@@ -726,7 +726,22 @@ class Vec:
         try:
             return (_Vec0, _Vec1)[self.to_uint() == other.to_uint()]
         except ValueError:
-            return xes(1)
+            return _VecX
+
+    def neq(self, other: Vec) -> Vec[1]:
+        """Not Equal operator.
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Vec[1] result of self != other
+        """
+        self._check_len(other)
+        try:
+            return (_Vec0, _Vec1)[self.to_uint() != other.to_uint()]
+        except ValueError:
+            return _VecX
 
     def ltu(self, other: Vec) -> Vec[1]:
         """Less than operator (unsigned).
@@ -741,7 +756,7 @@ class Vec:
         try:
             return (_Vec0, _Vec1)[self.to_uint() < other.to_uint()]
         except ValueError:
-            return xes(1)
+            return _VecX
 
     def lt(self, other: Vec) -> Vec[1]:
         """Less than operator (signed).
@@ -756,7 +771,7 @@ class Vec:
         try:
             return (_Vec0, _Vec1)[self.to_int() < other.to_int()]
         except ValueError:
-            return xes(1)
+            return _VecX
 
     def zext(self, n: int) -> Vec:
         """Zero extend by n bits.

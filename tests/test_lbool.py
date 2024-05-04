@@ -28,6 +28,7 @@ from seqlogic.lbool import (
 E = Vec[0](0)
 F = vec(False)
 T = vec(True)
+X = vec("1bX")
 
 
 LNOT = {
@@ -487,6 +488,55 @@ def test_vec_lt():
 def test_vec_uxor():
     for k, v in UXOR.items():
         assert Vec[2](k).uxor() == Vec[1](v)
+
+
+def test_eq():
+    a = vec("4b0000")
+    b = vec("4b1111")
+    c = vec("4b0000")
+    x = vec("4bXXXX")
+
+    assert a.eq(c) == T
+    assert a.eq(b) == F
+
+    assert a.neq(b) == T
+    assert a.neq(c) == F
+
+    assert a.eq(x) == X
+    assert x.eq(a) == X
+    assert a.neq(x) == X
+    assert x.neq(a) == X
+
+
+def test_lt():
+    a = int2vec(-1, 4)
+    b = int2vec(0, 4)
+    c = int2vec(1, 4)
+    x = vec("4bXXXX")
+
+    assert a.lt(b) == T
+    assert b.lt(a) == F
+
+    assert a.lt(c) == T
+    assert c.lt(a) == F
+
+    assert b.lt(c) == T
+    assert c.lt(b) == F
+
+    assert a.lt(x) == X
+    assert x.lt(a) == X
+
+
+def test_ltu():
+    a = uint2vec(0, 4)
+    b = uint2vec(1, 4)
+    x = vec("4bXXXX")
+
+    assert a.ltu(b) == T
+    assert b.ltu(a) == F
+
+    assert a.ltu(x) == X
+    assert x.ltu(a) == X
 
 
 def test_vec_zext():
