@@ -1,4 +1,8 @@
-"""TODO(cjdrake): Write docstring."""
+"""Design elements.
+
+Combine elements from hierarchy, bit vectors, and simulation into a
+straightforward API for creating a digital design.
+"""
 
 from __future__ import annotations
 
@@ -30,17 +34,23 @@ def _vec2vcd(v: Vec) -> VarValue:
 
 
 class _TraceIf(ABC):
-    """TODO(cjdrake): Write docstring."""
+    """Tracing interface.
+
+    Implemented by components that support debug dump.
+    """
 
     def dump_waves(self, waves: defaultdict, pattern: str):
-        """TODO(cjdrake): Write docstring."""
+        """Dump design elements w/ names matching pattern to waves dict."""
 
     def dump_vcd(self, vcdw: VcdWriter, pattern: str):
-        """TODO(cjdrake): Write docstring."""
+        """Dump design elements w/ names matching pattern to VCD file."""
 
 
 class _ProcIf(ABC):
-    """TODO(cjdrake): Write docstring."""
+    """Process interface.
+
+    Implemented by components that contain local simulator processes.
+    """
 
     def __init__(self):
         self._procs = []
@@ -61,10 +71,16 @@ class _ProcIf(ABC):
 
 
 class Module(Branch, _TraceIf, _ProcIf):
-    """TODO(cjdrake): Write docstring."""
+    """Hierarchical, branch-level design component.
+
+    A module contains:
+    * Submodules
+    * Ports
+    * Local variables
+    * Local processes
+    """
 
     def __init__(self, name: str, parent: Module | None = None):
-        """TODO(cjdrake): Write docstring."""
         Branch.__init__(self, name, parent)
         _ProcIf.__init__(self)
 
@@ -77,23 +93,20 @@ class Module(Branch, _TraceIf, _ProcIf):
         return f"{self._parent.scope}.{self.name}"
 
     def dump_waves(self, waves: defaultdict, pattern: str):
-        """TODO(cjdrake): Write docstring."""
         for child in self._children:
             assert isinstance(child, _TraceIf)
             child.dump_waves(waves, pattern)
 
     def dump_vcd(self, vcdw: VcdWriter, pattern: str):
-        """TODO(cjdrake): Write docstring."""
         for child in self._children:
             assert isinstance(child, _TraceIf)
             child.dump_vcd(vcdw, pattern)
 
 
 class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
-    """TODO(cjdrake): Write docstring."""
+    """Combine hierarchy and sim semantics for singular data types."""
 
     def __init__(self, name: str, parent: Module, value):
-        """TODO(cjdrake): Write docstring."""
         Leaf.__init__(self, name, parent)
         Singular.__init__(self, value)
         _ProcIf.__init__(self)
@@ -101,7 +114,6 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
         self._vcd_change = None
 
     def update(self):
-        """TODO(cjdrake): Write docstring."""
         if self._waves_change and self.dirty():
             self._waves_change()
         if self._vcd_change and self.dirty():
@@ -109,7 +121,6 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
         super().update()
 
     def dump_waves(self, waves: defaultdict, pattern: str):
-        """TODO(cjdrake): Write docstring."""
         if re.fullmatch(pattern, self.qualname):
             t = self._sim.time
             waves[t][self] = self._value
@@ -121,7 +132,6 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
             self._waves_change = change
 
     def dump_vcd(self, vcdw, pattern: str):
-        """TODO(cjdrake): Write docstring."""
         assert isinstance(self._parent, Module)
         if re.match(pattern, self.qualname):
             var = vcdw.register_var(
@@ -139,7 +149,7 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
             self._vcd_change = change
 
     def connect(self, src):
-        """TODO(cjdrake): Write docstring."""
+        """Convenience function to reduce process boilerplate."""
 
         async def proc():
             while True:
@@ -149,72 +159,67 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
 
-class _TraceAggregate(Leaf, _TraceIf, Aggregate, _ProcIf):
-    """TODO(cjdrake): Write docstring."""
-
-    def __init__(self, name: str, parent: Module, value):
-        """TODO(cjdrake): Write docstring."""
-        Leaf.__init__(self, name, parent)
-        Aggregate.__init__(self, value)
-        _ProcIf.__init__(self)
-
-
 class Bits(_TraceSingular):
-    """TODO(cjdrake): Write docstring."""
+    """Leaf-level bitvector design component."""
 
     def __init__(self, name: str, parent: Module, shape: tuple[int, ...]):
-        """TODO(cjdrake): Write docstring."""
         assert len(shape) == 1
         n = shape[0]
         super().__init__(name, parent, value=xes(n))
 
 
 class Bit(Bits):
-    """TODO(cjdrake): Write docstring."""
+    """One-bit specialization of Bits that supports edge detection."""
 
     def __init__(self, name: str, parent: Module):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent, shape=(1,))
 
     def is_posedge(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
+        """Return True when signal transitions from 0 to 1."""
         return self._value == zeros(1) and self._next_value == ones(1)
 
     async def posedge(self) -> State:
-        """TODO(cjdrake): Write docstring."""
+        """Suspend; resume execution at signal posedge."""
         self._sim.add_event(self, self.is_posedge)
         state = await SimAwaitable()
         return state
 
     def is_negedge(self) -> bool:
-        """TODO(cjdrake): Write docstring."""
+        """Return True when signal transitions from 1 to 0."""
         return self._value == ones(1) and self._next_value == zeros(1)
 
     async def negedge(self) -> State:
-        """TODO(cjdrake): Write docstring."""
+        """Suspend; resume execution at signal negedge."""
         self._sim.add_event(self, self.is_negedge)
         state = await SimAwaitable()
         return state
 
 
 class Enum(_TraceSingular):
-    """TODO(cjdrake): Write docstring."""
+    """Leaf-level enum design component."""
 
     def __init__(self, name: str, parent: Module, cls):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent, value=cls.X)
 
 
 class Struct(_TraceSingular):
-    """TODO(cjdrake): Write docstring."""
+    """Leaf-level struct design component."""
 
     def __init__(self, name: str, parent: Module, cls):
-        """TODO(cjdrake): Write docstring."""
         super().__init__(name, parent, value=cls())
 
 
+class _TraceAggregate(Leaf, _TraceIf, Aggregate, _ProcIf):
+    """Combine hierarchy and sim semantics for aggregate data types."""
+
+    def __init__(self, name: str, parent: Module, value):
+        Leaf.__init__(self, name, parent)
+        Aggregate.__init__(self, value)
+        _ProcIf.__init__(self)
+
+
 class Array(_TraceAggregate):
-    """TODO(cjdrake): Write docstring."""
+    """Leaf-level array of bitvector/enum/struct/union design components."""
 
     def __init__(
         self,
@@ -223,15 +228,14 @@ class Array(_TraceAggregate):
         unpacked_shape: tuple[int, ...],
         packed_shape: tuple[int, ...],
     ):
-        """TODO(cjdrake): Write docstring."""
         assert len(unpacked_shape) == 1
         assert len(packed_shape) == 1
         n = packed_shape[0]
         super().__init__(name, parent, value=xes(n))
 
 
-def simify(d: Module | Bits | Enum | Array):
-    """TODO(cjdrake): Write docstring."""
+def simify(d: Module | Bits | Bit | Enum | Struct | Array):
+    """Add design processes to the simulator."""
     loop = get_loop()
     for node in d.iter_bfs():
         assert isinstance(node, _ProcIf)
