@@ -56,8 +56,8 @@ def clog2(x: int) -> int:
 
 
 class classproperty:
-    def __init__(self, f):
-        self._f = f
+    def __init__(self, func):
+        self._f = func
 
     def __get__(self, unused_obj, cls):
         return self._f(cls)
