@@ -539,6 +539,41 @@ def test_ltu():
     assert x.ltu(a) == X
 
 
+def test_vec_match():
+    a = vec("2b01")
+    b = vec("1b-")
+    c = vec("1bX")
+
+    assert a.match("2b01") == T
+    assert a.match("2b00") == F
+    assert a.match("2b10") == F
+    assert a.match("2b11") == F
+
+    assert a.match("2b0-") == T
+    assert a.match("2b-1") == T
+    assert a.match("2b--") == T
+    assert a.match("2b-0") == F
+    assert a.match("2b1-") == F
+    assert a.match("2bX1") == X
+    assert a.match("2b0X") == X
+
+    assert a.match(vec("2b01")) == T
+    assert a.match(vec("2b00")) == F
+
+    assert b.match("1bX") == X
+    assert b.match("1b0") == T
+    assert b.match("1b1") == T
+    assert b.match("1b-") == T
+
+    assert c.match("1b0") == X
+    assert c.match("1b1") == X
+    assert c.match("1b-") == X
+    assert c.match("1bX") == X
+
+    with pytest.raises(TypeError):
+        _ = a.match(42)  # pyright: ignore[reportArgumentType]
+
+
 def test_vec_zext():
     v = Vec[4](0b10_01_10_01)
     with pytest.raises(ValueError):

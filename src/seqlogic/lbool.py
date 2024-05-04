@@ -773,6 +773,29 @@ class Vec:
         except ValueError:
             return _VecX
 
+    def match(self, pattern: str | Vec) -> Vec[1]:
+        """Pattern match operator."""
+        match pattern:
+            case str() as lit:
+                pattern = lit2vec(lit)
+            case Vec():
+                pass
+            case _:
+                raise TypeError("Expected pattern to be str or Vec")
+
+        self._check_len(pattern)
+
+        # Propagate X
+        if self.has_x() or pattern.has_x():
+            return _VecX
+
+        for i in range(self._n):
+            a = self._get_item(i)
+            b = pattern._get_item(i)
+            if a ^ b == 0b11:
+                return _Vec0
+        return _Vec1
+
     def zext(self, n: int) -> Vec:
         """Zero extend by n bits.
 
