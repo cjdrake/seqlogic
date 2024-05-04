@@ -5,7 +5,6 @@ from seqlogic.lbool import cat, uint2vec, vec, zeros
 from seqlogic.sim import always_comb, initial
 
 from .. import TEXT_BASE, Inst
-from ..common.adder import Adder
 from ..common.alu import Alu
 from ..common.immediate_generator import ImmedateGenerator
 from ..common.mux import Mux
@@ -70,8 +69,6 @@ class DataPath(Module):
         self.rs2_data = Bits(name="rs2_data", parent=self, shape=(32,))
 
         # Submodules
-        self.adder_pc_plus_4 = Adder(name="adder_pc_plus_4", parent=self, width=32)
-        self.adder_pc_plus_immediate = Adder(name="adder_pc_plus_immediate", parent=self, width=32)
         self.alu = Alu(name="alu", parent=self)
         self.mux_next_pc = Mux(name="mux_next_pc", parent=self, n=4, shape=(32,))
         self.mux_op_a = Mux(name="mux_op_a", parent=self, n=2, shape=(32,))
@@ -86,14 +83,6 @@ class DataPath(Module):
     def connect(self):
         self.data_mem_addr.connect(self.alu_result)
         self.data_mem_wr_data.connect(self.rs2_data)
-
-        self.pc_plus_4.connect(self.adder_pc_plus_4.result)
-        # .op_a(32'h0000_0004)
-        self.adder_pc_plus_4.op_b.connect(self.pc)
-
-        self.pc_plus_immediate.connect(self.adder_pc_plus_immediate.result)
-        self.adder_pc_plus_immediate.op_a.connect(self.pc)
-        self.adder_pc_plus_immediate.op_b.connect(self.immediate)
 
         self.alu_result.connect(self.alu.result)
         self.alu_result_equal_zero.connect(self.alu.result_equal_zero)
@@ -146,7 +135,6 @@ class DataPath(Module):
 
     @initial
     async def p_i_0(self):
-        self.adder_pc_plus_4.op_a.next = vec("32h0000_0004")
         # mux_next_pc.in3(32'h0000_0000)
         self.mux_next_pc.ins[3].next = zeros(32)
         # mux_reg_writeback.{in4, in5, in6, in7}
@@ -169,3 +157,15 @@ class DataPath(Module):
             self.regfile.rs2_addr.next = self.inst.value.rs2
             self.regfile.rs1_addr.next = self.inst.value.rs1
             self.regfile.wr_addr.next = self.inst.value.rd
+
+    @always_comb
+    async def p_c_2(self):
+        while True:
+            await changed(self.pc)
+            self.pc_plus_4.next = self.pc.value + vec("32h0000_0004")
+
+    @always_comb
+    async def p_c_3(self):
+        while True:
+            await changed(self.pc, self.immediate)
+            self.pc_plus_immediate.next = self.pc.value + self.immediate.value
