@@ -527,6 +527,25 @@ def test_lt():
     assert x.lt(a) == X
 
 
+def test_lte():
+    a = int2vec(-1, 4)
+    b = int2vec(0, 4)
+    c = int2vec(1, 4)
+    x = vec("4bXXXX")
+
+    assert a.lte(b) == T
+    assert b.lte(a) == F
+
+    assert a.lte(c) == T
+    assert c.lte(a) == F
+
+    assert b.lte(c) == T
+    assert c.lte(b) == F
+
+    assert a.lte(x) == X
+    assert x.lte(a) == X
+
+
 def test_ltu():
     a = uint2vec(0, 4)
     b = uint2vec(1, 4)
@@ -537,6 +556,18 @@ def test_ltu():
 
     assert a.ltu(x) == X
     assert x.ltu(a) == X
+
+
+def test_lteu():
+    a = uint2vec(0, 4)
+    b = uint2vec(1, 4)
+    x = vec("4bXXXX")
+
+    assert a.lteu(b) == T
+    assert b.lteu(a) == F
+
+    assert a.lteu(x) == X
+    assert x.lteu(a) == X
 
 
 def test_gt():
@@ -558,6 +589,25 @@ def test_gt():
     assert x.gt(a) == X
 
 
+def test_gte():
+    a = int2vec(-1, 4)
+    b = int2vec(0, 4)
+    c = int2vec(1, 4)
+    x = vec("4bXXXX")
+
+    assert a.gte(b) == F
+    assert b.gte(a) == T
+
+    assert a.gte(c) == F
+    assert c.gte(a) == T
+
+    assert b.gte(c) == F
+    assert c.gte(b) == T
+
+    assert a.gte(x) == X
+    assert x.gte(a) == X
+
+
 def test_gtu():
     a = uint2vec(0, 4)
     b = uint2vec(1, 4)
@@ -568,6 +618,18 @@ def test_gtu():
 
     assert a.gtu(x) == X
     assert x.gtu(a) == X
+
+
+def test_gteu():
+    a = uint2vec(0, 4)
+    b = uint2vec(1, 4)
+    x = vec("4bXXXX")
+
+    assert a.gteu(b) == F
+    assert b.gteu(a) == T
+
+    assert a.gteu(x) == X
+    assert x.gteu(a) == X
 
 
 def test_vec_match():

@@ -67,6 +67,9 @@ def test_basic():
     p = Pixel(g=vec("8b0010_0010"), b=vec("8b0100_0100"))
     assert str(p) == "Pixel(r=8bXXXX_XXXX, g=8b0010_0010, b=8b0100_0100)"
 
+    assert str(Pixel.xes()) == "Pixel(r=8bXXXX_XXXX, g=8bXXXX_XXXX, b=8bXXXX_XXXX)"
+    assert str(Pixel.dcs()) == "Pixel(r=8b----_----, g=8b----_----, b=8b----_----)"
+
 
 def test_mixed():
     mx = Mixed()

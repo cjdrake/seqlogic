@@ -55,12 +55,16 @@ def test_basic():
     assert str(Color.X) == "2bXX"
     assert Color("2bXX") is Color.X
 
+    assert Color.xes() is Color.X
+
     assert len(Color.DC) == 2
     assert Color.DC.name == "DC"
     assert Color.DC.data == 0b1111
     assert str(Color.DC) == "2b--"
     assert Color("2b--") is Color.DC
     assert Color(0b1111) is Color.DC
+
+    assert Color.dcs() is Color.DC
 
     with pytest.raises(ValueError):
         _ = Color("2b11")
