@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bits, Module, changed
-from seqlogic.lbool import ones, vec
+from seqlogic.lbool import vec
 from seqlogic.sim import always_comb
 
 from .. import AluOp, CtlAlu, Funct3AluLogic, Funct3Branch
@@ -94,17 +94,17 @@ class AluControl(Module):
                 case CtlAlu.ADD:
                     self.alu_function.next = AluOp.ADD
                 case CtlAlu.OP:
-                    if self.inst_funct7.value[5] == ones(1):
-                        self.alu_function.next = self._secondary_funct.value
-                    else:
-                        self.alu_function.next = self._default_funct.value
+                    s = self.inst_funct7.value[5]
+                    self.alu_function.next = s.ite(
+                        self._secondary_funct.value,
+                        self._default_funct.value,
+                    )
                 case CtlAlu.OP_IMM:
-                    if self.inst_funct7.value[5] == ones(1) and self.inst_funct3.value[0:2] == vec(
-                        "2b01"
-                    ):
-                        self.alu_function.next = self._secondary_funct.value
-                    else:
-                        self.alu_function.next = self._default_funct.value
+                    s = self.inst_funct7.value[5] & self.inst_funct3.value[0:2].eq(vec("2b01"))
+                    self.alu_function.next = s.ite(
+                        self._secondary_funct.value,
+                        self._default_funct.value,
+                    )
                 case CtlAlu.BRANCH:
                     self.alu_function.next = self._branch_funct.value
                 case _:

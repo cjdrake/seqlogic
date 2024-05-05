@@ -35,10 +35,8 @@ class Control(Module):
             await changed(self.inst_opcode, self.take_branch)
             match self.inst_opcode.value:
                 case Opcode.BRANCH:
-                    if self.take_branch.value:
-                        self.next_pc_sel.next = CtlPc.PC_IMM
-                    else:
-                        self.next_pc_sel.next = CtlPc.PC4
+                    s = self.take_branch.value
+                    self.next_pc_sel.next = s.ite(CtlPc.PC_IMM, CtlPc.PC4)
                 case Opcode.JALR:
                     self.next_pc_sel.next = CtlPc.RS1_IMM
                 case Opcode.JAL:
