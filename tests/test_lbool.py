@@ -539,6 +539,37 @@ def test_ltu():
     assert x.ltu(a) == X
 
 
+def test_gt():
+    a = int2vec(-1, 4)
+    b = int2vec(0, 4)
+    c = int2vec(1, 4)
+    x = vec("4bXXXX")
+
+    assert a.gt(b) == F
+    assert b.gt(a) == T
+
+    assert a.gt(c) == F
+    assert c.gt(a) == T
+
+    assert b.gt(c) == F
+    assert c.gt(b) == T
+
+    assert a.gt(x) == X
+    assert x.gt(a) == X
+
+
+def test_gtu():
+    a = uint2vec(0, 4)
+    b = uint2vec(1, 4)
+    x = vec("4bXXXX")
+
+    assert a.gtu(b) == F
+    assert b.gtu(a) == T
+
+    assert a.gtu(x) == X
+    assert x.gtu(a) == X
+
+
 def test_vec_match():
     a = vec("2b01")
     b = vec("1b-")
@@ -999,6 +1030,7 @@ def test_cat():
     v = vec("4b-10X")
     assert cat() == vec()
     assert cat(v) == v
+    assert cat("2b0X", "2b-1") == vec("4b-10X")
     assert cat(vec("2b0X"), vec("2b-1")) == vec("4b-10X")
     assert cat(0, 1) == vec("2b10")
 
