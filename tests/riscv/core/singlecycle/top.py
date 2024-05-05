@@ -1,10 +1,12 @@
 """TODO(cjdrake): Write docstring."""
 
+# pyright: reportCallIssue=false
+
 from seqlogic import Bit, Bits, Module, Struct, changed, sleep
 from seqlogic.lbool import vec
 from seqlogic.sim import always_comb, initial
 
-from .. import WORD_BITS, WORD_BYTES, Inst
+from .. import WORD_BITS, WORD_BYTES, Inst, Opcode
 from ..common.data_memory_bus import DataMemoryBus
 from ..common.text_memory_bus import TextMemoryBus
 from .core import Core
@@ -40,9 +42,12 @@ class Top(Module):
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
 
-        # Submodules
-        self.text_memory_bus = TextMemoryBus(name="text_memory_bus", parent=self)
-        self.data_memory_bus = DataMemoryBus(name="data_memory_bus", parent=self)
+        # Submodules:
+        # 16K Instruction Memory
+        self.text_memory_bus = TextMemoryBus(name="text_memory_bus", parent=self, depth=4096)
+        # 32K Data Memory
+        self.data_memory_bus = DataMemoryBus(name="data_memory_bus", parent=self, depth=8096)
+        # RISC-V Core
         self.core = Core(name="core", parent=self)
 
     def connect(self):
@@ -89,8 +94,8 @@ class Top(Module):
     async def p_c_0(self):
         while True:
             await changed(self.text_memory_bus.rd_data)
-            self._inst.next = Inst(  # pyright: ignore[reportCallIssue]
-                opcode=self.text_memory_bus.rd_data.value[0:7],
+            self._inst.next = Inst(
+                opcode=Opcode(self.text_memory_bus.rd_data.value[0:7].data),
                 rd=self.text_memory_bus.rd_data.value[7:12],
                 funct3=self.text_memory_bus.rd_data.value[12:15],
                 rs1=self.text_memory_bus.rd_data.value[15:20],

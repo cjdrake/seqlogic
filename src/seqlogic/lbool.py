@@ -758,6 +758,21 @@ class Vec:
         except ValueError:
             return _VecX
 
+    def lteu(self, other: Vec) -> Vec[1]:
+        """Less than or equal operator (unsigned).
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Vec[1] result of unsigned(self) ≤ unsigned(other)
+        """
+        self._check_len(other)
+        try:
+            return (_Vec0, _Vec1)[self.to_uint() <= other.to_uint()]
+        except ValueError:
+            return _VecX
+
     def lt(self, other: Vec) -> Vec[1]:
         """Less than operator (signed).
 
@@ -770,6 +785,81 @@ class Vec:
         self._check_len(other)
         try:
             return (_Vec0, _Vec1)[self.to_int() < other.to_int()]
+        except ValueError:
+            return _VecX
+
+    def lte(self, other: Vec) -> Vec[1]:
+        """Less than or equal operator (signed).
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Vec[1] result of signed(self) ≤ signed(other)
+        """
+        self._check_len(other)
+        try:
+            return (_Vec0, _Vec1)[self.to_int() <= other.to_int()]
+        except ValueError:
+            return _VecX
+
+    def gtu(self, other: Vec) -> Vec[1]:
+        """Greater than operator (unsigned).
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Vec[1] result of unsigned(self) > unsigned(other)
+        """
+        self._check_len(other)
+        try:
+            return (_Vec0, _Vec1)[self.to_uint() > other.to_uint()]
+        except ValueError:
+            return _VecX
+
+    def gteu(self, other: Vec) -> Vec[1]:
+        """Greater than or equal operator (unsigned).
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Vec[1] result of unsigned(self) ≥ unsigned(other)
+        """
+        self._check_len(other)
+        try:
+            return (_Vec0, _Vec1)[self.to_uint() >= other.to_uint()]
+        except ValueError:
+            return _VecX
+
+    def gt(self, other: Vec) -> Vec[1]:
+        """Greater than operator (signed).
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Vec[1] result of signed(self) > signed(other)
+        """
+        self._check_len(other)
+        try:
+            return (_Vec0, _Vec1)[self.to_int() > other.to_int()]
+        except ValueError:
+            return _VecX
+
+    def gte(self, other: Vec) -> Vec[1]:
+        """Greater than or equal operator (signed).
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Vec[1] result of signed(self) ≥ signed(other)
+        """
+        self._check_len(other)
+        try:
+            return (_Vec0, _Vec1)[self.to_int() >= other.to_int()]
         except ValueError:
             return _VecX
 
@@ -1005,10 +1095,20 @@ class Vec:
         zero = Vec[self._n](_fill(_0, self._n))
         return zero.sub(self)
 
+    def ite(self, v1: Vec, v0: Vec | None = None) -> Vec:
+        """If then else operator."""
+        if self.has_unknown():
+            return xes(v1._n)
+        if v0 is None:
+            v0 = dcs(v1._n)
+        else:
+            if v1._n != v0._n:
+                raise ValueError("Expected matching operand lengths")
+        return v1 if self else v0
+
     def _check_len(self, other: Vec):
         if self._n != other._n:
-            s = f"Expected n = {self._n}, got {other._n}"
-            raise ValueError(s)
+            raise ValueError(f"Expected n = {self._n}, got {other._n}")
 
     def _count(self, byte_cnt: dict[int, int], item: int) -> int:
         y = 0

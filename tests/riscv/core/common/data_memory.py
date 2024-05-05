@@ -1,38 +1,46 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Array, Bit, Bits, Module, changed, resume
-from seqlogic.lbool import cat, ones, xes
+from seqlogic.lbool import cat, ones
 from seqlogic.sim import always_comb, always_ff
 
-WORD_BITS = 32
-WORD_BYTES = WORD_BITS // 8
-DEPTH = 32 * 1024
+BYTE_BITS = 8
 
 
 class DataMemory(Module):
-    """TODO(cjdrake): Write docstring."""
+    """Data random access, read/write memory."""
 
-    def __init__(self, name: str, parent: Module | None):
+    def __init__(
+        self,
+        name: str,
+        parent: Module | None,
+        word_addr_bits: int = 10,
+        byte_addr_bits: int = 2,
+    ):
         super().__init__(name, parent)
-
+        self._word_addr_bits = word_addr_bits
+        self._byte_addr_bits = byte_addr_bits
+        self._depth = 2**self._word_addr_bits
+        self._word_bytes = 2**self._byte_addr_bits
+        self._width = self._word_bytes * BYTE_BITS
         self.build()
 
     def build(self):
         """Write docstring."""
         # Ports
-        self.addr = Bits(name="addr", parent=self, shape=(15,))
-
+        self.addr = Bits(name="addr", parent=self, shape=(self._word_addr_bits,))
         self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_be = Bits(name="wr_be", parent=self, shape=(WORD_BYTES,))
-        self.wr_data = Bits(name="wr_data", parent=self, shape=(WORD_BITS,))
-
-        self.rd_data = Bits(name="rd_data", parent=self, shape=(WORD_BITS,))
-
+        self.wr_be = Bits(name="wr_be", parent=self, shape=(self._word_bytes,))
+        self.wr_data = Bits(name="wr_data", parent=self, shape=(self._width,))
+        self.rd_data = Bits(name="rd_data", parent=self, shape=(self._width,))
         self.clock = Bit(name="clock", parent=self)
 
         # State
         self._mem = Array(
-            name="mem", parent=self, unpacked_shape=(DEPTH,), packed_shape=(WORD_BITS,)
+            name="mem",
+            parent=self,
+            unpacked_shape=(self._depth,),
+            packed_shape=(self._width,),
         )
 
     @always_ff
@@ -42,30 +50,23 @@ class DataMemory(Module):
 
         while True:
             await resume((self.clock, f))
-            word_addr = self.addr.value.to_uint()
-            if self.wr_be.value == ones(WORD_BYTES):
-                word = self.wr_data.value
-            else:
-                wr_val = self.wr_data.value
-                mem_val = self._mem.get_value(word_addr)
-                # fmt: off
-                wr_bytes = [wr_val[8*i:8*(i+1)] for i in range(WORD_BYTES)]  # noqa
-                mem_bytes = [mem_val[8*i:8*(i+1)] for i in range(WORD_BYTES)]  # noqa
-                # fmt: on
-                bytes_ = [
-                    wr_bytes[i] if self.wr_be.value[i] == ones(1) else mem_bytes[i]
-                    for i in range(WORD_BYTES)
-                ]
-                word = cat(*bytes_)
-            self._mem[word_addr].next = word
+            # TODO(cjdrake): If wr_en=1, address must be known
+            addr = self.addr.value
+            wr_val = self.wr_data.value
+            mem_val = self._mem[addr].value
+            # fmt: off
+            wr_bytes = [wr_val[8*i:8*(i+1)] for i in range(self._word_bytes)]  # noqa
+            mem_bytes = [mem_val[8*i:8*(i+1)] for i in range(self._word_bytes)]  # noqa
+            bytes_ = [
+                self.wr_be.value[i].ite(wr_bytes[i], mem_bytes[i])
+                for i in range(self._word_bytes)
+            ]
+            # fmt: on
+            self._mem[addr].next = cat(*bytes_)
 
     @always_comb
     async def p_c_0(self):
         while True:
             await changed(self.addr, self._mem)
-            try:
-                i = self.addr.value.to_uint()
-            except ValueError:
-                self.rd_data.next = xes(WORD_BITS)
-            else:
-                self.rd_data.next = self._mem[i].value
+            addr = self.addr.value
+            self.rd_data.next = self._mem[addr].value

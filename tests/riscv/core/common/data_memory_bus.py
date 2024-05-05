@@ -1,41 +1,52 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import ones, xes, zeros
+from seqlogic import Bit, Bits, Module, changed, clog2
+from seqlogic.lbool import uint2vec
 from seqlogic.sim import always_comb
 
 from .. import DATA_BASE, DATA_SIZE
 from .data_memory import DataMemory
 
+ADDR_BITS = 32
+WORD_BYTES = 4
+BYTE_BITS = 8
+
 
 class DataMemoryBus(Module):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, name: str, parent: Module | None):
+    def __init__(self, name: str, parent: Module | None, depth: int = 1024):
         super().__init__(name, parent)
-
+        self._depth = depth
+        self._width = WORD_BYTES * BYTE_BITS
+        self._word_addr_bits = clog2(WORD_BYTES)
+        self._byte_addr_bits = clog2(WORD_BYTES)
+        self._data_start = uint2vec(DATA_BASE, ADDR_BITS)
+        self._data_stop = uint2vec(DATA_BASE + DATA_SIZE, ADDR_BITS)
         self.build()
         self.connect()
 
     def build(self):
         # Ports
-        self.addr = Bits(name="addr", parent=self, shape=(32,))
-
+        self.addr = Bits(name="addr", parent=self, shape=(ADDR_BITS,))
         self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_be = Bits(name="wr_be", parent=self, shape=(4,))
-        self.wr_data = Bits(name="wr_data", parent=self, shape=(32,))
-
+        self.wr_be = Bits(name="wr_be", parent=self, shape=(WORD_BYTES,))
+        self.wr_data = Bits(name="wr_data", parent=self, shape=(self._width,))
         self.rd_en = Bit(name="rd_en", parent=self)
-        self.rd_data = Bits(name="rd_data", parent=self, shape=(32,))
-
+        self.rd_data = Bits(name="rd_data", parent=self, shape=(self._width,))
         self.clock = Bit(name="clock", parent=self)
 
-        # State
-        self._data = Bits(name="data", parent=self, shape=(32,))
-        self._is_data = Bit(name="is_data", parent=self)
-
         # Submodules
-        self.data_memory = DataMemory("data_memory", parent=self)
+        self.data_memory = DataMemory(
+            "data_memory",
+            parent=self,
+            word_addr_bits=self._word_addr_bits,
+            byte_addr_bits=self._byte_addr_bits,
+        )
+
+        # State
+        self._is_data = Bit(name="is_data", parent=self)
+        self._data = Bits(name="data", parent=self, shape=(self._width,))
 
     def connect(self):
         self.data_memory.wr_be.connect(self.wr_be)
@@ -47,15 +58,9 @@ class DataMemoryBus(Module):
     async def p_c_0(self):
         while True:
             await changed(self.addr)
-            try:
-                addr = self.addr.value.to_uint()
-            except ValueError:
-                self._is_data.next = xes(1)
-            else:
-                if DATA_BASE <= addr < (DATA_BASE + DATA_SIZE):
-                    self._is_data.next = ones(1)
-                else:
-                    self._is_data.next = zeros(1)
+            start_lte_addr = self._data_start.lteu(self.addr.value)
+            addr_lt_stop = self.addr.value.ltu(self._data_stop)
+            self._is_data.next = start_lte_addr & addr_lt_stop
 
     @always_comb
     async def p_c_1(self):
@@ -67,13 +72,12 @@ class DataMemoryBus(Module):
     async def p_c_2(self):
         while True:
             await changed(self.addr)
-            self.data_memory.addr.next = self.addr.value[2:17]
+            m = self._byte_addr_bits
+            n = self._byte_addr_bits + self._word_addr_bits
+            self.data_memory.addr.next = self.addr.value[m:n]
 
     @always_comb
     async def p_c_3(self):
         while True:
             await changed(self.rd_en, self._is_data, self._data)
-            if self.rd_en.value == ones(1) and self._is_data.value == ones(1):
-                self.rd_data.next = self._data.value
-            else:
-                self.rd_data.next = xes(32)
+            self.rd_data.next = self._is_data.value.ite(self._data.value)

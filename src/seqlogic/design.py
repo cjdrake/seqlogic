@@ -218,6 +218,23 @@ class _TraceAggregate(Leaf, _TraceIf, Aggregate, _ProcIf):
         _ProcIf.__init__(self)
 
 
+class _ArrayXPropItem:
+    """Array X-Prop item helper."""
+
+    def __init__(self, n: int):
+        self._n = n
+
+    def _get_value(self):
+        return xes(self._n)
+
+    value = property(fget=_get_value)
+
+    def _set_next(self, value):
+        pass
+
+    next = property(fset=_set_next)
+
+
 class Array(_TraceAggregate):
     """Leaf-level array of bitvector/enum/struct/union design components."""
 
@@ -230,8 +247,22 @@ class Array(_TraceAggregate):
     ):
         assert len(unpacked_shape) == 1
         assert len(packed_shape) == 1
-        n = packed_shape[0]
-        super().__init__(name, parent, value=xes(n))
+        self._n = packed_shape[0]
+        super().__init__(name, parent, value=xes(self._n))
+
+    def __getitem__(self, key: int | Vec):
+        match key:
+            case int():
+                return super().__getitem__(key)
+            case Vec():
+                try:
+                    i = key.to_uint()
+                except ValueError:
+                    return _ArrayXPropItem(self._n)
+                else:
+                    return super().__getitem__(i)
+            case _:
+                assert False
 
 
 def simify(d: Module | Bits | Bit | Enum | Struct | Array):
