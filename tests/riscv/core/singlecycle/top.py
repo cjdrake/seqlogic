@@ -47,7 +47,6 @@ class Top(Module):
 
     def connect(self):
         self.text_memory_bus.rd_addr.connect(self._pc)
-        # self._inst.connect(self.text_memory_bus.rd_data)
 
         self.data_memory_bus.addr.connect(self.bus_addr)
         self.data_memory_bus.wr_en.connect(self.bus_wr_en)
