@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bits, Module, changed
+from seqlogic import Bits, Enum, Module, changed
 from seqlogic.lbool import vec
 from seqlogic.sim import always_comb
 
@@ -14,70 +14,57 @@ class AluControl(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-
         self.build()
 
     def build(self):
         # Ports
-        self.alu_function = Bits(name="alu_function", parent=self, shape=(5,))
-        self.alu_op_type = Bits(name="alu_op_type", parent=self, shape=(2,))
+        self.alu_function = Enum(name="alu_function", parent=self, cls=AluOp)
+        self.alu_op_type = Enum(name="alu_op_type", parent=self, cls=CtlAlu)
         self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
         self.inst_funct7 = Bits(name="inst_funct7", parent=self, shape=(7,))
 
         # State
-        self._default_funct = Bits(name="default_funct", parent=self, shape=(5,))
-        self._secondary_funct = Bits(name="secondary_funct", parent=self, shape=(5,))
-        self._branch_funct = Bits(name="branch_funct", parent=self, shape=(5,))
+        self._default_func = Enum(name="default_funct", parent=self, cls=AluOp)
+        self._secondary_func = Enum(name="secondary_funct", parent=self, cls=AluOp)
+        self._branch_func = Enum(name="branch_funct", parent=self, cls=AluOp)
 
     @always_comb
     async def p_c_0(self):
         while True:
             await changed(self.inst_funct3)
+
             match self.inst_funct3.value:
                 case Funct3AluLogic.ADD_SUB:
-                    self._default_funct.next = AluOp.ADD
+                    self._default_func.next = AluOp.ADD
+                    self._secondary_func.next = AluOp.SUB
                 case Funct3AluLogic.SLL:
-                    self._default_funct.next = AluOp.SLL
+                    self._default_func.next = AluOp.SLL
                 case Funct3AluLogic.SLT:
-                    self._default_funct.next = AluOp.SLT
+                    self._default_func.next = AluOp.SLT
                 case Funct3AluLogic.SLTU:
-                    self._default_funct.next = AluOp.SLTU
+                    self._default_func.next = AluOp.SLTU
                 case Funct3AluLogic.XOR:
-                    self._default_funct.next = AluOp.XOR
+                    self._default_func.next = AluOp.XOR
                 case Funct3AluLogic.SHIFTR:
-                    self._default_funct.next = AluOp.SRL
+                    self._default_func.next = AluOp.SRL
+                    self._secondary_func.next = AluOp.SRA
                 case Funct3AluLogic.OR:
-                    self._default_funct.next = AluOp.OR
+                    self._default_func.next = AluOp.OR
                 case Funct3AluLogic.AND:
-                    self._default_funct.next = AluOp.AND
+                    self._default_func.next = AluOp.AND
                 case _:
-                    self._default_funct.next = AluOp.X
+                    self._default_func.next = AluOp.X
+                    self._secondary_func.next = AluOp.X
 
-    @always_comb
-    async def p_c_1(self):
-        while True:
-            await changed(self.inst_funct3)
-            match self.inst_funct3.value:
-                case Funct3AluLogic.ADD_SUB:
-                    self._secondary_funct.next = AluOp.SUB
-                case Funct3AluLogic.SHIFTR:
-                    self._secondary_funct.next = AluOp.SRA
-                case _:
-                    self._secondary_funct.next = AluOp.X
-
-    @always_comb
-    async def p_c_2(self):
-        while True:
-            await changed(self.inst_funct3)
             match self.inst_funct3.value:
                 case Funct3Branch.EQ | Funct3Branch.NE:
-                    self._branch_funct.next = AluOp.SEQ
+                    self._branch_func.next = AluOp.SEQ
                 case Funct3Branch.LT | Funct3Branch.GE:
-                    self._branch_funct.next = AluOp.SLT
+                    self._branch_func.next = AluOp.SLT
                 case Funct3Branch.LTU | Funct3Branch.GEU:
-                    self._branch_funct.next = AluOp.SLTU
+                    self._branch_func.next = AluOp.SLTU
                 case _:
-                    self._branch_funct.next = AluOp.X
+                    self._branch_func.next = AluOp.X
 
     @always_comb
     async def p_c_3(self):
@@ -86,9 +73,9 @@ class AluControl(Module):
                 self.alu_op_type,
                 self.inst_funct3,
                 self.inst_funct7,
-                self._secondary_funct,
-                self._default_funct,
-                self._branch_funct,
+                self._secondary_func,
+                self._default_func,
+                self._branch_func,
             )
             match self.alu_op_type.value:
                 case CtlAlu.ADD:
@@ -96,16 +83,17 @@ class AluControl(Module):
                 case CtlAlu.OP:
                     s = self.inst_funct7.value[5]
                     self.alu_function.next = s.ite(
-                        self._secondary_funct.value,
-                        self._default_funct.value,
+                        self._secondary_func.value,
+                        self._default_func.value,
                     )
                 case CtlAlu.OP_IMM:
-                    s = self.inst_funct7.value[5] & self.inst_funct3.value[0:2].eq(vec("2b01"))
+                    s = self.inst_funct7.value[5]
+                    s &= self.inst_funct3.value[0:2].eq(vec("2b01"))
                     self.alu_function.next = s.ite(
-                        self._secondary_funct.value,
-                        self._default_funct.value,
+                        self._secondary_func.value,
+                        self._default_func.value,
                     )
                 case CtlAlu.BRANCH:
-                    self.alu_function.next = self._branch_funct.value
+                    self.alu_function.next = self._branch_func.value
                 case _:
                     self.alu_function.next = AluOp.X
