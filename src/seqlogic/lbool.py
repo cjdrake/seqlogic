@@ -1515,7 +1515,6 @@ class _VecEnumMeta(type):
             # Create class
             super_cls = Vec[0]
             cls = super().__new__(mcs, name, bases + (super_cls,), base_attrs)
-            cls._data2name = data2name
             # Instantiate member
             obj = object.__new__(cls)  # pyright: ignore[reportArgumentType]
             super_cls.__init__(obj, 0)
@@ -1550,7 +1549,6 @@ class _VecEnumMeta(type):
         # Create class
         super_cls = Vec[n]
         cls = super().__new__(mcs, name, bases + (super_cls,), base_attrs)
-        cls._data2name = data2name
 
         # Instantiate members
         for data, name in data2name.items():
@@ -1627,7 +1625,7 @@ class _VecStructMeta(type):
             for fn, ft in fields:
                 v = getattr(self, fn)
                 if issubclass(ft, VecEnum):
-                    arg = f"{fn}={ft.__name__}.{ft._data2name[v.data]}"
+                    arg = f"{fn}={ft.__name__}.{v.name}"
                 else:
                     arg = f"{fn}={v!s}"
                 args.append(arg)
@@ -1641,7 +1639,7 @@ class _VecStructMeta(type):
             for fn, ft in fields:
                 v = getattr(self, fn)
                 if issubclass(ft, VecEnum):
-                    arg = f"{fn}={ft.__name__}.{ft._data2name[v.data]}"
+                    arg = f"{fn}={ft.__name__}.{v.name}"
                 else:
                     arg = f"{fn}={v!r}"
                 args.append(arg)
