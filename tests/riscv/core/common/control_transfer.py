@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import xes
+from seqlogic.lbool import Vec, xes
 from seqlogic.sim import always_comb
 
 from .. import Funct3Branch
@@ -18,7 +18,7 @@ class ControlTransfer(Module):
     def build(self):
         # Ports
         self.take_branch = Bit(name="take_branch", parent=self)
-        self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
+        self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Vec[3])
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
 
     @always_comb

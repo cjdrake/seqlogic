@@ -1,6 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Array, Bits, Module, changed
+from seqlogic.lbool import Vec
 from seqlogic.sim import always_comb
 
 BYTE_BITS = 8
@@ -25,15 +26,15 @@ class TextMemory(Module):
 
     def build(self):
         # Ports
-        self.rd_addr = Bits(name="rd_addr", parent=self, shape=(self._word_addr_bits,))
-        self.rd_data = Bits(name="rd_data", parent=self, shape=(self._width,))
+        self.rd_addr = Bits(name="rd_addr", parent=self, dtype=Vec[self._word_addr_bits])
+        self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
 
         # State
         self._mem = Array(
             name="mem",
             parent=self,
-            unpacked_shape=(self._depth,),
-            packed_shape=(self._width,),
+            shape=(self._depth,),
+            dtype=Vec[self._width],
         )
 
     @always_comb

@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Array, Bit, Bits, Module, changed, resume
-from seqlogic.lbool import cat, ones
+from seqlogic.lbool import Vec, cat, ones
 from seqlogic.sim import always_comb, always_ff
 
 BYTE_BITS = 8
@@ -28,19 +28,19 @@ class DataMemory(Module):
     def build(self):
         """Write docstring."""
         # Ports
-        self.addr = Bits(name="addr", parent=self, shape=(self._word_addr_bits,))
+        self.addr = Bits(name="addr", parent=self, dtype=Vec[self._word_addr_bits])
         self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_be = Bits(name="wr_be", parent=self, shape=(self._word_bytes,))
-        self.wr_data = Bits(name="wr_data", parent=self, shape=(self._width,))
-        self.rd_data = Bits(name="rd_data", parent=self, shape=(self._width,))
+        self.wr_be = Bits(name="wr_be", parent=self, dtype=Vec[self._word_bytes])
+        self.wr_data = Bits(name="wr_data", parent=self, dtype=Vec[self._width])
+        self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
         self.clock = Bit(name="clock", parent=self)
 
         # State
         self._mem = Array(
             name="mem",
             parent=self,
-            unpacked_shape=(self._depth,),
-            packed_shape=(self._width,),
+            shape=(self._depth,),
+            dtype=Vec[self._width],
         )
 
     @always_ff

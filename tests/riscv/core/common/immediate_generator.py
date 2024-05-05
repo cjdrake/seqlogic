@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bits, Module, Struct, changed
-from seqlogic.lbool import cat, rep, zeros
+from seqlogic import Bits, Module, changed
+from seqlogic.lbool import Vec, cat, rep, zeros
 from seqlogic.sim import always_comb
 
 from .. import Inst, Opcode
@@ -17,8 +17,8 @@ class ImmedateGenerator(Module):
 
     def build(self):
         # Ports
-        self.immediate = Bits(name="immediate", parent=self, shape=(32,))
-        self.inst = Struct(name="inst", parent=self, cls=Inst)
+        self.immediate = Bits(name="immediate", parent=self, dtype=Vec[32])
+        self.inst = Bits(name="inst", parent=self, dtype=Inst)
 
     @always_comb
     async def p_c_0(self):

@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bits, Enum, Module, changed
-from seqlogic.lbool import vec
+from seqlogic import Bits, Module, changed
+from seqlogic.lbool import Vec, vec
 from seqlogic.sim import always_comb
 
 from .. import AluOp, CtlAlu, Funct3AluLogic, Funct3Branch
@@ -18,15 +18,15 @@ class AluControl(Module):
 
     def build(self):
         # Ports
-        self.alu_function = Enum(name="alu_function", parent=self, cls=AluOp)
-        self.alu_op_type = Enum(name="alu_op_type", parent=self, cls=CtlAlu)
-        self.inst_funct3 = Bits(name="inst_funct3", parent=self, shape=(3,))
-        self.inst_funct7 = Bits(name="inst_funct7", parent=self, shape=(7,))
+        self.alu_function = Bits(name="alu_function", parent=self, dtype=AluOp)
+        self.alu_op_type = Bits(name="alu_op_type", parent=self, dtype=CtlAlu)
+        self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Vec[3])
+        self.inst_funct7 = Bits(name="inst_funct7", parent=self, dtype=Vec[7])
 
         # State
-        self._default_func = Enum(name="default_funct", parent=self, cls=AluOp)
-        self._secondary_func = Enum(name="secondary_funct", parent=self, cls=AluOp)
-        self._branch_func = Enum(name="branch_funct", parent=self, cls=AluOp)
+        self._default_func = Bits(name="default_funct", parent=self, dtype=AluOp)
+        self._secondary_func = Bits(name="secondary_funct", parent=self, dtype=AluOp)
+        self._branch_func = Bits(name="branch_funct", parent=self, dtype=AluOp)
 
     @always_comb
     async def p_c_0(self):

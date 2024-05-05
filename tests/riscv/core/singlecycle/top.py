@@ -2,8 +2,8 @@
 
 # pyright: reportCallIssue=false
 
-from seqlogic import Bit, Bits, Module, Struct, changed, sleep
-from seqlogic.lbool import vec
+from seqlogic import Bit, Bits, Module, changed, sleep
+from seqlogic.lbool import Vec, vec
 from seqlogic.sim import always_comb, initial
 
 from .. import WORD_BITS, WORD_BYTES, Inst, Opcode
@@ -29,15 +29,15 @@ class Top(Module):
 
     def build(self):
         # Ports
-        self.bus_addr = Bits(name="bus_addr", parent=self, shape=(32,))
+        self.bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
-        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, shape=(WORD_BYTES,))
-        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, shape=(WORD_BITS,))
+        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, dtype=Vec[WORD_BYTES])
+        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, dtype=Vec[WORD_BITS])
         self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
-        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, shape=(WORD_BITS,))
+        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[WORD_BITS])
 
-        self._pc = Bits(name="pc", parent=self, shape=(32,))
-        self._inst = Struct(name="inst", parent=self, cls=Inst)
+        self._pc = Bits(name="pc", parent=self, dtype=Vec[32])
+        self._inst = Bits(name="inst", parent=self, dtype=Inst)
 
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)

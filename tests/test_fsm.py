@@ -5,7 +5,7 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Bit, Enum, Module, get_loop
+from seqlogic import Bit, Bits, Module, get_loop
 from seqlogic.lbool import VecEnum, ones, xes, zeros
 from seqlogic.sim import Region
 
@@ -60,7 +60,7 @@ def test_fsm():
     top = Module(name="top")
     clock = Bit(name="clock", parent=top)
     reset_n = Bit(name="reset_n", parent=top)
-    ps = Enum(name="ps", parent=top, cls=SeqDetect)
+    ps = Bits(name="ps", parent=top, dtype=SeqDetect)
     x = Bit(name="x", parent=top)
 
     waves = defaultdict(dict)

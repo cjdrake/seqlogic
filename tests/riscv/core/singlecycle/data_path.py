@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic import Bit, Bits, Module, Struct, changed
-from seqlogic.lbool import cat, uint2vec, vec, zeros
+from seqlogic import Bit, Bits, Module, changed
+from seqlogic.lbool import Vec, cat, uint2vec, vec, zeros
 from seqlogic.sim import always_comb, initial
 
 from .. import TEXT_BASE, Inst
@@ -22,62 +22,61 @@ class DataPath(Module):
         self.connect()
 
     def build(self):
-        self.data_mem_addr = Bits(name="data_mem_addr", parent=self, shape=(32,))
-        self.data_mem_wr_data = Bits(name="data_mem_wr_data", parent=self, shape=(32,))
-        self.data_mem_rd_data = Bits(name="data_mem_rd_data", parent=self, shape=(32,))
+        self.data_mem_addr = Bits(name="data_mem_addr", parent=self, dtype=Vec[32])
+        self.data_mem_wr_data = Bits(name="data_mem_wr_data", parent=self, dtype=Vec[32])
+        self.data_mem_rd_data = Bits(name="data_mem_rd_data", parent=self, dtype=Vec[32])
 
-        self.inst = Struct(name="inst", parent=self, cls=Inst)
-        self.pc = Bits(name="pc", parent=self, shape=(32,))
+        self.inst = Bits(name="inst", parent=self, dtype=Inst)
+        self.pc = Bits(name="pc", parent=self, dtype=Vec[32])
 
         # Immedate generate
-        self.immediate = Bits(name="immediate", parent=self, shape=(32,))
+        self.immediate = Bits(name="immediate", parent=self, dtype=Vec[32])
 
         # PC + 4
-        self.pc_plus_4 = Bits(name="pc_plus_4", parent=self, shape=(32,))
+        self.pc_plus_4 = Bits(name="pc_plus_4", parent=self, dtype=Vec[32])
 
         # PC + Immediate
-        self.pc_plus_immediate = Bits(name="pc_plus_immediate", parent=self, shape=(32,))
+        self.pc_plus_immediate = Bits(name="pc_plus_immediate", parent=self, dtype=Vec[32])
 
         # Control signals
         self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
         self.alu_op_a_sel = Bit(name="alu_op_a_sel", parent=self)
         self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
-        self.alu_function = Bits(name="alu_function", parent=self, shape=(5,))
-        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, shape=(3,))
-        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, shape=(2,))
+        self.alu_function = Bits(name="alu_function", parent=self, dtype=Vec[5])
+        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=Vec[3])
+        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=Vec[2])
 
         # Select ALU Ops
-        self.alu_op_a = Bits(name="alu_op_a", parent=self, shape=(32,))
-        self.alu_op_b = Bits(name="alu_op_b", parent=self, shape=(32,))
+        self.alu_op_a = Bits(name="alu_op_a", parent=self, dtype=Vec[32])
+        self.alu_op_b = Bits(name="alu_op_b", parent=self, dtype=Vec[32])
 
         # ALU Outputs
-        self.alu_result = Bits(name="alu_result", parent=self, shape=(32,))
+        self.alu_result = Bits(name="alu_result", parent=self, dtype=Vec[32])
         self.alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
 
         # Next PC
-        self.pc_next = Bits(name="pc_next", parent=self, shape=(32,))
+        self.pc_next = Bits(name="pc_next", parent=self, dtype=Vec[32])
 
         # Regfile Write Data
-        self.wr_data = Bits(name="wr_data", parent=self, shape=(32,))
+        self.wr_data = Bits(name="wr_data", parent=self, dtype=Vec[32])
 
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
 
         # State
-        self.rs1_data = Bits(name="rs1_data", parent=self, shape=(32,))
-        self.rs2_data = Bits(name="rs2_data", parent=self, shape=(32,))
+        self.rs1_data = Bits(name="rs1_data", parent=self, dtype=Vec[32])
+        self.rs2_data = Bits(name="rs2_data", parent=self, dtype=Vec[32])
 
         # Submodules
         self.alu = Alu(name="alu", parent=self)
-        self.mux_next_pc = Mux(name="mux_next_pc", parent=self, n=4, shape=(32,))
-        self.mux_op_a = Mux(name="mux_op_a", parent=self, n=2, shape=(32,))
-        self.mux_op_b = Mux(name="mux_op_b", parent=self, n=2, shape=(32,))
-        self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, shape=(32,))
+        self.mux_next_pc = Mux(name="mux_next_pc", parent=self, n=4, dtype=Vec[32])
+        self.mux_op_a = Mux(name="mux_op_a", parent=self, n=2, dtype=Vec[32])
+        self.mux_op_b = Mux(name="mux_op_b", parent=self, n=2, dtype=Vec[32])
+        self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, dtype=Vec[32])
         self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
-        self.program_counter = Register(
-            name="program_counter", parent=self, shape=(32,), init=uint2vec(TEXT_BASE, 32)
-        )
+        pc_init = uint2vec(TEXT_BASE, 32)
+        self.program_counter = Register(name="program_counter", parent=self, init=pc_init)
         self.regfile = RegFile(name="regfile", parent=self)
 
     def connect(self):

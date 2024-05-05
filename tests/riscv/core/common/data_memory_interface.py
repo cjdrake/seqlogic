@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import cat, rep, vec, xes
+from seqlogic.lbool import Vec, cat, rep, vec, xes
 from seqlogic.sim import always_comb
 
 
@@ -16,20 +16,20 @@ class DataMemoryInterface(Module):
 
     def build(self):
         # Ports
-        self.data_format = Bits(name="data_format", parent=self, shape=(3,))
+        self.data_format = Bits(name="data_format", parent=self, dtype=Vec[3])
 
-        self.addr = Bits(name="addr", parent=self, shape=(32,))
+        self.addr = Bits(name="addr", parent=self, dtype=Vec[32])
         self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_data = Bits(name="wr_data", parent=self, shape=(32,))
+        self.wr_data = Bits(name="wr_data", parent=self, dtype=Vec[32])
         self.rd_en = Bit(name="rd_en", parent=self)
-        self.rd_data = Bits(name="rd_data", parent=self, shape=(32,))
+        self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[32])
 
-        self.bus_addr = Bits(name="bus_addr", parent=self, shape=(32,))
+        self.bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
-        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, shape=(4,))
-        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, shape=(32,))
+        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, dtype=Vec[4])
+        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, dtype=Vec[32])
         self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
-        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, shape=(32,))
+        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[32])
 
     def connect(self):
         self.bus_addr.connect(self.addr)

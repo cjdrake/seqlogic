@@ -8,19 +8,19 @@ from seqlogic.sim import always_ff
 class Register(Module):
     """TODO(cjdrake): Write docstring."""
 
-    def __init__(self, name: str, parent: Module | None, shape: tuple[int, ...], init):
+    def __init__(self, name: str, parent: Module | None, init):
         super().__init__(name, parent)
 
         # Parameters
-        self._shape = shape
         self._init = init
 
         self.build()
 
     def build(self):
-        self.q = Bits(name="q", parent=self, shape=self._shape)
+        dtype = type(self._init)
+        self.q = Bits(name="q", parent=self, dtype=dtype)
         self.en = Bit(name="en", parent=self)
-        self.d = Bits(name="d", parent=self, shape=self._shape)
+        self.d = Bits(name="d", parent=self, dtype=dtype)
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
 

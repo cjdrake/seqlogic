@@ -326,6 +326,14 @@ class Vec:
         """Number of bits of data."""
         return _ITEM_BITS * cls._n
 
+    @classmethod
+    def xes(cls):
+        return cls(0)
+
+    @classmethod
+    def dcs(cls):
+        return cls((1 << cls.nbits) - 1)
+
     def __init__(self, data: int):
         """Initialize.
 
@@ -943,9 +951,9 @@ class Vec:
                 pass
             case Vec():
                 if n.has_x():
-                    return xes(self._n), _VecE
+                    return self.xes(), _VecE
                 elif n.has_dc():
-                    return dcs(self._n), _VecE
+                    return self.dcs(), _VecE
                 else:
                     n = n.to_uint()
             case _:
@@ -981,9 +989,9 @@ class Vec:
                 pass
             case Vec():
                 if n.has_x():
-                    return xes(self._n), _VecE
+                    return self.xes(), _VecE
                 elif n.has_dc():
-                    return dcs(self._n), _VecE
+                    return self.dcs(), _VecE
                 else:
                     n = n.to_uint()
             case _:
@@ -1017,9 +1025,9 @@ class Vec:
                 pass
             case Vec():
                 if n.has_x():
-                    return xes(self._n), _VecE
+                    return self.xes(), _VecE
                 elif n.has_dc():
-                    return dcs(self._n), _VecE
+                    return self.dcs(), _VecE
                 else:
                     n = n.to_uint()
             case _:
@@ -1493,20 +1501,22 @@ class _VecEnumMeta(type):
         lit2name: dict[str, str] = {}
         data2name: dict[int, str] = {}
         n = None
+        dc_data = None
         for key, val in attrs.items():
             if key.startswith("__"):
                 base_attrs[key] = val
             else:
                 if n is None:
                     n, data = _lit2vec(val)
+                    dc_data = (1 << _ITEM_BITS * n) - 1
                 else:
                     n_i, data = _lit2vec(val)
                     if n_i != n:
                         raise ValueError(f"Expected lit len {n}, got {n_i}")
-                if key == "X":
-                    raise ValueError("Cannot use reserved name = 'X'")
-                if data == 0:
-                    raise ValueError("Cannot use reserved data = 0")
+                if key in ("X", "DC"):
+                    raise ValueError(f"Cannot use reserved name = '{key}'")
+                if data in (0, dc_data):
+                    raise ValueError(f"Cannot use reserved data = {data}")
                 lit2name[val] = key
                 data2name[data] = key
 
@@ -1529,6 +1539,12 @@ class _VecEnumMeta(type):
         x_lit = f"{n}b" + "X" * n
         lit2name[x_lit] = "X"
         data2name[0] = "X"
+
+        # Add DC member
+        dc_lit = f"{n}b" + "-" * n
+        lit2name[dc_lit] = "DC"
+        assert dc_data is not None
+        data2name[dc_data] = "DC"
 
         def _new(cls, arg: str | int):
             match arg:
@@ -1611,13 +1627,25 @@ class _VecStructMeta(type):
 
         # Create Struct class
         n = sum(field_type._n for _, field_type in fields)
-        cls = super().__new__(mcs, name, bases + (Vec[n],), base_attrs)
+        super_cls = Vec[n]
+        cls = super().__new__(mcs, name, bases + (super_cls,), base_attrs)
 
         # Create Struct.__init__
         code = _vec_struct_init(fields)
         d = {}
         exec(code, None, d)  # pylint: disable=exec-used
         cls.__init__ = d["init"]
+
+        # Override Struct.xes and Struct.dcs methods
+        def _xes():
+            return cls()
+
+        def _dcs():
+            kwargs = {fn: ft.dcs() for fn, ft in fields}
+            return cls(**kwargs)  # pyright: ignore[reportCallIssue]
+
+        cls.xes = _xes
+        cls.dcs = _dcs
 
         # Create Struct.__str__
         def _str(self):

@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Array, Bit, Bits, Module, changed, clog2, resume
-from seqlogic.lbool import ones, zeros
+from seqlogic.lbool import Vec, ones, zeros
 from seqlogic.sim import always_comb, always_ff, initial
 
 DEPTH = 32
@@ -21,17 +21,20 @@ class RegFile(Module):
     def build(self):
         # Ports
         self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_addr = Bits(name="wr_addr", parent=self, shape=(self._addr_bits,))
-        self.wr_data = Bits(name="wr_data", parent=self, shape=(WORD_BITS,))
-        self.rs1_addr = Bits(name="rs1_addr", parent=self, shape=(self._addr_bits,))
-        self.rs1_data = Bits(name="rs1_data", parent=self, shape=(WORD_BITS,))
-        self.rs2_addr = Bits(name="rs2_addr", parent=self, shape=(self._addr_bits,))
-        self.rs2_data = Bits(name="rs2_data", parent=self, shape=(WORD_BITS,))
+        self.wr_addr = Bits(name="wr_addr", parent=self, dtype=Vec[self._addr_bits])
+        self.wr_data = Bits(name="wr_data", parent=self, dtype=Vec[WORD_BITS])
+        self.rs1_addr = Bits(name="rs1_addr", parent=self, dtype=Vec[self._addr_bits])
+        self.rs1_data = Bits(name="rs1_data", parent=self, dtype=Vec[WORD_BITS])
+        self.rs2_addr = Bits(name="rs2_addr", parent=self, dtype=Vec[self._addr_bits])
+        self.rs2_data = Bits(name="rs2_data", parent=self, dtype=Vec[WORD_BITS])
         self.clock = Bit(name="clock", parent=self)
 
         # State
         self._regs = Array(
-            name="regs", parent=self, unpacked_shape=(self._addr_bits,), packed_shape=(WORD_BITS,)
+            name="regs",
+            parent=self,
+            shape=(self._addr_bits,),
+            dtype=Vec[WORD_BITS],
         )
 
     @initial

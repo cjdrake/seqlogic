@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed, clog2
-from seqlogic.lbool import uint2vec
+from seqlogic.lbool import Vec, uint2vec
 from seqlogic.sim import always_comb
 
 from .. import TEXT_BASE, TEXT_SIZE
@@ -28,8 +28,8 @@ class TextMemoryBus(Module):
 
     def build(self):
         # Ports
-        self.rd_addr = Bits(name="rd_addr", parent=self, shape=(ADDR_BITS,))
-        self.rd_data = Bits(name="rd_data", parent=self, shape=(self._width,))
+        self.rd_addr = Bits(name="rd_addr", parent=self, dtype=Vec[ADDR_BITS])
+        self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
 
         # Submodules
         self.text_memory = TextMemory(
@@ -41,7 +41,7 @@ class TextMemoryBus(Module):
 
         # State
         self._is_text = Bit(name="is_text", parent=self)
-        self._text = Bits(name="text", parent=self, shape=(self._width,))
+        self._text = Bits(name="text", parent=self, dtype=Vec[self._width])
 
     def connect(self):
         self._text.connect(self.text_memory.rd_data)

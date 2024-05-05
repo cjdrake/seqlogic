@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import ones, vec, zeros
+from seqlogic.lbool import Vec, ones, vec, zeros
 from seqlogic.sim import always_comb
 
 from .. import CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Opcode
@@ -21,12 +21,12 @@ class Control(Module):
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
         self.alu_op_a_sel = Bit(name="alu_op_a_sel", parent=self)
         self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
-        self.alu_op_type = Bits(name="alu_op_type", parent=self, shape=(2,))
+        self.alu_op_type = Bits(name="alu_op_type", parent=self, dtype=Vec[2])
         self.data_mem_rd_en = Bit(name="data_mem_rd_en", parent=self)
         self.data_mem_wr_en = Bit(name="data_mem_wr_en", parent=self)
-        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, shape=(3,))
-        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, shape=(2,))
-        self.inst_opcode = Bits(name="inst_opcode", parent=self, shape=(7,))
+        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=Vec[3])
+        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=Vec[2])
+        self.inst_opcode = Bits(name="inst_opcode", parent=self, dtype=Vec[7])
         self.take_branch = Bit(name="take_branch", parent=self)
 
     @always_comb

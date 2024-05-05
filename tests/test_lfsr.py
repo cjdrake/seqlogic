@@ -3,7 +3,7 @@
 from collections import defaultdict
 
 from seqlogic import Bit, Bits, Module, get_loop
-from seqlogic.lbool import cat, ones, vec, xes, zeros
+from seqlogic.lbool import Vec, cat, ones, vec, xes, zeros
 from seqlogic.sim import Region
 
 from .common import p_clk, p_dff, p_rst
@@ -20,7 +20,7 @@ class Top(Module):
         self.reset_n = Bit(name="reset_n", parent=self)
         self.clock = Bit(name="clock", parent=self)
         # State
-        self.q = Bits(name="q", parent=self, shape=(3,))
+        self.q = Bits(name="q", parent=self, dtype=Vec[3])
 
 
 def test_lfsr():

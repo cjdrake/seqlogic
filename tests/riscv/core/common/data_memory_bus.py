@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed, clog2
-from seqlogic.lbool import uint2vec
+from seqlogic.lbool import Vec, uint2vec
 from seqlogic.sim import always_comb
 
 from .. import DATA_BASE, DATA_SIZE
@@ -28,12 +28,12 @@ class DataMemoryBus(Module):
 
     def build(self):
         # Ports
-        self.addr = Bits(name="addr", parent=self, shape=(ADDR_BITS,))
+        self.addr = Bits(name="addr", parent=self, dtype=Vec[ADDR_BITS])
         self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_be = Bits(name="wr_be", parent=self, shape=(WORD_BYTES,))
-        self.wr_data = Bits(name="wr_data", parent=self, shape=(self._width,))
+        self.wr_be = Bits(name="wr_be", parent=self, dtype=Vec[WORD_BYTES])
+        self.wr_data = Bits(name="wr_data", parent=self, dtype=Vec[self._width])
         self.rd_en = Bit(name="rd_en", parent=self)
-        self.rd_data = Bits(name="rd_data", parent=self, shape=(self._width,))
+        self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
         self.clock = Bit(name="clock", parent=self)
 
         # Submodules
@@ -46,7 +46,7 @@ class DataMemoryBus(Module):
 
         # State
         self._is_data = Bit(name="is_data", parent=self)
-        self._data = Bits(name="data", parent=self, shape=(self._width,))
+        self._data = Bits(name="data", parent=self, dtype=Vec[self._width])
 
     def connect(self):
         self.data_memory.wr_be.connect(self.wr_be)

@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import zeros
+from seqlogic.lbool import Vec, zeros
 from seqlogic.sim import always_comb
 
 from .. import AluOp
@@ -17,11 +17,11 @@ class Alu(Module):
 
     def build(self):
         # Ports
-        self.result = Bits(name="result", parent=self, shape=(32,))
+        self.result = Bits(name="result", parent=self, dtype=Vec[32])
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
-        self.alu_function = Bits(name="alu_function", parent=self, shape=(5,))
-        self.op_a = Bits(name="op_a", parent=self, shape=(32,))
-        self.op_b = Bits(name="op_b", parent=self, shape=(32,))
+        self.alu_function = Bits(name="alu_function", parent=self, dtype=Vec[5])
+        self.op_a = Bits(name="op_a", parent=self, dtype=Vec[32])
+        self.op_b = Bits(name="op_b", parent=self, dtype=Vec[32])
 
     @always_comb
     async def p_c_0(self):

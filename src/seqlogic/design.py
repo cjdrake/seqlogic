@@ -16,7 +16,7 @@ from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
-from .lbool import Vec, ones, xes, zeros
+from .lbool import Vec, ones, zeros
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, changed, get_loop
 
 _item2char = {
@@ -162,17 +162,15 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
 class Bits(_TraceSingular):
     """Leaf-level bitvector design component."""
 
-    def __init__(self, name: str, parent: Module, shape: tuple[int, ...]):
-        assert len(shape) == 1
-        n = shape[0]
-        super().__init__(name, parent, value=xes(n))
+    def __init__(self, name: str, parent: Module, dtype: type):
+        super().__init__(name, parent, value=dtype.xes())
 
 
 class Bit(Bits):
     """One-bit specialization of Bits that supports edge detection."""
 
     def __init__(self, name: str, parent: Module):
-        super().__init__(name, parent, shape=(1,))
+        super().__init__(name, parent, dtype=Vec[1])
 
     def is_posedge(self) -> bool:
         """Return True when signal transitions from 0 to 1."""
@@ -195,20 +193,6 @@ class Bit(Bits):
         return state
 
 
-class Enum(_TraceSingular):
-    """Leaf-level enum design component."""
-
-    def __init__(self, name: str, parent: Module, cls):
-        super().__init__(name, parent, value=cls.X)
-
-
-class Struct(_TraceSingular):
-    """Leaf-level struct design component."""
-
-    def __init__(self, name: str, parent: Module, cls):
-        super().__init__(name, parent, value=cls())
-
-
 class _TraceAggregate(Leaf, _TraceIf, Aggregate, _ProcIf):
     """Combine hierarchy and sim semantics for aggregate data types."""
 
@@ -221,11 +205,11 @@ class _TraceAggregate(Leaf, _TraceIf, Aggregate, _ProcIf):
 class _ArrayXPropItem:
     """Array X-Prop item helper."""
 
-    def __init__(self, n: int):
-        self._n = n
+    def __init__(self, dtype: type):
+        self._dtype = dtype
 
     def _get_value(self):
-        return xes(self._n)
+        return self._dtype.xes()
 
     value = property(fget=_get_value)
 
@@ -242,13 +226,12 @@ class Array(_TraceAggregate):
         self,
         name: str,
         parent: Module,
-        unpacked_shape: tuple[int, ...],
-        packed_shape: tuple[int, ...],
+        shape: tuple[int, ...],
+        dtype: type,
     ):
-        assert len(unpacked_shape) == 1
-        assert len(packed_shape) == 1
-        self._n = packed_shape[0]
-        super().__init__(name, parent, value=xes(self._n))
+        assert len(shape) == 1
+        super().__init__(name, parent, value=dtype.xes())
+        self._dtype = dtype
 
     def __getitem__(self, key: int | Vec):
         match key:
@@ -258,14 +241,14 @@ class Array(_TraceAggregate):
                 try:
                     i = key.to_uint()
                 except ValueError:
-                    return _ArrayXPropItem(self._n)
+                    return _ArrayXPropItem(self._dtype)
                 else:
                     return super().__getitem__(i)
             case _:
                 assert False
 
 
-def simify(d: Module | Bits | Bit | Enum | Struct | Array):
+def simify(d: Module | Bits | Bit | Array):
     """Add design processes to the simulator."""
     loop = get_loop()
     for node in d.iter_bfs():
