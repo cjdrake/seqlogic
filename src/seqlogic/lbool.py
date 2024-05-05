@@ -1404,11 +1404,11 @@ def vec(obj=None) -> Vec:
             raise TypeError(f"Invalid input: {obj}")
 
 
-def cat(*objs: int | Vec) -> Vec:
+def cat(*objs: int | str | Vec) -> Vec:
     """Concatenate a sequence of vectors.
 
     Args:
-        objs: a sequence of bools.
+        objs: a sequence of bool/lit/vec objects.
 
     Returns:
         A Vec instance.
@@ -1425,6 +1425,9 @@ def cat(*objs: int | Vec) -> Vec:
         match obj:
             case 0 | 1 as x:
                 vs.append((_Vec0, _Vec1)[x])
+            case str() as lit:
+                v = lit2vec(lit)
+                vs.append(v)
             case Vec() as v:
                 vs.append(v)
             case _:
@@ -1440,7 +1443,7 @@ def cat(*objs: int | Vec) -> Vec:
     return Vec[n](data)
 
 
-def rep(obj: int | Vec, n: int) -> Vec:
+def rep(obj: int | str | Vec, n: int) -> Vec:
     """Repeat a vector n times."""
     objs = [obj] * n
     return cat(*objs)
