@@ -903,8 +903,7 @@ class Vec:
             raise ValueError(f"Expected n ≥ 0, got {n}")
         if n == 0:
             return self
-        prefix = _fill(_0, n)
-        return Vec[self._n + n](self._data | (prefix << self.nbits))
+        return Vec[self._n + n](self._data | (_fill(_0, n) << self.nbits))
 
     def sext(self, n: int) -> Vec:
         """Sign extend by n bits.
@@ -923,8 +922,7 @@ class Vec:
         if n == 0:
             return self
         sign = self._get_item(self._n - 1)
-        prefix = _fill(sign, n)
-        return Vec[self._n + n](self._data | (prefix << self.nbits))
+        return Vec[self._n + n](self._data | (_fill(sign, n) << self.nbits))
 
     def lsh(self, n: int | Vec, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
         """Left shift by n bits.
@@ -1031,9 +1029,8 @@ class Vec:
         if n == 0:
             return self, _VecE
         sign = self._get_item(self._n - 1)
-        ci_data = _fill(sign, n)
         co, sh = self[:n], self[n:]
-        y = Vec[self._n](sh._data | (ci_data << sh.nbits))
+        y = Vec[self._n](sh._data | (_fill(sign, n) << sh.nbits))
         return y, co
 
     def add(self, other: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
