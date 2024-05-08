@@ -49,13 +49,9 @@ class Singular(State):
         self._changed = False
 
     def get_value(self):
-        if self._sim.region is None:
-            return self._value
         if self._sim.region == Region.REACTIVE:
             return self._next_value
-        if self._sim.region == Region.ACTIVE:
-            return self._value
-        assert False
+        return self._value
 
     value = property(fget=get_value)
 
@@ -92,13 +88,9 @@ class Aggregate(State):
         return _AggrItem(self, key)
 
     def get_value(self, index: int):
-        if self._sim.region is None:
-            return self._values[index]
         if self._sim.region == Region.REACTIVE:
             return self._next_values[index]
-        if self._sim.region == Region.ACTIVE:
-            return self._values[index]
-        assert False
+        return self._values[index]
 
     def set_next(self, index: int, value):
         if value != self._next_values[index]:
