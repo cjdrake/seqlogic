@@ -172,19 +172,27 @@ class Bit(Bits):
     def __init__(self, name: str, parent: Module):
         super().__init__(name, parent, dtype=Vec[1])
 
+    def is_neg(self) -> bool:
+        """Return True when bit is stable 0 => 0."""
+        return self._value == zeros(1) and self._next_value == zeros(1)
+
     def is_posedge(self) -> bool:
-        """Return True when signal transitions from 0 to 1."""
+        """Return True when bit transitions 0 => 1."""
         return self._value == zeros(1) and self._next_value == ones(1)
+
+    def is_negedge(self) -> bool:
+        """Return True when bit transition 1 => 0."""
+        return self._value == ones(1) and self._next_value == zeros(1)
+
+    def is_pos(self) -> bool:
+        """Return True when bit is stable 1 => 1."""
+        return self._value == ones(1) and self._next_value == ones(1)
 
     async def posedge(self) -> State:
         """Suspend; resume execution at signal posedge."""
         self._sim.add_event(self, self.is_posedge)
         state = await SimAwaitable()
         return state
-
-    def is_negedge(self) -> bool:
-        """Return True when signal transitions from 1 to 0."""
-        return self._value == ones(1) and self._next_value == zeros(1)
 
     async def negedge(self) -> State:
         """Suspend; resume execution at signal negedge."""
