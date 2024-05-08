@@ -11,6 +11,7 @@ It merely serves as a non-trivial example design.
 
 # pylint: disable = protected-access
 # pyright: reportAttributeAccessIssue=false
+# pyright: reportCallIssue=false
 
 from collections import defaultdict
 
@@ -118,7 +119,7 @@ def test_singlecycle_dump():
         # @(posedge reset)
         5: {
             top._pc: vec("32h0040_0000"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00001"),
                 funct3=vec("3b000"),
@@ -131,7 +132,7 @@ def test_singlecycle_dump():
             top.bus_wr_data: Z32,
             top.bus_rd_en: F,
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00001"),
                 funct3=vec("3b000"),
@@ -169,7 +170,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         11: {
             top._pc: vec("32h0040_0004"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00010"),
                 funct3=vec("3b000"),
@@ -178,7 +179,7 @@ def test_singlecycle_dump():
                 funct7=vec("7b0000000"),
             ),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00010"),
                 funct3=vec("3b000"),
@@ -196,7 +197,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         13: {
             top._pc: vec("32h0040_0008"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP,
                 rd=vec("5b00011"),
                 funct3=vec("3b000"),
@@ -205,7 +206,7 @@ def test_singlecycle_dump():
                 funct7=vec("7b0000000"),
             ),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP,
                 rd=vec("5b00011"),
                 funct3=vec("3b000"),
@@ -224,7 +225,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         15: {
             top._pc: vec("32h0040_000C"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11101"),
                 funct3=vec("3b000"),
@@ -233,7 +234,7 @@ def test_singlecycle_dump():
                 funct7=vec("7b0000000"),
             ),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11101"),
                 funct3=vec("3b000"),
@@ -252,7 +253,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         17: {
             top._pc: vec("32h0040_0010"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11100"),
                 funct3=vec("3b000"),
@@ -262,7 +263,7 @@ def test_singlecycle_dump():
             ),
             top.bus_addr: vec("32h0000_0002"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11100"),
                 funct3=vec("3b000"),
@@ -288,7 +289,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         19: {
             top._pc: vec("32h0040_0014"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd=vec("5b01100"),
                 funct3=vec("3b001"),
@@ -298,7 +299,7 @@ def test_singlecycle_dump():
             ),
             top.bus_addr: vec("32h0000_0001"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd=vec("5b01100"),
                 funct3=vec("3b001"),
@@ -327,7 +328,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         21: {
             top._pc: vec("32h0040_0018"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00001"),
                 funct3=vec("3b000"),
@@ -336,7 +337,7 @@ def test_singlecycle_dump():
                 funct7=vec("7b0000000"),
             ),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00001"),
                 funct3=vec("3b000"),
@@ -361,7 +362,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         23: {
             top._pc: vec("32h0040_001C"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00010"),
                 funct3=vec("3b000"),
@@ -371,7 +372,7 @@ def test_singlecycle_dump():
             ),
             top.bus_wr_data: vec("32h0000_0100"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00010"),
                 funct3=vec("3b000"),
@@ -392,7 +393,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         25: {
             top._pc: vec("32h0040_0020"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP,
                 rd=vec("5b00011"),
                 funct3=vec("3b000"),
@@ -403,7 +404,7 @@ def test_singlecycle_dump():
             top.bus_addr: vec("32h0000_0002"),
             top.bus_wr_data: vec("32h0001_0000"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP,
                 rd=vec("5b00011"),
                 funct3=vec("3b000"),
@@ -431,7 +432,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         27: {
             top._pc: vec("32h0040_0024"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11101"),
                 funct3=vec("3b000"),
@@ -440,7 +441,7 @@ def test_singlecycle_dump():
                 funct7=vec("7b0000000"),
             ),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11101"),
                 funct3=vec("3b000"),
@@ -465,7 +466,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         29: {
             top._pc: vec("32h0040_0028"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11100"),
                 funct3=vec("3b000"),
@@ -476,7 +477,7 @@ def test_singlecycle_dump():
             top.bus_addr: vec("32h0000_0003"),
             top.bus_wr_data: vec("32h0200_0000"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11100"),
                 funct3=vec("3b000"),
@@ -503,7 +504,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         31: {
             top._pc: vec("32h0040_002C"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd=vec("5b10100"),
                 funct3=vec("3b001"),
@@ -514,7 +515,7 @@ def test_singlecycle_dump():
             top.bus_addr: vec("32h0000_0001"),
             top.bus_wr_data: vec("32h0000_0200"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd=vec("5b10100"),
                 funct3=vec("3b001"),
@@ -545,7 +546,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         33: {
             top._pc: vec("32h0040_0030"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00001"),
                 funct3=vec("3b000"),
@@ -556,7 +557,7 @@ def test_singlecycle_dump():
             top.bus_addr: vec("32h0000_0003"),
             top.bus_wr_data: vec("32h0200_0000"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00001"),
                 funct3=vec("3b000"),
@@ -587,7 +588,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         35: {
             top._pc: vec("32h0040_0034"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00010"),
                 funct3=vec("3b000"),
@@ -598,7 +599,7 @@ def test_singlecycle_dump():
             top.bus_addr: vec("32h0000_0007"),
             top.bus_wr_data: Z32,
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00010"),
                 funct3=vec("3b000"),
@@ -625,7 +626,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         37: {
             top._pc: vec("32h0040_0038"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP,
                 rd=vec("5b00011"),
                 funct3=vec("3b000"),
@@ -636,7 +637,7 @@ def test_singlecycle_dump():
             top.bus_addr: vec("32h0000_000A"),
             top.bus_wr_data: vec("32h0007_0000"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP,
                 rd=vec("5b00011"),
                 funct3=vec("3b000"),
@@ -666,7 +667,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         39: {
             top._pc: vec("32h0040_003C"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11101"),
                 funct3=vec("3b000"),
@@ -676,7 +677,7 @@ def test_singlecycle_dump():
             ),
             top.bus_wr_data: Z32,
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11101"),
                 funct3=vec("3b000"),
@@ -704,7 +705,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         41: {
             top._pc: vec("32h0040_0040"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11100"),
                 funct3=vec("3b000"),
@@ -714,7 +715,7 @@ def test_singlecycle_dump():
             ),
             top.bus_addr: vec("32h0000_0004"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b11100"),
                 funct3=vec("3b000"),
@@ -739,7 +740,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         43: {
             top._pc: vec("32h0040_0044"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd=vec("5b11100"),
                 funct3=vec("3b001"),
@@ -750,7 +751,7 @@ def test_singlecycle_dump():
             top.bus_addr: vec("32h0000_0001"),
             top.bus_wr_data: vec("32h0000_0A00"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd=vec("5b11100"),
                 funct3=vec("3b001"),
@@ -783,7 +784,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         45: {
             top._pc: vec("32h0040_0048"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00001"),
                 funct3=vec("3b000"),
@@ -794,7 +795,7 @@ def test_singlecycle_dump():
             top.bus_addr: Z32,
             top.bus_wr_data: Z32,
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd=vec("5b00001"),
                 funct3=vec("3b000"),
@@ -828,7 +829,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         47: {
             top._pc: vec("32h0040_004C"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.LUI,
                 rd=vec("5b00010"),
                 funct3=vec("3b000"),
@@ -837,7 +838,7 @@ def test_singlecycle_dump():
                 funct7=vec("7b1111111"),
             ),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.LUI,
                 rd=vec("5b00010"),
                 funct3=vec("3b000"),
@@ -860,7 +861,7 @@ def test_singlecycle_dump():
         # @(posedge clock)
         49: {
             top._pc: vec("32h0040_0050"),
-            top._inst: Inst(  # pyright: ignore[reportCallIssue]
+            top._inst: Inst(
                 opcode=Opcode.OP,
                 rd=vec("5b00011"),
                 funct3=vec("3b000"),
@@ -871,7 +872,7 @@ def test_singlecycle_dump():
             top.bus_addr: vec("32hFFFF_8000"),
             top.bus_wr_data: vec("32hFFFF_8000"),
             # Decode
-            top.core.datapath.inst: Inst(  # pyright: ignore[reportCallIssue]
+            top.core.datapath.inst: Inst(
                 opcode=Opcode.OP,
                 rd=vec("5b00011"),
                 funct3=vec("3b000"),
