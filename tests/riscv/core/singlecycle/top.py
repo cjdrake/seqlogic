@@ -95,7 +95,7 @@ class Top(Module):
         while True:
             await changed(self.text_memory_bus.rd_data)
             self._inst.next = Inst(
-                opcode=Opcode(self.text_memory_bus.rd_data.value[0:7].data),
+                opcode=Opcode(self.text_memory_bus.rd_data.value[0:7]),
                 rd=self.text_memory_bus.rd_data.value[7:12],
                 funct3=self.text_memory_bus.rd_data.value[12:15],
                 rs1=self.text_memory_bus.rd_data.value[15:20],

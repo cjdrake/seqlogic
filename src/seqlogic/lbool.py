@@ -1558,6 +1558,11 @@ class _VecEnumMeta(type):
                         name = data2name[data]
                     except KeyError as e:
                         raise ValueError(f"Invalid data: {data}") from e
+                case Vec() as v:
+                    try:
+                        name = data2name[v.data]
+                    except KeyError as e:
+                        raise ValueError(f"Invalid vec: {v}") from e
                 case _:
                     raise TypeError("Expected arg to be str or int")
             return getattr(cls, name)
