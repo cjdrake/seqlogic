@@ -1580,7 +1580,7 @@ class _VecEnumMeta(type):
 
         # Define methods
         cls.__new__ = _new
-        cls.__init__ = lambda s, lit: None
+        cls.__init__ = lambda s, arg: None
         cls.name = property(fget=lambda self: self._name)
 
         return cls
