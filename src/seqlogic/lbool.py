@@ -1549,8 +1549,9 @@ class _VecEnumMeta(type):
         def _new(cls, arg: str | int):
             match arg:
                 case str() as lit:
+                    _, data = _lit2vec(lit)
                     try:
-                        name = lit2name[lit]
+                        name = data2name[data]
                     except KeyError as e:
                         raise ValueError(f"Invalid lit: {lit}") from e
                 case int() as data:

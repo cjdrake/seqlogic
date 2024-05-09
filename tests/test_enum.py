@@ -35,18 +35,23 @@ def test_basic():
     assert Color.RED.data == 0b0101
     assert str(Color.RED) == "2b00"
     assert Color("2b00") is Color.RED
+    assert Color("2b0_0") is Color.RED
+    assert Color(0b0101) is Color.RED
 
     assert len(Color.GREEN) == 2
     assert Color.GREEN.name == "GREEN"
     assert Color.GREEN.data == 0b0110
     assert str(Color.GREEN) == "2b01"
     assert Color("2b01") is Color.GREEN
+    assert Color("2b0_1") is Color.GREEN
+    assert Color(0b0110) is Color.GREEN
 
     assert len(Color.BLUE) == 2
     assert Color.BLUE.name == "BLUE"
     assert Color.BLUE.data == 0b1001
     assert str(Color.BLUE) == "2b10"
     assert Color("2b10") is Color.BLUE
+    assert Color("2b1_0") is Color.BLUE
     assert Color(0b1001) is Color.BLUE
 
     assert len(Color.X) == 2
