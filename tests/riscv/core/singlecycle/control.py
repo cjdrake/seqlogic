@@ -73,8 +73,8 @@ class Control(Module):
                 case Opcode.MISC_MEM:
                     self.pc_wr_en.next = ones(1)
                     self.regfile_wr_en.next = zeros(1)
-                    self.alu_op_a_sel.next = zeros(1)
-                    self.alu_op_b_sel.next = zeros(1)
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.RS2
                     self.alu_op_type.next = CtlAlu.ADD
                     self.data_mem_rd_en.next = zeros(1)
                     self.data_mem_wr_en.next = zeros(1)
@@ -154,8 +154,8 @@ class Control(Module):
                 case _:
                     self.pc_wr_en.next = dcs(1)
                     self.regfile_wr_en.next = dcs(1)
-                    self.alu_op_a_sel.next = dcs(1)
-                    self.alu_op_b_sel.next = dcs(1)
+                    self.alu_op_a_sel.next = CtlAluA.DC
+                    self.alu_op_b_sel.next = CtlAluB.DC
                     self.alu_op_type.next = CtlAlu.DC
                     self.data_mem_rd_en.next = dcs(1)
                     self.data_mem_wr_en.next = dcs(1)
