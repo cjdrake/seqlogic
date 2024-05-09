@@ -1498,7 +1498,6 @@ class _VecEnumMeta(type):
 
         base_attrs = {}
         # ident = literal
-        lit2name: dict[str, str] = {}
         data2name: dict[int, str] = {}
         n = None
         dc_data = None
@@ -1517,7 +1516,6 @@ class _VecEnumMeta(type):
                     raise ValueError(f"Cannot use reserved name = '{key}'")
                 if data in (0, dc_data):
                     raise ValueError(f"Cannot use reserved data = {data}")
-                lit2name[val] = key
                 data2name[data] = key
 
         # Empty Enum
@@ -1535,14 +1533,8 @@ class _VecEnumMeta(type):
 
             return cls
 
-        # Add X member
-        x_lit = f"{n}b" + "X" * n
-        lit2name[x_lit] = "X"
+        # Add X/DC members
         data2name[0] = "X"
-
-        # Add DC member
-        dc_lit = f"{n}b" + "-" * n
-        lit2name[dc_lit] = "DC"
         assert dc_data is not None
         data2name[dc_data] = "DC"
 
@@ -1565,7 +1557,7 @@ class _VecEnumMeta(type):
                     except KeyError as e:
                         raise ValueError(f"Invalid vec: {v}") from e
                 case _:
-                    raise TypeError("Expected arg to be str or int")
+                    raise TypeError("Expected arg to be str, int, or Vec")
             return getattr(cls, name)
 
         # Create class
