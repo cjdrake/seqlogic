@@ -15,7 +15,6 @@ class Core(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-
         self.build()
         self.connect()
 
