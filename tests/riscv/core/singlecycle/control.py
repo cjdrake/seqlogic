@@ -3,7 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import Vec, dcs, ones, zeros
+from seqlogic.lbool import dcs, ones, zeros
 from seqlogic.sim import always_comb
 
 from .. import CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Opcode
