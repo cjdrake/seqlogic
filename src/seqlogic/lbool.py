@@ -1598,16 +1598,11 @@ def _vec_struct_init(fields: list[tuple[str, type]]) -> str:
         line += f", {field_name}: {field_type.__name__} | None = None"
     line += "):\n"
     lines.append(line)
-    lines.append("    _n = 0\n")
-    lines.append("    _data = 0\n")
+    lines.append("    self._data = 0\n")
     for field_name, field_type in fields:
         offset = f"({_ITEM_BITS} * self._{field_name}_base)"
-        lines.append(f"    self._{field_name}_base = _n\n")
-        lines.append(f"    self._{field_name}_size = {field_type._n}\n")
-        lines.append(f"    _n += self._{field_name}_size\n")
         lines.append(f"    if {field_name} is not None:\n")
-        lines.append(f"        _data |= {field_name}.data << {offset}\n")
-    lines.append("    self._data = _data\n")
+        lines.append(f"        self._data |= {field_name}.data << {offset}\n")
     return "".join(lines)
 
 
@@ -1629,6 +1624,13 @@ class _VecStructMeta(type):
                     fields.append((field_name, field_type))
             else:
                 base_attrs[key] = val
+
+        # Add struct member base/size attributes
+        base = 0
+        for field_name, field_type in fields:
+            base_attrs[f"_{field_name}_base"] = base
+            base_attrs[f"_{field_name}_size"] = field_type._n
+            base += field_type._n
 
         # Create Struct class
         n = sum(field_type._n for _, field_type in fields)
