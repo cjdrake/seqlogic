@@ -34,6 +34,20 @@ class Control(Module):
         while True:
             await changed(self.inst_opcode, self.take_branch)
             match self.inst_opcode.value:
+                case (
+                    Opcode.LOAD  # noqa
+                    | Opcode.LOAD_FP  # noqa
+                    | Opcode.MISC_MEM  # noqa
+                    | Opcode.OP_IMM  # noqa
+                    | Opcode.AUIPC  # noqa
+                    | Opcode.STORE  # noqa
+                    | Opcode.STORE_FP  # noqa
+                    | Opcode.OP  # noqa
+                    | Opcode.LUI  # noqa
+                    | Opcode.OP_FP  # noqa
+                    | Opcode.SYSTEM  # noqa
+                ):
+                    self.next_pc_sel.next = CtlPc.PC4
                 case Opcode.BRANCH:
                     s = self.take_branch.value
                     self.next_pc_sel.next = s.ite(CtlPc.PC_IMM, CtlPc.PC4)
@@ -42,7 +56,7 @@ class Control(Module):
                 case Opcode.JAL:
                     self.next_pc_sel.next = CtlPc.PC_IMM
                 case _:
-                    self.next_pc_sel.next = CtlPc.PC4
+                    self.next_pc_sel.next = CtlPc.DC  # pyright: ignore[reportAttributeAccessIssue]
 
     @always_comb
     async def p_c_1(self):
