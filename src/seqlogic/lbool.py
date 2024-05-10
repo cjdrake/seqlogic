@@ -1538,7 +1538,7 @@ class _VecEnumMeta(type):
         assert dc_data is not None
         data2name[dc_data] = "DC"
 
-        def _new(cls, arg: str | int):
+        def _new(cls, arg: str | int | Vec):
             match arg:
                 case str() as lit:
                     _, data = _lit2vec(lit)
