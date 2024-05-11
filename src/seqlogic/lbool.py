@@ -1591,11 +1591,14 @@ def _struct_init_source(fields: list[tuple[str, type]]) -> str:
     line += "):\n"
     lines.append(line)
     lines.append("    self._data = 0\n")
-    for field_name, field_type in fields:
-        offset = f"({_ITEM_BITS} * self._{field_name}_base)"
-        lines.append(f"    if {field_name} is not None:\n")
-        lines.append(f"        {field_type.__name__}.check_data({field_name}.data)\n")
-        lines.append(f"        self._data |= {field_name}.data << {offset}\n")
+    for fn, ft in fields:
+        lines.append(f"    if {fn} is not None:\n")
+        lines.append(f"        if (n := len({fn})) != {ft._n}:\n")
+        s = f"Expected {fn} to have {ft._n} bits, got {{n}}"
+        lines.append(f'            raise TypeError(f"{s}")\n')
+        lines.append(f"        {ft.__name__}.check_data({fn}.data)\n")
+        offset = f"({_ITEM_BITS} * self._{fn}_base)"
+        lines.append(f"        self._data |= {fn}.data << {offset}\n")
     return "".join(lines)
 
 
