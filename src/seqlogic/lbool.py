@@ -1458,10 +1458,6 @@ def rep(obj: int | str | Vec, n: int) -> Vec:
     return cat(*objs)
 
 
-def _consts(x: int, n: int) -> Vec:
-    return Vec[n](_fill(x, n))
-
-
 def xes(n: int) -> Vec:
     """Return a vec packed with n X items."""
     return Vec[n](0)
@@ -1469,17 +1465,17 @@ def xes(n: int) -> Vec:
 
 def zeros(n: int) -> Vec:
     """Return a vec packed with n 0 items."""
-    return _consts(_0, n)
+    return Vec[n](_fill(_0, n))
 
 
 def ones(n: int) -> Vec:
     """Return a vec packed with n 1 items."""
-    return _consts(_1, n)
+    return Vec[n](_fill(_1, n))
 
 
 def dcs(n: int) -> Vec:
     """Return a vec packed with n DC items."""
-    return _consts(_W, n)
+    return Vec[n](_fill(_W, n))
 
 
 # Empty
@@ -1500,14 +1496,14 @@ class _VecEnumMeta(type):
         if name == "VecEnum":
             return super().__new__(mcs, name, bases, attrs)
 
-        base_attrs = {}
+        enum_attrs = {}
         # ident = literal
         data2name: dict[int, str] = {}
         n = None
         dc_data = None
         for key, val in attrs.items():
             if key.startswith("__"):
-                base_attrs[key] = val
+                enum_attrs[key] = val
             else:
                 if n is None:
                     n, data = _lit2vec(val)
@@ -1526,16 +1522,16 @@ class _VecEnumMeta(type):
         if n is None:
             # Create class
             super_cls = Vec[0]
-            cls = super().__new__(mcs, name, bases + (super_cls,), base_attrs)
+            enum = super().__new__(mcs, name, bases + (super_cls,), enum_attrs)
             # Instantiate member
-            obj = object.__new__(cls)  # pyright: ignore[reportArgumentType]
+            obj = object.__new__(enum)  # pyright: ignore[reportArgumentType]
             super_cls.__init__(obj, 0)
             # Define methods
-            cls.__new__ = lambda c: obj
-            cls.__init__ = lambda s: None
-            cls.name = property(fget=lambda self: "")
+            enum.__new__ = lambda c: obj
+            enum.__init__ = lambda s: None
+            enum.name = property(fget=lambda self: "")
 
-            return cls
+            return enum
 
         # Add X/DC members
         data2name[0] = "X"
@@ -1565,22 +1561,21 @@ class _VecEnumMeta(type):
             return getattr(cls, name)
 
         # Create class
-        super_cls = Vec[n]
-        cls = super().__new__(mcs, name, bases + (super_cls,), base_attrs)
+        enum = super().__new__(mcs, name, bases + (Vec[n],), enum_attrs)
 
         # Instantiate members
         for data, name in data2name.items():
-            obj = object.__new__(cls)  # pyright: ignore[reportArgumentType]
-            super_cls.__init__(obj, data)
+            obj = object.__new__(enum)  # pyright: ignore[reportArgumentType]
+            Vec[n].__init__(obj, data)
             obj._name = name
-            setattr(cls, name, obj)
+            setattr(enum, name, obj)
 
         # Define methods
-        cls.__new__ = _new
-        cls.__init__ = lambda s, arg: None
-        cls.name = property(fget=lambda self: self._name)
+        enum.__new__ = _new
+        enum.__init__ = lambda s, arg: None
+        enum.name = property(fget=lambda self: self._name)
 
-        return cls
+        return enum
 
 
 class VecEnum(metaclass=_VecEnumMeta):
@@ -1612,7 +1607,7 @@ class _VecStructMeta(type):
             return super().__new__(mcs, name, bases, attrs)
 
         # Scan attributes for field_name: field_type items
-        base_attrs = {}
+        struct_attrs = {}
         # ident: vec_type
         fields: list[tuple[str, type]] = []
         for key, val in attrs.items():
@@ -1620,36 +1615,35 @@ class _VecStructMeta(type):
                 for field_name, field_type in val.items():
                     fields.append((field_name, field_type))
             else:
-                base_attrs[key] = val
+                struct_attrs[key] = val
 
         # Add struct member base/size attributes
         base = 0
         for field_name, field_type in fields:
-            base_attrs[f"_{field_name}_base"] = base
-            base_attrs[f"_{field_name}_size"] = field_type._n
+            struct_attrs[f"_{field_name}_base"] = base
+            struct_attrs[f"_{field_name}_size"] = field_type._n
             base += field_type._n
 
         # Create Struct class
         n = sum(field_type._n for _, field_type in fields)
-        super_cls = Vec[n]
-        cls = super().__new__(mcs, name, bases + (super_cls,), base_attrs)
+        struct = super().__new__(mcs, name, bases + (Vec[n],), struct_attrs)
 
         # Create Struct.__init__
         code = _vec_struct_init(fields)
         d = {}
         exec(code, None, d)  # pylint: disable=exec-used
-        cls.__init__ = d["init"]
+        struct.__init__ = d["init"]
 
         # Override Struct.xes and Struct.dcs methods
         def _xes():
-            return cls()
+            return struct()
 
         def _dcs():
             kwargs = {fn: ft.dcs() for fn, ft in fields}
-            return cls(**kwargs)  # pyright: ignore[reportCallIssue]
+            return struct(**kwargs)  # pyright: ignore[reportCallIssue]
 
-        cls.xes = _xes
-        cls.dcs = _dcs
+        struct.xes = _xes
+        struct.dcs = _dcs
 
         # Create Struct.__str__
         def _str(self):
@@ -1663,7 +1657,7 @@ class _VecStructMeta(type):
                 args.append(arg)
             return f'{name}({", ".join(args)})'
 
-        cls.__str__ = _str
+        struct.__str__ = _str
 
         # Create Struct.__repr__
         def _repr(self):
@@ -1677,21 +1671,20 @@ class _VecStructMeta(type):
                 args.append(arg)
             return f'{name}({", ".join(args)})'
 
-        cls.__repr__ = _repr
+        struct.__repr__ = _repr
 
         # Create Struct fields
         def _fget(name, cls, self):
-            n = getattr(self, f"_{name}_size")
-            nbits = _ITEM_BITS * n
+            nbits = _ITEM_BITS * getattr(self, f"_{name}_size")
             mask = (1 << nbits) - 1
-            i = getattr(self, f"_{name}_base")
-            data = (self._data >> (_ITEM_BITS * i)) & mask
+            offset = _ITEM_BITS * getattr(self, f"_{name}_base")
+            data = (self._data >> offset) & mask
             return cls(data)
 
         for fn, ft in fields:
-            setattr(cls, fn, property(fget=partial(_fget, fn, ft)))
+            setattr(struct, fn, property(fget=partial(_fget, fn, ft)))
 
-        return cls
+        return struct
 
 
 class VecStruct(metaclass=_VecStructMeta):
