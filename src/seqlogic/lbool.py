@@ -1550,7 +1550,7 @@ class _VecEnumMeta(type):
                     try:
                         name = data2name[data]
                     except KeyError as e:
-                        raise ValueError(f"Invalid data: {data}") from e
+                        raise ValueError(f"Invalid data: 0b{data:b}") from e
                 case Vec() as v:
                     try:
                         name = data2name[v.data]
@@ -1582,10 +1582,10 @@ class VecEnum(metaclass=_VecEnumMeta):
     """Enum Base Class: Create enums."""
 
 
-def _vec_struct_init(fields: list[tuple[str, type]]) -> str:
-    """Return code for a Struct __init__ method w/ fields."""
+def _struct_init_source(fields: list[tuple[str, type]]) -> str:
+    """Return source code for Struct __init__ method w/ fields."""
     lines = []
-    line = "def init(self"
+    line = "def struct_init(self"
     for field_name, field_type in fields:
         line += f", {field_name}: {field_type.__name__} | None = None"
     line += "):\n"
@@ -1594,6 +1594,7 @@ def _vec_struct_init(fields: list[tuple[str, type]]) -> str:
     for field_name, field_type in fields:
         offset = f"({_ITEM_BITS} * self._{field_name}_base)"
         lines.append(f"    if {field_name} is not None:\n")
+        lines.append(f"        {field_type.__name__}.check_data({field_name}.data)\n")
         lines.append(f"        self._data |= {field_name}.data << {offset}\n")
     return "".join(lines)
 
@@ -1629,10 +1630,12 @@ class _VecStructMeta(type):
         struct = super().__new__(mcs, name, bases + (Vec[n],), struct_attrs)
 
         # Create Struct.__init__
-        code = _vec_struct_init(fields)
-        d = {}
-        exec(code, None, d)  # pylint: disable=exec-used
-        struct.__init__ = d["init"]
+        g, l = globals(), {}
+        # Add field types to global namespace
+        for _, field_type in fields:
+            g[field_type.__name__] = field_type
+        exec(_struct_init_source(fields), g, l)  # pylint: disable=exec-used
+        struct.__init__ = l["struct_init"]
 
         # Override Struct.xes and Struct.dcs methods
         def _xes():
