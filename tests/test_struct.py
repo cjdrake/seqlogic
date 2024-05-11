@@ -5,6 +5,8 @@
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportCallIssue=false
 
+import pytest
+
 from seqlogic.lbool import Vec, VecEnum, VecStruct, vec
 
 
@@ -93,3 +95,11 @@ def test_nested():
 
     n2 = Nested(q=vec("4b1010"), r=MyEnum.A, s=Mixed(a=vec("4b0101"), b=MyEnum.B))
     assert str(n2) == "Nested(q=4b1010, r=MyEnum.A, s=Mixed(a=4b0101, b=MyEnum.B))"
+
+
+def test_init_errors():
+    with pytest.raises(TypeError):
+        Pixel(r=vec("7b010_1010"))
+
+    with pytest.raises(TypeError):
+        Pixel(r=vec("9b0_0000_0000"))
