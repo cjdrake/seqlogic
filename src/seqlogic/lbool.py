@@ -327,6 +327,13 @@ class Vec:
         return _ITEM_BITS * cls._n
 
     @classmethod
+    def check_data(cls, data: int):
+        """Check for valid input data."""
+        a, b = 0, 1 << cls.nbits
+        if not a <= data < b:
+            raise ValueError(f"Expected data in [{a}, {b}), got {data}")
+
+    @classmethod
     def xes(cls):
         return cls(0)
 
@@ -343,10 +350,7 @@ class Vec:
         Raises:
             ValueError if data is invalid/inconsistent
         """
-        assert hasattr(self, "_n")
-        a, b = 0, 1 << self.nbits
-        if not a <= data < b:
-            raise ValueError(f"Expected data in [{a}, {b}), got {data}")
+        self.check_data(data)
         self._data = data
 
     def __len__(self) -> int:
