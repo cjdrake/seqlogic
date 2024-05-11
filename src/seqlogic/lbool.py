@@ -1593,8 +1593,8 @@ def _struct_init_source(fields: list[tuple[str, type]]) -> str:
     lines.append("    self._data = 0\n")
     for fn, ft in fields:
         lines.append(f"    if {fn} is not None:\n")
-        lines.append(f"        if {fn}._n != {ft._n}:\n")
-        s = f"Expected {fn} to have {ft._n} bits, got {{{fn}._n}}"
+        lines.append(f"        if {fn}._n != self._{fn}_size:\n")
+        s = f"Expected {fn} to have {{self._{fn}_size}} bits, got {{{fn}._n}}"
         lines.append(f'            raise TypeError(f"{s}")\n')
         lines.append(f"        {ft.__name__}.check_data({fn}.data)\n")
         offset = f"({_ITEM_BITS} * self._{fn}_base)"
