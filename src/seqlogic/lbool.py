@@ -1682,6 +1682,11 @@ class _VecStructMeta(type):
             mask = (1 << nbits) - 1
             offset = _ITEM_BITS * getattr(self, f"_{name}_base")
             data = (self._data >> offset) & mask
+            if issubclass(cls, VecStruct):
+                obj = object.__new__(cls)
+                cls.check_data(data)
+                obj._data = data
+                return obj
             return cls(data)
 
         for fn, ft in fields:

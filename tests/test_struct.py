@@ -24,6 +24,12 @@ class Mixed(VecStruct):
     b: MyEnum
 
 
+class Nested(VecStruct):
+    q: Vec[4]
+    r: MyEnum
+    s: Mixed
+
+
 def test_empty():
     class EmptyStruct(VecStruct):
         pass
@@ -79,3 +85,11 @@ def test_mixed():
     m1 = Mixed(a=vec("4b1010"), b=MyEnum.A)
     assert str(m1) == "Mixed(a=4b1010, b=MyEnum.A)"
     assert m1.b.B.name == "B"
+
+
+def test_nested():
+    n1 = Nested()
+    assert str(n1) == "Nested(q=4bXXXX, r=MyEnum.X, s=Mixed(a=4bXXXX, b=MyEnum.X))"
+
+    n2 = Nested(q=vec("4b1010"), r=MyEnum.A, s=Mixed(a=vec("4b0101"), b=MyEnum.B))
+    assert str(n2) == "Nested(q=4b1010, r=MyEnum.A, s=Mixed(a=4b0101, b=MyEnum.B))"
