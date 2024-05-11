@@ -1593,8 +1593,8 @@ def _struct_init_source(fields: list[tuple[str, type]]) -> str:
     lines.append("    self._data = 0\n")
     for fn, ft in fields:
         lines.append(f"    if {fn} is not None:\n")
-        lines.append(f"        if (n := len({fn})) != {ft._n}:\n")
-        s = f"Expected {fn} to have {ft._n} bits, got {{n}}"
+        lines.append(f"        if {fn}._n != {ft._n}:\n")
+        s = f"Expected {fn} to have {ft._n} bits, got {{{fn}._n}}"
         lines.append(f'            raise TypeError(f"{s}")\n')
         lines.append(f"        {ft.__name__}.check_data({fn}.data)\n")
         offset = f"({_ITEM_BITS} * self._{fn}_base)"
@@ -1633,12 +1633,12 @@ class _VecStructMeta(type):
         struct = super().__new__(mcs, name, bases + (Vec[n],), struct_attrs)
 
         # Create Struct.__init__
-        g, l = globals(), {}
+        globals_, locals_ = globals(), {}
         # Add field types to global namespace
         for _, field_type in fields:
-            g[field_type.__name__] = field_type
-        exec(_struct_init_source(fields), g, l)  # pylint: disable=exec-used
-        struct.__init__ = l["struct_init"]
+            globals_[field_type.__name__] = field_type
+        exec(_struct_init_source(fields), globals_, locals_)  # pylint: disable=exec-used
+        struct.__init__ = locals_["struct_init"]
 
         # Override Struct.xes and Struct.dcs methods
         def _xes():
