@@ -316,7 +316,6 @@ class Vec:
     def __class_getitem__(cls, n: int):
         if n < 0:
             raise ValueError(f"Expected n ≥ 0, got {n}")
-
         if (vec_n := _VecN.get(n)) is None:
             _VecN[n] = vec_n = type(f"Vec[{n}]", (Vec,), {"_n": n})
         return vec_n
@@ -327,11 +326,22 @@ class Vec:
         return _ITEM_BITS * cls._n
 
     @classmethod
+    def check_len(cls, n: int):
+        """Check for valid input length."""
+        if n != cls._n:
+            raise TypeError(f"Expected n = {cls._n}, got {n}")
+
+    @classmethod
     def check_data(cls, data: int):
         """Check for valid input data."""
         a, b = 0, 1 << cls.nbits
         if not a <= data < b:
             raise ValueError(f"Expected data in [{a}, {b}), got {data}")
+
+    @classmethod
+    def check_vec(cls, v: Vec):
+        cls.check_len(len(v))
+        cls.check_data(v.data)
 
     @classmethod
     def xes(cls):
@@ -468,7 +478,7 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self._check_len(other)
+        self.check_len(len(other))
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -498,7 +508,7 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self._check_len(other)
+        self.check_len(len(other))
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -537,7 +547,7 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self._check_len(other)
+        self.check_len(len(other))
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -567,7 +577,7 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self._check_len(other)
+        self.check_len(len(other))
 
         x0_0 = self._bit_mask[0]
         x0_1 = self._bit_mask[1]
@@ -606,7 +616,7 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self._check_len(other)
+        self.check_len(len(other))
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -636,7 +646,7 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self._check_len(other)
+        self.check_len(len(other))
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
@@ -734,7 +744,7 @@ class Vec:
         Returns:
             Vec[1] result of self == other
         """
-        self._check_len(other)
+        self.check_len(len(other))
         try:
             return (_Vec0, _Vec1)[self.to_uint() == other.to_uint()]
         except ValueError:
@@ -749,7 +759,7 @@ class Vec:
         Returns:
             Vec[1] result of self != other
         """
-        self._check_len(other)
+        self.check_len(len(other))
         try:
             return (_Vec0, _Vec1)[self.to_uint() != other.to_uint()]
         except ValueError:
@@ -764,7 +774,7 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) < unsigned(other)
         """
-        self._check_len(other)
+        self.check_len(len(other))
         try:
             return (_Vec0, _Vec1)[self.to_uint() < other.to_uint()]
         except ValueError:
@@ -779,7 +789,7 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) ≤ unsigned(other)
         """
-        self._check_len(other)
+        self.check_len(len(other))
         try:
             return (_Vec0, _Vec1)[self.to_uint() <= other.to_uint()]
         except ValueError:
@@ -794,7 +804,7 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) < signed(other)
         """
-        self._check_len(other)
+        self.check_len(len(other))
         try:
             return (_Vec0, _Vec1)[self.to_int() < other.to_int()]
         except ValueError:
@@ -809,7 +819,7 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) ≤ signed(other)
         """
-        self._check_len(other)
+        self.check_len(len(other))
         try:
             return (_Vec0, _Vec1)[self.to_int() <= other.to_int()]
         except ValueError:
@@ -824,7 +834,7 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) > unsigned(other)
         """
-        self._check_len(other)
+        self.check_len(len(other))
         try:
             return (_Vec0, _Vec1)[self.to_uint() > other.to_uint()]
         except ValueError:
@@ -839,7 +849,7 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) ≥ unsigned(other)
         """
-        self._check_len(other)
+        self.check_len(len(other))
         try:
             return (_Vec0, _Vec1)[self.to_uint() >= other.to_uint()]
         except ValueError:
@@ -854,7 +864,7 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) > signed(other)
         """
-        self._check_len(other)
+        self.check_len(len(other))
         try:
             return (_Vec0, _Vec1)[self.to_int() > other.to_int()]
         except ValueError:
@@ -869,7 +879,7 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) ≥ signed(other)
         """
-        self._check_len(other)
+        self.check_len(len(other))
         try:
             return (_Vec0, _Vec1)[self.to_int() >= other.to_int()]
         except ValueError:
@@ -885,7 +895,7 @@ class Vec:
             case _:
                 raise TypeError("Expected pattern to be str or Vec")
 
-        self._check_len(pattern)
+        self.check_len(len(pattern))
 
         # Propagate X
         if self.has_x() or pattern.has_x():
@@ -1057,7 +1067,7 @@ class Vec:
         Raises:
             ValueError: vec lengths are invalid/inconsistent.
         """
-        self._check_len(other)
+        self.check_len(len(other))
 
         # Rename for readability
         n, a, b = self._n, self, other
@@ -1114,10 +1124,6 @@ class Vec:
             if v1._n != v0._n:
                 raise ValueError("Expected matching operand lengths")
         return v1 if self else v0
-
-    def _check_len(self, other: Vec):
-        if self._n != other._n:
-            raise ValueError(f"Expected n = {self._n}, got {other._n}")
 
     def _count(self, byte_cnt: dict[int, int], item: int) -> int:
         y = 0
@@ -1593,10 +1599,7 @@ def _struct_init_source(fields: list[tuple[str, type]]) -> str:
     lines.append("    self._data = 0\n")
     for fn, ft in fields:
         lines.append(f"    if {fn} is not None:\n")
-        lines.append(f"        if {fn}._n != self._{fn}_size:\n")
-        s = f"Expected {fn} to have {{self._{fn}_size}} bits, got {{{fn}._n}}"
-        lines.append(f'            raise TypeError(f"{s}")\n')
-        lines.append(f"        {ft.__name__}.check_data({fn}.data)\n")
+        lines.append(f"        {ft.__name__}.check_vec({fn})\n")
         offset = f"({_ITEM_BITS} * self._{fn}_base)"
         lines.append(f"        self._data |= {fn}.data << {offset}\n")
     return "".join(lines)
@@ -1633,11 +1636,11 @@ class _VecStructMeta(type):
         struct = super().__new__(mcs, name, bases + (Vec[n],), struct_attrs)
 
         # Create Struct.__init__
-        globals_, locals_ = globals(), {}
-        # Add field types to global namespace
-        for _, field_type in fields:
-            globals_[field_type.__name__] = field_type
-        exec(_struct_init_source(fields), globals_, locals_)  # pylint: disable=exec-used
+        source = _struct_init_source(fields)
+        globals_ = {"Vec": Vec}
+        globals_.update({ft.__name__: ft for _, ft in fields})
+        locals_ = {}
+        exec(source, globals_, locals_)  # pylint: disable=exec-used
         struct.__init__ = locals_["struct_init"]
 
         # Override Struct.xes and Struct.dcs methods

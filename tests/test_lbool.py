@@ -356,7 +356,7 @@ def test_vec_lxor():
     assert (x0 ^ x1) == Vec[16](0b11111100_11011000_11100100_00000000)
 
     # Vector length mismatch
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         x0.xor(Vec[8](0b11111111_00000000))
 
 
