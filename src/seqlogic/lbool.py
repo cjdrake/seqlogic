@@ -339,11 +339,6 @@ class Vec:
             raise ValueError(f"Expected data in [{a}, {b}), got {data}")
 
     @classmethod
-    def check_vec(cls, v: Vec):
-        cls.check_len(len(v))
-        cls.check_data(v.data)
-
-    @classmethod
     def xes(cls):
         return cls(0)
 
@@ -1601,7 +1596,7 @@ def _struct_init_source(fields: list[tuple[str, type]]) -> str:
     lines.append("    self._data = 0\n")
     for fn, ft in fields:
         lines.append(f"    if {fn} is not None:\n")
-        lines.append(f"        {ft.__name__}.check_vec({fn})\n")
+        lines.append(f"        {ft.__name__}.check_len(len({fn}))\n")
         offset = f"({_ITEM_BITS} * self._{fn}_base)"
         lines.append(f"        self._data |= {fn}.data << {offset}\n")
     return "".join(lines)
