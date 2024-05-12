@@ -1597,10 +1597,10 @@ def _struct_init_source(fields: list[tuple[str, type]]) -> str:
     lines.append(f"def struct_init(self, {s}):\n")
     lines.append("    data = 0\n")
     for fn, _ in fields:
+        s = f"Expected field {fn} to have {{exp}} bits, got {{got}}"
         lines.append(f"    if {fn} is not None:\n")
         lines.append(f"        got, exp = len({fn}), self._{fn}_size\n")
         lines.append("        if got != exp:\n")
-        s = f"Expected field {fn} to have {{exp}} bits, got {{got}}"
         lines.append(f'            raise TypeError(f"{s}")\n')
         lines.append(f"        data |= {fn}.data << ({_ITEM_BITS} * self._{fn}_base)\n")
     lines.append("    self._data = data\n")
@@ -1699,12 +1699,12 @@ class VecStruct(metaclass=_VecStructMeta):
 def _union_init_source(n: int, fields: list[tuple[str, type]]) -> str:
     """Return source code for Union __init__ method w/ fields."""
     lines = []
-    types = " | ".join(ft.__name__ for _, ft in fields)
-    lines.append(f"def union_init(self, v: {types}):\n")
+    s1 = " | ".join(ft.__name__ for _, ft in fields)
+    s2 = "Expected input to have at most {{exp}} bits, got {{got}}"
+    lines.append(f"def union_init(self, v: {s1}):\n")
     lines.append(f"    got, exp = len(v), {n}\n")
     lines.append("    if got > exp:\n")
-    s = "Expected input to have ≤ {{exp}} bits, got {{got}}"
-    lines.append(f'        raise TypeError("{s}")\n')
+    lines.append(f'        raise TypeError("{s2}")\n')
     lines.append("    self._data = v.data\n")
     return "".join(lines)
 
