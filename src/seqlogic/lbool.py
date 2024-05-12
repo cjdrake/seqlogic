@@ -1639,7 +1639,6 @@ class _VecStructMeta(type):
 
         # Override Vec __init__ method
         source = _struct_init_source(fields)
-        print(source)
         globals_ = {"Vec": Vec}
         globals_.update({ft.__name__: ft for _, ft in fields})
         locals_ = {}
@@ -1680,7 +1679,7 @@ class _VecStructMeta(type):
             offset = _ITEM_BITS * getattr(self, f"_{name}_base")
             mask = (1 << nbits) - 1
             data = (self._data >> offset) & mask
-            if issubclass(cls, VecStruct):
+            if issubclass(cls, (VecStruct, VecUnion)):
                 obj = object.__new__(cls)
                 obj._data = data
                 return obj
@@ -1695,6 +1694,76 @@ class _VecStructMeta(type):
 
 class VecStruct(metaclass=_VecStructMeta):
     """Struct Base Class: Create struct."""
+
+
+def _union_init_source(n: int, fields: list[tuple[str, type]]) -> str:
+    """Return source code for Union __init__ method w/ fields."""
+    lines = []
+    types = " | ".join(ft.__name__ for _, ft in fields)
+    lines.append(f"def union_init(self, v: {types}):\n")
+    lines.append(f"    got, exp = len(v), {n}\n")
+    lines.append("    if got > exp:\n")
+    s = "Expected input to have ≤ {{exp}} bits, got {{got}}"
+    lines.append(f'        raise TypeError("{s}")\n')
+    lines.append("    self._data = v.data\n")
+    return "".join(lines)
+
+
+class _VecUnionMeta(type):
+    """Union Metaclass: Create union base classes."""
+
+    def __new__(mcs, name, bases, attrs):
+        # Base case for API
+        if name == "VecUnion":
+            return super().__new__(mcs, name, bases, attrs)
+
+        # Scan attributes for field_name: field_type items
+        union_attrs = {}
+        fields: list[tuple[str, type]] = []
+        for key, val in attrs.items():
+            if key == "__annotations__":
+                for field_name, field_type in val.items():
+                    fields.append((field_name, field_type))
+            # name: Type
+            else:
+                union_attrs[key] = val
+
+        # Add union member base/size attributes
+        for field_name, field_type in fields:
+            union_attrs[f"_{field_name}_size"] = field_type._n
+
+        # Create Union class
+        n = max(field_type._n for _, field_type in fields)
+        union = super().__new__(mcs, name, bases + (Vec[n],), union_attrs)
+
+        # Override Vec __init__ method
+        source = _union_init_source(n, fields)
+        globals_ = {"Vec": Vec}
+        globals_.update({ft.__name__: ft for _, ft in fields})
+        locals_ = {}
+        exec(source, globals_, locals_)  # pylint: disable=exec-used
+        union.__init__ = locals_["union_init"]
+
+        # Create Union fields
+        def _fget(name, cls, self):
+            nbits = _ITEM_BITS * getattr(self, f"_{name}_size")
+            mask = (1 << nbits) - 1
+            data = self._data & mask
+            if issubclass(cls, (VecStruct, VecUnion)):
+                obj = object.__new__(cls)
+                obj._data = data
+                return obj
+            # Vec, VecEnum
+            return cls(data)
+
+        for fn, ft in fields:
+            setattr(union, fn, property(fget=partial(_fget, fn, ft)))
+
+        return union
+
+
+class VecUnion(metaclass=_VecUnionMeta):
+    """Union Base Class: Create union."""
 
 
 _from_bit = (_0, _1)
