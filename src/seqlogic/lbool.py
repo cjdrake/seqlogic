@@ -1573,7 +1573,7 @@ class _VecEnumMeta(type):
 
         enum.__new__ = _new
 
-        # Override __init__ method (to do nothing)
+        # Override Vec __init__ method (to do nothing)
         enum.__init__ = lambda self, arg: None
 
         # Override Vec xes/dcs methods
@@ -1617,12 +1617,12 @@ class _VecStructMeta(type):
 
         # Scan attributes for field_name: field_type items
         struct_attrs = {}
-        # ident: vec_type
         fields: list[tuple[str, type]] = []
         for key, val in attrs.items():
             if key == "__annotations__":
                 for field_name, field_type in val.items():
                     fields.append((field_name, field_type))
+            # name: Type
             else:
                 struct_attrs[key] = val
 
@@ -1637,7 +1637,7 @@ class _VecStructMeta(type):
         n = sum(field_type._n for _, field_type in fields)
         struct = super().__new__(mcs, name, bases + (Vec[n],), struct_attrs)
 
-        # Create Struct.__init__
+        # Override Vec __init__ method
         source = _struct_init_source(fields)
         print(source)
         globals_ = {"Vec": Vec}
@@ -1646,7 +1646,7 @@ class _VecStructMeta(type):
         exec(source, globals_, locals_)  # pylint: disable=exec-used
         struct.__init__ = locals_["struct_init"]
 
-        # Create Struct.__str__
+        # Override Vec __str__ method
         def _str(self):
             args = []
             for fn, ft in fields:
@@ -1660,7 +1660,7 @@ class _VecStructMeta(type):
 
         struct.__str__ = _str
 
-        # Create Struct.__repr__
+        # Override Vec __repr__ method
         def _repr(self):
             args = []
             for fn, ft in fields:
@@ -1677,16 +1677,14 @@ class _VecStructMeta(type):
         # Create Struct fields
         def _fget(name, cls, self):
             nbits = _ITEM_BITS * getattr(self, f"_{name}_size")
-            mask = (1 << nbits) - 1
             offset = _ITEM_BITS * getattr(self, f"_{name}_base")
+            mask = (1 << nbits) - 1
             data = (self._data >> offset) & mask
-            if issubclass(cls, VecEnum):
-                return cls(data)  # pyright: ignore[reportCallIssue]
             if issubclass(cls, VecStruct):
                 obj = object.__new__(cls)
                 obj._data = data
                 return obj
-            # Vec
+            # Vec, VecEnum
             return cls(data)
 
         for fn, ft in fields:
