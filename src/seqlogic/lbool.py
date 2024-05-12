@@ -1517,6 +1517,8 @@ class _VecEnumMeta(type):
                     raise ValueError(f"Cannot use reserved name = '{key}'")
                 if data in (0, dc_data):
                     raise ValueError(f"Cannot use reserved data = {data}")
+                if data in data2name:
+                    raise ValueError(f"Duplicate data: {val}")
                 data2name[data] = key
 
         # Empty Enum
