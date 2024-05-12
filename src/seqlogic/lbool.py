@@ -1502,13 +1502,13 @@ class _VecEnumMeta(type):
             return super().__new__(mcs, name, bases, attrs)
 
         enum_attrs = {}
-        # ident = literal
         data2name: dict[int, str] = {}
         n = None
         dc_data = None
         for key, val in attrs.items():
             if key.startswith("__"):
                 enum_attrs[key] = val
+            # NAME = lit
             else:
                 if n is None:
                     n, data = _lit2vec(val)
@@ -1527,24 +1527,26 @@ class _VecEnumMeta(type):
 
         # Empty Enum
         if n is None:
-            # Create class
-            super_cls = Vec[0]
-            enum = super().__new__(mcs, name, bases + (super_cls,), enum_attrs)
-            # Instantiate member
-            obj = object.__new__(enum)  # pyright: ignore[reportArgumentType]
-            super_cls.__init__(obj, 0)
-            # Define methods
-            enum.__new__ = lambda cls: obj
-            enum.__init__ = lambda self: None
-            enum.name = property(fget=lambda _: "")
+            raise ValueError("Empty Enum is not supported")
 
-            return enum
+        # Help the type checker
+        assert dc_data is not None
 
         # Add X/DC members
         data2name[0] = "X"
-        assert dc_data is not None
         data2name[dc_data] = "DC"
 
+        # Create Enum class
+        enum = super().__new__(mcs, name, bases + (Vec[n],), enum_attrs)
+
+        # Instantiate members
+        for data, name in data2name.items():
+            obj = object.__new__(enum)  # pyright: ignore[reportArgumentType]
+            obj._data = data
+            obj._name = name
+            setattr(enum, name, obj)
+
+        # Override Vec __new__ method
         def _new(cls, arg: str | int | Vec):
             match arg:
                 case str() as lit:
@@ -1569,24 +1571,17 @@ class _VecEnumMeta(type):
                     raise TypeError("Expected arg to be str, int, or Vec")
             return getattr(cls, name)
 
-        # Create class
-        enum = super().__new__(mcs, name, bases + (Vec[n],), enum_attrs)
-
-        # Instantiate members
-        for data, name in data2name.items():
-            obj = object.__new__(enum)  # pyright: ignore[reportArgumentType]
-            Vec[n].__init__(obj, data)
-            obj._name = name
-            setattr(enum, name, obj)
-
-        # Define methods
         enum.__new__ = _new
-        enum.__init__ = lambda self, arg: None
-        enum.name = property(fget=lambda self: self._name)
 
-        # Override xes, dcs
+        # Override __init__ method (to do nothing)
+        enum.__init__ = lambda self, arg: None
+
+        # Override Vec xes/dcs methods
         enum.xes = classmethod(lambda cls: getattr(cls, "X"))
         enum.dcs = classmethod(lambda cls: getattr(cls, "DC"))
+
+        # Create name property
+        enum.name = property(fget=lambda self: self._name)
 
         return enum
 
@@ -1598,17 +1593,17 @@ class VecEnum(metaclass=_VecEnumMeta):
 def _struct_init_source(fields: list[tuple[str, type]]) -> str:
     """Return source code for Struct __init__ method w/ fields."""
     lines = []
-    line = "def struct_init(self"
-    for field_name, field_type in fields:
-        line += f", {field_name}: {field_type.__name__} | None = None"
-    line += "):\n"
-    lines.append(line)
-    lines.append("    self._data = 0\n")
-    for fn, ft in fields:
+    s = ", ".join(f"{fn}: {ft.__name__} | None = None" for fn, ft in fields)
+    lines.append(f"def struct_init(self, {s}):\n")
+    lines.append("    data = 0\n")
+    for fn, _ in fields:
         lines.append(f"    if {fn} is not None:\n")
-        lines.append(f"        {ft.__name__}.check_len(len({fn}))\n")
-        offset = f"({_ITEM_BITS} * self._{fn}_base)"
-        lines.append(f"        self._data |= {fn}.data << {offset}\n")
+        lines.append(f"        got, exp = len({fn}), self._{fn}_size\n")
+        lines.append("        if got != exp:\n")
+        s = f"Expected field {fn} to have {{exp}} bits, got {{got}}"
+        lines.append(f'            raise TypeError(f"{s}")\n')
+        lines.append(f"        data |= {fn}.data << ({_ITEM_BITS} * self._{fn}_base)\n")
+    lines.append("    self._data = data\n")
     return "".join(lines)
 
 
@@ -1644,6 +1639,7 @@ class _VecStructMeta(type):
 
         # Create Struct.__init__
         source = _struct_init_source(fields)
+        print(source)
         globals_ = {"Vec": Vec}
         globals_.update({ft.__name__: ft for _, ft in fields})
         locals_ = {}

@@ -1,8 +1,10 @@
 """Test seqlogic.lbool.VecEnum."""
 
-# pyright: reportArgumentType=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportCallIssue=false
+# pylint: disable = unused-variable
+
+# pyright: reportArgumentType = false
+# pyright: reportAttributeAccessIssue = false
+# pyright: reportCallIssue = false
 
 import pytest
 
@@ -18,15 +20,10 @@ class Color(VecEnum):
 
 
 def test_empty():
-    class Empty(VecEnum):
-        pass
+    with pytest.raises(ValueError):
 
-    e = Empty()
-    assert len(e) == 0
-    assert e.name == ""
-    assert e.data == 0
-    assert str(e) == ""
-    assert Empty() is e
+        class Empty(VecEnum):
+            pass
 
 
 def test_basic():
