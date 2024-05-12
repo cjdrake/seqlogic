@@ -1533,9 +1533,9 @@ class _VecEnumMeta(type):
             obj = object.__new__(enum)  # pyright: ignore[reportArgumentType]
             super_cls.__init__(obj, 0)
             # Define methods
-            enum.__new__ = lambda c: obj
-            enum.__init__ = lambda s: None
-            enum.name = property(fget=lambda self: "")
+            enum.__new__ = lambda cls: obj
+            enum.__init__ = lambda self: None
+            enum.name = property(fget=lambda _: "")
 
             return enum
 
@@ -1547,7 +1547,8 @@ class _VecEnumMeta(type):
         def _new(cls, arg: str | int | Vec):
             match arg:
                 case str() as lit:
-                    _, data = _lit2vec(lit)
+                    n, data = _lit2vec(lit)
+                    cls.check_len(n)
                     try:
                         name = data2name[data]
                     except KeyError as e:
@@ -1558,6 +1559,7 @@ class _VecEnumMeta(type):
                     except KeyError as e:
                         raise ValueError(f"Invalid data: 0b{data:b}") from e
                 case Vec() as v:
+                    cls.check_len(len(v))
                     try:
                         name = data2name[v.data]
                     except KeyError as e:
@@ -1578,7 +1580,7 @@ class _VecEnumMeta(type):
 
         # Define methods
         enum.__new__ = _new
-        enum.__init__ = lambda s, arg: None
+        enum.__init__ = lambda self, arg: None
         enum.name = property(fget=lambda self: self._name)
 
         return enum
@@ -1688,11 +1690,13 @@ class _VecStructMeta(type):
             mask = (1 << nbits) - 1
             offset = _ITEM_BITS * getattr(self, f"_{name}_base")
             data = (self._data >> offset) & mask
+            if issubclass(cls, VecEnum):
+                return cls(data)  # pyright: ignore[reportCallIssue]
             if issubclass(cls, VecStruct):
                 obj = object.__new__(cls)
-                cls.check_data(data)
                 obj._data = data
                 return obj
+            # Vec
             return cls(data)
 
         for fn, ft in fields:
