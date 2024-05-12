@@ -340,11 +340,15 @@ class Vec:
 
     @classmethod
     def xes(cls):
-        return cls(0)
+        obj = object.__new__(cls)
+        obj._data = 0
+        return obj
 
     @classmethod
     def dcs(cls):
-        return cls((1 << cls.nbits) - 1)
+        obj = object.__new__(cls)
+        obj._data = (1 << cls.nbits) - 1
+        return obj
 
     def __init__(self, data: int):
         """Initialize.
@@ -1580,6 +1584,10 @@ class _VecEnumMeta(type):
         enum.__init__ = lambda self, arg: None
         enum.name = property(fget=lambda self: self._name)
 
+        # Override xes, dcs
+        enum.xes = classmethod(lambda cls: getattr(cls, "X"))
+        enum.dcs = classmethod(lambda cls: getattr(cls, "DC"))
+
         return enum
 
 
@@ -1641,17 +1649,6 @@ class _VecStructMeta(type):
         locals_ = {}
         exec(source, globals_, locals_)  # pylint: disable=exec-used
         struct.__init__ = locals_["struct_init"]
-
-        # Override Struct.xes and Struct.dcs methods
-        def _xes():
-            return struct()
-
-        def _dcs():
-            kwargs = {fn: ft.dcs() for fn, ft in fields}
-            return struct(**kwargs)  # pyright: ignore[reportCallIssue]
-
-        struct.xes = _xes
-        struct.dcs = _dcs
 
         # Create Struct.__str__
         def _str(self):
