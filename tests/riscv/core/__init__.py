@@ -1,6 +1,6 @@
 """TODO(cjdrake): Write docstring."""
 
-from seqlogic.lbool import Vec, VecEnum, VecStruct
+from seqlogic.lbool import Vec, VecEnum, VecStruct, VecUnion
 
 WORD_BITS = 32
 BYTE_BITS = 8
@@ -125,6 +125,12 @@ class Funct3AluMul(VecEnum):
     DIVU = "3b101"
     REM = "3b110"
     REMU = "3b111"
+
+
+class Funct3Alu(VecUnion):
+    alu_logic: Funct3AluLogic
+    branch: Funct3Branch
+    alu_mul: Funct3AluMul
 
 
 class CtlWriteBack(VecEnum):
