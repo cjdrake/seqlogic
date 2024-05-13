@@ -2,12 +2,11 @@
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, cat, uint2vec, vec, zeros
-from seqlogic.sim import always_comb, initial
+from seqlogic.sim import always_comb
 
 from .. import TEXT_BASE, Inst
 from ..common.alu import Alu
 from ..common.immediate_generator import ImmedateGenerator
-from ..common.mux import Mux
 from ..common.regfile import RegFile
 from ..common.register import Register
 
@@ -70,10 +69,6 @@ class DataPath(Module):
 
         # Submodules
         self.alu = Alu(name="alu", parent=self)
-        self.mux_next_pc = Mux(name="mux_next_pc", parent=self, n=4, dtype=Vec[32])
-        self.mux_op_a = Mux(name="mux_op_a", parent=self, n=2, dtype=Vec[32])
-        self.mux_op_b = Mux(name="mux_op_b", parent=self, n=2, dtype=Vec[32])
-        self.mux_reg_writeback = Mux(name="mux_reg_writeback", n=8, parent=self, dtype=Vec[32])
         self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
         pc_init = uint2vec(TEXT_BASE, 32)
         self.program_counter = Register(name="program_counter", parent=self, init=pc_init)
@@ -89,34 +84,6 @@ class DataPath(Module):
         self.alu.op_a.connect(self.alu_op_a)
         self.alu.op_b.connect(self.alu_op_b)
 
-        self.pc_next.connect(self.mux_next_pc.out)
-        self.mux_next_pc.sel.connect(self.next_pc_sel)
-        self.mux_next_pc.ins[0].connect(self.pc_plus_4)
-        self.mux_next_pc.ins[1].connect(self.pc_plus_immediate)
-        # .in2 ({alu_result[32-1:1], 1'b0})
-        # .in3 (32'h0000_0000)
-
-        self.alu_op_a.connect(self.mux_op_a.out)
-        self.mux_op_a.sel.connect(self.alu_op_a_sel)
-        self.mux_op_a.ins[0].connect(self.rs1_data)
-        self.mux_op_a.ins[1].connect(self.pc)
-
-        self.alu_op_b.connect(self.mux_op_b.out)
-        self.mux_op_b.sel.connect(self.alu_op_b_sel)
-        self.mux_op_b.ins[0].connect(self.rs2_data)
-        self.mux_op_b.ins[1].connect(self.immediate)
-
-        self.wr_data.connect(self.mux_reg_writeback.out)
-        self.mux_reg_writeback.sel.connect(self.reg_writeback_sel)
-        self.mux_reg_writeback.ins[0].connect(self.alu_result)
-        self.mux_reg_writeback.ins[1].connect(self.data_mem_rd_data)
-        self.mux_reg_writeback.ins[2].connect(self.pc_plus_4)
-        self.mux_reg_writeback.ins[3].connect(self.immediate)
-        # .in4(32'h0000_0000)
-        # .in5(32'h0000_0000)
-        # .in6(32'h0000_0000)
-        # .in7(32'h0000_0000)
-
         self.immediate.connect(self.immediate_generator.immediate)
         self.immediate_generator.inst.connect(self.inst)
 
@@ -131,23 +98,6 @@ class DataPath(Module):
         self.rs1_data.connect(self.regfile.rs1_data)
         self.rs2_data.connect(self.regfile.rs2_data)
         self.regfile.clock.connect(self.clock)
-
-    @initial
-    async def p_i_0(self):
-        # mux_next_pc.in3(32'h0000_0000)
-        self.mux_next_pc.ins[3].next = zeros(32)
-        # mux_reg_writeback.{in4, in5, in6, in7}
-        self.mux_reg_writeback.ins[4].next = zeros(32)
-        self.mux_reg_writeback.ins[5].next = zeros(32)
-        self.mux_reg_writeback.ins[6].next = zeros(32)
-        self.mux_reg_writeback.ins[7].next = zeros(32)
-
-    @always_comb
-    async def p_c_0(self):
-        while True:
-            await changed(self.alu_result)
-            # mux_next_pc.in2({alu_result[31:1], 1'b0})
-            self.mux_next_pc.ins[2].next = cat(zeros(1), self.alu_result.value[1:32])
 
     @always_comb
     async def p_c_1(self):
@@ -168,3 +118,63 @@ class DataPath(Module):
         while True:
             await changed(self.pc, self.immediate)
             self.pc_plus_immediate.next = self.pc.value + self.immediate.value
+
+    # TODO(cjdrake): Replace with mux operator
+    @always_comb
+    async def p_c_4(self):
+        while True:
+            await changed(self.next_pc_sel, self.pc_plus_4, self.pc_plus_immediate, self.alu_result)
+            if self.next_pc_sel.value == vec("2b00"):
+                self.pc_next.next = self.pc_plus_4.value
+            elif self.next_pc_sel.value == vec("2b01"):
+                self.pc_next.next = self.pc_plus_immediate.value
+            elif self.next_pc_sel.value == vec("2b10"):
+                self.pc_next.next = cat(zeros(1), self.alu_result.value[1:32])
+            else:
+                self.pc_next.next = Vec[32].dcs()
+
+    # TODO(cjdrake): Replace with mux operator
+    @always_comb
+    async def p_c_5(self):
+        while True:
+            await changed(self.alu_op_a_sel, self.rs1_data, self.pc)
+            if self.alu_op_a_sel.value == vec("1b0"):
+                self.alu_op_a.next = self.rs1_data.value
+            elif self.alu_op_a_sel.value == vec("1b1"):
+                self.alu_op_a.next = self.pc.value
+            else:
+                self.alu_op_a.next = Vec[32].dcs()
+
+    # TODO(cjdrake): Replace with mux operator
+    @always_comb
+    async def p_c_6(self):
+        while True:
+            await changed(self.alu_op_b_sel, self.rs2_data, self.immediate)
+            if self.alu_op_b_sel.value == vec("1b0"):
+                self.alu_op_b.next = self.rs2_data.value
+            elif self.alu_op_b_sel.value == vec("1b1"):
+                self.alu_op_b.next = self.immediate.value
+            else:
+                self.alu_op_b.next = Vec[32].dcs()
+
+    # TODO(cjdrake): Replace with mux operator
+    @always_comb
+    async def p_c_7(self):
+        while True:
+            await changed(
+                self.reg_writeback_sel,
+                self.alu_result,
+                self.data_mem_rd_data,
+                self.pc_plus_4,
+                self.immediate,
+            )
+            if self.reg_writeback_sel.value == vec("3b000"):
+                self.wr_data.next = self.alu_result.value
+            elif self.reg_writeback_sel.value == vec("3b001"):
+                self.wr_data.next = self.data_mem_rd_data.value
+            elif self.reg_writeback_sel.value == vec("3b010"):
+                self.wr_data.next = self.pc_plus_4.value
+            elif self.reg_writeback_sel.value == vec("3b011"):
+                self.wr_data.next = self.immediate.value
+            else:
+                self.wr_data.next = Vec[32].dcs()
