@@ -3,7 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import dcs, ones, zeros
+from seqlogic.lbool import Vec, ones, zeros
 from seqlogic.sim import always_comb
 
 from .. import CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Opcode
@@ -151,11 +151,11 @@ class Control(Module):
                     self.data_mem_wr_en.next = zeros(1)
                     self.reg_writeback_sel.next = CtlWriteBack.PC4
                 case _:
-                    self.pc_wr_en.next = dcs(1)
-                    self.regfile_wr_en.next = dcs(1)
+                    self.pc_wr_en.next = Vec[1].dcs()
+                    self.regfile_wr_en.next = Vec[1].dcs()
                     self.alu_op_a_sel.next = CtlAluA.DC
                     self.alu_op_b_sel.next = CtlAluB.DC
                     self.alu_op_type.next = CtlAlu.DC
-                    self.data_mem_rd_en.next = dcs(1)
-                    self.data_mem_wr_en.next = dcs(1)
+                    self.data_mem_rd_en.next = Vec[1].dcs()
+                    self.data_mem_wr_en.next = Vec[1].dcs()
                     self.reg_writeback_sel.next = CtlWriteBack.DC

@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import Vec, cat, rep, vec, xes
+from seqlogic.lbool import Vec, cat, rep, vec
 from seqlogic.sim import always_comb
 
 
@@ -49,7 +49,7 @@ class DataMemoryInterface(Module):
             elif self.data_format.value[:2] == vec("2b11"):
                 self.bus_wr_be.next = vec("4b0000")
             else:
-                self.bus_wr_be.next = xes(4)
+                self.bus_wr_be.next = Vec[4].dcs()
 
     @always_comb
     async def p_c_1(self):
@@ -73,4 +73,4 @@ class DataMemoryInterface(Module):
             elif self.data_format.value[:2] == vec("2b10"):
                 self.rd_data.next = temp
             else:
-                self.rd_data.next = xes(32)
+                self.rd_data.next = Vec[32].dcs()

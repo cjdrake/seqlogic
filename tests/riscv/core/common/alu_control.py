@@ -53,8 +53,8 @@ class AluControl(Module):
                 case Funct3AluLogic.AND:
                     self._default_func.next = AluOp.AND
                 case _:
-                    self._default_func.next = AluOp.X
-                    self._secondary_func.next = AluOp.X
+                    self._default_func.next = AluOp.DC
+                    self._secondary_func.next = AluOp.DC
 
             match self.inst_funct3.value:
                 case Funct3Branch.EQ | Funct3Branch.NE:
@@ -64,7 +64,7 @@ class AluControl(Module):
                 case Funct3Branch.LTU | Funct3Branch.GEU:
                     self._branch_func.next = AluOp.SLTU
                 case _:
-                    self._branch_func.next = AluOp.X
+                    self._branch_func.next = AluOp.DC
 
     @always_comb
     async def p_c_3(self):
@@ -96,4 +96,4 @@ class AluControl(Module):
                 case CtlAlu.BRANCH:
                     self.alu_function.next = self._branch_func.value
                 case _:
-                    self.alu_function.next = AluOp.X
+                    self.alu_function.next = AluOp.DC
