@@ -26,9 +26,26 @@ from seqlogic.lbool import (
 )
 
 E = Vec[0](0)
-F = vec(False)
-T = vec(True)
-X = vec("1bX")
+X = Vec[1](0b00)
+F = Vec[1](0b01)
+T = Vec[1](0b10)
+W = Vec[1](0b11)
+
+
+def test_vec():
+    # None/Empty
+    assert vec() == vec(None) == vec([]) == E
+    # Single bool input
+    assert vec(False) == vec(0) == F
+    assert vec(True) == vec(1) == T
+    # Sequence of bools
+    assert vec([False, True, 0, 1]) == Vec[4](0b10_01_10_01)
+    # String
+    assert vec("4b-10X") == Vec[4](0b11_10_01_00)
+
+    # Invalid input type
+    with pytest.raises(TypeError):
+        vec({"key": "val"})
 
 
 LNOT = {
@@ -37,20 +54,6 @@ LNOT = {
     "1": "0",
     "-": "-",
 }
-
-
-def test_vec():
-    assert vec() == Vec[0](0)
-    assert vec(None) == Vec[0](0)
-    assert vec(False) == Vec[1](0b01)
-    assert vec(True) == Vec[1](0b10)
-    assert vec(0) == Vec[1](0b01)
-    assert vec(1) == Vec[1](0b10)
-    assert vec([False, True, 0, 1]) == Vec[4](0b10_01_10_01)
-
-    # Invalid input type
-    with pytest.raises(TypeError):
-        vec({"key": "val"})
 
 
 def test_lnot():
