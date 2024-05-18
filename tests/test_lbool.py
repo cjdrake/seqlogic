@@ -1031,28 +1031,131 @@ def test_int2vec():
         int2vec(4, 3)
 
 
-def test_lit2vec():
-    # literal doesn't match size
-    with pytest.raises(ValueError):
-        vec("4b1010_1010")
-    with pytest.raises(ValueError):
-        vec("8b1010")
-    with pytest.raises(ValueError):
-        vec("16hdead_beef")
-    with pytest.raises(ValueError):
-        vec("8hdead")
+LIT2VEC_BIN = {
+    "1b0": (1, 0b01),
+    "1b1": (1, 0b10),
+    "2b00": (2, 0b01_01),
+    "2b01": (2, 0b01_10),
+    "2b10": (2, 0b10_01),
+    "2b11": (2, 0b10_10),
+    "3b100": (3, 0b10_01_01),
+    "3b101": (3, 0b10_01_10),
+    "3b110": (3, 0b10_10_01),
+    "3b111": (3, 0b10_10_10),
+    "4b1000": (4, 0b10_01_01_01),
+    "4b1001": (4, 0b10_01_01_10),
+    "4b1010": (4, 0b10_01_10_01),
+    "4b1011": (4, 0b10_01_10_10),
+    "4b1100": (4, 0b10_10_01_01),
+    "4b1101": (4, 0b10_10_01_10),
+    "4b1110": (4, 0b10_10_10_01),
+    "4b1111": (4, 0b10_10_10_10),
+    "5b1_0000": (5, 0b10_01_01_01_01),
+    "5b1_1111": (5, 0b10_10_10_10_10),
+    "6b10_0000": (6, 0b10_01_01_01_01_01),
+    "6b11_1111": (6, 0b10_10_10_10_10_10),
+    "7b100_0000": (7, 0b10_01_01_01_01_01_01),
+    "7b111_1111": (7, 0b10_10_10_10_10_10_10),
+    "8b1000_0000": (8, 0b10_01_01_01_01_01_01_01),
+    "8b1111_1111": (8, 0b10_10_10_10_10_10_10_10),
+    "9b1_0000_0000": (9, 0b10_01_01_01_01_01_01_01_01),
+    "9b1_1111_1111": (9, 0b10_10_10_10_10_10_10_10_10),
+}
 
-    # Invalid input
+
+def test_lit2vec_bin():
+    # Valid inputs
+    for lit, (n, data) in LIT2VEC_BIN.items():
+        v = vec(lit)
+        assert len(v) == n and v.data == data
+
+    v = vec("4b-1_0X")
+    assert len(v) == 4 and v.data == 0b11_10_01_00
+    v = vec("4bX01-")
+    assert len(v) == 4 and v.data == 0b00_01_10_11
+
+    # Not a literal
     with pytest.raises(ValueError):
         vec("invalid")
 
-    # Valid input
-    v = vec("4b-1_0X")
-    assert v.data == 0b11_10_01_00
-    v = vec("64hFeDc_Ba98_7654_3210")
-    assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
-    v = vec("64hfEdC_bA98_7654_3210")
-    assert v.data == 0xAAA9_A6A5_9A99_9695_6A69_6665_5A59_5655
+    # Size cannot be zero
+    with pytest.raises(ValueError):
+        vec("0b0")
+    # Contains illegal characters
+    with pytest.raises(ValueError):
+        vec("4b1XW0")
+
+    # Size is too big
+    with pytest.raises(ValueError):
+        vec("8b1010")
+
+    # Size is too small
+    with pytest.raises(ValueError):
+        vec("4b1010_1010")
+
+
+LIT2VEC_HEX = {
+    "1h0": (1, 0b01),
+    "1h1": (1, 0b10),
+    "2h0": (2, 0b01_01),
+    "2h1": (2, 0b01_10),
+    "2h2": (2, 0b10_01),
+    "2h3": (2, 0b10_10),
+    "3h4": (3, 0b10_01_01),
+    "3h5": (3, 0b10_01_10),
+    "3h6": (3, 0b10_10_01),
+    "3h7": (3, 0b10_10_10),
+    "4h8": (4, 0b10_01_01_01),
+    "4h9": (4, 0b10_01_01_10),
+    "4hA": (4, 0b10_01_10_01),
+    "4hB": (4, 0b10_01_10_10),
+    "4hC": (4, 0b10_10_01_01),
+    "4hD": (4, 0b10_10_01_10),
+    "4hE": (4, 0b10_10_10_01),
+    "4hF": (4, 0b10_10_10_10),
+    "5h10": (5, 0b10_01_01_01_01),
+    "5h1F": (5, 0b10_10_10_10_10),
+    "6h20": (6, 0b10_01_01_01_01_01),
+    "6h3F": (6, 0b10_10_10_10_10_10),
+    "7h40": (7, 0b10_01_01_01_01_01_01),
+    "7h7F": (7, 0b10_10_10_10_10_10_10),
+    "8h80": (8, 0b10_01_01_01_01_01_01_01),
+    "8hFF": (8, 0b10_10_10_10_10_10_10_10),
+    "9h100": (9, 0b10_01_01_01_01_01_01_01_01),
+    "9h1FF": (9, 0b10_10_10_10_10_10_10_10_10),
+}
+
+
+def test_lit2vec_hex():
+    # Valid inputs
+    for lit, (n, data) in LIT2VEC_HEX.items():
+        v = vec(lit)
+        assert len(v) == n and v.data == data
+
+    # Not a literal
+    with pytest.raises(ValueError):
+        vec("invalid")
+
+    # Size cannot be zero
+    with pytest.raises(ValueError):
+        vec("0h0")
+    # Contains illegal characters
+    with pytest.raises(ValueError):
+        vec("8hd3@d_b33f")
+
+    # Size is too big
+    with pytest.raises(ValueError):
+        vec("16hdead_beef")
+
+    # Size is too small
+    with pytest.raises(ValueError):
+        vec("8hdead")
+
+    # Invalid characters
+    with pytest.raises(ValueError):
+        vec("3h8")  # Only 0..7 is legal
+    with pytest.raises(ValueError):
+        vec("5h20")  # Only 0..1F is legal
 
 
 def test_vec_basic():

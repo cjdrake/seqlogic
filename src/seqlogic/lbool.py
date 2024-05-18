@@ -1325,39 +1325,40 @@ def bools2vec(xs: Iterable[int]) -> Vec:
     return Vec[n](data)
 
 
-_NUM_RE = re.compile(
-    r"((?P<BinSize>[0-9]+)b(?P<BinDigits>[X01\-_]+))|"
-    r"((?P<HexSize>[0-9]+)h(?P<HexDigits>[0-9a-fA-F_]+))"
+_LIT_RE = re.compile(
+    r"((?P<BinSize>[1-9][0-9]*)b(?P<BinDigits>[X01\-_]+))|"
+    r"((?P<HexSize>[1-9][0-9]*)h(?P<HexDigits>[0-9a-fA-F_]+))"
 )
 
 
 def _lit2vec(lit: str) -> tuple[int, int]:
-    if m := _NUM_RE.match(lit):
+    if m := _LIT_RE.fullmatch(lit):
         # Binary
         if m.group("BinSize"):
-            size = int(m.group("BinSize"))
+            n = int(m.group("BinSize"))
             digits = m.group("BinDigits").replace("_", "")
-            ndigits = len(digits)
-            if ndigits != size:
-                s = f"Expected {size} digits, got {ndigits}"
+            if len(digits) != n:
+                s = f"Expected {n} digits, got {len(digits)}"
                 raise ValueError(s)
-            n, data = 0, 0
-            for c in reversed(digits):
-                data |= _from_char[c] << (n * _ITEM_BITS)
-                n += 1
+            data = 0
+            for i, c in enumerate(reversed(digits)):
+                data |= _from_char[c] << (i * _ITEM_BITS)
             return n, data
         # Hexadecimal
         elif m.group("HexSize"):
-            size = int(m.group("HexSize"))
+            n = int(m.group("HexSize"))
             digits = m.group("HexDigits").replace("_", "")
-            ndigits = len(digits)
-            if 4 * ndigits != size:
-                s = f"Expected size to match # digits, got {size} ≠ {4 * ndigits}"
+            exp = (n + 3) // 4
+            if len(digits) != exp:
+                s = f"Expected {exp} digits, got {len(digits)}"
                 raise ValueError(s)
-            n, data = 0, 0
-            for c in reversed(digits):
-                data |= _from_hexchar[c] << (n * _ITEM_BITS)
-                n += 4
+            data = 0
+            for i, c in enumerate(reversed(digits)):
+                try:
+                    x = _from_hexchar[min(n - 4 * i, 4)][c]
+                except KeyError as e:
+                    raise ValueError(f"Character overflows size: {c}") from e
+                data |= x << (4 * i * _ITEM_BITS)
             return n, data
         else:  # pragma: no cover
             assert False
@@ -1783,28 +1784,50 @@ _to_char = {
 }
 
 _from_hexchar = {
-    "0": 0b01_01_01_01,
-    "1": 0b01_01_01_10,
-    "2": 0b01_01_10_01,
-    "3": 0b01_01_10_10,
-    "4": 0b01_10_01_01,
-    "5": 0b01_10_01_10,
-    "6": 0b01_10_10_01,
-    "7": 0b01_10_10_10,
-    "8": 0b10_01_01_01,
-    "9": 0b10_01_01_10,
-    "a": 0b10_01_10_01,
-    "A": 0b10_01_10_01,
-    "b": 0b10_01_10_10,
-    "B": 0b10_01_10_10,
-    "c": 0b10_10_01_01,
-    "C": 0b10_10_01_01,
-    "d": 0b10_10_01_10,
-    "D": 0b10_10_01_10,
-    "e": 0b10_10_10_01,
-    "E": 0b10_10_10_01,
-    "f": 0b10_10_10_10,
-    "F": 0b10_10_10_10,
+    1: {
+        "0": 0b01,
+        "1": 0b10,
+    },
+    2: {
+        "0": 0b01_01,
+        "1": 0b01_10,
+        "2": 0b10_01,
+        "3": 0b10_10,
+    },
+    3: {
+        "0": 0b01_01_01,
+        "1": 0b01_01_10,
+        "2": 0b01_10_01,
+        "3": 0b01_10_10,
+        "4": 0b10_01_01,
+        "5": 0b10_01_10,
+        "6": 0b10_10_01,
+        "7": 0b10_10_10,
+    },
+    4: {
+        "0": 0b01_01_01_01,
+        "1": 0b01_01_01_10,
+        "2": 0b01_01_10_01,
+        "3": 0b01_01_10_10,
+        "4": 0b01_10_01_01,
+        "5": 0b01_10_01_10,
+        "6": 0b01_10_10_01,
+        "7": 0b01_10_10_10,
+        "8": 0b10_01_01_01,
+        "9": 0b10_01_01_10,
+        "a": 0b10_01_10_01,
+        "A": 0b10_01_10_01,
+        "b": 0b10_01_10_10,
+        "B": 0b10_01_10_10,
+        "c": 0b10_10_01_01,
+        "C": 0b10_10_01_01,
+        "d": 0b10_10_01_10,
+        "D": 0b10_10_01_10,
+        "e": 0b10_10_10_01,
+        "E": 0b10_10_10_01,
+        "f": 0b10_10_10_10,
+        "F": 0b10_10_10_10,
+    },
 }
 
 _byte_cnt_xes = {
