@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, cat, uint2vec, vec, zeros
 from seqlogic.sim import always_comb
 
-from .. import TEXT_BASE, CtlPc, CtlWriteBack, Inst
+from .. import TEXT_BASE, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
 from ..common.alu import Alu
 from ..common.immediate_generator import ImmedateGenerator
 from ..common.regfile import RegFile
@@ -40,8 +40,8 @@ class DataPath(Module):
         # Control signals
         self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
-        self.alu_op_a_sel = Bit(name="alu_op_a_sel", parent=self)
-        self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
+        self.alu_op_a_sel = Bits(name="alu_op_a_sel", parent=self, dtype=CtlAluA)
+        self.alu_op_b_sel = Bits(name="alu_op_b_sel", parent=self, dtype=CtlAluB)
         self.alu_function = Bits(name="alu_function", parent=self, dtype=Vec[5])
         self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
         self.next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
@@ -133,29 +133,29 @@ class DataPath(Module):
                 case _:
                     self.pc_next.next = Vec[32].dcs()
 
-    # TODO(cjdrake): Replace with mux operator
     @always_comb
     async def p_c_5(self):
         while True:
             await changed(self.alu_op_a_sel, self.rs1_data, self.pc)
-            if self.alu_op_a_sel.value == vec("1b0"):
-                self.alu_op_a.next = self.rs1_data.value
-            elif self.alu_op_a_sel.value == vec("1b1"):
-                self.alu_op_a.next = self.pc.value
-            else:
-                self.alu_op_a.next = Vec[32].dcs()
+            match self.alu_op_a_sel.value:
+                case CtlAluA.RS1:
+                    self.alu_op_a.next = self.rs1_data.value
+                case CtlAluA.PC:
+                    self.alu_op_a.next = self.pc.value
+                case _:
+                    self.alu_op_a.next = Vec[32].dcs()
 
-    # TODO(cjdrake): Replace with mux operator
     @always_comb
     async def p_c_6(self):
         while True:
             await changed(self.alu_op_b_sel, self.rs2_data, self.immediate)
-            if self.alu_op_b_sel.value == vec("1b0"):
-                self.alu_op_b.next = self.rs2_data.value
-            elif self.alu_op_b_sel.value == vec("1b1"):
-                self.alu_op_b.next = self.immediate.value
-            else:
-                self.alu_op_b.next = Vec[32].dcs()
+            match self.alu_op_b_sel.value:
+                case CtlAluB.RS2:
+                    self.alu_op_b.next = self.rs2_data.value
+                case CtlAluB.IMM:
+                    self.alu_op_b.next = self.immediate.value
+                case _:
+                    self.alu_op_b.next = Vec[32].dcs()
 
     @always_comb
     async def p_c_7(self):

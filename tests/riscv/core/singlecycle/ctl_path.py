@@ -3,7 +3,7 @@
 from seqlogic import Bit, Bits, Module
 from seqlogic.lbool import Vec
 
-from .. import CtlPc, CtlWriteBack, Opcode
+from .. import CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Opcode
 from ..common.alu_control import AluControl
 from ..common.control_transfer import ControlTransfer
 from .control import Control
@@ -26,8 +26,8 @@ class CtlPath(Module):
         self.alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
         self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
-        self.alu_op_a_sel = Bit(name="alu_op_a_sel", parent=self)
-        self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
+        self.alu_op_a_sel = Bits(name="alu_op_a_sel", parent=self, dtype=CtlAluA)
+        self.alu_op_b_sel = Bits(name="alu_op_b_sel", parent=self, dtype=CtlAluB)
         self.data_mem_rd_en = Bit(name="data_mem_rd_en", parent=self)
         self.data_mem_wr_en = Bit(name="data_mem_wr_en", parent=self)
         self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
