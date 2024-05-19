@@ -16,7 +16,7 @@ from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
-from .lbool import Vec, ones, zeros
+from .lbool import Vec, VecEnum, ones, zeros
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, changed, get_loop
 
 _item2char = {
@@ -106,10 +106,11 @@ class Module(Branch, _TraceIf, _ProcIf):
 class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
     """Combine hierarchy and sim semantics for singular data types."""
 
-    def __init__(self, name: str, parent: Module, value):
+    def __init__(self, name: str, parent: Module, dtype: type):
         Leaf.__init__(self, name, parent)
-        Singular.__init__(self, value)
+        Singular.__init__(self, dtype.xes())
         _ProcIf.__init__(self)
+        self._dtype = dtype
         self._waves_change = None
         self._vcd_change = None
 
@@ -133,20 +134,27 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
 
     def dump_vcd(self, vcdw, pattern: str):
         assert isinstance(self._parent, Module)
-        if re.match(pattern, self.qualname):
-            var = vcdw.register_var(
-                scope=self._parent.scope,
-                name=self.name,
-                var_type="reg",
-                size=len(self._value),
-                init=_vec2vcd(self._value),
-            )
-
-            def change():
-                t = self._sim.time
-                vcdw.change(var, t, _vec2vcd(self._next_value))
-
-            self._vcd_change = change
+        if issubclass(self._dtype, VecEnum):
+            if re.match(pattern, self.qualname):
+                var = vcdw.register_var(
+                    scope=self._parent.scope,
+                    name=self.name,
+                    var_type="string",
+                    init=self._value.name,
+                )
+                self._vcd_change = lambda: vcdw.change(var, self._sim.time, self._next_value.name)
+        else:
+            if re.match(pattern, self.qualname):
+                var = vcdw.register_var(
+                    scope=self._parent.scope,
+                    name=self.name,
+                    var_type="reg",
+                    size=len(self._value),
+                    init=_vec2vcd(self._value),
+                )
+                self._vcd_change = lambda: vcdw.change(
+                    var, self._sim.time, _vec2vcd(self._next_value)
+                )
 
     def connect(self, src):
         """Convenience function to reduce process boilerplate."""
@@ -161,9 +169,6 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
 
 class Bits(_TraceSingular):
     """Leaf-level bitvector design component."""
-
-    def __init__(self, name: str, parent: Module, dtype: type):
-        super().__init__(name, parent, value=dtype.xes())
 
 
 class Bit(Bits):
@@ -204,10 +209,11 @@ class Bit(Bits):
 class _TraceAggregate(Leaf, _TraceIf, Aggregate, _ProcIf):
     """Combine hierarchy and sim semantics for aggregate data types."""
 
-    def __init__(self, name: str, parent: Module, value):
+    def __init__(self, name: str, parent: Module, dtype: type):
         Leaf.__init__(self, name, parent)
-        Aggregate.__init__(self, value)
+        Aggregate.__init__(self, dtype.xes())
         _ProcIf.__init__(self)
+        self._dtype = dtype
 
 
 class _ArrayXPropItem:
@@ -230,16 +236,9 @@ class _ArrayXPropItem:
 class Array(_TraceAggregate):
     """Leaf-level array of bitvector/enum/struct/union design components."""
 
-    def __init__(
-        self,
-        name: str,
-        parent: Module,
-        shape: tuple[int, ...],
-        dtype: type,
-    ):
+    def __init__(self, name: str, parent: Module, shape: tuple[int, ...], dtype: type):
         assert len(shape) == 1
-        super().__init__(name, parent, value=dtype.xes())
-        self._dtype = dtype
+        super().__init__(name, parent, dtype)
 
     def __getitem__(self, key: int | Vec):
         match key:

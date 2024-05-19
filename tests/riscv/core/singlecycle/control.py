@@ -36,7 +36,7 @@ class Control(Module):
             await changed(self.inst_opcode, self.take_branch)
             match self.inst_opcode.value:
                 case (
-                    Opcode.LOAD  # noqa
+                    Opcode.LOAD
                     | Opcode.MISC_MEM  # noqa
                     | Opcode.OP_IMM  # noqa
                     | Opcode.AUIPC  # noqa

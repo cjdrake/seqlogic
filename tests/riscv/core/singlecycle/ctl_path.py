@@ -3,6 +3,7 @@
 from seqlogic import Bit, Bits, Module
 from seqlogic.lbool import Vec
 
+from .. import Opcode
 from ..common.alu_control import AluControl
 from ..common.control_transfer import ControlTransfer
 from .control import Control
@@ -19,7 +20,7 @@ class CtlPath(Module):
 
     def build(self):
         # Ports
-        self.inst_opcode = Bits(name="inst_opcode", parent=self, dtype=Vec[7])
+        self.inst_opcode = Bits(name="inst_opcode", parent=self, dtype=Opcode)
         self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Vec[3])
         self.inst_funct7 = Bits(name="inst_funct7", parent=self, dtype=Vec[7])
         self.alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
