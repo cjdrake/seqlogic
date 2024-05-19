@@ -297,7 +297,9 @@ def test_vec_eq():
     assert Vec[0](0) == Vec[0](0)
     assert Vec[4](0b10_01_10_01) == Vec[4](0b10_01_10_01)
     assert Vec[4](0b10_01_10_01) != Vec[4](0b01_10_01_10)
-    assert Vec[4](0b11_10_01_00) != "foo"
+    assert Vec[4](0b10_01_10_01) == "4b1010"
+    assert Vec[4](0b10_01_10_01) != "4b0101"
+    assert Vec[4](0b10_01_10_01) == "4b----"
 
 
 def test_vec_hash():
@@ -640,34 +642,34 @@ def test_vec_match():
     b = vec("1b-")
     c = vec("1bX")
 
-    assert a.match("2b01") == T
-    assert a.match("2b00") == F
-    assert a.match("2b10") == F
-    assert a.match("2b11") == F
+    assert a._match("2b01")
+    assert not a._match("2b00")
+    assert not a._match("2b10")
+    assert not a._match("2b11")
 
-    assert a.match("2b0-") == T
-    assert a.match("2b-1") == T
-    assert a.match("2b--") == T
-    assert a.match("2b-0") == F
-    assert a.match("2b1-") == F
-    assert a.match("2bX1") == X
-    assert a.match("2b0X") == X
+    assert a._match("2b0-")
+    assert a._match("2b-1")
+    assert a._match("2b--")
+    assert not a._match("2b-0")
+    assert not a._match("2b1-")
+    assert not a._match("2bX1")
+    assert not a._match("2b0X")
 
-    assert a.match(vec("2b01")) == T
-    assert a.match(vec("2b00")) == F
+    assert a._match(vec("2b01"))
+    assert not a._match(vec("2b00"))
 
-    assert b.match("1bX") == X
-    assert b.match("1b0") == T
-    assert b.match("1b1") == T
-    assert b.match("1b-") == T
+    assert not b._match("1bX")
+    assert b._match("1b0")
+    assert b._match("1b1")
+    assert b._match("1b-")
 
-    assert c.match("1b0") == X
-    assert c.match("1b1") == X
-    assert c.match("1b-") == X
-    assert c.match("1bX") == X
+    assert not c._match("1b0")
+    assert not c._match("1b1")
+    assert not c._match("1b-")
+    assert not c._match("1bX")
 
     with pytest.raises(TypeError):
-        _ = a.match(42)  # pyright: ignore[reportArgumentType]
+        _ = a._match(42)  # pyright: ignore[reportArgumentType]
 
 
 def test_vec_zext():

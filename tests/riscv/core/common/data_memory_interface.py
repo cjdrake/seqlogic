@@ -39,16 +39,17 @@ class DataMemoryInterface(Module):
     async def p_c_0(self):
         while True:
             await changed(self.data_format, self.addr)
-            if self.data_format.value[:2] == vec("2b00"):
-                self.bus_wr_be.next = vec("4b0001") << self.addr.value[:2]
-            elif self.data_format.value[:2] == vec("2b01"):
-                self.bus_wr_be.next = vec("4b0011") << self.addr.value[:2]
-            elif self.data_format.value[:2] == vec("2b10"):
-                self.bus_wr_be.next = vec("4b1111") << self.addr.value[:2]
-            elif self.data_format.value[:2] == vec("2b11"):
-                self.bus_wr_be.next = vec("4b0000")
-            else:
-                self.bus_wr_be.next = Vec[4].dcs()
+            match self.data_format.value[:2]:
+                case "2b00":
+                    self.bus_wr_be.next = vec("4b0001") << self.addr.value[:2]
+                case "2b01":
+                    self.bus_wr_be.next = vec("4b0011") << self.addr.value[:2]
+                case "2b10":
+                    self.bus_wr_be.next = vec("4b1111") << self.addr.value[:2]
+                case "2b11":
+                    self.bus_wr_be.next = vec("4b0000")
+                case _:
+                    self.bus_wr_be.next = Vec[4].dcs()
 
     @always_comb
     async def p_c_1(self):
@@ -61,15 +62,18 @@ class DataMemoryInterface(Module):
     async def p_c_2(self):
         while True:
             await changed(self.data_format, self.addr, self.bus_rd_data)
+
             n = cat(vec("3b000"), self.addr.value[:2])
             temp = self.bus_rd_data.value >> n
-            if self.data_format.value[:2] == vec("2b00"):
-                x = ~(self.data_format.value[2]) & temp[7]
-                self.rd_data.next = cat(temp[:8], rep(x, 24))
-            elif self.data_format.value[:2] == vec("2b01"):
-                x = ~(self.data_format.value[2]) & temp[15]
-                self.rd_data.next = cat(temp[:16], rep(x, 16))
-            elif self.data_format.value[:2] == vec("2b10"):
-                self.rd_data.next = temp
-            else:
-                self.rd_data.next = Vec[32].dcs()
+
+            match self.data_format.value[:2]:
+                case "2b00":
+                    x = ~(self.data_format.value[2]) & temp[8 - 1]
+                    self.rd_data.next = cat(temp[:8], rep(x, 24))
+                case "2b01":
+                    x = ~(self.data_format.value[2]) & temp[16 - 1]
+                    self.rd_data.next = cat(temp[:16], rep(x, 16))
+                case "2b10":
+                    self.rd_data.next = temp
+                case _:
+                    self.rd_data.next = Vec[32].dcs()

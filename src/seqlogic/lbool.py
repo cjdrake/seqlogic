@@ -409,6 +409,8 @@ class Vec:
         match other:
             case Vec():
                 return self._eq(other)
+            case str() as lit:
+                return self._match(lit)
             case _:
                 return False
 
@@ -884,7 +886,7 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def match(self, pattern: str | Vec) -> Vec[1]:
+    def _match(self, pattern: str | Vec) -> bool:
         """Pattern match operator."""
         match pattern:
             case str() as lit:
@@ -898,15 +900,15 @@ class Vec:
 
         # Propagate X
         if self.has_x() or pattern.has_x():
-            return _VecX
+            return False
 
         for i in range(self._n):
             a = self._get_item(i)
             b = pattern._get_item(i)
             # Mismatch on (0b01, 0b10) or (0b10, 0b01)
             if a ^ b == 0b11:
-                return _Vec0
-        return _Vec1
+                return False
+        return True
 
     def zext(self, n: int) -> Vec:
         """Zero extend by n bits.

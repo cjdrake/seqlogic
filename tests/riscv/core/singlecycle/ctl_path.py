@@ -3,7 +3,7 @@
 from seqlogic import Bit, Bits, Module
 from seqlogic.lbool import Vec
 
-from .. import AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Funct3, Opcode
+from .. import AluOp, CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Funct3, Opcode
 from ..common.alu_control import AluControl
 from ..common.control_transfer import ControlTransfer
 from .control import Control
@@ -35,7 +35,7 @@ class CtlPath(Module):
 
         # State
         self._take_branch = Bit(name="take_branch", parent=self)
-        self._alu_op_type = Bits(name="alu_op_type", parent=self, dtype=Vec[2])
+        self._alu_op_type = Bits(name="alu_op_type", parent=self, dtype=CtlAlu)
 
         # Submodules
         self.control = Control(name="control", parent=self)
