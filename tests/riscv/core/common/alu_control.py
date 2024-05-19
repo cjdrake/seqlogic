@@ -1,10 +1,10 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bits, Module, changed
-from seqlogic.lbool import Vec, vec
+from seqlogic.lbool import Vec
 from seqlogic.sim import always_comb
 
-from .. import AluOp, CtlAlu, Funct3AluLogic, Funct3Branch
+from .. import AluOp, CtlAlu, Funct3, Funct3AluLogic, Funct3Branch
 
 # pyright: reportAttributeAccessIssue=false
 
@@ -20,7 +20,7 @@ class AluControl(Module):
         # Ports
         self.alu_function = Bits(name="alu_function", parent=self, dtype=AluOp)
         self.alu_op_type = Bits(name="alu_op_type", parent=self, dtype=CtlAlu)
-        self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Vec[3])
+        self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Funct3)
         self.inst_funct7 = Bits(name="inst_funct7", parent=self, dtype=Vec[7])
 
         # State
@@ -33,7 +33,7 @@ class AluControl(Module):
         while True:
             await changed(self.inst_funct3)
 
-            match self.inst_funct3.value:
+            match self.inst_funct3.value.alu_logic:
                 case Funct3AluLogic.ADD_SUB:
                     self._default_func.next = AluOp.ADD
                     self._secondary_func.next = AluOp.SUB
@@ -56,7 +56,7 @@ class AluControl(Module):
                     self._default_func.next = AluOp.DC
                     self._secondary_func.next = AluOp.DC
 
-            match self.inst_funct3.value:
+            match self.inst_funct3.value.branch:
                 case Funct3Branch.EQ | Funct3Branch.NE:
                     self._branch_func.next = AluOp.SEQ
                 case Funct3Branch.LT | Funct3Branch.GE:
@@ -81,15 +81,17 @@ class AluControl(Module):
                 case CtlAlu.ADD:
                     self.alu_function.next = AluOp.ADD
                 case CtlAlu.OP:
-                    s = self.inst_funct7.value[5]
-                    self.alu_function.next = s.ite(
+                    sel = self.inst_funct7.value[5]
+                    self.alu_function.next = sel.ite(
                         self._secondary_func.value,
                         self._default_func.value,
                     )
                 case CtlAlu.OP_IMM:
-                    s = self.inst_funct7.value[5]
-                    s &= self.inst_funct3.value[0:2].eq(vec("2b01"))
-                    self.alu_function.next = s.ite(
+                    a = self.inst_funct7.value[5]
+                    b = self.inst_funct3.value.alu_logic.eq(Funct3AluLogic.SLL)
+                    c = self.inst_funct3.value.alu_logic.eq(Funct3AluLogic.SHIFTR)
+                    sel = a & (b | c)
+                    self.alu_function.next = sel.ite(
                         self._secondary_func.value,
                         self._default_func.value,
                     )

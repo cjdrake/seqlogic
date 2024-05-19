@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec
 from seqlogic.sim import always_comb
 
-from .. import Funct3Branch
+from .. import Funct3, Funct3Branch
 
 
 class ControlTransfer(Module):
@@ -18,14 +18,14 @@ class ControlTransfer(Module):
     def build(self):
         # Ports
         self.take_branch = Bit(name="take_branch", parent=self)
-        self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Vec[3])
+        self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Funct3)
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
 
     @always_comb
     async def p_c_0(self):
         while True:
             await changed(self.inst_funct3, self.result_equal_zero)
-            match self.inst_funct3.value:
+            match self.inst_funct3.value.branch:
                 case Funct3Branch.EQ:
                     self.take_branch.next = ~(self.result_equal_zero.value)
                 case Funct3Branch.NE:

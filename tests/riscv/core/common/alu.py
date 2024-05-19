@@ -39,11 +39,14 @@ class Alu(Module):
                 case AluOp.SRA:
                     self.result.next, _ = self.op_a.value.arsh(self.op_b.value[0:5])
                 case AluOp.SEQ:
-                    self.result.next = self.op_a.value.eq(self.op_b.value).zext(32 - 1)
+                    y = self.op_a.value.eq(self.op_b.value)
+                    self.result.next = y.zext(32 - 1)
                 case AluOp.SLT:
-                    self.result.next = self.op_a.value.lt(self.op_b.value).zext(32 - 1)
+                    y = self.op_a.value.lt(self.op_b.value)
+                    self.result.next = y.zext(32 - 1)
                 case AluOp.SLTU:
-                    self.result.next = self.op_a.value.ltu(self.op_b.value).zext(32 - 1)
+                    y = self.op_a.value.ltu(self.op_b.value)
+                    self.result.next = y.zext(32 - 1)
                 case AluOp.XOR:
                     self.result.next = self.op_a.value ^ self.op_b.value
                 case AluOp.OR:

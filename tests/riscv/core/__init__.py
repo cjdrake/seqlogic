@@ -127,7 +127,7 @@ class Funct3AluMul(VecEnum):
     REMU = "3b111"
 
 
-class Funct3Alu(VecUnion):
+class Funct3(VecUnion):
     alu_logic: Funct3AluLogic
     branch: Funct3Branch
     alu_mul: Funct3AluMul
@@ -147,7 +147,7 @@ class Inst(VecStruct):
 
     opcode: Opcode
     rd: Vec[5]
-    funct3: Vec[3]
+    funct3: Funct3
     rs1: Vec[5]
     rs2: Vec[5]
     funct7: Vec[7]
