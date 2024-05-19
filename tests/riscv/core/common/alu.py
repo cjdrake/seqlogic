@@ -12,14 +12,13 @@ class Alu(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-
         self.build()
 
     def build(self):
         # Ports
         self.result = Bits(name="result", parent=self, dtype=Vec[32])
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
-        self.alu_function = Bits(name="alu_function", parent=self, dtype=Vec[5])
+        self.alu_function = Bits(name="alu_function", parent=self, dtype=AluOp)
         self.op_a = Bits(name="op_a", parent=self, dtype=Vec[32])
         self.op_b = Bits(name="op_b", parent=self, dtype=Vec[32])
 

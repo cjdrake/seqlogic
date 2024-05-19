@@ -23,7 +23,6 @@ class Top(Module):
 
     def __init__(self, name: str):
         super().__init__(name, parent=None)
-
         self.build()
         self.connect()
 
