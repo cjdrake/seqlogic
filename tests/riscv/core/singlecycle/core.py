@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec
 from seqlogic.sim import always_comb
 
-from .. import WORD_BITS, WORD_BYTES, Inst
+from .. import WORD_BITS, WORD_BYTES, CtlPc, Inst
 from ..common.data_memory_interface import DataMemoryInterface
 from .ctl_path import CtlPath
 from .data_path import DataPath
@@ -39,7 +39,7 @@ class Core(Module):
         self._alu_op_a_sel = Bit(name="alu_op_a_sel", parent=self)
         self._alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
         self._reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=Vec[3])
-        self._next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=Vec[2])
+        self._next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
         self._alu_function = Bits(name="alu_function", parent=self, dtype=Vec[5])
         self._alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
         self._addr = Bits(name="addr", parent=self, dtype=Vec[32])

@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, cat, uint2vec, vec, zeros
 from seqlogic.sim import always_comb
 
-from .. import TEXT_BASE, Inst
+from .. import TEXT_BASE, CtlPc, Inst
 from ..common.alu import Alu
 from ..common.immediate_generator import ImmedateGenerator
 from ..common.regfile import RegFile
@@ -44,7 +44,7 @@ class DataPath(Module):
         self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
         self.alu_function = Bits(name="alu_function", parent=self, dtype=Vec[5])
         self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=Vec[3])
-        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=Vec[2])
+        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
 
         # Select ALU Ops
         self.alu_op_a = Bits(name="alu_op_a", parent=self, dtype=Vec[32])
@@ -119,19 +119,19 @@ class DataPath(Module):
             await changed(self.pc, self.immediate)
             self.pc_plus_immediate.next = self.pc.value + self.immediate.value
 
-    # TODO(cjdrake): Replace with mux operator
     @always_comb
     async def p_c_4(self):
         while True:
             await changed(self.next_pc_sel, self.pc_plus_4, self.pc_plus_immediate, self.alu_result)
-            if self.next_pc_sel.value == vec("2b00"):
-                self.pc_next.next = self.pc_plus_4.value
-            elif self.next_pc_sel.value == vec("2b01"):
-                self.pc_next.next = self.pc_plus_immediate.value
-            elif self.next_pc_sel.value == vec("2b10"):
-                self.pc_next.next = cat(zeros(1), self.alu_result.value[1:32])
-            else:
-                self.pc_next.next = Vec[32].dcs()
+            match self.next_pc_sel.value:
+                case CtlPc.PC4:
+                    self.pc_next.next = self.pc_plus_4.value
+                case CtlPc.PC_IMM:
+                    self.pc_next.next = self.pc_plus_immediate.value
+                case CtlPc.RS1_IMM:
+                    self.pc_next.next = cat(zeros(1), self.alu_result.value[1:])
+                case _:
+                    self.pc_next.next = Vec[32].dcs()
 
     # TODO(cjdrake): Replace with mux operator
     @always_comb
