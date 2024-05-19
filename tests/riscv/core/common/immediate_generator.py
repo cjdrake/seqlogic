@@ -26,8 +26,7 @@ class ImmedateGenerator(Module):
             match self.inst.value.opcode:
                 case Opcode.LOAD | Opcode.LOAD_FP | Opcode.OP_IMM | Opcode.JALR:
                     self.immediate.next = cat(
-                        self.inst.value[20:25],
-                        self.inst.value[25:31],
+                        self.inst.value[20:31],
                         rep(self.inst.value[31], 21),
                     )
                 case Opcode.STORE_FP | Opcode.STORE:
@@ -47,15 +46,13 @@ class ImmedateGenerator(Module):
                 case Opcode.AUIPC | Opcode.LUI:
                     self.immediate.next = cat(
                         zeros(12),
-                        self.inst.value[12:20],
-                        self.inst.value[20:31],
+                        self.inst.value[12:31],
                         self.inst.value[31],
                     )
                 case Opcode.JAL:
                     self.immediate.next = cat(
                         zeros(1),
-                        self.inst.value[21:25],
-                        self.inst.value[25:31],
+                        self.inst.value[21:31],
                         self.inst.value[20],
                         self.inst.value[12:20],
                         rep(self.inst.value[31], 12),
