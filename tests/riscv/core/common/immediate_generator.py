@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bits, Module, changed
-from seqlogic.lbool import Vec, cat, rep, zeros
+from seqlogic.lbool import Vec, cat, rep
 from seqlogic.sim import always_comb
 
 from .. import Inst, Opcode
@@ -37,7 +37,7 @@ class ImmedateGenerator(Module):
                     )
                 case Opcode.BRANCH:
                     self.immediate.next = cat(
-                        zeros(1),
+                        "1b0",
                         self.inst.value[8:12],
                         self.inst.value[25:31],
                         self.inst.value[7],
@@ -45,13 +45,13 @@ class ImmedateGenerator(Module):
                     )
                 case Opcode.AUIPC | Opcode.LUI:
                     self.immediate.next = cat(
-                        zeros(12),
+                        "12h000",
                         self.inst.value[12:31],
                         self.inst.value[31],
                     )
                 case Opcode.JAL:
                     self.immediate.next = cat(
-                        zeros(1),
+                        "1b0",
                         self.inst.value[21:31],
                         self.inst.value[20],
                         self.inst.value[12:20],

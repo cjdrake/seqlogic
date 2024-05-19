@@ -55,7 +55,7 @@ class DataMemoryInterface(Module):
     async def p_c_1(self):
         while True:
             await changed(self.addr, self.wr_data)
-            n = cat(vec("3b000"), self.addr.value[:2])
+            n = cat("3b000", self.addr.value[:2])
             self.bus_wr_data.next = self.wr_data.value << n
 
     @always_comb
@@ -63,7 +63,7 @@ class DataMemoryInterface(Module):
         while True:
             await changed(self.data_format, self.addr, self.bus_rd_data)
 
-            n = cat(vec("3b000"), self.addr.value[:2])
+            n = cat("3b000", self.addr.value[:2])
             temp = self.bus_rd_data.value >> n
 
             match self.data_format.value[:2]:

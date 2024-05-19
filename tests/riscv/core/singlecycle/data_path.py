@@ -1,7 +1,7 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import Vec, cat, uint2vec, vec, zeros
+from seqlogic.lbool import Vec, cat, uint2vec, vec
 from seqlogic.sim import always_comb
 
 from .. import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
@@ -16,7 +16,6 @@ class DataPath(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-
         self.build()
         self.connect()
 
@@ -129,7 +128,7 @@ class DataPath(Module):
                 case CtlPc.PC_IMM:
                     self.pc_next.next = self.pc_plus_immediate.value
                 case CtlPc.RS1_IMM:
-                    self.pc_next.next = cat(zeros(1), self.alu_result.value[1:])
+                    self.pc_next.next = cat("1b0", self.alu_result.value[1:])
                 case _:
                     self.pc_next.next = Vec[32].dcs()
 
