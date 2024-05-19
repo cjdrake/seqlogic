@@ -16,7 +16,7 @@ It merely serves as a non-trivial example design.
 from collections import defaultdict
 
 from seqlogic import get_loop, simify
-from seqlogic.lbool import ones, uint2vec, vec, xes, zeros
+from seqlogic.lbool import dcs, ones, uint2vec, vec, xes, zeros
 
 from .riscv.core import AluOp, CtlAluA, CtlAluB, CtlPc, Inst, Opcode
 from .riscv.core.singlecycle.top import Top
@@ -28,6 +28,7 @@ T = ones(1)
 F = zeros(1)
 X32 = xes(32)
 Z32 = zeros(32)
+W32 = dcs(32)
 
 DEBUG_REG = vec("32hFFFF_FFF0")
 
@@ -214,12 +215,13 @@ def test_singlecycle_dump():
                 rs2=vec("5b00010"),
                 funct7=vec("7b0000000"),
             ),
+            top.core.datapath.immediate: W32,
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # PC
             top.core.datapath.pc_next: vec("32h0040_000C"),
             top.core.datapath.pc_plus_4: vec("32h0040_000C"),
-            top.core.datapath.pc_plus_immediate: vec("32h0040_0008"),
+            top.core.datapath.pc_plus_immediate: W32,
             top.core.datapath.pc: vec("32h0040_0008"),
         },
         # @(posedge clock)
@@ -242,6 +244,7 @@ def test_singlecycle_dump():
                 rs2=vec("5b00000"),
                 funct7=vec("7b0000000"),
             ),
+            top.core.datapath.immediate: Z32,
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # PC
@@ -412,7 +415,7 @@ def test_singlecycle_dump():
                 rs2=vec("5b00010"),
                 funct7=vec("7b0000000"),
             ),
-            top.core.datapath.immediate: Z32,
+            top.core.datapath.immediate: W32,
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
@@ -421,7 +424,7 @@ def test_singlecycle_dump():
             # PC
             top.core.datapath.pc_next: vec("32h0040_0024"),
             top.core.datapath.pc_plus_4: vec("32h0040_0024"),
-            top.core.datapath.pc_plus_immediate: vec("32h0040_0020"),
+            top.core.datapath.pc_plus_immediate: W32,
             top.core.datapath.pc: vec("32h0040_0020"),
             # Regfile
             top.core.datapath.wr_data: vec("32h0000_0002"),
@@ -645,7 +648,7 @@ def test_singlecycle_dump():
                 rs2=vec("5b00010"),
                 funct7=vec("7b0000000"),
             ),
-            top.core.datapath.immediate: Z32,
+            top.core.datapath.immediate: W32,
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
@@ -654,7 +657,7 @@ def test_singlecycle_dump():
             # PC
             top.core.datapath.pc_next: vec("32h0040_003C"),
             top.core.datapath.pc_plus_4: vec("32h0040_003C"),
-            top.core.datapath.pc_plus_immediate: vec("32h0040_0038"),
+            top.core.datapath.pc_plus_immediate: W32,
             top.core.datapath.pc: vec("32h0040_0038"),
             # Regfile
             top.core.datapath.wr_data: vec("32h0000_000A"),
@@ -880,7 +883,7 @@ def test_singlecycle_dump():
                 rs2=vec("5b00010"),
                 funct7=vec("7b0000000"),
             ),
-            top.core.datapath.immediate: Z32,
+            top.core.datapath.immediate: W32,
             # Control
             top.core.datapath.reg_writeback_sel: vec("3b000"),
             # ALU
@@ -890,7 +893,7 @@ def test_singlecycle_dump():
             # Next PC
             top.core.datapath.pc_next: vec("32h0040_0054"),
             top.core.datapath.pc_plus_4: vec("32h0040_0054"),
-            top.core.datapath.pc_plus_immediate: vec("32h0040_0050"),
+            top.core.datapath.pc_plus_immediate: W32,
             top.core.datapath.pc: vec("32h0040_0050"),
             # Regfile
             top.core.datapath.rs2_data: vec("32hFFFF_8000"),

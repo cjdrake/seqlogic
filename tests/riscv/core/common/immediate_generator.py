@@ -62,4 +62,4 @@ class ImmedateGenerator(Module):
                         rep(self.inst.value[31], 12),
                     )
                 case _:
-                    self.immediate.next = zeros(32)
+                    self.immediate.next = Vec[32].dcs()

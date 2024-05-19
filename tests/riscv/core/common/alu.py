@@ -51,7 +51,7 @@ class Alu(Module):
                 case AluOp.AND:
                     self.result.next = self.op_a.value & self.op_b.value
                 case _:
-                    self.result.next = zeros(32)
+                    self.result.next = Vec[32].dcs()
 
     @always_comb
     async def p_c_1(self):
