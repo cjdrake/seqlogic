@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, cat, uint2vec, vec, zeros
 from seqlogic.sim import always_comb
 
-from .. import TEXT_BASE, CtlPc, Inst
+from .. import TEXT_BASE, CtlPc, CtlWriteBack, Inst
 from ..common.alu import Alu
 from ..common.immediate_generator import ImmedateGenerator
 from ..common.regfile import RegFile
@@ -43,7 +43,7 @@ class DataPath(Module):
         self.alu_op_a_sel = Bit(name="alu_op_a_sel", parent=self)
         self.alu_op_b_sel = Bit(name="alu_op_b_sel", parent=self)
         self.alu_function = Bits(name="alu_function", parent=self, dtype=Vec[5])
-        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=Vec[3])
+        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
         self.next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
 
         # Select ALU Ops
@@ -157,7 +157,6 @@ class DataPath(Module):
             else:
                 self.alu_op_b.next = Vec[32].dcs()
 
-    # TODO(cjdrake): Replace with mux operator
     @always_comb
     async def p_c_7(self):
         while True:
@@ -168,13 +167,14 @@ class DataPath(Module):
                 self.pc_plus_4,
                 self.immediate,
             )
-            if self.reg_writeback_sel.value == vec("3b000"):
-                self.wr_data.next = self.alu_result.value
-            elif self.reg_writeback_sel.value == vec("3b001"):
-                self.wr_data.next = self.data_mem_rd_data.value
-            elif self.reg_writeback_sel.value == vec("3b010"):
-                self.wr_data.next = self.pc_plus_4.value
-            elif self.reg_writeback_sel.value == vec("3b011"):
-                self.wr_data.next = self.immediate.value
-            else:
-                self.wr_data.next = Vec[32].dcs()
+            match self.reg_writeback_sel.value:
+                case CtlWriteBack.ALU:
+                    self.wr_data.next = self.alu_result.value
+                case CtlWriteBack.DATA:
+                    self.wr_data.next = self.data_mem_rd_data.value
+                case CtlWriteBack.PC4:
+                    self.wr_data.next = self.pc_plus_4.value
+                case CtlWriteBack.IMM:
+                    self.wr_data.next = self.immediate.value
+                case _:
+                    self.wr_data.next = Vec[32].dcs()
