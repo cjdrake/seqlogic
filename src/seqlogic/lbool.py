@@ -1553,24 +1553,20 @@ class _VecEnumMeta(type):
                 case str() as lit:
                     n, data = _lit2vec(lit)
                     cls.check_len(n)
-                    try:
-                        name = data2name[data]
-                    except KeyError as e:
-                        raise ValueError(f"Invalid lit: {lit}") from e
                 case int() as data:
-                    try:
-                        name = data2name[data]
-                    except KeyError as e:
-                        raise ValueError(f"Invalid data: 0b{data:b}") from e
+                    cls.check_data(data)
                 case Vec() as v:
-                    cls.check_len(len(v))
-                    try:
-                        name = data2name[v.data]
-                    except KeyError as e:
-                        raise ValueError(f"Invalid vec: {v}") from e
+                    n, data = len(v), v.data
+                    cls.check_len(n)
                 case _:
                     raise TypeError("Expected arg to be str, int, or Vec")
-            return getattr(cls, name)
+            try:
+                obj = getattr(cls, data2name[data])
+            except KeyError:
+                obj = object.__new__(enum)  # pyright: ignore[reportArgumentType]
+                obj._data = data
+                obj._name = f"{cls.__name__}({Vec[cls._n].__str__(obj)})"
+            return obj
 
         enum.__new__ = _new
 
