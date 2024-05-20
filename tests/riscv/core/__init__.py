@@ -1,4 +1,4 @@
-"""TODO(cjdrake): Write docstring."""
+"""RiscV Constants and Types."""
 
 from seqlogic.lbool import Vec, VecEnum, VecStruct, VecUnion
 
