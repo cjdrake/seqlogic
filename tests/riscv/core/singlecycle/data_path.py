@@ -95,6 +95,7 @@ class DataPath(Module):
         self.rs1_data.connect(self.regfile.rs1_data)
         self.rs2_data.connect(self.regfile.rs2_data)
         self.regfile.clock.connect(self.clock)
+        self.regfile.reset.connect(self.reset)
 
     @reactive
     async def p_c_0(self):

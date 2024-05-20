@@ -28,34 +28,31 @@ class RegFile(Module):
         self.rs2_addr = Bits(name="rs2_addr", parent=self, dtype=Vec[self._addr_bits])
         self.rs2_data = Bits(name="rs2_data", parent=self, dtype=Vec[WORD_BITS])
         self.clock = Bit(name="clock", parent=self)
+        self.reset = Bit(name="reset", parent=self)
 
         # State
         self._regs = Array(name="regs", parent=self, shape=(self._addr_bits,), dtype=Vec[WORD_BITS])
 
     @active
-    async def p_i_0(self):
-        # Register zero is hard-coded to zero
-        self._regs[0].next = zeros(WORD_BITS)
-
-        # TODO(cjdrake): This should be reset
-        for i in range(1, DEPTH):
-            self._regs[i].next = zeros(WORD_BITS)
-
-    @active
     async def p_wr_port(self):
         def f():
-            return self.clock.is_posedge() and self.wr_en.value == "1b1"
+            return self.reset.is_neg() and self.clock.is_posedge() and self.wr_en.value == "1b1"
 
         while True:
-            await resume((self.clock, f))
-
-            addr = self.wr_addr.value
-
-            # If wr_en=1, address must be known
-            assert not addr.has_unknown()
-
-            if addr.neq(zeros(self._addr_bits)):
-                self._regs[addr].next = self.wr_data.value
+            state = await resume((self.reset, self.reset.is_posedge), (self.clock, f))
+            match state:
+                case self.reset:
+                    for i in range(DEPTH):
+                        self._regs[i].next = zeros(WORD_BITS)
+                case self.clock:
+                    addr = self.wr_addr.value
+                    # If wr_en=1, address must be known
+                    assert not addr.has_unknown()
+                    # Write to address zero has no effect
+                    if addr != zeros(self._addr_bits):
+                        self._regs[addr].next = self.wr_data.value
+                case _:
+                    assert False
 
     @reactive
     async def p_rd_port_1(self):
