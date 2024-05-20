@@ -5,7 +5,7 @@ from seqlogic.lbool import Vec
 from seqlogic.sim import always_comb
 
 from .. import WORD_BITS, WORD_BYTES, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
-from ..common.data_memory_interface import DataMemoryInterface
+from ..common.data_mem_if import DataMemoryInterface
 from .ctl_path import CtlPath
 from .data_path import DataPath
 

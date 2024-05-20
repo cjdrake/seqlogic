@@ -1,1 +1,1 @@
-"""TODO(cjdrake): Write docstring."""
+"""Single cycle microarchitecture."""

@@ -5,7 +5,7 @@ from seqlogic.lbool import Vec, uint2vec
 from seqlogic.sim import always_comb
 
 from .. import DATA_BASE, DATA_SIZE
-from .data_memory import DataMemory
+from .data_mem import DataMemory
 
 ADDR_BITS = 32
 WORD_BYTES = 4

@@ -1,1 +1,1 @@
-"""TODO(cjdrake): Write docstring."""
+"""Logic common to all microarchitectures."""

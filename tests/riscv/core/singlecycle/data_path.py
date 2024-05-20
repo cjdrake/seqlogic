@@ -6,9 +6,9 @@ from seqlogic.sim import always_comb
 
 from .. import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
 from ..common.alu import Alu
+from ..common.dff import DffEnAr
 from ..common.immediate_generator import ImmedateGenerator
 from ..common.regfile import RegFile
-from ..common.register import Register
 
 
 class DataPath(Module):
@@ -69,8 +69,11 @@ class DataPath(Module):
         # Submodules
         self.alu = Alu(name="alu", parent=self)
         self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
-        pc_init = uint2vec(TEXT_BASE, 32)
-        self.program_counter = Register(name="program_counter", parent=self, init=pc_init)
+        self.program_counter = DffEnAr(
+            name="program_counter",
+            parent=self,
+            rst_val=uint2vec(TEXT_BASE, 32),
+        )
         self.regfile = RegFile(name="regfile", parent=self)
 
     def connect(self):

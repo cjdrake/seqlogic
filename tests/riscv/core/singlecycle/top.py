@@ -7,8 +7,8 @@ from seqlogic.lbool import Vec, vec
 from seqlogic.sim import always_comb, initial
 
 from .. import WORD_BITS, WORD_BYTES, Inst, Opcode
-from ..common.data_memory_bus import DataMemoryBus
-from ..common.text_memory_bus import TextMemoryBus
+from ..common.data_mem_bus import DataMemoryBus
+from ..common.text_mem_bus import TextMemoryBus
 from .core import Core
 
 _CLOCK_PHASE_SHIFT = 1
