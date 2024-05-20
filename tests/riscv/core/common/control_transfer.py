@@ -2,7 +2,7 @@
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 from .. import Funct3, Funct3Branch
 
@@ -20,7 +20,7 @@ class ControlTransfer(Module):
         self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Funct3)
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.inst_funct3, self.result_equal_zero)

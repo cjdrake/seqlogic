@@ -4,7 +4,7 @@
 
 from seqlogic import Bit, Bits, Module, changed, sleep
 from seqlogic.lbool import Vec, vec
-from seqlogic.sim import always_comb, initial
+from seqlogic.sim import active, reactive
 
 from .. import WORD_BITS, WORD_BYTES, Inst, Opcode
 from ..common.data_mem_bus import DataMemoryBus
@@ -71,7 +71,7 @@ class Top(Module):
         self.core.clock.connect(self.clock)
         self.core.reset.connect(self.reset)
 
-    @initial
+    @active
     async def p_i_0(self):
         self.clock.next = vec("1b0")
         await sleep(_CLOCK_PHASE_SHIFT)
@@ -81,7 +81,7 @@ class Top(Module):
             self.clock.next = ~self.clock.value
             await sleep(_CLOCK_PHASE2)
 
-    @initial
+    @active
     async def p_i_1(self):
         self.reset.next = vec("1b0")
         await sleep(_RESET_PHASE1)
@@ -89,7 +89,7 @@ class Top(Module):
         await sleep(_RESET_PHASE2)
         self.reset.next = ~self.reset.value
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.text_memory_bus.rd_data)

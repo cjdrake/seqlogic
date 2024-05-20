@@ -2,7 +2,7 @@
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, cat, uint2vec, vec
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 from .. import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
 from ..common.alu import Alu
@@ -101,7 +101,7 @@ class DataPath(Module):
         self.rs2_data.connect(self.regfile.rs2_data)
         self.regfile.clock.connect(self.clock)
 
-    @always_comb
+    @reactive
     async def p_c_1(self):
         while True:
             await changed(self.inst)
@@ -109,19 +109,19 @@ class DataPath(Module):
             self.regfile.rs1_addr.next = self.inst.value.rs1
             self.regfile.wr_addr.next = self.inst.value.rd
 
-    @always_comb
+    @reactive
     async def p_c_2(self):
         while True:
             await changed(self.pc)
             self.pc_plus_4.next = self.pc.value + vec("32h0000_0004")
 
-    @always_comb
+    @reactive
     async def p_c_3(self):
         while True:
             await changed(self.pc, self.immediate)
             self.pc_plus_immediate.next = self.pc.value + self.immediate.value
 
-    @always_comb
+    @reactive
     async def p_c_4(self):
         while True:
             await changed(self.next_pc_sel, self.pc_plus_4, self.pc_plus_immediate, self.alu_result)
@@ -135,7 +135,7 @@ class DataPath(Module):
                 case _:
                     self.pc_next.next = Vec[32].dcs()
 
-    @always_comb
+    @reactive
     async def p_c_5(self):
         while True:
             await changed(self.alu_op_a_sel, self.rs1_data, self.pc)
@@ -147,7 +147,7 @@ class DataPath(Module):
                 case _:
                     self.alu_op_a.next = Vec[32].dcs()
 
-    @always_comb
+    @reactive
     async def p_c_6(self):
         while True:
             await changed(self.alu_op_b_sel, self.rs2_data, self.immediate)
@@ -159,7 +159,7 @@ class DataPath(Module):
                 case _:
                     self.alu_op_b.next = Vec[32].dcs()
 
-    @always_comb
+    @reactive
     async def p_c_7(self):
         while True:
             await changed(

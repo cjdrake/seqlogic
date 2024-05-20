@@ -2,7 +2,7 @@
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 from .. import WORD_BITS, WORD_BYTES, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
 from ..common.data_mem_if import DataMemoryInterface
@@ -93,7 +93,7 @@ class Core(Module):
         self.bus_rd_en.connect(self.data_memory_interface.bus_rd_en)
         self.data_memory_interface.bus_rd_data.connect(self.bus_rd_data)
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.inst)

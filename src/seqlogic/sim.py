@@ -429,22 +429,15 @@ class _Schedule:
         return self._region, partial(self._func, obj)
 
 
-class initial(_Schedule):
-    """Decorate a coroutine to run during initial scheduling region."""
+class active(_Schedule):
+    """Decorate a coroutine to run during active scheduling region."""
 
     def __init__(self, func):
         super().__init__(Region.ACTIVE, func)
 
 
-class always_ff(_Schedule):
-    """Decorate a coroutine to run during flop scheduling region."""
-
-    def __init__(self, func):
-        super().__init__(Region.ACTIVE, func)
-
-
-class always_comb(_Schedule):
-    """Decorate a coroutine to run during combi scheduling region."""
+class reactive(_Schedule):
+    """Decorate a coroutine to run during reactive scheduling region."""
 
     def __init__(self, func):
         super().__init__(Region.REACTIVE, func)

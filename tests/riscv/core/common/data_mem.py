@@ -2,7 +2,7 @@
 
 from seqlogic import Array, Bit, Bits, Module, changed, resume
 from seqlogic.lbool import Vec, cat, ones
-from seqlogic.sim import always_comb, always_ff
+from seqlogic.sim import active, reactive
 
 BYTE_BITS = 8
 
@@ -43,7 +43,7 @@ class DataMemory(Module):
             dtype=Vec[self._width],
         )
 
-    @always_ff
+    @active
     async def p_f_0(self):
         def f():
             return self.clock.is_posedge() and self.wr_en.value == ones(1)
@@ -64,7 +64,7 @@ class DataMemory(Module):
             # fmt: on
             self._mem[addr].next = cat(*bytes_)
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.addr, self._mem)

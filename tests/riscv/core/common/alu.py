@@ -2,7 +2,7 @@
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, zeros
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 from .. import AluOp
 
@@ -22,7 +22,7 @@ class Alu(Module):
         self.op_a = Bits(name="op_a", parent=self, dtype=Vec[32])
         self.op_b = Bits(name="op_b", parent=self, dtype=Vec[32])
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.alu_function, self.op_a, self.op_b)
@@ -55,7 +55,7 @@ class Alu(Module):
                 case _:
                     self.result.next = Vec[32].dcs()
 
-    @always_comb
+    @reactive
     async def p_c_1(self):
         while True:
             await changed(self.result)

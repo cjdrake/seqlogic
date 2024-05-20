@@ -1,8 +1,8 @@
 """TODO(cjdrake): Write docstring."""
 
 from seqlogic import Array, Bit, Bits, Module, changed, clog2, resume
-from seqlogic.lbool import Vec, ones, zeros
-from seqlogic.sim import always_comb, always_ff, initial
+from seqlogic.lbool import Vec, zeros
+from seqlogic.sim import active, reactive
 
 DEPTH = 32
 WORD_BYTES = 4
@@ -37,7 +37,7 @@ class RegFile(Module):
             dtype=Vec[WORD_BITS],
         )
 
-    @initial
+    @active
     async def p_i_0(self):
         # Register zero is hard-coded to zero
         self._regs[0].next = zeros(WORD_BITS)
@@ -46,10 +46,10 @@ class RegFile(Module):
         for i in range(1, DEPTH):
             self._regs[i].next = zeros(WORD_BITS)
 
-    @always_ff
+    @active
     async def p_f_0(self):
         def f():
-            return self.clock.is_posedge() and self.wr_en.value == ones(1)
+            return self.clock.is_posedge() and self.wr_en.value == "1b1"
 
         while True:
             await resume((self.clock, f))
@@ -60,14 +60,14 @@ class RegFile(Module):
             elif addr.neq(zeros(self._addr_bits)):
                 self._regs[addr].next = self.wr_data.value
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.rs1_addr, self._regs)
             addr = self.rs1_addr.value
             self.rs1_data.next = self._regs[addr].value
 
-    @always_comb
+    @reactive
     async def p_c_1(self):
         while True:
             await changed(self.rs2_addr, self._regs)

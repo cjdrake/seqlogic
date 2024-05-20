@@ -2,7 +2,7 @@
 
 from seqlogic import Bits, Module, changed
 from seqlogic.lbool import Vec, cat, rep
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 from .. import Inst, Opcode
 
@@ -19,7 +19,7 @@ class ImmedateGenerator(Module):
         self.immediate = Bits(name="immediate", parent=self, dtype=Vec[32])
         self.inst = Bits(name="inst", parent=self, dtype=Inst)
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.inst)

@@ -4,7 +4,7 @@
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, ones, zeros
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 from .. import CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Opcode
 
@@ -30,7 +30,7 @@ class Control(Module):
         self.inst_opcode = Bits(name="inst_opcode", parent=self, dtype=Opcode)
         self.take_branch = Bit(name="take_branch", parent=self)
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.inst_opcode, self.take_branch)
@@ -55,7 +55,7 @@ class Control(Module):
                 case _:
                     self.next_pc_sel.next = CtlPc.DC
 
-    @always_comb
+    @reactive
     async def p_c_1(self):
         while True:
             await changed(self.inst_opcode)

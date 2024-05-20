@@ -2,7 +2,7 @@
 
 from seqlogic import Bit, Bits, Module, changed, clog2
 from seqlogic.lbool import Vec, uint2vec
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 from .. import TEXT_BASE, TEXT_SIZE
 from .text_mem import TextMemory
@@ -46,7 +46,7 @@ class TextMemoryBus(Module):
     def connect(self):
         self._text.connect(self.text_memory.rd_data)
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.rd_addr)
@@ -54,13 +54,13 @@ class TextMemoryBus(Module):
             addr_lt_stop = self.rd_addr.value.ltu(self._text_stop)
             self._is_text.next = start_lte_addr & addr_lt_stop
 
-    @always_comb
+    @reactive
     async def p_c_1(self):
         while True:
             await changed(self._is_text, self._text)
             self.rd_data.next = self._is_text.value.ite(self._text.value)
 
-    @always_comb
+    @reactive
     async def p_c_2(self):
         while True:
             await changed(self.rd_addr)

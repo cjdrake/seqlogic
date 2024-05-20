@@ -1,7 +1,7 @@
 """D Flip Flops."""
 
 from seqlogic import Bit, Bits, Module, resume
-from seqlogic.sim import always_ff
+from seqlogic.sim import active
 
 
 class DffEnAr(Module):
@@ -19,7 +19,7 @@ class DffEnAr(Module):
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
 
-    @always_ff
+    @active
     async def p_f_0(self):
         def f():
             return self.reset.is_neg() and self.clock.is_posedge() and self.en.value == "1b1"

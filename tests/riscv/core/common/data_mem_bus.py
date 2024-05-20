@@ -2,7 +2,7 @@
 
 from seqlogic import Bit, Bits, Module, changed, clog2
 from seqlogic.lbool import Vec, uint2vec
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 from .. import DATA_BASE, DATA_SIZE
 from .data_mem import DataMemory
@@ -54,7 +54,7 @@ class DataMemoryBus(Module):
         self._data.connect(self.data_memory.rd_data)
         self.data_memory.clock.connect(self.clock)
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.addr)
@@ -62,13 +62,13 @@ class DataMemoryBus(Module):
             addr_lt_stop = self.addr.value.ltu(self._data_stop)
             self._is_data.next = start_lte_addr & addr_lt_stop
 
-    @always_comb
+    @reactive
     async def p_c_1(self):
         while True:
             await changed(self.wr_en, self._is_data)
             self.data_memory.wr_en.next = self.wr_en.value & self._is_data.value
 
-    @always_comb
+    @reactive
     async def p_c_2(self):
         while True:
             await changed(self.addr)
@@ -76,7 +76,7 @@ class DataMemoryBus(Module):
             n = self._byte_addr_bits + self._word_addr_bits
             self.data_memory.addr.next = self.addr.value[m:n]
 
-    @always_comb
+    @reactive
     async def p_c_3(self):
         while True:
             await changed(self.rd_en, self._is_data, self._data)

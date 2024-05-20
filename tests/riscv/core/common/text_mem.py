@@ -2,7 +2,7 @@
 
 from seqlogic import Array, Bits, Module, changed
 from seqlogic.lbool import Vec
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 BYTE_BITS = 8
 
@@ -37,7 +37,7 @@ class TextMemory(Module):
             dtype=Vec[self._width],
         )
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.rd_addr, self._mem)

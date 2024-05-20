@@ -2,7 +2,7 @@
 
 from seqlogic import Bits, Module, changed
 from seqlogic.lbool import Vec
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 from .. import AluOp, CtlAlu, Funct3, Funct3AluLogic, Funct3Branch
 
@@ -28,7 +28,7 @@ class AluControl(Module):
         self._secondary_func = Bits(name="secondary_funct", parent=self, dtype=AluOp)
         self._branch_func = Bits(name="branch_funct", parent=self, dtype=AluOp)
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.inst_funct3)
@@ -66,7 +66,7 @@ class AluControl(Module):
                 case _:
                     self._branch_func.next = AluOp.DC
 
-    @always_comb
+    @reactive
     async def p_c_3(self):
         while True:
             await changed(

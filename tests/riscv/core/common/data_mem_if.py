@@ -2,7 +2,7 @@
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, cat, rep, vec
-from seqlogic.sim import always_comb
+from seqlogic.sim import reactive
 
 
 class DataMemoryInterface(Module):
@@ -35,7 +35,7 @@ class DataMemoryInterface(Module):
         self.bus_wr_en.connect(self.wr_en)
         self.bus_rd_en.connect(self.rd_en)
 
-    @always_comb
+    @reactive
     async def p_c_0(self):
         while True:
             await changed(self.data_format, self.addr)
@@ -51,14 +51,14 @@ class DataMemoryInterface(Module):
                 case _:
                     self.bus_wr_be.next = Vec[4].dcs()
 
-    @always_comb
+    @reactive
     async def p_c_1(self):
         while True:
             await changed(self.addr, self.wr_data)
             n = cat("3b000", self.addr.value[:2])
             self.bus_wr_data.next = self.wr_data.value << n
 
-    @always_comb
+    @reactive
     async def p_c_2(self):
         while True:
             await changed(self.data_format, self.addr, self.bus_rd_data)
