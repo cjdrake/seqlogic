@@ -1,16 +1,28 @@
 """Control Path."""
 
+# pyright: reportAttributeAccessIssue=false
+
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec
 from seqlogic.sim import reactive
 
-from .. import AluOp, CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Funct3, Funct3Branch, Opcode
-from ..common.alu_control import AluControl
+from .. import (
+    AluOp,
+    CtlAlu,
+    CtlAluA,
+    CtlAluB,
+    CtlPc,
+    CtlWriteBack,
+    Funct3,
+    Funct3AluLogic,
+    Funct3Branch,
+    Opcode,
+)
 from .control import Control
 
 
 class CtlPath(Module):
-    """TODO(cjdrake): Write docstring."""
+    """Control Path Module."""
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
@@ -36,10 +48,12 @@ class CtlPath(Module):
         # State
         self._take_branch = Bit(name="take_branch", parent=self)
         self._alu_op_type = Bits(name="alu_op_type", parent=self, dtype=CtlAlu)
+        self._default_func = Bits(name="default_funct", parent=self, dtype=AluOp)
+        self._secondary_func = Bits(name="secondary_funct", parent=self, dtype=AluOp)
+        self._branch_func = Bits(name="branch_funct", parent=self, dtype=AluOp)
 
         # Submodules
         self.control = Control(name="control", parent=self)
-        self.alu_control = AluControl(name="alu_control", parent=self)
 
     def connect(self):
         self.pc_wr_en.connect(self.control.pc_wr_en)
@@ -53,11 +67,6 @@ class CtlPath(Module):
         self.next_pc_sel.connect(self.control.next_pc_sel)
         self.control.inst_opcode.connect(self.inst_opcode)
         self.control.take_branch.connect(self._take_branch)
-
-        self.alu_function.connect(self.alu_control.alu_function)
-        self.alu_control.alu_op_type.connect(self._alu_op_type)
-        self.alu_control.inst_funct3.connect(self.inst_funct3)
-        self.alu_control.inst_funct7.connect(self.inst_funct7)
 
     @reactive
     async def p_c_0(self):
@@ -78,3 +87,75 @@ class CtlPath(Module):
                     self._take_branch.next = self.alu_result_equal_zero.value
                 case _:
                     self._take_branch.next = Vec[1].dcs()
+
+    @reactive
+    async def p_c_1(self):
+        while True:
+            await changed(self.inst_funct3)
+
+            match self.inst_funct3.value.alu_logic:
+                case Funct3AluLogic.ADD_SUB:
+                    self._default_func.next = AluOp.ADD
+                    self._secondary_func.next = AluOp.SUB
+                case Funct3AluLogic.SLL:
+                    self._default_func.next = AluOp.SLL
+                case Funct3AluLogic.SLT:
+                    self._default_func.next = AluOp.SLT
+                case Funct3AluLogic.SLTU:
+                    self._default_func.next = AluOp.SLTU
+                case Funct3AluLogic.XOR:
+                    self._default_func.next = AluOp.XOR
+                case Funct3AluLogic.SHIFTR:
+                    self._default_func.next = AluOp.SRL
+                    self._secondary_func.next = AluOp.SRA
+                case Funct3AluLogic.OR:
+                    self._default_func.next = AluOp.OR
+                case Funct3AluLogic.AND:
+                    self._default_func.next = AluOp.AND
+                case _:
+                    self._default_func.next = AluOp.DC
+                    self._secondary_func.next = AluOp.DC
+
+            match self.inst_funct3.value.branch:
+                case Funct3Branch.EQ | Funct3Branch.NE:
+                    self._branch_func.next = AluOp.SEQ
+                case Funct3Branch.LT | Funct3Branch.GE:
+                    self._branch_func.next = AluOp.SLT
+                case Funct3Branch.LTU | Funct3Branch.GEU:
+                    self._branch_func.next = AluOp.SLTU
+                case _:
+                    self._branch_func.next = AluOp.DC
+
+    @reactive
+    async def p_c_2(self):
+        while True:
+            await changed(
+                self._alu_op_type,
+                self.inst_funct3,
+                self.inst_funct7,
+                self._secondary_func,
+                self._default_func,
+                self._branch_func,
+            )
+            match self._alu_op_type.value:
+                case CtlAlu.ADD:
+                    self.alu_function.next = AluOp.ADD
+                case CtlAlu.OP:
+                    sel = self.inst_funct7.value[5]
+                    self.alu_function.next = sel.ite(
+                        self._secondary_func.value,
+                        self._default_func.value,
+                    )
+                case CtlAlu.OP_IMM:
+                    a = self.inst_funct7.value[5]
+                    b = self.inst_funct3.value.alu_logic.eq(Funct3AluLogic.SLL)
+                    c = self.inst_funct3.value.alu_logic.eq(Funct3AluLogic.SHIFTR)
+                    sel = a & (b | c)
+                    self.alu_function.next = sel.ite(
+                        self._secondary_func.value,
+                        self._default_func.value,
+                    )
+                case CtlAlu.BRANCH:
+                    self.alu_function.next = self._branch_func.value
+                case _:
+                    self.alu_function.next = AluOp.DC

@@ -1,18 +1,17 @@
-"""TODO(cjdrake): Write docstring."""
+"""Data Path."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import Vec, cat, uint2vec, vec
+from seqlogic.lbool import Vec, cat, rep, uint2vec, vec
 from seqlogic.sim import reactive
 
-from .. import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
+from .. import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from ..common.alu import Alu
 from ..common.dff import DffEnAr
-from ..common.immediate_generator import ImmedateGenerator
 from ..common.regfile import RegFile
 
 
 class DataPath(Module):
-    """TODO(cjdrake): Write docstring."""
+    """Data Path Module."""
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
@@ -68,7 +67,6 @@ class DataPath(Module):
 
         # Submodules
         self.alu = Alu(name="alu", parent=self)
-        self.immediate_generator = ImmedateGenerator(name="immediate_generator", parent=self)
         self.program_counter = DffEnAr(
             name="program_counter",
             parent=self,
@@ -86,9 +84,6 @@ class DataPath(Module):
         self.alu.op_a.connect(self.alu_op_a)
         self.alu.op_b.connect(self.alu_op_b)
 
-        self.immediate.connect(self.immediate_generator.immediate)
-        self.immediate_generator.inst.connect(self.inst)
-
         self.pc.connect(self.program_counter.q)
         self.program_counter.en.connect(self.pc_wr_en)
         self.program_counter.d.connect(self.pc_next)
@@ -102,7 +97,7 @@ class DataPath(Module):
         self.regfile.clock.connect(self.clock)
 
     @reactive
-    async def p_c_1(self):
+    async def p_c_0(self):
         while True:
             await changed(self.inst)
             self.regfile.rs2_addr.next = self.inst.value.rs2
@@ -110,19 +105,19 @@ class DataPath(Module):
             self.regfile.wr_addr.next = self.inst.value.rd
 
     @reactive
-    async def p_c_2(self):
+    async def p_c_1(self):
         while True:
             await changed(self.pc)
             self.pc_plus_4.next = self.pc.value + vec("32h0000_0004")
 
     @reactive
-    async def p_c_3(self):
+    async def p_c_2(self):
         while True:
             await changed(self.pc, self.immediate)
             self.pc_plus_immediate.next = self.pc.value + self.immediate.value
 
     @reactive
-    async def p_c_4(self):
+    async def p_c_3(self):
         while True:
             await changed(self.next_pc_sel, self.pc_plus_4, self.pc_plus_immediate, self.alu_result)
             match self.next_pc_sel.value:
@@ -136,7 +131,7 @@ class DataPath(Module):
                     self.pc_next.next = Vec[32].dcs()
 
     @reactive
-    async def p_c_5(self):
+    async def p_c_4(self):
         while True:
             await changed(self.alu_op_a_sel, self.rs1_data, self.pc)
             match self.alu_op_a_sel.value:
@@ -148,7 +143,7 @@ class DataPath(Module):
                     self.alu_op_a.next = Vec[32].dcs()
 
     @reactive
-    async def p_c_6(self):
+    async def p_c_5(self):
         while True:
             await changed(self.alu_op_b_sel, self.rs2_data, self.immediate)
             match self.alu_op_b_sel.value:
@@ -160,7 +155,7 @@ class DataPath(Module):
                     self.alu_op_b.next = Vec[32].dcs()
 
     @reactive
-    async def p_c_7(self):
+    async def p_c_6(self):
         while True:
             await changed(
                 self.reg_writeback_sel,
@@ -180,3 +175,44 @@ class DataPath(Module):
                     self.wr_data.next = self.immediate.value
                 case _:
                     self.wr_data.next = Vec[32].dcs()
+
+    @reactive
+    async def p_c_7(self):
+        while True:
+            await changed(self.inst)
+            match self.inst.value.opcode:
+                case Opcode.LOAD | Opcode.LOAD_FP | Opcode.OP_IMM | Opcode.JALR:
+                    self.immediate.next = cat(
+                        self.inst.value[20:31],
+                        rep(self.inst.value[31], 21),
+                    )
+                case Opcode.STORE_FP | Opcode.STORE:
+                    self.immediate.next = cat(
+                        self.inst.value[7:12],
+                        self.inst.value[25:31],
+                        rep(self.inst.value[31], 21),
+                    )
+                case Opcode.BRANCH:
+                    self.immediate.next = cat(
+                        "1b0",
+                        self.inst.value[8:12],
+                        self.inst.value[25:31],
+                        self.inst.value[7],
+                        rep(self.inst.value[31], 20),
+                    )
+                case Opcode.AUIPC | Opcode.LUI:
+                    self.immediate.next = cat(
+                        "12h000",
+                        self.inst.value[12:31],
+                        self.inst.value[31],
+                    )
+                case Opcode.JAL:
+                    self.immediate.next = cat(
+                        "1b0",
+                        self.inst.value[21:31],
+                        self.inst.value[20],
+                        self.inst.value[12:20],
+                        rep(self.inst.value[31], 12),
+                    )
+                case _:
+                    self.immediate.next = Vec[32].dcs()

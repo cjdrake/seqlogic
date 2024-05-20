@@ -51,7 +51,7 @@ class Core(Module):
         # Submodules
         self.ctlpath = CtlPath(name="ctlpath", parent=self)
         self.datapath = DataPath(name="datapath", parent=self)
-        self.data_memory_interface = DataMemIf(name="data_memory_interface", parent=self)
+        self.data_mem_if = DataMemIf(name="data_mem_if", parent=self)
 
     def connect(self):
         self.ctlpath.alu_result_equal_zero.connect(self._alu_result_equal_zero)
@@ -81,17 +81,17 @@ class Core(Module):
         self.datapath.clock.connect(self.clock)
         self.datapath.reset.connect(self.reset)
 
-        self.data_memory_interface.addr.connect(self._addr)
-        self.data_memory_interface.wr_en.connect(self._wr_en)
-        self.data_memory_interface.wr_data.connect(self._wr_data)
-        self.data_memory_interface.rd_en.connect(self._rd_en)
-        self._rd_data.connect(self.data_memory_interface.rd_data)
-        self.bus_addr.connect(self.data_memory_interface.bus_addr)
-        self.bus_wr_en.connect(self.data_memory_interface.bus_wr_en)
-        self.bus_wr_be.connect(self.data_memory_interface.bus_wr_be)
-        self.bus_wr_data.connect(self.data_memory_interface.bus_wr_data)
-        self.bus_rd_en.connect(self.data_memory_interface.bus_rd_en)
-        self.data_memory_interface.bus_rd_data.connect(self.bus_rd_data)
+        self.data_mem_if.addr.connect(self._addr)
+        self.data_mem_if.wr_en.connect(self._wr_en)
+        self.data_mem_if.wr_data.connect(self._wr_data)
+        self.data_mem_if.rd_en.connect(self._rd_en)
+        self._rd_data.connect(self.data_mem_if.rd_data)
+        self.bus_addr.connect(self.data_mem_if.bus_addr)
+        self.bus_wr_en.connect(self.data_mem_if.bus_wr_en)
+        self.bus_wr_be.connect(self.data_mem_if.bus_wr_be)
+        self.bus_wr_data.connect(self.data_mem_if.bus_wr_data)
+        self.bus_rd_en.connect(self.data_mem_if.bus_rd_en)
+        self.data_mem_if.bus_rd_data.connect(self.bus_rd_data)
 
     @reactive
     async def p_c_0(self):
@@ -100,4 +100,4 @@ class Core(Module):
             self.ctlpath.inst_opcode.next = self.inst.value.opcode
             self.ctlpath.inst_funct3.next = self.inst.value.funct3
             self.ctlpath.inst_funct7.next = self.inst.value.funct7
-            self.data_memory_interface.data_format.next = self.inst.value.funct3
+            self.data_mem_if.data_format.next = self.inst.value.funct3
