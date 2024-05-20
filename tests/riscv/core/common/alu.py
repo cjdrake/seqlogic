@@ -1,4 +1,4 @@
-"""TODO(cjdrake): Write docstring."""
+"""Arithmetic Logic Unit (ALU)."""
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, zeros
@@ -8,7 +8,7 @@ from .. import AluOp
 
 
 class Alu(Module):
-    """TODO(cjdrake): Write docstring."""
+    """Arithmetic Logic Unit (ALU)."""
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)

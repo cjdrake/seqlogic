@@ -1,4 +1,4 @@
-"""TODO(cjdrake): Write docstring."""
+"""Data Memory."""
 
 from seqlogic import Array, Bit, Bits, Module, changed, resume
 from seqlogic.lbool import Vec, cat, ones

@@ -1,4 +1,4 @@
-"""TODO(cjdrake): Write docstring."""
+"""Data Memory Bus."""
 
 from seqlogic import Bit, Bits, Module, changed, clog2
 from seqlogic.lbool import Vec, uint2vec
@@ -13,7 +13,7 @@ BYTE_BITS = 8
 
 
 class DataMemBus(Module):
-    """TODO(cjdrake): Write docstring."""
+    """Data Memory Bus."""
 
     def __init__(self, name: str, parent: Module | None, depth: int = 1024):
         super().__init__(name, parent)
@@ -37,8 +37,8 @@ class DataMemBus(Module):
         self.clock = Bit(name="clock", parent=self)
 
         # Submodules
-        self.data_memory = DataMem(
-            "data_memory",
+        self.data_mem = DataMem(
+            "data_mem",
             parent=self,
             word_addr_bits=self._word_addr_bits,
             byte_addr_bits=self._byte_addr_bits,
@@ -49,10 +49,10 @@ class DataMemBus(Module):
         self._data = Bits(name="data", parent=self, dtype=Vec[self._width])
 
     def _connect(self):
-        self.data_memory.wr_be.connect(self.wr_be)
-        self.data_memory.wr_data.connect(self.wr_data)
-        self._data.connect(self.data_memory.rd_data)
-        self.data_memory.clock.connect(self.clock)
+        self.data_mem.wr_be.connect(self.wr_be)
+        self.data_mem.wr_data.connect(self.wr_data)
+        self._data.connect(self.data_mem.rd_data)
+        self.data_mem.clock.connect(self.clock)
 
     @reactive
     async def p_c_0(self):
@@ -66,7 +66,7 @@ class DataMemBus(Module):
     async def p_c_1(self):
         while True:
             await changed(self.wr_en, self._is_data)
-            self.data_memory.wr_en.next = self.wr_en.value & self._is_data.value
+            self.data_mem.wr_en.next = self.wr_en.value & self._is_data.value
 
     @reactive
     async def p_c_2(self):
@@ -74,7 +74,7 @@ class DataMemBus(Module):
             await changed(self.addr)
             m = self._byte_addr_bits
             n = self._byte_addr_bits + self._word_addr_bits
-            self.data_memory.addr.next = self.addr.value[m:n]
+            self.data_mem.addr.next = self.addr.value[m:n]
 
     @reactive
     async def p_c_3(self):

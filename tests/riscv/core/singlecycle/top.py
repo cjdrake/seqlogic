@@ -19,7 +19,7 @@ _RESET_PHASE2 = 5
 
 
 class Top(Module):
-    """TODO(cjdrake): Write docstring."""
+    """Top Level Module."""
 
     def __init__(self, name: str):
         super().__init__(name, parent=None)

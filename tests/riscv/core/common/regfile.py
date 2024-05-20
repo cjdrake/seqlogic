@@ -1,4 +1,4 @@
-"""TODO(cjdrake): Write docstring."""
+"""Register File."""
 
 from seqlogic import Array, Bit, Bits, Module, changed, clog2, resume
 from seqlogic.lbool import Vec, zeros
@@ -11,7 +11,7 @@ WORD_BITS = WORD_BYTES * BYTE_BITS
 
 
 class RegFile(Module):
-    """TODO(cjdrake): Write docstring."""
+    """Register File."""
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)

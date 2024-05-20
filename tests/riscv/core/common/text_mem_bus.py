@@ -1,4 +1,4 @@
-"""TODO(cjdrake): Write docstring."""
+"""Text Memory Bus."""
 
 from seqlogic import Bit, Bits, Module, changed, clog2
 from seqlogic.lbool import Vec, uint2vec
@@ -13,7 +13,7 @@ BYTE_BITS = 8
 
 
 class TextMemBus(Module):
-    """TODO(cjdrake): Write docstring."""
+    """Text Memory Bus."""
 
     def __init__(self, name: str, parent: Module | None, depth: int = 1024):
         super().__init__(name, parent)
@@ -32,8 +32,8 @@ class TextMemBus(Module):
         self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
 
         # Submodules
-        self.text_memory = TextMem(
-            "text_memory",
+        self.text_mem = TextMem(
+            "text_mem",
             parent=self,
             word_addr_bits=self._word_addr_bits,
             byte_addr_bits=self._byte_addr_bits,
@@ -44,7 +44,7 @@ class TextMemBus(Module):
         self._text = Bits(name="text", parent=self, dtype=Vec[self._width])
 
     def _connect(self):
-        self._text.connect(self.text_memory.rd_data)
+        self._text.connect(self.text_mem.rd_data)
 
     @reactive
     async def p_c_0(self):
@@ -66,4 +66,4 @@ class TextMemBus(Module):
             await changed(self.rd_addr)
             m = self._byte_addr_bits
             n = self._byte_addr_bits + self._word_addr_bits
-            self.text_memory.rd_addr.next = self.rd_addr.value[m:n]
+            self.text_mem.rd_addr.next = self.rd_addr.value[m:n]

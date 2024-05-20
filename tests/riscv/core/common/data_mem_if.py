@@ -1,4 +1,4 @@
-"""TODO(cjdrake): Write docstring."""
+"""Data Memory Interface."""
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, cat, rep, vec
@@ -6,7 +6,7 @@ from seqlogic.sim import reactive
 
 
 class DataMemIf(Module):
-    """TODO(cjdrake): Write docstring."""
+    """Data Memory Interface."""
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)

@@ -1,4 +1,4 @@
-"""TODO(cjdrake): Write docstring."""
+"""RiscV Core."""
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec
@@ -11,7 +11,7 @@ from .data_path import DataPath
 
 
 class Core(Module):
-    """TODO(cjdrake): Write docstring."""
+    """RiscV Core."""
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
