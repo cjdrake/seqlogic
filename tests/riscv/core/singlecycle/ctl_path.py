@@ -1,11 +1,11 @@
-"""TODO(cjdrake): Write docstring."""
+"""Control Path."""
 
-from seqlogic import Bit, Bits, Module
+from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec
+from seqlogic.sim import reactive
 
-from .. import AluOp, CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Funct3, Opcode
+from .. import AluOp, CtlAlu, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Funct3, Funct3Branch, Opcode
 from ..common.alu_control import AluControl
-from ..common.control_transfer import ControlTransfer
 from .control import Control
 
 
@@ -39,7 +39,6 @@ class CtlPath(Module):
 
         # Submodules
         self.control = Control(name="control", parent=self)
-        self.control_transfer = ControlTransfer(name="control_transfer", parent=self)
         self.alu_control = AluControl(name="alu_control", parent=self)
 
     def connect(self):
@@ -55,11 +54,27 @@ class CtlPath(Module):
         self.control.inst_opcode.connect(self.inst_opcode)
         self.control.take_branch.connect(self._take_branch)
 
-        self._take_branch.connect(self.control_transfer.take_branch)
-        self.control_transfer.inst_funct3.connect(self.inst_funct3)
-        self.control_transfer.result_equal_zero.connect(self.alu_result_equal_zero)
-
         self.alu_function.connect(self.alu_control.alu_function)
         self.alu_control.alu_op_type.connect(self._alu_op_type)
         self.alu_control.inst_funct3.connect(self.inst_funct3)
         self.alu_control.inst_funct7.connect(self.inst_funct7)
+
+    @reactive
+    async def p_c_0(self):
+        while True:
+            await changed(self.inst_funct3, self.alu_result_equal_zero)
+            match self.inst_funct3.value.branch:
+                case Funct3Branch.EQ:
+                    self._take_branch.next = ~(self.alu_result_equal_zero.value)
+                case Funct3Branch.NE:
+                    self._take_branch.next = self.alu_result_equal_zero.value
+                case Funct3Branch.LT:
+                    self._take_branch.next = ~(self.alu_result_equal_zero.value)
+                case Funct3Branch.GE:
+                    self._take_branch.next = self.alu_result_equal_zero.value
+                case Funct3Branch.LTU:
+                    self._take_branch.next = ~(self.alu_result_equal_zero.value)
+                case Funct3Branch.GEU:
+                    self._take_branch.next = self.alu_result_equal_zero.value
+                case _:
+                    self._take_branch.next = Vec[1].dcs()
