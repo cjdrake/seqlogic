@@ -42,28 +42,30 @@ class RegFile(Module):
             self._regs[i].next = zeros(WORD_BITS)
 
     @active
-    async def p_f_0(self):
+    async def p_wr_port(self):
         def f():
             return self.clock.is_posedge() and self.wr_en.value == "1b1"
 
         while True:
             await resume((self.clock, f))
-            # TODO(cjdrake): If wr_en=1, address must be known
+
             addr = self.wr_addr.value
-            if addr.has_unknown():
-                pass
-            elif addr.neq(zeros(self._addr_bits)):
+
+            # If wr_en=1, address must be known
+            assert not addr.has_unknown()
+
+            if addr.neq(zeros(self._addr_bits)):
                 self._regs[addr].next = self.wr_data.value
 
     @reactive
-    async def p_c_0(self):
+    async def p_rd_port_1(self):
         while True:
             await changed(self.rs1_addr, self._regs)
             addr = self.rs1_addr.value
             self.rs1_data.next = self._regs[addr].value
 
     @reactive
-    async def p_c_1(self):
+    async def p_rd_port_2(self):
         while True:
             await changed(self.rs2_addr, self._regs)
             addr = self.rs2_addr.value
