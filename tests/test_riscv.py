@@ -74,7 +74,7 @@ def test_singlecycle_dump():
     # Initialize instruction memory
     text = get_mem("tests/riscv/tests/add.text")
     for i, d in enumerate(text):
-        top.text_memory_bus.text_memory._mem.set_next(i, uint2vec(d, 32))
+        top.text_mem_bus.text_memory._mem.set_next(i, uint2vec(d, 32))
 
     loop.run(until=50)
 
@@ -916,12 +916,12 @@ def run_riscv_test(name: str) -> int:
     # Initialize instruction memory
     text = get_mem(f"tests/riscv/tests/{name}.text")
     for i, d in enumerate(text):
-        top.text_memory_bus.text_memory._mem.set_next(i, uint2vec(d, 32))
+        top.text_mem_bus.text_memory._mem.set_next(i, uint2vec(d, 32))
 
     # Initialize data memory
     data = get_mem(f"tests/riscv/tests/{name}.data")
     for i, d in enumerate(data):
-        top.data_memory_bus.data_memory._mem.set_next(i, uint2vec(d, 32))
+        top.data_mem_bus.data_memory._mem.set_next(i, uint2vec(d, 32))
 
     # Run the simulation
     for _ in loop.iter(until=10000):

@@ -5,14 +5,14 @@ from seqlogic.lbool import Vec, uint2vec
 from seqlogic.sim import reactive
 
 from .. import TEXT_BASE, TEXT_SIZE
-from .text_mem import TextMemory
+from .text_mem import TextMem
 
 ADDR_BITS = 32
 WORD_BYTES = 4
 BYTE_BITS = 8
 
 
-class TextMemoryBus(Module):
+class TextMemBus(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None, depth: int = 1024):
@@ -32,7 +32,7 @@ class TextMemoryBus(Module):
         self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
 
         # Submodules
-        self.text_memory = TextMemory(
+        self.text_memory = TextMem(
             "text_memory",
             parent=self,
             word_addr_bits=self._word_addr_bits,

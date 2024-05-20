@@ -5,7 +5,7 @@ from seqlogic.lbool import Vec
 from seqlogic.sim import reactive
 
 from .. import WORD_BITS, WORD_BYTES, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
-from ..common.data_mem_if import DataMemoryInterface
+from ..common.data_mem_if import DataMemIf
 from .ctl_path import CtlPath
 from .data_path import DataPath
 
@@ -51,7 +51,7 @@ class Core(Module):
         # Submodules
         self.ctlpath = CtlPath(name="ctlpath", parent=self)
         self.datapath = DataPath(name="datapath", parent=self)
-        self.data_memory_interface = DataMemoryInterface(name="data_memory_interface", parent=self)
+        self.data_memory_interface = DataMemIf(name="data_memory_interface", parent=self)
 
     def connect(self):
         self.ctlpath.alu_result_equal_zero.connect(self._alu_result_equal_zero)

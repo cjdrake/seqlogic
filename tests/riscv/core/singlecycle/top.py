@@ -7,8 +7,8 @@ from seqlogic.lbool import Vec, vec
 from seqlogic.sim import active, reactive
 
 from .. import WORD_BITS, WORD_BYTES, Inst, Opcode
-from ..common.data_mem_bus import DataMemoryBus
-from ..common.text_mem_bus import TextMemoryBus
+from ..common.data_mem_bus import DataMemBus
+from ..common.text_mem_bus import TextMemBus
 from .core import Core
 
 _CLOCK_PHASE_SHIFT = 1
@@ -43,22 +43,22 @@ class Top(Module):
 
         # Submodules:
         # 16K Instruction Memory
-        self.text_memory_bus = TextMemoryBus(name="text_memory_bus", parent=self, depth=4096)
+        self.text_mem_bus = TextMemBus(name="text_mem_bus", parent=self, depth=4096)
         # 32K Data Memory
-        self.data_memory_bus = DataMemoryBus(name="data_memory_bus", parent=self, depth=8096)
+        self.data_mem_bus = DataMemBus(name="data_mem_bus", parent=self, depth=8096)
         # RISC-V Core
         self.core = Core(name="core", parent=self)
 
     def connect(self):
-        self.text_memory_bus.rd_addr.connect(self._pc)
+        self.text_mem_bus.rd_addr.connect(self._pc)
 
-        self.data_memory_bus.addr.connect(self.bus_addr)
-        self.data_memory_bus.wr_en.connect(self.bus_wr_en)
-        self.data_memory_bus.wr_be.connect(self.bus_wr_be)
-        self.data_memory_bus.wr_data.connect(self.bus_wr_data)
-        self.data_memory_bus.rd_en.connect(self.bus_rd_en)
-        self.bus_rd_data.connect(self.data_memory_bus.rd_data)
-        self.data_memory_bus.clock.connect(self.clock)
+        self.data_mem_bus.addr.connect(self.bus_addr)
+        self.data_mem_bus.wr_en.connect(self.bus_wr_en)
+        self.data_mem_bus.wr_be.connect(self.bus_wr_be)
+        self.data_mem_bus.wr_data.connect(self.bus_wr_data)
+        self.data_mem_bus.rd_en.connect(self.bus_rd_en)
+        self.bus_rd_data.connect(self.data_mem_bus.rd_data)
+        self.data_mem_bus.clock.connect(self.clock)
 
         self.bus_addr.connect(self.core.bus_addr)
         self.bus_wr_en.connect(self.core.bus_wr_en)
@@ -92,12 +92,12 @@ class Top(Module):
     @reactive
     async def p_c_0(self):
         while True:
-            await changed(self.text_memory_bus.rd_data)
+            await changed(self.text_mem_bus.rd_data)
             self._inst.next = Inst(
-                opcode=Opcode(self.text_memory_bus.rd_data.value[0:7]),
-                rd=self.text_memory_bus.rd_data.value[7:12],
-                funct3=self.text_memory_bus.rd_data.value[12:15],
-                rs1=self.text_memory_bus.rd_data.value[15:20],
-                rs2=self.text_memory_bus.rd_data.value[20:25],
-                funct7=self.text_memory_bus.rd_data.value[25:32],
+                opcode=Opcode(self.text_mem_bus.rd_data.value[0:7]),
+                rd=self.text_mem_bus.rd_data.value[7:12],
+                funct3=self.text_mem_bus.rd_data.value[12:15],
+                rs1=self.text_mem_bus.rd_data.value[15:20],
+                rs2=self.text_mem_bus.rd_data.value[20:25],
+                funct7=self.text_mem_bus.rd_data.value[25:32],
             )

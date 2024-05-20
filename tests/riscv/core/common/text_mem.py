@@ -7,7 +7,7 @@ from seqlogic.sim import reactive
 BYTE_BITS = 8
 
 
-class TextMemory(Module):
+class TextMem(Module):
     """Text (i.e. instruction) random access, read-only memory."""
 
     def __init__(

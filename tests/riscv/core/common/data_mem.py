@@ -7,7 +7,7 @@ from seqlogic.sim import active, reactive
 BYTE_BITS = 8
 
 
-class DataMemory(Module):
+class DataMem(Module):
     """Data random access, read/write memory."""
 
     def __init__(

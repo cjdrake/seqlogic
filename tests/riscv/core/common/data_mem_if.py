@@ -5,7 +5,7 @@ from seqlogic.lbool import Vec, cat, rep, vec
 from seqlogic.sim import reactive
 
 
-class DataMemoryInterface(Module):
+class DataMemIf(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None):

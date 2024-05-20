@@ -5,14 +5,14 @@ from seqlogic.lbool import Vec, uint2vec
 from seqlogic.sim import reactive
 
 from .. import DATA_BASE, DATA_SIZE
-from .data_mem import DataMemory
+from .data_mem import DataMem
 
 ADDR_BITS = 32
 WORD_BYTES = 4
 BYTE_BITS = 8
 
 
-class DataMemoryBus(Module):
+class DataMemBus(Module):
     """TODO(cjdrake): Write docstring."""
 
     def __init__(self, name: str, parent: Module | None, depth: int = 1024):
@@ -37,7 +37,7 @@ class DataMemoryBus(Module):
         self.clock = Bit(name="clock", parent=self)
 
         # Submodules
-        self.data_memory = DataMemory(
+        self.data_memory = DataMem(
             "data_memory",
             parent=self,
             word_addr_bits=self._word_addr_bits,
