@@ -10,10 +10,10 @@ class DataMemIf(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-        self.build()
-        self.connect()
+        self._build()
+        self._connect()
 
-    def build(self):
+    def _build(self):
         # Ports
         self.data_format = Bits(name="data_format", parent=self, dtype=Vec[3])
 
@@ -30,7 +30,7 @@ class DataMemIf(Module):
         self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
         self.bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[32])
 
-    def connect(self):
+    def _connect(self):
         self.bus_addr.connect(self.addr)
         self.bus_wr_en.connect(self.wr_en)
         self.bus_rd_en.connect(self.rd_en)

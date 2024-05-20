@@ -23,10 +23,10 @@ class TextMemBus(Module):
         self._byte_addr_bits = clog2(WORD_BYTES)
         self._text_start = uint2vec(TEXT_BASE, ADDR_BITS)
         self._text_stop = uint2vec(TEXT_BASE + TEXT_SIZE, ADDR_BITS)
-        self.build()
-        self.connect()
+        self._build()
+        self._connect()
 
-    def build(self):
+    def _build(self):
         # Ports
         self.rd_addr = Bits(name="rd_addr", parent=self, dtype=Vec[ADDR_BITS])
         self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
@@ -43,7 +43,7 @@ class TextMemBus(Module):
         self._is_text = Bit(name="is_text", parent=self)
         self._text = Bits(name="text", parent=self, dtype=Vec[self._width])
 
-    def connect(self):
+    def _connect(self):
         self._text.connect(self.text_memory.rd_data)
 
     @reactive

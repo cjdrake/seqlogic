@@ -3,7 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import Vec
+from seqlogic.lbool import Vec, ones, zeros
 from seqlogic.sim import reactive
 
 from .. import (
@@ -18,7 +18,6 @@ from .. import (
     Funct3Branch,
     Opcode,
 )
-from .control import Control
 
 
 class CtlPath(Module):
@@ -26,10 +25,9 @@ class CtlPath(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-        self.build()
-        self.connect()
+        self._build()
 
-    def build(self):
+    def _build(self):
         # Ports
         self.inst_opcode = Bits(name="inst_opcode", parent=self, dtype=Opcode)
         self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Funct3)
@@ -51,22 +49,6 @@ class CtlPath(Module):
         self._default_func = Bits(name="default_funct", parent=self, dtype=AluOp)
         self._secondary_func = Bits(name="secondary_funct", parent=self, dtype=AluOp)
         self._branch_func = Bits(name="branch_funct", parent=self, dtype=AluOp)
-
-        # Submodules
-        self.control = Control(name="control", parent=self)
-
-    def connect(self):
-        self.pc_wr_en.connect(self.control.pc_wr_en)
-        self.regfile_wr_en.connect(self.control.regfile_wr_en)
-        self.alu_op_a_sel.connect(self.control.alu_op_a_sel)
-        self.alu_op_b_sel.connect(self.control.alu_op_b_sel)
-        self._alu_op_type.connect(self.control.alu_op_type)
-        self.data_mem_rd_en.connect(self.control.data_mem_rd_en)
-        self.data_mem_wr_en.connect(self.control.data_mem_wr_en)
-        self.reg_writeback_sel.connect(self.control.reg_writeback_sel)
-        self.next_pc_sel.connect(self.control.next_pc_sel)
-        self.control.inst_opcode.connect(self.inst_opcode)
-        self.control.take_branch.connect(self._take_branch)
 
     @reactive
     async def p_c_0(self):
@@ -159,3 +141,133 @@ class CtlPath(Module):
                     self.alu_function.next = self._branch_func.value
                 case _:
                     self.alu_function.next = AluOp.DC
+
+    @reactive
+    async def p_c_3(self):
+        while True:
+            await changed(self.inst_opcode, self._take_branch)
+            match self.inst_opcode.value:
+                case (
+                    Opcode.LOAD
+                    | Opcode.MISC_MEM  # noqa
+                    | Opcode.OP_IMM  # noqa
+                    | Opcode.AUIPC  # noqa
+                    | Opcode.STORE  # noqa
+                    | Opcode.OP  # noqa
+                    | Opcode.LUI  # noqa
+                ):
+                    self.next_pc_sel.next = CtlPc.PC4
+                case Opcode.BRANCH:
+                    s = self._take_branch.value
+                    self.next_pc_sel.next = s.ite(CtlPc.PC_IMM, CtlPc.PC4)
+                case Opcode.JALR:
+                    self.next_pc_sel.next = CtlPc.RS1_IMM
+                case Opcode.JAL:
+                    self.next_pc_sel.next = CtlPc.PC_IMM
+                case _:
+                    self.next_pc_sel.next = CtlPc.DC
+
+    @reactive
+    async def p_c_4(self):
+        while True:
+            await changed(self.inst_opcode)
+            match self.inst_opcode.value:
+                case Opcode.LOAD:
+                    self.pc_wr_en.next = ones(1)
+                    self.regfile_wr_en.next = ones(1)
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self._alu_op_type.next = CtlAlu.ADD
+                    self.data_mem_rd_en.next = ones(1)
+                    self.data_mem_wr_en.next = zeros(1)
+                    self.reg_writeback_sel.next = CtlWriteBack.DATA
+                case Opcode.MISC_MEM:
+                    self.pc_wr_en.next = ones(1)
+                    self.regfile_wr_en.next = zeros(1)
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.RS2
+                    self._alu_op_type.next = CtlAlu.ADD
+                    self.data_mem_rd_en.next = zeros(1)
+                    self.data_mem_wr_en.next = zeros(1)
+                    self.reg_writeback_sel.next = CtlWriteBack.ALU
+                case Opcode.OP_IMM:
+                    self.pc_wr_en.next = ones(1)
+                    self.regfile_wr_en.next = ones(1)
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self._alu_op_type.next = CtlAlu.OP_IMM
+                    self.data_mem_rd_en.next = zeros(1)
+                    self.data_mem_wr_en.next = zeros(1)
+                    self.reg_writeback_sel.next = CtlWriteBack.ALU
+                case Opcode.AUIPC:
+                    self.pc_wr_en.next = ones(1)
+                    self.regfile_wr_en.next = ones(1)
+                    self.alu_op_a_sel.next = CtlAluA.PC
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self._alu_op_type.next = CtlAlu.ADD
+                    self.data_mem_rd_en.next = zeros(1)
+                    self.data_mem_wr_en.next = zeros(1)
+                    self.reg_writeback_sel.next = CtlWriteBack.ALU
+                case Opcode.STORE:
+                    self.pc_wr_en.next = ones(1)
+                    self.regfile_wr_en.next = zeros(1)
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self._alu_op_type.next = CtlAlu.ADD
+                    self.data_mem_rd_en.next = zeros(1)
+                    self.data_mem_wr_en.next = ones(1)
+                    self.reg_writeback_sel.next = CtlWriteBack.ALU
+                case Opcode.OP:
+                    self.pc_wr_en.next = ones(1)
+                    self.regfile_wr_en.next = ones(1)
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.RS2
+                    self._alu_op_type.next = CtlAlu.OP
+                    self.data_mem_rd_en.next = zeros(1)
+                    self.data_mem_wr_en.next = zeros(1)
+                    self.reg_writeback_sel.next = CtlWriteBack.ALU
+                case Opcode.LUI:
+                    self.pc_wr_en.next = ones(1)
+                    self.regfile_wr_en.next = ones(1)
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.RS2
+                    self._alu_op_type.next = CtlAlu.ADD
+                    self.data_mem_rd_en.next = zeros(1)
+                    self.data_mem_wr_en.next = zeros(1)
+                    self.reg_writeback_sel.next = CtlWriteBack.IMM
+                case Opcode.BRANCH:
+                    self.pc_wr_en.next = ones(1)
+                    self.regfile_wr_en.next = zeros(1)
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.RS2
+                    self._alu_op_type.next = CtlAlu.BRANCH
+                    self.data_mem_rd_en.next = zeros(1)
+                    self.data_mem_wr_en.next = zeros(1)
+                    self.reg_writeback_sel.next = CtlWriteBack.ALU
+                case Opcode.JALR:
+                    self.pc_wr_en.next = ones(1)
+                    self.regfile_wr_en.next = ones(1)
+                    self.alu_op_a_sel.next = CtlAluA.RS1
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self._alu_op_type.next = CtlAlu.ADD
+                    self.data_mem_rd_en.next = zeros(1)
+                    self.data_mem_wr_en.next = zeros(1)
+                    self.reg_writeback_sel.next = CtlWriteBack.PC4
+                case Opcode.JAL:
+                    self.pc_wr_en.next = ones(1)
+                    self.regfile_wr_en.next = ones(1)
+                    self.alu_op_a_sel.next = CtlAluA.PC
+                    self.alu_op_b_sel.next = CtlAluB.IMM
+                    self._alu_op_type.next = CtlAlu.ADD
+                    self.data_mem_rd_en.next = zeros(1)
+                    self.data_mem_wr_en.next = zeros(1)
+                    self.reg_writeback_sel.next = CtlWriteBack.PC4
+                case _:
+                    self.pc_wr_en.next = Vec[1].dcs()
+                    self.regfile_wr_en.next = Vec[1].dcs()
+                    self.alu_op_a_sel.next = CtlAluA.DC
+                    self.alu_op_b_sel.next = CtlAluB.DC
+                    self._alu_op_type.next = CtlAlu.DC
+                    self.data_mem_rd_en.next = Vec[1].dcs()
+                    self.data_mem_wr_en.next = Vec[1].dcs()
+                    self.reg_writeback_sel.next = CtlWriteBack.DC

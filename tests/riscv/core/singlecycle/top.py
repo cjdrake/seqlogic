@@ -1,4 +1,4 @@
-"""TODO(cjdrake): Write docstring."""
+"""Top Level Module."""
 
 # pyright: reportCallIssue=false
 
@@ -23,10 +23,10 @@ class Top(Module):
 
     def __init__(self, name: str):
         super().__init__(name, parent=None)
-        self.build()
-        self.connect()
+        self._build()
+        self._connect()
 
-    def build(self):
+    def _build(self):
         # Ports
         self.bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
@@ -49,7 +49,7 @@ class Top(Module):
         # RISC-V Core
         self.core = Core(name="core", parent=self)
 
-    def connect(self):
+    def _connect(self):
         self.text_mem_bus.rd_addr.connect(self._pc)
 
         self.data_mem_bus.addr.connect(self.bus_addr)

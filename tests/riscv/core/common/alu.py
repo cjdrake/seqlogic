@@ -12,9 +12,9 @@ class Alu(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-        self.build()
+        self._build()
 
-    def build(self):
+    def _build(self):
         # Ports
         self.result = Bits(name="result", parent=self, dtype=Vec[32])
         self.result_equal_zero = Bit(name="result_equal_zero", parent=self)

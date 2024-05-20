@@ -23,10 +23,10 @@ class DataMemBus(Module):
         self._byte_addr_bits = clog2(WORD_BYTES)
         self._data_start = uint2vec(DATA_BASE, ADDR_BITS)
         self._data_stop = uint2vec(DATA_BASE + DATA_SIZE, ADDR_BITS)
-        self.build()
-        self.connect()
+        self._build()
+        self._connect()
 
-    def build(self):
+    def _build(self):
         # Ports
         self.addr = Bits(name="addr", parent=self, dtype=Vec[ADDR_BITS])
         self.wr_en = Bit(name="wr_en", parent=self)
@@ -48,7 +48,7 @@ class DataMemBus(Module):
         self._is_data = Bit(name="is_data", parent=self)
         self._data = Bits(name="data", parent=self, dtype=Vec[self._width])
 
-    def connect(self):
+    def _connect(self):
         self.data_memory.wr_be.connect(self.wr_be)
         self.data_memory.wr_data.connect(self.wr_data)
         self._data.connect(self.data_memory.rd_data)

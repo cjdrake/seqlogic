@@ -16,9 +16,9 @@ class RegFile(Module):
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
         self._addr_bits = clog2(DEPTH)
-        self.build()
+        self._build()
 
-    def build(self):
+    def _build(self):
         # Ports
         self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_addr = Bits(name="wr_addr", parent=self, dtype=Vec[self._addr_bits])
@@ -30,12 +30,7 @@ class RegFile(Module):
         self.clock = Bit(name="clock", parent=self)
 
         # State
-        self._regs = Array(
-            name="regs",
-            parent=self,
-            shape=(self._addr_bits,),
-            dtype=Vec[WORD_BITS],
-        )
+        self._regs = Array(name="regs", parent=self, shape=(self._addr_bits,), dtype=Vec[WORD_BITS])
 
     @active
     async def p_i_0(self):

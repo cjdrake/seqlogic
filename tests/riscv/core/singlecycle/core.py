@@ -15,10 +15,10 @@ class Core(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-        self.build()
-        self.connect()
+        self._build()
+        self._connect()
 
-    def build(self):
+    def _build(self):
         # Ports
         self.bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
@@ -53,7 +53,7 @@ class Core(Module):
         self.datapath = DataPath(name="datapath", parent=self)
         self.data_mem_if = DataMemIf(name="data_mem_if", parent=self)
 
-    def connect(self):
+    def _connect(self):
         self.ctlpath.alu_result_equal_zero.connect(self._alu_result_equal_zero)
         self._pc_wr_en.connect(self.ctlpath.pc_wr_en)
         self._regfile_wr_en.connect(self.ctlpath.regfile_wr_en)

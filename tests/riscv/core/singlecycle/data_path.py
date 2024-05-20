@@ -15,10 +15,10 @@ class DataPath(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-        self.build()
-        self.connect()
+        self._build()
+        self._connect()
 
-    def build(self):
+    def _build(self):
         self.data_mem_addr = Bits(name="data_mem_addr", parent=self, dtype=Vec[32])
         self.data_mem_wr_data = Bits(name="data_mem_wr_data", parent=self, dtype=Vec[32])
         self.data_mem_rd_data = Bits(name="data_mem_rd_data", parent=self, dtype=Vec[32])
@@ -74,7 +74,7 @@ class DataPath(Module):
         )
         self.regfile = RegFile(name="regfile", parent=self)
 
-    def connect(self):
+    def _connect(self):
         self.data_mem_addr.connect(self.alu_result)
         self.data_mem_wr_data.connect(self.rs2_data)
 

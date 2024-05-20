@@ -10,9 +10,9 @@ class DffEnAr(Module):
     def __init__(self, name: str, parent: Module | None, rst_val):
         super().__init__(name, parent)
         self._rst_val = rst_val
-        self.build()
+        self._build()
 
-    def build(self):
+    def _build(self):
         self.q = Bits(name="q", parent=self, dtype=type(self._rst_val))
         self.en = Bit(name="en", parent=self)
         self.d = Bits(name="d", parent=self, dtype=type(self._rst_val))

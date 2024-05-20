@@ -1,4 +1,4 @@
-"""TODO(cjdrake): Write docstring."""
+"""Text Memory."""
 
 from seqlogic import Array, Bits, Module, changed
 from seqlogic.lbool import Vec
@@ -22,9 +22,9 @@ class TextMem(Module):
         self._byte_addr_bits = byte_addr_bits
         self._depth = 2**self._word_addr_bits
         self._width = 2**self._byte_addr_bits * BYTE_BITS
-        self.build()
+        self._build()
 
-    def build(self):
+    def _build(self):
         # Ports
         self.rd_addr = Bits(name="rd_addr", parent=self, dtype=Vec[self._word_addr_bits])
         self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
