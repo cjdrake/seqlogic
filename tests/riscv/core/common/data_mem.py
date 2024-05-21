@@ -1,7 +1,7 @@
 """Data Memory."""
 
 from seqlogic import Array, Bit, Bits, Module, changed, resume
-from seqlogic.lbool import Vec, cat, ones
+from seqlogic.lbool import Vec, cat
 from seqlogic.sim import active, reactive
 
 BYTE_BITS = 8
@@ -46,12 +46,13 @@ class DataMem(Module):
     @active
     async def p_f_0(self):
         def f():
-            return self.clock.is_posedge() and self.wr_en.value == ones(1)
+            return self.clock.is_posedge() and self.wr_en.value == "1b1"
 
         while True:
             await resume((self.clock, f))
-            # TODO(cjdrake): If wr_en=1, address must be known
             addr = self.addr.value
+            # If wr_en=1, address must be known
+            assert not addr.has_unknown()
             wr_val = self.wr_data.value
             mem_val = self._mem[addr].value
             # fmt: off

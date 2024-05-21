@@ -366,16 +366,15 @@ class Vec:
         return self._n
 
     def __getitem__(self, key: int | slice) -> Vec:
-        match key:
-            case int() as i:
-                d = self._get_item(self._norm_index(i))
-                return Vec[1](d)
-            case slice() as sl:
-                i, j = self._norm_slice(sl)
-                n, d = self._get_items(i, j)
-                return Vec[n](d)
-            case _:
-                raise TypeError("Expected key to be int or slice")
+        if isinstance(key, int):
+            i = self._norm_index(key)
+            d = self._get_item(i)
+            return Vec[1](d)
+        if isinstance(key, slice):
+            i, j = self._norm_slice(key)
+            n, d = self._get_items(i, j)
+            return Vec[n](d)
+        raise TypeError("Expected key to be int or slice")
 
     def __iter__(self) -> Generator[Vec[1], None, None]:
         for i in range(self._n):
@@ -402,17 +401,13 @@ class Vec:
         return self.to_int()
 
     # Comparison
-    def _eq(self, other: Vec) -> bool:
-        return self._n == other._n and self._data == other._data
-
     def __eq__(self, other) -> bool:
-        match other:
-            case Vec():
-                return self._eq(other)
-            case str() as lit:
-                return self._match(lit)
-            case _:
-                return False
+        if isinstance(other, str):
+            n, data = _lit2vec(other)
+            return self._n == n and self._data == data
+        if isinstance(other, Vec[self._n]):
+            return self._data == other.data
+        return False
 
     def __hash__(self) -> int:
         return hash(self._n) ^ hash(self._data)
@@ -430,10 +425,10 @@ class Vec:
     def __xor__(self, other: Vec) -> Vec:
         return self.xor(other)
 
-    def __lshift__(self, n: int) -> Vec:
+    def __lshift__(self, n: int | Vec) -> Vec:
         return self.lsh(n)[0]
 
-    def __rshift__(self, n: int) -> Vec:
+    def __rshift__(self, n: int | Vec) -> Vec:
         return self.rsh(n)[0]
 
     def __add__(self, other: Vec) -> Vec:
@@ -961,18 +956,13 @@ class Vec:
         Raises:
             ValueError: If n or ci are invalid/inconsistent.
         """
-        match n:
-            case int():
-                pass
-            case Vec():
-                if n.has_x():
-                    return self.xes(), _VecE
-                elif n.has_dc():
-                    return self.dcs(), _VecE
-                else:
-                    n = n.to_uint()
-            case _:
-                raise TypeError("Expected n to be int or Vec")
+        if isinstance(n, Vec):
+            if n.has_x():
+                return self.xes(), _VecE
+            if n.has_dc():
+                return self.dcs(), _VecE
+            n = n.to_uint()
+
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
@@ -999,18 +989,13 @@ class Vec:
         Raises:
             ValueError: If n or ci are invalid/inconsistent.
         """
-        match n:
-            case int():
-                pass
-            case Vec():
-                if n.has_x():
-                    return self.xes(), _VecE
-                elif n.has_dc():
-                    return self.dcs(), _VecE
-                else:
-                    n = n.to_uint()
-            case _:
-                raise TypeError("Expected n to be int or Vec")
+        if isinstance(n, Vec):
+            if n.has_x():
+                return self.xes(), _VecE
+            if n.has_dc():
+                return self.dcs(), _VecE
+            n = n.to_uint()
+
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
@@ -1035,18 +1020,13 @@ class Vec:
         Raises:
             ValueError: If n is invalid.
         """
-        match n:
-            case int():
-                pass
-            case Vec():
-                if n.has_x():
-                    return self.xes(), _VecE
-                elif n.has_dc():
-                    return self.dcs(), _VecE
-                else:
-                    n = n.to_uint()
-            case _:
-                raise TypeError("Expected n to be int or Vec")
+        if isinstance(n, Vec):
+            if n.has_x():
+                return self.xes(), _VecE
+            if n.has_dc():
+                return self.dcs(), _VecE
+            n = n.to_uint()
+
         if not 0 <= n <= self._n:
             raise ValueError(f"Expected 0 ≤ n ≤ {self._n}, got {n}")
         if n == 0:
@@ -1421,11 +1401,11 @@ def vec(obj=None) -> Vec:
             raise TypeError(f"Invalid input: {obj}")
 
 
-def cat(*objs: int | str | Vec) -> Vec:
+def cat(*objs: Vec | int | str) -> Vec:
     """Concatenate a sequence of vectors.
 
     Args:
-        objs: a sequence of bool/lit/vec objects.
+        objs: a sequence of vec/bool/lit objects.
 
     Returns:
         A Vec instance.
@@ -1439,16 +1419,14 @@ def cat(*objs: int | str | Vec) -> Vec:
     # Convert inputs
     vs = []
     for obj in objs:
-        match obj:
-            case 0 | 1 as x:
-                vs.append((_Vec0, _Vec1)[x])
-            case str() as lit:
-                v = lit2vec(lit)
-                vs.append(v)
-            case Vec() as v:
-                vs.append(v)
-            case _:
-                raise TypeError(f"Invalid input: {obj}")
+        if isinstance(obj, Vec):
+            vs.append(obj)
+        elif obj in (0, 1):
+            vs.append((_Vec0, _Vec1)[obj])
+        elif isinstance(obj, str):
+            vs.append(lit2vec(obj))
+        else:
+            raise TypeError(f"Invalid input: {obj}")
 
     if len(vs) == 1:
         return vs[0]
@@ -1460,7 +1438,7 @@ def cat(*objs: int | str | Vec) -> Vec:
     return Vec[n](data)
 
 
-def rep(obj: int | str | Vec, n: int) -> Vec:
+def rep(obj: Vec | int | str, n: int) -> Vec:
     """Repeat a vector n times."""
     objs = [obj] * n
     return cat(*objs)
@@ -1550,18 +1528,18 @@ class _VecEnumMeta(type):
             setattr(enum, name, obj)
 
         # Override Vec __new__ method
-        def _new(cls, arg: str | int | Vec):
-            match arg:
-                case str() as lit:
-                    n, data = _lit2vec(lit)
-                    cls.check_len(n)
-                case int() as data:
-                    cls.check_data(data)
-                case Vec() as v:
-                    n, data = len(v), v.data
-                    cls.check_len(n)
-                case _:
-                    raise TypeError("Expected arg to be str, int, or Vec")
+        def _new(cls, arg: Vec | str | int):
+            if isinstance(arg, Vec[cls._n]):
+                data = arg.data
+            elif isinstance(arg, str):
+                n, data = _lit2vec(arg)
+                cls.check_len(n)
+            elif isinstance(arg, int):
+                data = arg
+                cls.check_data(data)
+            else:
+                s = f"Expected arg to be Vec[{cls._n}], str, or int"
+                raise TypeError(s)
             try:
                 obj = getattr(cls, data2name[data])
             except KeyError:

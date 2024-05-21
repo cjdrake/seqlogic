@@ -241,18 +241,15 @@ class Array(_TraceAggregate):
         super().__init__(name, parent, dtype)
 
     def __getitem__(self, key: int | Vec):
-        match key:
-            case int():
-                return super().__getitem__(key)
-            case Vec():
-                try:
-                    i = key.to_uint()
-                except ValueError:
-                    return _ArrayXPropItem(self._dtype)
-                else:
-                    return super().__getitem__(i)
-            case _:
-                assert False
+        if isinstance(key, int):
+            return super().__getitem__(key)
+        if isinstance(key, Vec):
+            try:
+                i = key.to_uint()
+            except ValueError:
+                return _ArrayXPropItem(self._dtype)
+            return super().__getitem__(i)
+        assert TypeError("Expected key to be int or Vec")
 
 
 def simify(d: Module | Bits | Bit | Array):

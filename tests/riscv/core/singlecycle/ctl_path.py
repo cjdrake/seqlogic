@@ -54,7 +54,8 @@ class CtlPath(Module):
     async def p_c_0(self):
         while True:
             await changed(self.inst_funct3, self.alu_result_equal_zero)
-            match self.inst_funct3.value.branch:
+            sel = self.inst_funct3.value.branch
+            match sel:
                 case Funct3Branch.EQ:
                     self._take_branch.next = ~(self.alu_result_equal_zero.value)
                 case Funct3Branch.NE:
@@ -74,8 +75,8 @@ class CtlPath(Module):
     async def p_c_1(self):
         while True:
             await changed(self.inst_funct3)
-
-            match self.inst_funct3.value.alu_logic:
+            sel = self.inst_funct3.value.alu_logic
+            match sel:
                 case Funct3AluLogic.ADD_SUB:
                     self._default_func.next = AluOp.ADD
                     self._secondary_func.next = AluOp.SUB
@@ -98,7 +99,12 @@ class CtlPath(Module):
                     self._default_func.next = AluOp.DC
                     self._secondary_func.next = AluOp.DC
 
-            match self.inst_funct3.value.branch:
+    @reactive
+    async def p_c_2(self):
+        while True:
+            await changed(self.inst_funct3)
+            sel = self.inst_funct3.value.branch
+            match sel:
                 case Funct3Branch.EQ | Funct3Branch.NE:
                     self._branch_func.next = AluOp.SEQ
                 case Funct3Branch.LT | Funct3Branch.GE:
@@ -109,7 +115,7 @@ class CtlPath(Module):
                     self._branch_func.next = AluOp.DC
 
     @reactive
-    async def p_c_2(self):
+    async def p_c_3(self):
         while True:
             await changed(
                 self._alu_op_type,
@@ -119,9 +125,12 @@ class CtlPath(Module):
                 self._default_func,
                 self._branch_func,
             )
-            match self._alu_op_type.value:
+            sel = self._alu_op_type.value
+            match sel:
                 case CtlAlu.ADD:
                     self.alu_function.next = AluOp.ADD
+                case CtlAlu.BRANCH:
+                    self.alu_function.next = self._branch_func.value
                 case CtlAlu.OP:
                     sel = self.inst_funct7.value[5]
                     self.alu_function.next = sel.ite(
@@ -137,16 +146,15 @@ class CtlPath(Module):
                         self._secondary_func.value,
                         self._default_func.value,
                     )
-                case CtlAlu.BRANCH:
-                    self.alu_function.next = self._branch_func.value
                 case _:
                     self.alu_function.next = AluOp.DC
 
     @reactive
-    async def p_c_3(self):
+    async def p_c_4(self):
         while True:
             await changed(self.inst_opcode, self._take_branch)
-            match self.inst_opcode.value:
+            sel = self.inst_opcode.value
+            match sel:
                 case (
                     Opcode.LOAD
                     | Opcode.MISC_MEM  # noqa
@@ -168,10 +176,11 @@ class CtlPath(Module):
                     self.next_pc_sel.next = CtlPc.DC
 
     @reactive
-    async def p_c_4(self):
+    async def p_c_5(self):
         while True:
             await changed(self.inst_opcode)
-            match self.inst_opcode.value:
+            sel = self.inst_opcode.value
+            match sel:
                 case Opcode.LOAD:
                     self.pc_wr_en.next = ones(1)
                     self.regfile_wr_en.next = ones(1)

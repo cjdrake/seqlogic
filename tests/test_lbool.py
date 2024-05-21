@@ -299,7 +299,6 @@ def test_vec_eq():
     assert Vec[4](0b10_01_10_01) != Vec[4](0b01_10_01_10)
     assert Vec[4](0b10_01_10_01) == "4b1010"
     assert Vec[4](0b10_01_10_01) != "4b0101"
-    assert Vec[4](0b10_01_10_01) == "4b----"
 
 
 def test_vec_hash():

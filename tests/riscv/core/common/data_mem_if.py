@@ -30,6 +30,8 @@ class DataMemIf(Module):
         self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
         self.bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[32])
 
+        self._byte_addr = Bits(name="byte_addr", parent=self, dtype=Vec[2])
+
     def _connect(self):
         self.bus_addr.connect(self.addr)
         self.bus_wr_en.connect(self.wr_en)
@@ -38,14 +40,15 @@ class DataMemIf(Module):
     @reactive
     async def p_c_0(self):
         while True:
-            await changed(self.data_format, self.addr)
-            match self.data_format.value[:2]:
+            await changed(self.data_format, self._byte_addr)
+            sel = self.data_format.value[:2]
+            match sel:
                 case "2b00":
-                    self.bus_wr_be.next = vec("4b0001") << self.addr.value[:2]
+                    self.bus_wr_be.next = vec("4b0001") << self._byte_addr.value
                 case "2b01":
-                    self.bus_wr_be.next = vec("4b0011") << self.addr.value[:2]
+                    self.bus_wr_be.next = vec("4b0011") << self._byte_addr.value
                 case "2b10":
-                    self.bus_wr_be.next = vec("4b1111") << self.addr.value[:2]
+                    self.bus_wr_be.next = vec("4b1111") << self._byte_addr.value
                 case "2b11":
                     self.bus_wr_be.next = vec("4b0000")
                 case _:
@@ -54,26 +57,31 @@ class DataMemIf(Module):
     @reactive
     async def p_c_1(self):
         while True:
-            await changed(self.addr, self.wr_data)
-            n = cat("3b000", self.addr.value[:2])
+            await changed(self.addr, self.wr_data, self._byte_addr)
+            n = cat("3b000", self._byte_addr.value)
             self.bus_wr_data.next = self.wr_data.value << n
 
     @reactive
     async def p_c_2(self):
         while True:
-            await changed(self.data_format, self.addr, self.bus_rd_data)
-
-            n = cat("3b000", self.addr.value[:2])
-            temp = self.bus_rd_data.value >> n
-
-            match self.data_format.value[:2]:
+            await changed(self.data_format, self.bus_rd_data, self._byte_addr)
+            n = cat("3b000", self._byte_addr.value)
+            data = self.bus_rd_data.value >> n
+            sel = self.data_format.value[:2]
+            match sel:
                 case "2b00":
-                    x = ~(self.data_format.value[2]) & temp[8 - 1]
-                    self.rd_data.next = cat(temp[:8], rep(x, 24))
+                    pad = ~(self.data_format.value[2]) & data[8 - 1]
+                    self.rd_data.next = cat(data[:8], rep(pad, 24))
                 case "2b01":
-                    x = ~(self.data_format.value[2]) & temp[16 - 1]
-                    self.rd_data.next = cat(temp[:16], rep(x, 16))
+                    pad = ~(self.data_format.value[2]) & data[16 - 1]
+                    self.rd_data.next = cat(data[:16], rep(pad, 16))
                 case "2b10":
-                    self.rd_data.next = temp
+                    self.rd_data.next = data
                 case _:
                     self.rd_data.next = Vec[32].dcs()
+
+    @reactive
+    async def p_c_3(self):
+        while True:
+            await changed(self.addr)
+            self._byte_addr.next = self.addr.value[:2]

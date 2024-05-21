@@ -121,7 +121,8 @@ class DataPath(Module):
     async def p_c_3(self):
         while True:
             await changed(self.next_pc_sel, self.pc_plus_4, self.pc_plus_immediate, self.alu_result)
-            match self.next_pc_sel.value:
+            sel = self.next_pc_sel.value
+            match sel:
                 case CtlPc.PC4:
                     self.pc_next.next = self.pc_plus_4.value
                 case CtlPc.PC_IMM:
@@ -135,7 +136,8 @@ class DataPath(Module):
     async def p_c_4(self):
         while True:
             await changed(self.alu_op_a_sel, self.rs1_data, self.pc)
-            match self.alu_op_a_sel.value:
+            sel = self.alu_op_a_sel.value
+            match sel:
                 case CtlAluA.RS1:
                     self.alu_op_a.next = self.rs1_data.value
                 case CtlAluA.PC:
@@ -147,7 +149,8 @@ class DataPath(Module):
     async def p_c_5(self):
         while True:
             await changed(self.alu_op_b_sel, self.rs2_data, self.immediate)
-            match self.alu_op_b_sel.value:
+            sel = self.alu_op_b_sel.value
+            match sel:
                 case CtlAluB.RS2:
                     self.alu_op_b.next = self.rs2_data.value
                 case CtlAluB.IMM:
@@ -165,7 +168,8 @@ class DataPath(Module):
                 self.pc_plus_4,
                 self.immediate,
             )
-            match self.reg_writeback_sel.value:
+            sel = self.reg_writeback_sel.value
+            match sel:
                 case CtlWriteBack.ALU:
                     self.wr_data.next = self.alu_result.value
                 case CtlWriteBack.DATA:
@@ -181,7 +185,8 @@ class DataPath(Module):
     async def p_c_7(self):
         while True:
             await changed(self.inst)
-            match self.inst.value.opcode:
+            sel = self.inst.value.opcode
+            match sel:
                 case Opcode.LOAD | Opcode.LOAD_FP | Opcode.OP_IMM | Opcode.JALR:
                     self.immediate.next = cat(
                         self.inst.value[20:31],
