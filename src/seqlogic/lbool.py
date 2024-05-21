@@ -881,19 +881,13 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def _match(self, pattern: str | Vec) -> bool:
+    def _match(self, pattern: Vec | str) -> bool:
         """Pattern match operator."""
-        match pattern:
-            case str() as lit:
-                pattern = lit2vec(lit)
-            case Vec():
-                pass
-            case _:
-                raise TypeError("Expected pattern to be str or Vec")
+        if isinstance(pattern, str):
+            pattern = lit2vec(pattern)
 
         self.check_len(len(pattern))
 
-        # Propagate X
         if self.has_x() or pattern.has_x():
             return False
 
@@ -903,6 +897,7 @@ class Vec:
             # Mismatch on (0b01, 0b10) or (0b10, 0b01)
             if a ^ b == 0b11:
                 return False
+
         return True
 
     def zext(self, n: int) -> Vec:
