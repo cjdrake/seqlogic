@@ -143,7 +143,7 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
                     init=self._value.name,
                 )
                 self._vcd_change = lambda: vcdw.change(var, self._sim.time, self._next_value.name)
-        else:
+        elif issubclass(self._dtype, Vec):
             if re.match(pattern, self.qualname):
                 var = vcdw.register_var(
                     scope=self._parent.scope,
@@ -169,6 +169,12 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
 
 class Bits(_TraceSingular):
     """Leaf-level bitvector design component."""
+
+    def xprop(self, sel: Vec):
+        if sel.has_x():
+            self.next = self.value.xes()
+        else:
+            self.next = self.value.dcs()
 
 
 class Bit(Bits):

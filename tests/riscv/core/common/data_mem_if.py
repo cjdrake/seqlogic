@@ -52,7 +52,7 @@ class DataMemIf(Module):
                 case "2b11":
                     self.bus_wr_be.next = vec("4b0000")
                 case _:
-                    self.bus_wr_be.next = Vec[4].dcs()
+                    self.bus_wr_be.xprop(sel)
 
     @reactive
     async def p_c_1(self):
@@ -78,7 +78,7 @@ class DataMemIf(Module):
                 case "2b10":
                     self.rd_data.next = data
                 case _:
-                    self.rd_data.next = Vec[32].dcs()
+                    self.rd_data.xprop(sel)
 
     @reactive
     async def p_c_3(self):

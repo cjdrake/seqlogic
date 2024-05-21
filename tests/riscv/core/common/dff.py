@@ -26,10 +26,9 @@ class DffEnAr(Module):
 
         while True:
             state = await resume((self.reset, self.reset.is_posedge), (self.clock, f))
-            match state:
-                case self.reset:
-                    self.q.next = self._rst_val
-                case self.clock:
-                    self.q.next = self.d.value
-                case _:
-                    assert False
+            if state is self.reset:
+                self.q.next = self._rst_val
+            elif state is self.clock:
+                self.q.next = self.d.value
+            else:
+                assert False

@@ -40,19 +40,18 @@ class RegFile(Module):
 
         while True:
             state = await resume((self.reset, self.reset.is_posedge), (self.clock, f))
-            match state:
-                case self.reset:
-                    for i in range(DEPTH):
-                        self._regs[i].next = zeros(WORD_BITS)
-                case self.clock:
-                    addr = self.wr_addr.value
-                    # If wr_en=1, address must be known
-                    assert not addr.has_unknown()
-                    # Write to address zero has no effect
-                    if addr != zeros(self._addr_bits):
-                        self._regs[addr].next = self.wr_data.value
-                case _:
-                    assert False
+            if state is self.reset:
+                for i in range(DEPTH):
+                    self._regs[i].next = zeros(WORD_BITS)
+            elif state is self.clock:
+                addr = self.wr_addr.value
+                # If wr_en=1, address must be known
+                assert not addr.has_unknown()
+                # Write to address zero has no effect
+                if addr != zeros(self._addr_bits):
+                    self._regs[addr].next = self.wr_data.value
+            else:
+                assert False
 
     @reactive
     async def p_rd_port_1(self):

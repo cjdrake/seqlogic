@@ -69,7 +69,7 @@ class CtlPath(Module):
                 case Funct3Branch.GEU:
                     self._take_branch.next = self.alu_result_equal_zero.value
                 case _:
-                    self._take_branch.next = Vec[1].dcs()
+                    self._take_branch.xprop(sel)
 
     @reactive
     async def p_c_1(self):
@@ -96,8 +96,8 @@ class CtlPath(Module):
                 case Funct3AluLogic.AND:
                     self._default_func.next = AluOp.AND
                 case _:
-                    self._default_func.next = AluOp.DC
-                    self._secondary_func.next = AluOp.DC
+                    self._default_func.xprop(sel)
+                    self._secondary_func.xprop(sel)
 
     @reactive
     async def p_c_2(self):
@@ -112,7 +112,7 @@ class CtlPath(Module):
                 case Funct3Branch.LTU | Funct3Branch.GEU:
                     self._branch_func.next = AluOp.SLTU
                 case _:
-                    self._branch_func.next = AluOp.DC
+                    self._branch_func.xprop(sel)
 
     @reactive
     async def p_c_3(self):
@@ -147,7 +147,7 @@ class CtlPath(Module):
                         self._default_func.value,
                     )
                 case _:
-                    self.alu_function.next = AluOp.DC
+                    self.alu_function.xprop(sel)
 
     @reactive
     async def p_c_4(self):
@@ -173,7 +173,7 @@ class CtlPath(Module):
                 case Opcode.JAL:
                     self.next_pc_sel.next = CtlPc.PC_IMM
                 case _:
-                    self.next_pc_sel.next = CtlPc.DC
+                    self.next_pc_sel.xprop(sel)
 
     @reactive
     async def p_c_5(self):
@@ -272,11 +272,11 @@ class CtlPath(Module):
                     self.data_mem_wr_en.next = zeros(1)
                     self.reg_writeback_sel.next = CtlWriteBack.PC4
                 case _:
-                    self.pc_wr_en.next = Vec[1].dcs()
-                    self.regfile_wr_en.next = Vec[1].dcs()
-                    self.alu_op_a_sel.next = CtlAluA.DC
-                    self.alu_op_b_sel.next = CtlAluB.DC
-                    self._alu_op_type.next = CtlAlu.DC
-                    self.data_mem_rd_en.next = Vec[1].dcs()
-                    self.data_mem_wr_en.next = Vec[1].dcs()
-                    self.reg_writeback_sel.next = CtlWriteBack.DC
+                    self.pc_wr_en.xprop(sel)
+                    self.regfile_wr_en.xprop(sel)
+                    self.alu_op_a_sel.xprop(sel)
+                    self.alu_op_b_sel.xprop(sel)
+                    self._alu_op_type.xprop(sel)
+                    self.data_mem_rd_en.xprop(sel)
+                    self.data_mem_wr_en.xprop(sel)
+                    self.reg_writeback_sel.xprop(sel)

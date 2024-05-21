@@ -26,7 +26,8 @@ class Alu(Module):
     async def p_c_0(self):
         while True:
             await changed(self.alu_function, self.op_a, self.op_b)
-            match self.alu_function.value:
+            sel = self.alu_function.value
+            match sel:
                 case AluOp.ADD:
                     self.result.next = self.op_a.value + self.op_b.value
                 case AluOp.SUB:
@@ -53,7 +54,7 @@ class Alu(Module):
                 case AluOp.AND:
                     self.result.next = self.op_a.value & self.op_b.value
                 case _:
-                    self.result.next = Vec[32].dcs()
+                    self.result.xprop(sel)
 
     @reactive
     async def p_c_1(self):

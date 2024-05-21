@@ -130,7 +130,7 @@ class DataPath(Module):
                 case CtlPc.RS1_IMM:
                     self.pc_next.next = cat("1b0", self.alu_result.value[1:])
                 case _:
-                    self.pc_next.next = Vec[32].dcs()
+                    self.pc_next.xprop(sel)
 
     @reactive
     async def p_c_4(self):
@@ -143,7 +143,7 @@ class DataPath(Module):
                 case CtlAluA.PC:
                     self.alu_op_a.next = self.pc.value
                 case _:
-                    self.alu_op_a.next = Vec[32].dcs()
+                    self.alu_op_a.xprop(sel)
 
     @reactive
     async def p_c_5(self):
@@ -156,7 +156,7 @@ class DataPath(Module):
                 case CtlAluB.IMM:
                     self.alu_op_b.next = self.immediate.value
                 case _:
-                    self.alu_op_b.next = Vec[32].dcs()
+                    self.alu_op_b.xprop(sel)
 
     @reactive
     async def p_c_6(self):
@@ -179,7 +179,7 @@ class DataPath(Module):
                 case CtlWriteBack.IMM:
                     self.wr_data.next = self.immediate.value
                 case _:
-                    self.wr_data.next = Vec[32].dcs()
+                    self.wr_data.xprop(sel)
 
     @reactive
     async def p_c_7(self):
@@ -221,4 +221,4 @@ class DataPath(Module):
                         rep(self.inst.value[31], 12),
                     )
                 case _:
-                    self.immediate.next = Vec[32].dcs()
+                    self.immediate.xprop(sel)
