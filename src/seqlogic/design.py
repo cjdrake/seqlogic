@@ -16,7 +16,7 @@ from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
-from .lbool import Vec, VecEnum, ones, zeros
+from .lbool import Vec, VecEnum
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, changed, get_loop
 
 _item2char = {
@@ -184,19 +184,19 @@ class Bit(Bits):
 
     def is_neg(self) -> bool:
         """Return True when bit is stable 0 => 0."""
-        return self._value == zeros(1) and self._next_value == zeros(1)
+        return self._value == "1b0" and self._next_value == "1b0"
 
     def is_posedge(self) -> bool:
         """Return True when bit transitions 0 => 1."""
-        return self._value == zeros(1) and self._next_value == ones(1)
+        return self._value == "1b0" and self._next_value == "1b1"
 
     def is_negedge(self) -> bool:
         """Return True when bit transition 1 => 0."""
-        return self._value == ones(1) and self._next_value == zeros(1)
+        return self._value == "1b1" and self._next_value == "1b0"
 
     def is_pos(self) -> bool:
         """Return True when bit is stable 1 => 1."""
-        return self._value == ones(1) and self._next_value == ones(1)
+        return self._value == "1b1" and self._next_value == "1b1"
 
     async def posedge(self) -> State:
         """Suspend; resume execution at signal posedge."""
