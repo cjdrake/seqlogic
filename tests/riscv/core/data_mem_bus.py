@@ -80,4 +80,9 @@ class DataMemBus(Module):
     async def p_c_3(self):
         while True:
             await changed(self.rd_en, self._is_data, self._data)
-            self.rd_data.next = self._is_data.value.ite(self._data.value)
+            sel = self._is_data.value
+            match sel:
+                case "1b1":
+                    self.rd_data.next = self._data.value
+                case _:
+                    self.rd_data.xprop(sel)

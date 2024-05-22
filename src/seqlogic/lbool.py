@@ -1090,6 +1090,7 @@ class Vec:
         zero = Vec[self._n](_fill(_0, self._n))
         return zero.sub(self)
 
+    # TODO(cjdrake): Get rid of this
     def ite(self, v1: Vec, v0: Vec | None = None) -> Vec:
         """If then else operator."""
         if self.has_unknown():

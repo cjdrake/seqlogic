@@ -58,7 +58,12 @@ class TextMemBus(Module):
     async def p_c_1(self):
         while True:
             await changed(self._is_text, self._text)
-            self.rd_data.next = self._is_text.value.ite(self._text.value)
+            sel = self._is_text.value
+            match sel:
+                case "1b1":
+                    self.rd_data.next = self._text.value
+                case _:
+                    self.rd_data.xprop(sel)
 
     @reactive
     async def p_c_2(self):

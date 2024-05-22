@@ -131,19 +131,25 @@ class CtlPath(Module):
                     self.alu_function.next = self._branch_func.value
                 case CtlAlu.OP:
                     sel = self.inst_funct7.value[5]
-                    self.alu_function.next = sel.ite(
-                        self._secondary_func.value,
-                        self._default_func.value,
-                    )
+                    match sel:
+                        case "1b0":
+                            self.alu_function.next = self._default_func.value
+                        case "1b1":
+                            self.alu_function.next = self._secondary_func.value
+                        case _:
+                            self.alu_function.xprop(sel)
                 case CtlAlu.OP_IMM:
                     a = self.inst_funct7.value[5]
                     b = self.inst_funct3.value.alu_logic.eq(Funct3AluLogic.SLL)
                     c = self.inst_funct3.value.alu_logic.eq(Funct3AluLogic.SHIFTR)
                     sel = a & (b | c)
-                    self.alu_function.next = sel.ite(
-                        self._secondary_func.value,
-                        self._default_func.value,
-                    )
+                    match sel:
+                        case "1b0":
+                            self.alu_function.next = self._default_func.value
+                        case "1b1":
+                            self.alu_function.next = self._secondary_func.value
+                        case _:
+                            self.alu_function.xprop(sel)
                 case _:
                     self.alu_function.xprop(sel)
 
@@ -164,8 +170,14 @@ class CtlPath(Module):
                 ):
                     self.next_pc_sel.next = CtlPc.PC4
                 case Opcode.BRANCH:
-                    s = self._take_branch.value
-                    self.next_pc_sel.next = s.ite(CtlPc.PC_IMM, CtlPc.PC4)
+                    sel = self._take_branch.value
+                    match sel:
+                        case "1b0":
+                            self.next_pc_sel.next = CtlPc.PC4
+                        case "1b1":
+                            self.next_pc_sel.next = CtlPc.PC_IMM
+                        case _:
+                            self.next_pc_sel.xprop(sel)
                 case Opcode.JALR:
                     self.next_pc_sel.next = CtlPc.RS1_IMM
                 case Opcode.JAL:
