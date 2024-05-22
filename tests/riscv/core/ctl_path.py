@@ -77,7 +77,6 @@ class CtlPath(Module):
             match sel:
                 case Funct3AluLogic.ADD_SUB:
                     self._default_func.next = AluOp.ADD
-                    self._secondary_func.next = AluOp.SUB
                 case Funct3AluLogic.SLL:
                     self._default_func.next = AluOp.SLL
                 case Funct3AluLogic.SLT:
@@ -88,13 +87,19 @@ class CtlPath(Module):
                     self._default_func.next = AluOp.XOR
                 case Funct3AluLogic.SHIFTR:
                     self._default_func.next = AluOp.SRL
-                    self._secondary_func.next = AluOp.SRA
                 case Funct3AluLogic.OR:
                     self._default_func.next = AluOp.OR
                 case Funct3AluLogic.AND:
                     self._default_func.next = AluOp.AND
                 case _:
                     self._default_func.xprop(sel)
+
+            match sel:
+                case Funct3AluLogic.ADD_SUB:
+                    self._secondary_func.next = AluOp.SUB
+                case Funct3AluLogic.SHIFTR:
+                    self._secondary_func.next = AluOp.SRA
+                case _:
                     self._secondary_func.xprop(sel)
 
     @reactive
