@@ -20,7 +20,7 @@ class TextMem(Module):
         super().__init__(name, parent)
         self._word_addr_bits = word_addr_bits
         self._byte_addr_bits = byte_addr_bits
-        self._depth = 2**self._word_addr_bits
+        # self._depth = 2**self._word_addr_bits
         self._width = 2**self._byte_addr_bits * BYTE_BITS
         self._build()
 
@@ -33,7 +33,6 @@ class TextMem(Module):
         self._mem = Array(
             name="mem",
             parent=self,
-            shape=(self._depth,),
             dtype=Vec[self._width],
         )
 

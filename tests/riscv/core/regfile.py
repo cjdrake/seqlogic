@@ -31,7 +31,7 @@ class RegFile(Module):
         self.reset = Bit(name="reset", parent=self)
 
         # State
-        self._regs = Array(name="regs", parent=self, shape=(self._addr_bits,), dtype=Vec[WORD_BITS])
+        self._regs = Array(name="regs", parent=self, dtype=Vec[WORD_BITS])
 
     @active
     async def p_wr_port(self):

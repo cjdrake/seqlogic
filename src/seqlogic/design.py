@@ -70,7 +70,7 @@ class _ProcIf(ABC):
         return self._procs
 
 
-class Module(Branch, _TraceIf, _ProcIf):
+class Module(Branch, _ProcIf, _TraceIf):
     """Hierarchical, branch-level design component.
 
     A module contains:
@@ -103,8 +103,8 @@ class Module(Branch, _TraceIf, _ProcIf):
             child.dump_vcd(vcdw, pattern)
 
 
-class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
-    """Combine hierarchy and sim semantics for singular data types."""
+class Bits(Leaf, Singular, _ProcIf, _TraceIf):
+    """Leaf-level btvector design component."""
 
     def __init__(self, name: str, parent: Module, dtype: type):
         Leaf.__init__(self, name, parent)
@@ -114,6 +114,7 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
         self._waves_change = None
         self._vcd_change = None
 
+    # Singular => State
     def update(self):
         if self._waves_change and self.dirty():
             self._waves_change()
@@ -121,6 +122,24 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
             self._vcd_change()
         super().update()
 
+    def xprop(self, sel: Vec):
+        if sel.has_x():
+            self.next = self.value.xes()
+        else:
+            self.next = self.value.dcs()
+
+    # ProcIf
+    def connect(self, src):
+        """Convenience function to reduce process boilerplate."""
+
+        async def proc():
+            while True:
+                await changed(src)
+                self.next = src.value
+
+        self._procs.append((Region.REACTIVE, proc, (), {}))
+
+    # TraceIf
     def dump_waves(self, waves: defaultdict, pattern: str):
         if re.fullmatch(pattern, self.qualname):
             t = self._sim.time
@@ -155,26 +174,6 @@ class _TraceSingular(Leaf, _TraceIf, Singular, _ProcIf):
                 self._vcd_change = lambda: vcdw.change(
                     var, self._sim.time, _vec2vcd(self._next_value)
                 )
-
-    def connect(self, src):
-        """Convenience function to reduce process boilerplate."""
-
-        async def proc():
-            while True:
-                await changed(src)
-                self.next = src.value
-
-        self._procs.append((Region.REACTIVE, proc, (), {}))
-
-
-class Bits(_TraceSingular):
-    """Leaf-level bitvector design component."""
-
-    def xprop(self, sel: Vec):
-        if sel.has_x():
-            self.next = self.value.xes()
-        else:
-            self.next = self.value.dcs()
 
 
 class Bit(Bits):
@@ -212,14 +211,25 @@ class Bit(Bits):
         return state
 
 
-class _TraceAggregate(Leaf, _TraceIf, Aggregate, _ProcIf):
-    """Combine hierarchy and sim semantics for aggregate data types."""
+class Array(Leaf, Aggregate, _ProcIf, _TraceIf):
+    """Leaf-level array of vec/enum/struct/union design components."""
 
     def __init__(self, name: str, parent: Module, dtype: type):
         Leaf.__init__(self, name, parent)
         Aggregate.__init__(self, dtype.xes())
         _ProcIf.__init__(self)
         self._dtype = dtype
+
+    def __getitem__(self, key: int | Vec):
+        if isinstance(key, int):
+            return super().__getitem__(key)
+        if isinstance(key, Vec):
+            try:
+                i = key.to_uint()
+            except ValueError:
+                return _ArrayXPropItem(self._dtype)
+            return super().__getitem__(i)
+        assert TypeError("Expected key to be int or Vec")
 
 
 class _ArrayXPropItem:
@@ -237,25 +247,6 @@ class _ArrayXPropItem:
         pass
 
     next = property(fset=_set_next)
-
-
-class Array(_TraceAggregate):
-    """Leaf-level array of bitvector/enum/struct/union design components."""
-
-    def __init__(self, name: str, parent: Module, shape: tuple[int, ...], dtype: type):
-        assert len(shape) == 1
-        super().__init__(name, parent, dtype)
-
-    def __getitem__(self, key: int | Vec):
-        if isinstance(key, int):
-            return super().__getitem__(key)
-        if isinstance(key, Vec):
-            try:
-                i = key.to_uint()
-            except ValueError:
-                return _ArrayXPropItem(self._dtype)
-            return super().__getitem__(i)
-        assert TypeError("Expected key to be int or Vec")
 
 
 def simify(d: Module | Bits | Bit | Array):

@@ -20,7 +20,7 @@ class DataMem(Module):
         super().__init__(name, parent)
         self._word_addr_bits = word_addr_bits
         self._byte_addr_bits = byte_addr_bits
-        self._depth = 2**self._word_addr_bits
+        # self._depth = 2**self._word_addr_bits
         self._word_bytes = 2**self._byte_addr_bits
         self._width = self._word_bytes * BYTE_BITS
         self._build()
@@ -39,7 +39,6 @@ class DataMem(Module):
         self._mem = Array(
             name="mem",
             parent=self,
-            shape=(self._depth,),
             dtype=Vec[self._width],
         )
 
