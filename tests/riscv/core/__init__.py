@@ -2,10 +2,6 @@
 
 from seqlogic.lbool import Vec, VecEnum, VecStruct, VecUnion
 
-WORD_BITS = 32
-BYTE_BITS = 8
-WORD_BYTES = WORD_BITS // BYTE_BITS
-
 TEXT_BASE = 0x0040_0000
 TEXT_BITS = 4 + 10 + 2  # 16K
 TEXT_SIZE = 2**TEXT_BITS

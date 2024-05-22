@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec
 from seqlogic.sim import reactive
 
-from . import WORD_BITS, WORD_BYTES, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
+from . import AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
 from .ctl_path import CtlPath
 from .data_mem_if import DataMemIf
 from .data_path import DataPath
@@ -22,10 +22,10 @@ class Core(Module):
         # Ports
         self.bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
-        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, dtype=Vec[WORD_BYTES])
-        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, dtype=Vec[WORD_BITS])
+        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, dtype=Vec[4])
+        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, dtype=Vec[32])
         self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
-        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[WORD_BITS])
+        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[32])
 
         self.pc = Bits(name="pc", parent=self, dtype=Vec[32])
         self.inst = Bits(name="inst", parent=self, dtype=Inst)
@@ -44,9 +44,9 @@ class Core(Module):
         self._alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
         self._addr = Bits(name="addr", parent=self, dtype=Vec[32])
         self._wr_en = Bit(name="wr_en", parent=self)
-        self._wr_data = Bits(name="wr_data", parent=self, dtype=Vec[WORD_BITS])
+        self._wr_data = Bits(name="wr_data", parent=self, dtype=Vec[32])
         self._rd_en = Bit(name="rd_en", parent=self)
-        self._rd_data = Bits(name="rd_data", parent=self, dtype=Vec[WORD_BITS])
+        self._rd_data = Bits(name="rd_data", parent=self, dtype=Vec[32])
 
         # Submodules
         self.ctlpath = CtlPath(name="ctlpath", parent=self)

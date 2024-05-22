@@ -6,7 +6,7 @@ from seqlogic import Bit, Bits, Module, changed, sleep
 from seqlogic.lbool import Vec, vec
 from seqlogic.sim import active, reactive
 
-from . import WORD_BITS, WORD_BYTES, Inst, Opcode
+from . import Inst, Opcode
 from .core import Core
 from .data_mem_bus import DataMemBus
 from .text_mem_bus import TextMemBus
@@ -30,10 +30,10 @@ class Top(Module):
         # Ports
         self.bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
-        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, dtype=Vec[WORD_BYTES])
-        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, dtype=Vec[WORD_BITS])
+        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, dtype=Vec[4])
+        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, dtype=Vec[32])
         self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
-        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[WORD_BITS])
+        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[32])
 
         self._pc = Bits(name="pc", parent=self, dtype=Vec[32])
         self._inst = Bits(name="inst", parent=self, dtype=Inst)
