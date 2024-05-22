@@ -2,11 +2,10 @@
 
 from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, cat, rep, uint2vec, vec
-from seqlogic.sim import reactive
+from seqlogic.sim import active, reactive, resume
 
 from . import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu
-from .dff import DffEnAr
 from .regfile import RegFile
 
 
@@ -67,11 +66,6 @@ class DataPath(Module):
 
         # Submodules
         self.alu = Alu(name="alu", parent=self)
-        self.program_counter = DffEnAr(
-            name="program_counter",
-            parent=self,
-            rst_val=uint2vec(TEXT_BASE, 32),
-        )
         self.regfile = RegFile(name="regfile", parent=self)
 
     def _connect(self):
@@ -84,18 +78,26 @@ class DataPath(Module):
         self.alu.op_a.connect(self.alu_op_a)
         self.alu.op_b.connect(self.alu_op_b)
 
-        self.pc.connect(self.program_counter.q)
-        self.program_counter.en.connect(self.pc_wr_en)
-        self.program_counter.d.connect(self.pc_next)
-        self.program_counter.clock.connect(self.clock)
-        self.program_counter.reset.connect(self.reset)
-
         self.regfile.wr_en.connect(self.regfile_wr_en)
         self.regfile.wr_data.connect(self.wr_data)
         self.rs1_data.connect(self.regfile.rs1_data)
         self.rs2_data.connect(self.regfile.rs2_data)
         self.regfile.clock.connect(self.clock)
         self.regfile.reset.connect(self.reset)
+
+    @active
+    async def p_f_0(self):
+        def f():
+            return self.reset.is_neg() and self.clock.is_posedge() and self.pc_wr_en.value == "1b1"
+
+        while True:
+            state = await resume((self.reset, self.reset.is_posedge), (self.clock, f))
+            if state is self.reset:
+                self.pc.next = uint2vec(TEXT_BASE, 32)
+            elif state is self.clock:
+                self.pc.next = self.pc_next.value
+            else:
+                assert False
 
     @reactive
     async def p_c_0(self):
