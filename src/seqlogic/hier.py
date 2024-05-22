@@ -62,8 +62,7 @@ class Branch(Hierarchy):
     def qualname(self) -> str:
         if self._parent is None:
             return f"/{self._name}"
-        else:
-            return f"{self._parent.qualname}/{self._name}"
+        return f"{self._parent.qualname}/{self._name}"
 
     def iter_bfs(self) -> Generator[Hierarchy, None, None]:
         yield self
