@@ -1,7 +1,7 @@
 """Control Path."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import Vec, ones, zeros
+from seqlogic.lbool import Vec
 from seqlogic.sim import reactive
 
 from . import (
@@ -180,94 +180,94 @@ class CtlPath(Module):
             sel = self.inst_opcode.value
             match sel:
                 case Opcode.LOAD:
-                    self.pc_wr_en.next = ones(1)
-                    self.regfile_wr_en.next = ones(1)
+                    self.pc_wr_en.next = "1b1"
+                    self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.IMM
                     self._alu_op_type.next = CtlAlu.ADD
-                    self.data_mem_rd_en.next = ones(1)
-                    self.data_mem_wr_en.next = zeros(1)
+                    self.data_mem_rd_en.next = "1b1"
+                    self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.DATA
                 case Opcode.MISC_MEM:
-                    self.pc_wr_en.next = ones(1)
-                    self.regfile_wr_en.next = zeros(1)
+                    self.pc_wr_en.next = "1b1"
+                    self.regfile_wr_en.next = "1b0"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.RS2
                     self._alu_op_type.next = CtlAlu.ADD
-                    self.data_mem_rd_en.next = zeros(1)
-                    self.data_mem_wr_en.next = zeros(1)
+                    self.data_mem_rd_en.next = "1b0"
+                    self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
                 case Opcode.OP_IMM:
-                    self.pc_wr_en.next = ones(1)
-                    self.regfile_wr_en.next = ones(1)
+                    self.pc_wr_en.next = "1b1"
+                    self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.IMM
                     self._alu_op_type.next = CtlAlu.OP_IMM
-                    self.data_mem_rd_en.next = zeros(1)
-                    self.data_mem_wr_en.next = zeros(1)
+                    self.data_mem_rd_en.next = "1b0"
+                    self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
                 case Opcode.AUIPC:
-                    self.pc_wr_en.next = ones(1)
-                    self.regfile_wr_en.next = ones(1)
+                    self.pc_wr_en.next = "1b1"
+                    self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.PC
                     self.alu_op_b_sel.next = CtlAluB.IMM
                     self._alu_op_type.next = CtlAlu.ADD
-                    self.data_mem_rd_en.next = zeros(1)
-                    self.data_mem_wr_en.next = zeros(1)
+                    self.data_mem_rd_en.next = "1b0"
+                    self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
                 case Opcode.STORE:
-                    self.pc_wr_en.next = ones(1)
-                    self.regfile_wr_en.next = zeros(1)
+                    self.pc_wr_en.next = "1b1"
+                    self.regfile_wr_en.next = "1b0"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.IMM
                     self._alu_op_type.next = CtlAlu.ADD
-                    self.data_mem_rd_en.next = zeros(1)
-                    self.data_mem_wr_en.next = ones(1)
+                    self.data_mem_rd_en.next = "1b0"
+                    self.data_mem_wr_en.next = "1b1"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
                 case Opcode.OP:
-                    self.pc_wr_en.next = ones(1)
-                    self.regfile_wr_en.next = ones(1)
+                    self.pc_wr_en.next = "1b1"
+                    self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.RS2
                     self._alu_op_type.next = CtlAlu.OP
-                    self.data_mem_rd_en.next = zeros(1)
-                    self.data_mem_wr_en.next = zeros(1)
+                    self.data_mem_rd_en.next = "1b0"
+                    self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
                 case Opcode.LUI:
-                    self.pc_wr_en.next = ones(1)
-                    self.regfile_wr_en.next = ones(1)
+                    self.pc_wr_en.next = "1b1"
+                    self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.RS2
                     self._alu_op_type.next = CtlAlu.ADD
-                    self.data_mem_rd_en.next = zeros(1)
-                    self.data_mem_wr_en.next = zeros(1)
+                    self.data_mem_rd_en.next = "1b0"
+                    self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.IMM
                 case Opcode.BRANCH:
-                    self.pc_wr_en.next = ones(1)
-                    self.regfile_wr_en.next = zeros(1)
+                    self.pc_wr_en.next = "1b1"
+                    self.regfile_wr_en.next = "1b0"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.RS2
                     self._alu_op_type.next = CtlAlu.BRANCH
-                    self.data_mem_rd_en.next = zeros(1)
-                    self.data_mem_wr_en.next = zeros(1)
+                    self.data_mem_rd_en.next = "1b0"
+                    self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
                 case Opcode.JALR:
-                    self.pc_wr_en.next = ones(1)
-                    self.regfile_wr_en.next = ones(1)
+                    self.pc_wr_en.next = "1b1"
+                    self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.IMM
                     self._alu_op_type.next = CtlAlu.ADD
-                    self.data_mem_rd_en.next = zeros(1)
-                    self.data_mem_wr_en.next = zeros(1)
+                    self.data_mem_rd_en.next = "1b0"
+                    self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.PC4
                 case Opcode.JAL:
-                    self.pc_wr_en.next = ones(1)
-                    self.regfile_wr_en.next = ones(1)
+                    self.pc_wr_en.next = "1b1"
+                    self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.PC
                     self.alu_op_b_sel.next = CtlAluB.IMM
                     self._alu_op_type.next = CtlAlu.ADD
-                    self.data_mem_rd_en.next = zeros(1)
-                    self.data_mem_wr_en.next = zeros(1)
+                    self.data_mem_rd_en.next = "1b0"
+                    self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.PC4
                 case _:
                     self.pc_wr_en.xprop(sel)

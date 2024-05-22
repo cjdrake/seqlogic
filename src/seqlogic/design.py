@@ -16,7 +16,7 @@ from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
-from .lbool import Vec, VecEnum
+from .lbool import Vec, VecEnum, lit2vec
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, changed, get_loop
 
 _item2char = {
@@ -115,6 +115,13 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
         self._vcd_change = None
 
     # Singular => State
+    def set_next(self, value):
+        if isinstance(value, str):
+            value = lit2vec(value)
+        super().set_next(value)
+
+    next = property(fset=set_next)
+
     def update(self):
         if self._waves_change and self.dirty():
             self._waves_change()
