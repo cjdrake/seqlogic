@@ -4,10 +4,10 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, cat, rep, uint2vec, vec
 from seqlogic.sim import reactive
 
-from .. import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
-from ..common.alu import Alu
-from ..common.dff import DffEnAr
-from ..common.regfile import RegFile
+from . import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
+from .alu import Alu
+from .dff import DffEnAr
+from .regfile import RegFile
 
 
 class DataPath(Module):

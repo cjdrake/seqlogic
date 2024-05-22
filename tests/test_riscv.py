@@ -19,7 +19,7 @@ from seqlogic import get_loop, simify
 from seqlogic.lbool import dcs, ones, uint2vec, vec, xes, zeros
 
 from .riscv.core import AluOp, CtlAluA, CtlAluB, CtlPc, Inst, Opcode
-from .riscv.core.singlecycle.top import Top
+from .riscv.core.top import Top
 
 loop = get_loop()
 
@@ -44,7 +44,7 @@ def get_mem(name: str) -> list[int]:
     return text
 
 
-def test_singlecycle_dump():
+def test_dump():
     loop.reset()
     waves = defaultdict(dict)
 
@@ -933,153 +933,153 @@ def run_riscv_test(name: str) -> int:
     return TIMEOUT
 
 
-def test_singlecycle_add():
+def test_add():
     assert run_riscv_test("add") == PASS
 
 
-def test_singlecycle_addi():
+def test_addi():
     assert run_riscv_test("addi") == PASS
 
 
-def test_singlecycle_and():
+def test_and():
     assert run_riscv_test("and") == PASS
 
 
-def test_singlecycle_andi():
+def test_andi():
     assert run_riscv_test("andi") == PASS
 
 
-def test_singlecycle_auipc():
+def test_auipc():
     assert run_riscv_test("auipc") == PASS
 
 
-def test_singlecycle_beq():
+def test_beq():
     assert run_riscv_test("beq") == PASS
 
 
-def test_singlecycle_bge():
+def test_bge():
     assert run_riscv_test("bge") == PASS
 
 
-def test_singlecycle_bgeu():
+def test_bgeu():
     assert run_riscv_test("bgeu") == PASS
 
 
-def test_singlecycle_blt():
+def test_blt():
     assert run_riscv_test("blt") == PASS
 
 
-def test_singlecycle_bltu():
+def test_bltu():
     assert run_riscv_test("bltu") == PASS
 
 
-def test_singlecycle_bne():
+def test_bne():
     assert run_riscv_test("bne") == PASS
 
 
-def test_singlecycle_jal():
+def test_jal():
     assert run_riscv_test("jal") == PASS
 
 
-def test_singlecycle_jalr():
+def test_jalr():
     assert run_riscv_test("jalr") == PASS
 
 
-def test_singlecycle_lb():
+def test_lb():
     assert run_riscv_test("lb") == PASS
 
 
-def test_singlecycle_lbu():
+def test_lbu():
     assert run_riscv_test("lbu") == PASS
 
 
-def test_singlecycle_lh():
+def test_lh():
     assert run_riscv_test("lh") == PASS
 
 
-def test_singlecycle_lhu():
+def test_lhu():
     assert run_riscv_test("lhu") == PASS
 
 
-def test_singlecycle_lui():
+def test_lui():
     assert run_riscv_test("lui") == PASS
 
 
-def test_singlecycle_lw():
+def test_lw():
     assert run_riscv_test("lw") == PASS
 
 
-def test_singlecycle_or():
+def test_or():
     assert run_riscv_test("or") == PASS
 
 
-def test_singlecycle_ori():
+def test_ori():
     assert run_riscv_test("ori") == PASS
 
 
-def test_singlecycle_sb():
+def test_sb():
     assert run_riscv_test("sb") == PASS
 
 
-def test_singlecycle_sh():
+def test_sh():
     assert run_riscv_test("sh") == PASS
 
 
-def test_singlecycle_simple():
+def test_simple():
     assert run_riscv_test("simple") == PASS
 
 
-def test_singlecycle_sll():
+def test_sll():
     assert run_riscv_test("sll") == PASS
 
 
-def test_singlecycle_slli():
+def test_slli():
     assert run_riscv_test("slli") == PASS
 
 
-def test_singlecycle_slt():
+def test_slt():
     assert run_riscv_test("slt") == PASS
 
 
-def test_singlecycle_slti():
+def test_slti():
     assert run_riscv_test("slti") == PASS
 
 
-def test_singlecycle_sltiu():
+def test_sltiu():
     assert run_riscv_test("sltiu") == PASS
 
 
-def test_singlecycle_sltu():
+def test_sltu():
     assert run_riscv_test("sltu") == PASS
 
 
-def test_singlecycle_sra():
+def test_sra():
     assert run_riscv_test("sra") == PASS
 
 
-def test_singlecycle_srai():
+def test_srai():
     assert run_riscv_test("srai") == PASS
 
 
-def test_singlecycle_srl():
+def test_srl():
     assert run_riscv_test("srl") == PASS
 
 
-def test_singlecycle_srli():
+def test_srli():
     assert run_riscv_test("srli") == PASS
 
 
-def test_singlecycle_sub():
+def test_sub():
     assert run_riscv_test("sub") == PASS
 
 
-def test_singlecycle_sw():
+def test_sw():
     assert run_riscv_test("sw") == PASS
 
 
-def test_singlecycle_xor():
+def test_xor():
     assert run_riscv_test("xor") == PASS
 
 
-def test_singlecycle_xori():
+def test_xori():
     assert run_riscv_test("xori") == PASS

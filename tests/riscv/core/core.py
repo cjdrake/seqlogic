@@ -4,9 +4,9 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec
 from seqlogic.sim import reactive
 
-from .. import WORD_BITS, WORD_BYTES, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
-from ..common.data_mem_if import DataMemIf
+from . import WORD_BITS, WORD_BYTES, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
 from .ctl_path import CtlPath
+from .data_mem_if import DataMemIf
 from .data_path import DataPath
 
 

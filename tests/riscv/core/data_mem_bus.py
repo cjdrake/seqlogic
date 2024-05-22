@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed, clog2
 from seqlogic.lbool import Vec, uint2vec
 from seqlogic.sim import reactive
 
-from .. import DATA_BASE, DATA_SIZE
+from . import DATA_BASE, DATA_SIZE
 from .data_mem import DataMem
 
 ADDR_BITS = 32

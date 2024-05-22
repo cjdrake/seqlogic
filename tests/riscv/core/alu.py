@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, zeros
 from seqlogic.sim import reactive
 
-from .. import AluOp
+from . import AluOp
 
 
 class Alu(Module):

@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, ones, zeros
 from seqlogic.sim import reactive
 
-from .. import (
+from . import (
     AluOp,
     CtlAlu,
     CtlAluA,

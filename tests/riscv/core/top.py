@@ -6,10 +6,10 @@ from seqlogic import Bit, Bits, Module, changed, sleep
 from seqlogic.lbool import Vec, vec
 from seqlogic.sim import active, reactive
 
-from .. import WORD_BITS, WORD_BYTES, Inst, Opcode
-from ..common.data_mem_bus import DataMemBus
-from ..common.text_mem_bus import TextMemBus
+from . import WORD_BITS, WORD_BYTES, Inst, Opcode
 from .core import Core
+from .data_mem_bus import DataMemBus
+from .text_mem_bus import TextMemBus
 
 _CLOCK_PHASE_SHIFT = 1
 _CLOCK_PHASE1 = 1

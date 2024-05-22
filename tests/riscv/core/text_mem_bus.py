@@ -4,7 +4,7 @@ from seqlogic import Bit, Bits, Module, changed, clog2
 from seqlogic.lbool import Vec, uint2vec
 from seqlogic.sim import reactive
 
-from .. import TEXT_BASE, TEXT_SIZE
+from . import TEXT_BASE, TEXT_SIZE
 from .text_mem import TextMem
 
 ADDR_BITS = 32
