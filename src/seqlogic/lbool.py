@@ -29,7 +29,7 @@ which enables efficient, bit-wise operations and arithmetic.
 from __future__ import annotations
 
 import re
-from collections.abc import Generator, Iterable
+from collections.abc import Iterable
 from functools import cached_property, partial
 
 from .util import classproperty, clog2
