@@ -402,11 +402,11 @@ class Vec:
 
     # Comparison
     def __eq__(self, other) -> bool:
+        if isinstance(other, Vec[self._n]):
+            return self._data == other.data
         if isinstance(other, str):
             n, data = _lit2vec(other)
             return self._n == n and self._data == data
-        if isinstance(other, Vec[self._n]):
-            return self._data == other.data
         return False
 
     def __hash__(self) -> int:
@@ -462,7 +462,7 @@ class Vec:
 
         return Vec[self._n](y)
 
-    def nor(self, other: Vec) -> Vec:
+    def nor(self, other: Vec | str) -> Vec:
         """Bitwise lifted NOR.
 
         Args:
@@ -474,16 +474,17 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
         x0_1 = self._bit_mask[1]
         x0_10 = x0_1 >> 1
 
-        x1_0 = other._bit_mask[0]
+        x1_0 = v._bit_mask[0]
         x1_01 = x1_0 << 1
-        x1_1 = other._bit_mask[1]
+        x1_1 = v._bit_mask[1]
         x1_10 = x1_1 >> 1
 
         y0 = x0_0 & x1_10 | x0_10 & x1_0 | x0_10 & x1_10
@@ -492,7 +493,7 @@ class Vec:
 
         return Vec[self._n](y)
 
-    def or_(self, other: Vec) -> Vec:
+    def or_(self, other: Vec | str) -> Vec:
         """Bitwise lifted OR.
 
         Args:
@@ -504,15 +505,16 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
         x0_1 = self._bit_mask[1]
 
-        x1_0 = other._bit_mask[0]
+        x1_0 = v._bit_mask[0]
         x1_01 = x1_0 << 1
-        x1_1 = other._bit_mask[1]
+        x1_1 = v._bit_mask[1]
 
         y0 = x0_0 & x1_0
         y1 = x0_01 & x1_1 | x0_1 & x1_01 | x0_1 & x1_1
@@ -531,7 +533,7 @@ class Vec:
             data = or_(data, self._get_item(i))
         return Vec[1](data)
 
-    def nand(self, other: Vec) -> Vec:
+    def nand(self, other: Vec | str) -> Vec:
         """Bitwise lifted NAND.
 
         Args:
@@ -543,16 +545,17 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
         x0_1 = self._bit_mask[1]
         x0_10 = x0_1 >> 1
 
-        x1_0 = other._bit_mask[0]
+        x1_0 = v._bit_mask[0]
         x1_01 = x1_0 << 1
-        x1_1 = other._bit_mask[1]
+        x1_1 = v._bit_mask[1]
         x1_10 = x1_1 >> 1
 
         y0 = x0_10 & x1_10
@@ -561,7 +564,7 @@ class Vec:
 
         return Vec[self._n](y)
 
-    def and_(self, other: Vec) -> Vec:
+    def and_(self, other: Vec | str) -> Vec:
         """Bitwise lifted AND.
 
         Args:
@@ -573,14 +576,15 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
 
         x0_0 = self._bit_mask[0]
         x0_1 = self._bit_mask[1]
         x0_10 = x0_1 >> 1
 
-        x1_0 = other._bit_mask[0]
-        x1_1 = other._bit_mask[1]
+        x1_0 = v._bit_mask[0]
+        x1_1 = v._bit_mask[1]
         x1_10 = x1_1 >> 1
 
         y0 = x0_0 & x1_0 | x0_0 & x1_10 | x0_10 & x1_0
@@ -600,7 +604,7 @@ class Vec:
             data = and_(data, self._get_item(i))
         return Vec[1](data)
 
-    def xnor(self, other: Vec) -> Vec:
+    def xnor(self, other: Vec | str) -> Vec:
         """Bitwise lifted XNOR.
 
         Args:
@@ -612,16 +616,17 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
         x0_1 = self._bit_mask[1]
         x0_10 = x0_1 >> 1
 
-        x1_0 = other._bit_mask[0]
+        x1_0 = v._bit_mask[0]
         x1_01 = x1_0 << 1
-        x1_1 = other._bit_mask[1]
+        x1_1 = v._bit_mask[1]
         x1_10 = x1_1 >> 1
 
         y0 = x0_0 & x1_10 | x0_10 & x1_0
@@ -630,7 +635,7 @@ class Vec:
 
         return Vec[self._n](y)
 
-    def xor(self, other: Vec) -> Vec:
+    def xor(self, other: Vec | str) -> Vec:
         """Bitwise lifted XOR.
 
         Args:
@@ -642,16 +647,17 @@ class Vec:
         Raises:
             ValueError: vec lengths do not match.
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
 
         x0_0 = self._bit_mask[0]
         x0_01 = x0_0 << 1
         x0_1 = self._bit_mask[1]
         x0_10 = x0_1 >> 1
 
-        x1_0 = other._bit_mask[0]
+        x1_0 = v._bit_mask[0]
         x1_01 = x1_0 << 1
-        x1_1 = other._bit_mask[1]
+        x1_1 = v._bit_mask[1]
         x1_10 = x1_1 >> 1
 
         y0 = x0_0 & x1_0 | x0_10 & x1_10
@@ -731,7 +737,7 @@ class Vec:
             return -(self.not_().to_uint() + 1)
         return self.to_uint()
 
-    def eq(self, other: Vec) -> Vec[1]:
+    def eq(self, other: Vec | str) -> Vec[1]:
         """Equal operator.
 
         Args:
@@ -740,13 +746,14 @@ class Vec:
         Returns:
             Vec[1] result of self == other
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
         try:
-            return (_Vec0, _Vec1)[self.to_uint() == other.to_uint()]
+            return (_Vec0, _Vec1)[self.to_uint() == v.to_uint()]
         except ValueError:
             return _VecX
 
-    def neq(self, other: Vec) -> Vec[1]:
+    def neq(self, other: Vec | str) -> Vec[1]:
         """Not Equal operator.
 
         Args:
@@ -755,13 +762,14 @@ class Vec:
         Returns:
             Vec[1] result of self != other
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
         try:
-            return (_Vec0, _Vec1)[self.to_uint() != other.to_uint()]
+            return (_Vec0, _Vec1)[self.to_uint() != v.to_uint()]
         except ValueError:
             return _VecX
 
-    def ltu(self, other: Vec) -> Vec[1]:
+    def ltu(self, other: Vec | str) -> Vec[1]:
         """Less than operator (unsigned).
 
         Args:
@@ -770,13 +778,14 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) < unsigned(other)
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
         try:
-            return (_Vec0, _Vec1)[self.to_uint() < other.to_uint()]
+            return (_Vec0, _Vec1)[self.to_uint() < v.to_uint()]
         except ValueError:
             return _VecX
 
-    def lteu(self, other: Vec) -> Vec[1]:
+    def lteu(self, other: Vec | str) -> Vec[1]:
         """Less than or equal operator (unsigned).
 
         Args:
@@ -785,13 +794,14 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) ≤ unsigned(other)
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
         try:
-            return (_Vec0, _Vec1)[self.to_uint() <= other.to_uint()]
+            return (_Vec0, _Vec1)[self.to_uint() <= v.to_uint()]
         except ValueError:
             return _VecX
 
-    def lt(self, other: Vec) -> Vec[1]:
+    def lt(self, other: Vec | str) -> Vec[1]:
         """Less than operator (signed).
 
         Args:
@@ -800,13 +810,14 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) < signed(other)
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
         try:
-            return (_Vec0, _Vec1)[self.to_int() < other.to_int()]
+            return (_Vec0, _Vec1)[self.to_int() < v.to_int()]
         except ValueError:
             return _VecX
 
-    def lte(self, other: Vec) -> Vec[1]:
+    def lte(self, other: Vec | str) -> Vec[1]:
         """Less than or equal operator (signed).
 
         Args:
@@ -815,13 +826,14 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) ≤ signed(other)
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
         try:
-            return (_Vec0, _Vec1)[self.to_int() <= other.to_int()]
+            return (_Vec0, _Vec1)[self.to_int() <= v.to_int()]
         except ValueError:
             return _VecX
 
-    def gtu(self, other: Vec) -> Vec[1]:
+    def gtu(self, other: Vec | str) -> Vec[1]:
         """Greater than operator (unsigned).
 
         Args:
@@ -830,13 +842,14 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) > unsigned(other)
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
         try:
-            return (_Vec0, _Vec1)[self.to_uint() > other.to_uint()]
+            return (_Vec0, _Vec1)[self.to_uint() > v.to_uint()]
         except ValueError:
             return _VecX
 
-    def gteu(self, other: Vec) -> Vec[1]:
+    def gteu(self, other: Vec | str) -> Vec[1]:
         """Greater than or equal operator (unsigned).
 
         Args:
@@ -845,13 +858,14 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) ≥ unsigned(other)
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
         try:
-            return (_Vec0, _Vec1)[self.to_uint() >= other.to_uint()]
+            return (_Vec0, _Vec1)[self.to_uint() >= v.to_uint()]
         except ValueError:
             return _VecX
 
-    def gt(self, other: Vec) -> Vec[1]:
+    def gt(self, other: Vec | str) -> Vec[1]:
         """Greater than operator (signed).
 
         Args:
@@ -860,13 +874,14 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) > signed(other)
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
         try:
-            return (_Vec0, _Vec1)[self.to_int() > other.to_int()]
+            return (_Vec0, _Vec1)[self.to_int() > v.to_int()]
         except ValueError:
             return _VecX
 
-    def gte(self, other: Vec) -> Vec[1]:
+    def gte(self, other: Vec | str) -> Vec[1]:
         """Greater than or equal operator (signed).
 
         Args:
@@ -875,9 +890,10 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) ≥ signed(other)
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
         try:
-            return (_Vec0, _Vec1)[self.to_int() >= other.to_int()]
+            return (_Vec0, _Vec1)[self.to_int() >= v.to_int()]
         except ValueError:
             return _VecX
 
@@ -1031,7 +1047,7 @@ class Vec:
         y = Vec[self._n](sh._data | (_fill(sign, n) << sh.nbits))
         return y, co
 
-    def add(self, other: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
+    def add(self, other: Vec | str, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
         """Twos complement addition.
 
         Args:
@@ -1043,10 +1059,11 @@ class Vec:
         Raises:
             ValueError: vec lengths are invalid/inconsistent.
         """
-        self.check_len(len(other))
+        v = self._to_vec(other)
+        self.check_len(len(v))
 
         # Rename for readability
-        n, a, b = self._n, self, other
+        n, a, b = self._n, self, v
 
         if a.has_x() or b.has_x() or ci.has_x():
             return Vec[n](_fill(_X, n)), _VecX
@@ -1065,7 +1082,7 @@ class Vec:
 
         return Vec[n](data), co
 
-    def sub(self, other: Vec) -> tuple[Vec, Vec[1]]:
+    def sub(self, other: Vec | str) -> tuple[Vec, Vec[1]]:
         """Twos complement subtraction.
 
         Args:
@@ -1077,7 +1094,8 @@ class Vec:
         Raises:
             ValueError: vec lengths are invalid/inconsistent.
         """
-        return self.add(other.not_(), ci=_Vec1)
+        v = self._to_vec(other)
+        return self.add(v.not_(), ci=_Vec1)
 
     def neg(self) -> tuple[Vec, Vec[1]]:
         """Twos complement negation.
@@ -1089,18 +1107,6 @@ class Vec:
         """
         zero = Vec[self._n](_fill(_0, self._n))
         return zero.sub(self)
-
-    # TODO(cjdrake): Get rid of this
-    def ite(self, v1: Vec, v0: Vec | None = None) -> Vec:
-        """If then else operator."""
-        if self.has_unknown():
-            return xes(v1._n)
-        if v0 is None:
-            v0 = dcs(v1._n)
-        else:
-            if v1._n != v0._n:
-                raise ValueError("Expected matching operand lengths")
-        return v1 if self else v0
 
     def _count(self, byte_cnt: dict[int, int], item: int) -> int:
         y = 0
@@ -1158,6 +1164,14 @@ class Vec:
     def has_unknown(self) -> bool:
         """Return True if vec contains at least one X/DC item."""
         return self.count_unknown() != 0
+
+    def _to_vec(self, obj: Vec | str) -> Vec:
+        if isinstance(obj, Vec[self._n]):
+            return obj
+        if isinstance(obj, str):
+            return lit2vec(obj)
+        s = f"Expected Vec[{self._n}] or lit, got {obj.__class__.__name__}"
+        raise TypeError(s)
 
     def _norm_index(self, index: int) -> int:
         a, b = -self._n, self._n

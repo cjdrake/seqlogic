@@ -1,7 +1,7 @@
 """Data Path."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import Vec, cat, rep, uint2vec, vec
+from seqlogic.lbool import Vec, cat, rep, uint2vec
 from seqlogic.sim import active, reactive, resume
 
 from . import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
@@ -88,7 +88,7 @@ class DataPath(Module):
     @active
     async def p_f_0(self):
         def f():
-            return self.reset.is_neg() and self.clock.is_posedge() and self.pc_wr_en.value == "1b1"
+            return self.clock.is_posedge() and self.reset.is_neg() and self.pc_wr_en.value == "1b1"
 
         while True:
             state = await resume((self.reset, self.reset.is_posedge), (self.clock, f))
@@ -111,7 +111,7 @@ class DataPath(Module):
     async def p_c_1(self):
         while True:
             await changed(self.pc)
-            self.pc_plus_4.next = self.pc.value + vec("32h0000_0004")
+            self.pc_plus_4.next = self.pc.value + "32h0000_0004"
 
     @reactive
     async def p_c_2(self):

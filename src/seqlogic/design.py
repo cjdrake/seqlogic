@@ -118,6 +118,7 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
     def set_next(self, value):
         if isinstance(value, str):
             value = lit2vec(value)
+        assert isinstance(value, self._dtype)
         super().set_next(value)
 
     next = property(fset=set_next)

@@ -1,7 +1,7 @@
 """Arithmetic Logic Unit (ALU)."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import Vec, zeros
+from seqlogic.lbool import Vec
 from seqlogic.sim import reactive
 
 from . import AluOp
@@ -60,4 +60,4 @@ class Alu(Module):
     async def p_c_1(self):
         while True:
             await changed(self.result)
-            self.result_equal_zero.next = self.result.value.eq(zeros(32))
+            self.result_equal_zero.next = self.result.value.eq("32h0000_0000")

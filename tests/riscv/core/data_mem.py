@@ -36,11 +36,7 @@ class DataMem(Module):
         self.clock = Bit(name="clock", parent=self)
 
         # State
-        self._mem = Array(
-            name="mem",
-            parent=self,
-            dtype=Vec[self._width],
-        )
+        self._mem = Array(name="mem", parent=self, dtype=Vec[self._width])
 
     @active
     async def p_f_0(self):
@@ -50,19 +46,16 @@ class DataMem(Module):
         while True:
             await resume((self.clock, f))
             addr = self.addr.value
-            # If wr_en=1, address must be known
-            assert not addr.has_unknown()
-            wr_val = self.wr_data.value
-            mem_val = self._mem[addr].value
+            be = self.wr_be.value
+            # If wr_en=1, addr/be must be known
+            assert not addr.has_unknown() and not be.has_unknown()
             # fmt: off
-            wr_bytes = [wr_val[8*i:8*(i+1)] for i in range(self._word_bytes)]  # noqa
-            mem_bytes = [mem_val[8*i:8*(i+1)] for i in range(self._word_bytes)]  # noqa
-            bytes_ = [
-                self.wr_be.value[i].ite(wr_bytes[i], mem_bytes[i])
+            self._mem[addr].next = cat(*[
+                self.wr_data.value[8*i:8*(i+1)] if be[i] else  # noqa
+                self._mem[addr].value[8*i:8*(i+1)]  # noqa
                 for i in range(self._word_bytes)
-            ]
+            ])
             # fmt: on
-            self._mem[addr].next = cat(*bytes_)
 
     @reactive
     async def p_c_0(self):
