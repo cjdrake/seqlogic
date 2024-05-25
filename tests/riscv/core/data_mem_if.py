@@ -1,7 +1,7 @@
 """Data Memory Interface."""
 
 from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import Vec, cat, rep, vec
+from seqlogic.lbool import Vec, cat, rep
 from seqlogic.sim import reactive
 
 
@@ -44,13 +44,13 @@ class DataMemIf(Module):
             sel = self.data_format.value[:2]
             match sel:
                 case "2b00":
-                    self.bus_wr_be.next = vec("4b0001") << self._byte_addr.value
+                    self.bus_wr_be.next = "4b0001" << self._byte_addr.value
                 case "2b01":
-                    self.bus_wr_be.next = vec("4b0011") << self._byte_addr.value
+                    self.bus_wr_be.next = "4b0011" << self._byte_addr.value
                 case "2b10":
-                    self.bus_wr_be.next = vec("4b1111") << self._byte_addr.value
+                    self.bus_wr_be.next = "4b1111" << self._byte_addr.value
                 case "2b11":
-                    self.bus_wr_be.next = vec("4b0000")
+                    self.bus_wr_be.next = "4b0000"
                 case _:
                     self.bus_wr_be.xprop(sel)
 

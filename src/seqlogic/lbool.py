@@ -376,10 +376,6 @@ class Vec:
             return Vec[n](d)
         raise TypeError("Expected key to be int or slice")
 
-    def __iter__(self) -> Generator[Vec[1], None, None]:
-        for i in range(self._n):
-            yield self.__getitem__(i)
-
     def __str__(self) -> str:
         if self._n == 0:
             return ""
@@ -401,11 +397,11 @@ class Vec:
         return self.to_int()
 
     # Comparison
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Vec[self._n]):
-            return self._data == other.data
-        if isinstance(other, str):
-            n, data = _lit2vec(other)
+    def __eq__(self, obj: object) -> bool:
+        if isinstance(obj, Vec[self._n]):
+            return self._data == obj.data
+        if isinstance(obj, str):
+            n, data = _lit2vec(obj)
             return self._n == n and self._data == data
         return False
 
@@ -416,26 +412,42 @@ class Vec:
     def __invert__(self) -> Vec:
         return self.not_()
 
-    def __or__(self, other: Vec) -> Vec:
+    def __or__(self, other: Vec | str) -> Vec:
         return self.or_(other)
 
-    def __and__(self, other: Vec) -> Vec:
+    def __and__(self, other: Vec | str) -> Vec:
         return self.and_(other)
 
-    def __xor__(self, other: Vec) -> Vec:
+    def __xor__(self, other: Vec | str) -> Vec:
         return self.xor(other)
 
     def __lshift__(self, n: int | Vec) -> Vec:
         return self.lsh(n)[0]
 
+    def __rlshift__(self, other: Vec | str) -> Vec:
+        v = self._to_vec(other)
+        return v.__lshift__(self)
+
     def __rshift__(self, n: int | Vec) -> Vec:
         return self.rsh(n)[0]
 
-    def __add__(self, other: Vec) -> Vec:
+    def __rrshift__(self, other: Vec | str) -> Vec:
+        v = self._to_vec(other)
+        return v.__rshift__(self)
+
+    def __add__(self, other: Vec | str) -> Vec:
         return self.add(other, ci=_Vec0)[0]
 
-    def __sub__(self, other: Vec) -> Vec:
+    def __radd__(self, other: Vec | str) -> Vec:
+        v = self._to_vec(other)
+        return v.__add__(self)
+
+    def __sub__(self, other: Vec | str) -> Vec:
         return self.sub(other)[0]
+
+    def __rsub__(self, other: Vec | str) -> Vec:
+        v = self._to_vec(other)
+        return v.__sub__(self)
 
     def __neg__(self) -> Vec:
         return self.neg()[0]
