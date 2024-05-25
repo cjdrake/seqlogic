@@ -3,7 +3,7 @@
 # pyright: reportCallIssue=false
 
 from seqlogic import Bit, Bits, Module, changed, sleep
-from seqlogic.lbool import Vec, vec
+from seqlogic.lbool import Vec
 from seqlogic.sim import active, reactive
 
 from . import Inst, Opcode
@@ -73,7 +73,7 @@ class Top(Module):
 
     @active
     async def p_i_0(self):
-        self.clock.next = vec("1b0")
+        self.clock.next = "1b0"
         await sleep(_CLOCK_PHASE_SHIFT)
         while True:
             self.clock.next = ~self.clock.value
@@ -83,7 +83,7 @@ class Top(Module):
 
     @active
     async def p_i_1(self):
-        self.reset.next = vec("1b0")
+        self.reset.next = "1b0"
         await sleep(_RESET_PHASE1)
         self.reset.next = ~self.reset.value
         await sleep(_RESET_PHASE2)

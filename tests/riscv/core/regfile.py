@@ -39,7 +39,7 @@ class RegFile(Module):
             state = await resume((self.reset, self.reset.is_posedge), (self.clock, f))
             if state is self.reset:
                 for i in range(DEPTH):
-                    self._regs[i].next = zeros(32)
+                    self._regs[i].next = "32h0000_0000"
             elif state is self.clock:
                 addr = self.wr_addr.value
                 # If wr_en=1, address must be known
