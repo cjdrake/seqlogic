@@ -5,9 +5,6 @@ from seqlogic.lbool import Vec, zeros
 from seqlogic.sim import active, reactive
 
 DEPTH = 32
-WORD_BYTES = 4
-BYTE_BITS = 8
-WORD_BITS = WORD_BYTES * BYTE_BITS
 
 
 class RegFile(Module):
@@ -22,16 +19,16 @@ class RegFile(Module):
         # Ports
         self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_addr = Bits(name="wr_addr", parent=self, dtype=Vec[self._addr_bits])
-        self.wr_data = Bits(name="wr_data", parent=self, dtype=Vec[WORD_BITS])
+        self.wr_data = Bits(name="wr_data", parent=self, dtype=Vec[32])
         self.rs1_addr = Bits(name="rs1_addr", parent=self, dtype=Vec[self._addr_bits])
-        self.rs1_data = Bits(name="rs1_data", parent=self, dtype=Vec[WORD_BITS])
+        self.rs1_data = Bits(name="rs1_data", parent=self, dtype=Vec[32])
         self.rs2_addr = Bits(name="rs2_addr", parent=self, dtype=Vec[self._addr_bits])
-        self.rs2_data = Bits(name="rs2_data", parent=self, dtype=Vec[WORD_BITS])
+        self.rs2_data = Bits(name="rs2_data", parent=self, dtype=Vec[32])
         self.clock = Bit(name="clock", parent=self)
         self.reset = Bit(name="reset", parent=self)
 
         # State
-        self._regs = Array(name="regs", parent=self, dtype=Vec[WORD_BITS])
+        self._regs = Array(name="regs", parent=self, dtype=Vec[32])
 
     @active
     async def p_wr_port(self):
@@ -42,7 +39,7 @@ class RegFile(Module):
             state = await resume((self.reset, self.reset.is_posedge), (self.clock, f))
             if state is self.reset:
                 for i in range(DEPTH):
-                    self._regs[i].next = zeros(WORD_BITS)
+                    self._regs[i].next = zeros(32)
             elif state is self.clock:
                 addr = self.wr_addr.value
                 # If wr_en=1, address must be known
