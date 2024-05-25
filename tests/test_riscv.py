@@ -16,7 +16,7 @@ It merely serves as a non-trivial example design.
 from collections import defaultdict
 
 from seqlogic import get_loop, simify
-from seqlogic.lbool import dcs, ones, uint2vec, vec, xes, zeros
+from seqlogic.lbool import uint2vec, vec
 
 from .riscv.core import AluOp, CtlAluA, CtlAluB, CtlPc, Inst, Opcode
 from .riscv.core.top import Top
@@ -24,13 +24,10 @@ from .riscv.core.top import Top
 loop = get_loop()
 
 
-T = ones(1)
-F = zeros(1)
-X = xes(1)
-X32 = xes(32)
-W32 = dcs(32)
+X32 = "32bXXXX_XXXX_XXXX_XXXX_XXXX_XXXX_XXXX_XXXX"
+W32 = "32b----_----_----_----_----_----_----_----"
 
-DEBUG_REG = vec("32hFFFF_FFF0")
+DEBUG_REG = "32hFFFF_FFF0"
 
 PASS, FAIL, TIMEOUT = 0, 1, 2
 
@@ -85,19 +82,19 @@ def test_dump():
             top._pc: X32,
             top._inst: Inst(),
             top.bus_addr: X32,
-            top.bus_wr_en: xes(1),
+            top.bus_wr_en: "1bX",
             top.bus_wr_data: X32,
-            top.bus_rd_en: X,
+            top.bus_rd_en: "1bX",
             # Decode
             top.core.datapath.inst: Inst(),
             top.core.datapath.immediate: X32,
             # Control
             top.core.datapath.alu_op_a_sel: CtlAluA.X,
             top.core.datapath.alu_op_b_sel: CtlAluB.X,
-            top.core.datapath.reg_writeback_sel: xes(3),
+            top.core.datapath.reg_writeback_sel: "3bXXX",
             # ALU
             top.core.datapath.alu_result: X32,
-            top.core.datapath.alu_result_equal_zero: X,
+            top.core.datapath.alu_result_equal_zero: "1bX",
             top.core.datapath.alu_function: AluOp.X,
             top.core.datapath.alu_op_a: X32,
             top.core.datapath.alu_op_b: X32,
@@ -106,10 +103,10 @@ def test_dump():
             top.core.datapath.next_pc_sel: CtlPc.X,
             top.core.datapath.pc_plus_4: X32,
             top.core.datapath.pc_plus_immediate: X32,
-            top.core.datapath.pc_wr_en: X,
+            top.core.datapath.pc_wr_en: "1bX",
             top.core.datapath.pc: X32,
             # Regfile
-            top.core.datapath.regfile_wr_en: X,
+            top.core.datapath.regfile_wr_en: "1bX",
             top.core.datapath.wr_data: X32,
             top.core.datapath.rs1_data: X32,
             top.core.datapath.rs2_data: X32,
@@ -129,9 +126,9 @@ def test_dump():
                 funct7=vec("7b0000000"),
             ),
             top.bus_addr: "32h0000_0000",
-            top.bus_wr_en: F,
+            top.bus_wr_en: "1b0",
             top.bus_wr_data: "32h0000_0000",
-            top.bus_rd_en: F,
+            top.bus_rd_en: "1b0",
             # Decode
             top.core.datapath.inst: Inst(
                 opcode=Opcode.OP_IMM,
@@ -148,7 +145,7 @@ def test_dump():
             top.core.datapath.reg_writeback_sel: "3b000",
             # ALU
             top.core.datapath.alu_result: "32h0000_0000",
-            top.core.datapath.alu_result_equal_zero: T,
+            top.core.datapath.alu_result_equal_zero: "1b1",
             top.core.datapath.alu_function: AluOp.ADD,
             top.core.datapath.alu_op_a: "32h0000_0000",
             top.core.datapath.alu_op_b: "32h0000_0000",
@@ -157,10 +154,10 @@ def test_dump():
             top.core.datapath.next_pc_sel: CtlPc.PC4,
             top.core.datapath.pc_plus_4: "32h0040_0004",
             top.core.datapath.pc_plus_immediate: "32h0040_0000",
-            top.core.datapath.pc_wr_en: T,
+            top.core.datapath.pc_wr_en: "1b1",
             top.core.datapath.pc: "32h0040_0000",
             # Regfile
-            top.core.datapath.regfile_wr_en: T,
+            top.core.datapath.regfile_wr_en: "1b1",
             top.core.datapath.wr_data: "32h0000_0000",
             top.core.datapath.rs1_data: "32h0000_0000",
             top.core.datapath.rs2_data: "32h0000_0000",
@@ -277,7 +274,7 @@ def test_dump():
             top.core.datapath.immediate: "32h0000_0002",
             # ALU
             top.core.datapath.alu_result: "32h0000_0002",
-            top.core.datapath.alu_result_equal_zero: F,
+            top.core.datapath.alu_result_equal_zero: "1b0",
             top.core.datapath.alu_op_b: "32h0000_0002",
             # PC
             top.core.datapath.pc_next: "32h0040_0014",
@@ -323,7 +320,7 @@ def test_dump():
             top.core.datapath.pc_plus_immediate: "32h0040_04E0",
             top.core.datapath.pc: "32h0040_0014",
             # Regfile
-            top.core.datapath.regfile_wr_en: F,
+            top.core.datapath.regfile_wr_en: "1b0",
             top.core.datapath.wr_data: "32h0000_0001",
             # Data Mem
             top.core.datapath.data_mem_addr: "32h0000_0001",
@@ -358,9 +355,9 @@ def test_dump():
             top.core.datapath.pc_next: "32h0040_001C",
             top.core.datapath.pc_plus_4: "32h0040_001C",
             top.core.datapath.pc_plus_immediate: "32h0040_0019",
-            top.core.datapath.pc: vec("32h0040_0018"),
+            top.core.datapath.pc: "32h0040_0018",
             # Regfile
-            top.core.datapath.regfile_wr_en: T,
+            top.core.datapath.regfile_wr_en: "1b1",
         },
         # @(posedge clock)
         23: {
@@ -540,7 +537,7 @@ def test_dump():
             top.core.datapath.pc_plus_immediate: "32h0040_04E0",
             top.core.datapath.pc: "32h0040_002C",
             # Regfile
-            top.core.datapath.regfile_wr_en: F,
+            top.core.datapath.regfile_wr_en: "1b0",
             top.core.datapath.wr_data: "32h0000_0001",
             top.core.datapath.rs1_data: "32h0000_0002",
             # Data Mem
@@ -582,7 +579,7 @@ def test_dump():
             top.core.datapath.pc_plus_immediate: "32h0040_0033",
             top.core.datapath.pc: "32h0040_0030",
             # Regfile
-            top.core.datapath.regfile_wr_en: T,
+            top.core.datapath.regfile_wr_en: "1b1",
             top.core.datapath.wr_data: "32h0000_0003",
             top.core.datapath.rs1_data: "32h0000_0000",
             # Data Mem
@@ -776,7 +773,7 @@ def test_dump():
             top.core.datapath.pc_plus_immediate: "32h0040_04E0",
             top.core.datapath.pc: "32h0040_0044",
             # Regfile
-            top.core.datapath.regfile_wr_en: F,
+            top.core.datapath.regfile_wr_en: "1b0",
             top.core.datapath.wr_data: "32h0000_0001",
             top.core.datapath.rs1_data: "32h0000_000A",
             top.core.datapath.rs2_data: "32h0000_000A",
@@ -811,7 +808,7 @@ def test_dump():
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
             top.core.datapath.alu_result: "32h0000_0000",
-            top.core.datapath.alu_result_equal_zero: T,
+            top.core.datapath.alu_result_equal_zero: "1b1",
             top.core.datapath.alu_function: AluOp.ADD,
             top.core.datapath.alu_op_a: "32h0000_0000",
             top.core.datapath.alu_op_b: "32h0000_0000",
@@ -821,7 +818,7 @@ def test_dump():
             top.core.datapath.pc_plus_immediate: "32h0040_0048",
             top.core.datapath.pc: "32h0040_0048",
             # Regfile
-            top.core.datapath.regfile_wr_en: T,
+            top.core.datapath.regfile_wr_en: "1b1",
             top.core.datapath.wr_data: "32h0000_0000",
             top.core.datapath.rs1_data: "32h0000_0000",
             top.core.datapath.rs2_data: "32h0000_0000",
@@ -888,7 +885,7 @@ def test_dump():
             top.core.datapath.reg_writeback_sel: "3b000",
             # ALU
             top.core.datapath.alu_result: "32hFFFF_8000",
-            top.core.datapath.alu_result_equal_zero: F,
+            top.core.datapath.alu_result_equal_zero: "1b0",
             top.core.datapath.alu_op_b: "32hFFFF_8000",
             # Next PC
             top.core.datapath.pc_next: "32h0040_0054",
@@ -925,7 +922,7 @@ def run_riscv_test(name: str) -> int:
 
     # Run the simulation
     for _ in loop.iter(until=10000):
-        if top.bus_wr_en.value == T and top.bus_addr.value == DEBUG_REG:
+        if top.bus_wr_en.value == "1b1" and top.bus_addr.value == DEBUG_REG:
             if top.bus_wr_data.value == "32h0000_0001":
                 return PASS
             else:
