@@ -1598,6 +1598,8 @@ def _struct_init_source(fields: list[tuple[str, type]]) -> str:
     for fn, _ in fields:
         s = f"Expected field {fn} to have {{exp}} bits, got {{got}}"
         lines.append(f"    if {fn} is not None:\n")
+        lines.append(f"        if isinstance({fn}, str):\n")
+        lines.append(f"            {fn} = lit2vec({fn})\n")
         lines.append(f"        got, exp = len({fn}), self._{fn}_size\n")
         lines.append("        if got != exp:\n")
         lines.append(f'            raise TypeError(f"{s}")\n')
@@ -1638,7 +1640,7 @@ class _VecStructMeta(type):
 
         # Override Vec __init__ method
         source = _struct_init_source(fields)
-        globals_ = {"Vec": Vec}
+        globals_ = {"Vec": Vec, "lit2vec": lit2vec}
         globals_.update({ft.__name__: ft for _, ft in fields})
         locals_ = {}
         exec(source, globals_, locals_)  # pylint: disable=exec-used
