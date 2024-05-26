@@ -44,7 +44,7 @@ class TextMemBus(Module):
         self._text = Bits(name="text", parent=self, dtype=Vec[self._width])
 
     def _connect(self):
-        self._text.connect(self.text_mem.rd_data)
+        self.connect(self._text, self.text_mem.rd_data)
 
     @reactive
     async def p_c_0(self):

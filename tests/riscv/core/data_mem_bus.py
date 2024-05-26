@@ -49,10 +49,10 @@ class DataMemBus(Module):
         self._data = Bits(name="data", parent=self, dtype=Vec[self._width])
 
     def _connect(self):
-        self.data_mem.wr_be.connect(self.wr_be)
-        self.data_mem.wr_data.connect(self.wr_data)
-        self._data.connect(self.data_mem.rd_data)
-        self.data_mem.clock.connect(self.clock)
+        self.connect(self.data_mem.wr_be, self.wr_be)
+        self.connect(self.data_mem.wr_data, self.wr_data)
+        self.connect(self._data, self.data_mem.rd_data)
+        self.connect(self.data_mem.clock, self.clock)
 
     @reactive
     async def p_c_0(self):

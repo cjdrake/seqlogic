@@ -73,21 +73,21 @@ class DataPath(Module):
         self.regfile = RegFile(name="regfile", parent=self)
 
     def _connect(self):
-        self.data_mem_addr.connect(self.alu_result)
-        self.data_mem_wr_data.connect(self.rs2_data)
+        self.connect(self.data_mem_addr, self.alu_result)
+        self.connect(self.data_mem_wr_data, self.rs2_data)
 
-        self.alu_result.connect(self.alu.result)
-        self.alu_result_eq_zero.connect(self.alu.result_eq_zero)
-        self.alu.alu_func.connect(self.alu_func)
-        self.alu.op_a.connect(self.alu_op_a)
-        self.alu.op_b.connect(self.alu_op_b)
+        self.connect(self.alu_result, self.alu.result)
+        self.connect(self.alu_result_eq_zero, self.alu.result_eq_zero)
+        self.connect(self.alu.alu_func, self.alu_func)
+        self.connect(self.alu.op_a, self.alu_op_a)
+        self.connect(self.alu.op_b, self.alu_op_b)
 
-        self.regfile.wr_en.connect(self.regfile_wr_en)
-        self.regfile.wr_data.connect(self.wr_data)
-        self.rs1_data.connect(self.regfile.rs1_data)
-        self.rs2_data.connect(self.regfile.rs2_data)
-        self.regfile.clock.connect(self.clock)
-        self.regfile.reset.connect(self.reset)
+        self.connect(self.regfile.wr_en, self.regfile_wr_en)
+        self.connect(self.regfile.wr_data, self.wr_data)
+        self.connect(self.rs1_data, self.regfile.rs1_data)
+        self.connect(self.rs2_data, self.regfile.rs2_data)
+        self.connect(self.regfile.clock, self.clock)
+        self.connect(self.regfile.reset, self.reset)
 
     @reactive
     async def p_c_0(self):

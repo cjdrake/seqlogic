@@ -112,6 +112,16 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
+    def connect(self, y: Bits, x: Bits):
+        """Connect input to output."""
+
+        async def proc():
+            while True:
+                await changed(x)
+                y.next = x.value
+
+        self._procs.append((Region.REACTIVE, proc, (), {}))
+
     def dff_en_ar(self, q: Bits, d: Bits, en: Bit, clk: Bit, rst: Bit, rval: Vec):
         """D Flip Flop with enable, and async reset."""
 
@@ -163,17 +173,6 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
             self.next = self.value.xes()
         else:
             self.next = self.value.dcs()
-
-    # ProcIf
-    def connect(self, src):
-        """Convenience function to reduce process boilerplate."""
-
-        async def proc():
-            while True:
-                await changed(src)
-                self.next = src.value
-
-        self._procs.append((Region.REACTIVE, proc, (), {}))
 
     # TraceIf
     def dump_waves(self, waves: defaultdict, pattern: str):

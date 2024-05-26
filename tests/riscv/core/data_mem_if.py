@@ -33,9 +33,9 @@ class DataMemIf(Module):
         self._byte_addr = Bits(name="byte_addr", parent=self, dtype=Vec[2])
 
     def _connect(self):
-        self.bus_addr.connect(self.addr)
-        self.bus_wr_en.connect(self.wr_en)
-        self.bus_rd_en.connect(self.rd_en)
+        self.connect(self.bus_addr, self.addr)
+        self.connect(self.bus_wr_en, self.wr_en)
+        self.connect(self.bus_rd_en, self.rd_en)
 
     @reactive
     async def p_c_0(self):
