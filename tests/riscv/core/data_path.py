@@ -49,7 +49,7 @@ class DataPath(Module):
 
         # ALU Outputs
         self.alu_result = Bits(name="alu_result", parent=self, dtype=Vec[32])
-        self.alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
+        self.alu_result_eq_zero = Bit(name="alu_result_eq_zero", parent=self)
 
         # Next PC
         self.pc_next = Bits(name="pc_next", parent=self, dtype=Vec[32])
@@ -73,7 +73,7 @@ class DataPath(Module):
         self.data_mem_wr_data.connect(self.rs2_data)
 
         self.alu_result.connect(self.alu.result)
-        self.alu_result_equal_zero.connect(self.alu.result_equal_zero)
+        self.alu_result_eq_zero.connect(self.alu.result_eq_zero)
         self.alu.alu_function.connect(self.alu_function)
         self.alu.op_a.connect(self.alu_op_a)
         self.alu.op_b.connect(self.alu_op_b)

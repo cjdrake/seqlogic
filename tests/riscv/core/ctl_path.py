@@ -30,7 +30,7 @@ class CtlPath(Module):
         self.inst_opcode = Bits(name="inst_opcode", parent=self, dtype=Opcode)
         self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Funct3)
         self.inst_funct7 = Bits(name="inst_funct7", parent=self, dtype=Vec[7])
-        self.alu_result_equal_zero = Bit(name="alu_result_equal_zero", parent=self)
+        self.alu_result_eq_zero = Bit(name="alu_result_eq_zero", parent=self)
         self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
         self.alu_op_a_sel = Bits(name="alu_op_a_sel", parent=self, dtype=CtlAluA)
@@ -51,21 +51,21 @@ class CtlPath(Module):
     @reactive
     async def p_c_0(self):
         while True:
-            await changed(self.inst_funct3, self.alu_result_equal_zero)
+            await changed(self.inst_funct3, self.alu_result_eq_zero)
             sel = self.inst_funct3.value.branch
             match sel:
                 case Funct3Branch.EQ:
-                    self._take_branch.next = ~(self.alu_result_equal_zero.value)
+                    self._take_branch.next = ~self.alu_result_eq_zero.value
                 case Funct3Branch.NE:
-                    self._take_branch.next = self.alu_result_equal_zero.value
+                    self._take_branch.next = self.alu_result_eq_zero.value
                 case Funct3Branch.LT:
-                    self._take_branch.next = ~(self.alu_result_equal_zero.value)
+                    self._take_branch.next = ~self.alu_result_eq_zero.value
                 case Funct3Branch.GE:
-                    self._take_branch.next = self.alu_result_equal_zero.value
+                    self._take_branch.next = self.alu_result_eq_zero.value
                 case Funct3Branch.LTU:
-                    self._take_branch.next = ~(self.alu_result_equal_zero.value)
+                    self._take_branch.next = ~self.alu_result_eq_zero.value
                 case Funct3Branch.GEU:
-                    self._take_branch.next = self.alu_result_equal_zero.value
+                    self._take_branch.next = self.alu_result_eq_zero.value
                 case _:
                     self._take_branch.xprop(sel)
 

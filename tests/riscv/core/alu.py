@@ -17,7 +17,7 @@ class Alu(Module):
     def _build(self):
         # Ports
         self.result = Bits(name="result", parent=self, dtype=Vec[32])
-        self.result_equal_zero = Bit(name="result_equal_zero", parent=self)
+        self.result_eq_zero = Bit(name="result_eq_zero", parent=self)
         self.alu_function = Bits(name="alu_function", parent=self, dtype=AluOp)
         self.op_a = Bits(name="op_a", parent=self, dtype=Vec[32])
         self.op_b = Bits(name="op_b", parent=self, dtype=Vec[32])
@@ -60,4 +60,4 @@ class Alu(Module):
     async def p_c_1(self):
         while True:
             await changed(self.result)
-            self.result_equal_zero.next = self.result.value.eq("32h0000_0000")
+            self.result_eq_zero.next = self.result.value.eq("32h0000_0000")

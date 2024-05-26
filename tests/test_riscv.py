@@ -94,7 +94,7 @@ def test_dump():
             top.core.datapath.reg_writeback_sel: "3bXXX",
             # ALU
             top.core.datapath.alu_result: X32,
-            top.core.datapath.alu_result_equal_zero: "1bX",
+            top.core.datapath.alu_result_eq_zero: "1bX",
             top.core.datapath.alu_function: AluOp.X,
             top.core.datapath.alu_op_a: X32,
             top.core.datapath.alu_op_b: X32,
@@ -145,7 +145,7 @@ def test_dump():
             top.core.datapath.reg_writeback_sel: "3b000",
             # ALU
             top.core.datapath.alu_result: "32h0000_0000",
-            top.core.datapath.alu_result_equal_zero: "1b1",
+            top.core.datapath.alu_result_eq_zero: "1b1",
             top.core.datapath.alu_function: AluOp.ADD,
             top.core.datapath.alu_op_a: "32h0000_0000",
             top.core.datapath.alu_op_b: "32h0000_0000",
@@ -274,7 +274,7 @@ def test_dump():
             top.core.datapath.immediate: "32h0000_0002",
             # ALU
             top.core.datapath.alu_result: "32h0000_0002",
-            top.core.datapath.alu_result_equal_zero: "1b0",
+            top.core.datapath.alu_result_eq_zero: "1b0",
             top.core.datapath.alu_op_b: "32h0000_0002",
             # PC
             top.core.datapath.pc_next: "32h0040_0014",
@@ -808,7 +808,7 @@ def test_dump():
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
             top.core.datapath.alu_result: "32h0000_0000",
-            top.core.datapath.alu_result_equal_zero: "1b1",
+            top.core.datapath.alu_result_eq_zero: "1b1",
             top.core.datapath.alu_function: AluOp.ADD,
             top.core.datapath.alu_op_a: "32h0000_0000",
             top.core.datapath.alu_op_b: "32h0000_0000",
@@ -885,7 +885,7 @@ def test_dump():
             top.core.datapath.reg_writeback_sel: "3b000",
             # ALU
             top.core.datapath.alu_result: "32hFFFF_8000",
-            top.core.datapath.alu_result_equal_zero: "1b0",
+            top.core.datapath.alu_result_eq_zero: "1b0",
             top.core.datapath.alu_op_b: "32hFFFF_8000",
             # Next PC
             top.core.datapath.pc_next: "32h0040_0054",
