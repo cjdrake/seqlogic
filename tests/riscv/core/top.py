@@ -23,10 +23,7 @@ class Top(Module):
 
     def __init__(self, name: str):
         super().__init__(name, parent=None)
-        self._build()
-        self._connect()
 
-    def _build(self):
         # Ports
         self.bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
@@ -44,14 +41,10 @@ class Top(Module):
         # Submodules:
         # 16K Instruction Memory
         self.text_mem_bus = TextMemBus(name="text_mem_bus", parent=self, depth=4096)
-        # 32K Data Memory
-        self.data_mem_bus = DataMemBus(name="data_mem_bus", parent=self, depth=8096)
-        # RISC-V Core
-        self.core = Core(name="core", parent=self)
-
-    def _connect(self):
         self.connect(self.text_mem_bus.rd_addr, self._pc)
 
+        # 32K Data Memory
+        self.data_mem_bus = DataMemBus(name="data_mem_bus", parent=self, depth=8096)
         self.connect(self.data_mem_bus.addr, self.bus_addr)
         self.connect(self.data_mem_bus.wr_en, self.bus_wr_en)
         self.connect(self.data_mem_bus.wr_be, self.bus_wr_be)
@@ -60,6 +53,8 @@ class Top(Module):
         self.connect(self.bus_rd_data, self.data_mem_bus.rd_data)
         self.connect(self.data_mem_bus.clock, self.clock)
 
+        # RISC-V Core
+        self.core = Core(name="core", parent=self)
         self.connect(self.bus_addr, self.core.bus_addr)
         self.connect(self.bus_wr_en, self.core.bus_wr_en)
         self.connect(self.bus_wr_be, self.core.bus_wr_be)

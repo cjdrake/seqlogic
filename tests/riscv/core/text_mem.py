@@ -22,19 +22,13 @@ class TextMem(Module):
         self._byte_addr_bits = byte_addr_bits
         # self._depth = 2**self._word_addr_bits
         self._width = 2**self._byte_addr_bits * BYTE_BITS
-        self._build()
 
-    def _build(self):
         # Ports
         self.rd_addr = Bits(name="rd_addr", parent=self, dtype=Vec[self._word_addr_bits])
         self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
 
         # State
-        self._mem = Array(
-            name="mem",
-            parent=self,
-            dtype=Vec[self._width],
-        )
+        self._mem = Array(name="mem", parent=self, dtype=Vec[self._width])
 
     @reactive
     async def p_c_0(self):

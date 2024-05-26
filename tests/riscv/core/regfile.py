@@ -10,9 +10,7 @@ class RegFile(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-        self._build()
 
-    def _build(self):
         # Ports
         self.wr_en = Bit(name="wr_en", parent=self)
         self.wr_addr = Bits(name="wr_addr", parent=self, dtype=Vec[5])

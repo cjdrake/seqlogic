@@ -23,9 +23,7 @@ class CtlPath(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-        self._build()
 
-    def _build(self):
         # Ports
         self.inst_opcode = Bits(name="inst_opcode", parent=self, dtype=Opcode)
         self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Funct3)

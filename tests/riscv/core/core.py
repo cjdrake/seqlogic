@@ -15,10 +15,7 @@ class Core(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-        self._build()
-        self._connect()
 
-    def _build(self):
         # Ports
         self.bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
         self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
@@ -50,10 +47,6 @@ class Core(Module):
 
         # Submodules
         self.ctlpath = CtlPath(name="ctlpath", parent=self)
-        self.datapath = DataPath(name="datapath", parent=self)
-        self.data_mem_if = DataMemIf(name="data_mem_if", parent=self)
-
-    def _connect(self):
         self.connect(self.ctlpath.alu_result_eq_zero, self._alu_result_eq_zero)
         self.connect(self._pc_wr_en, self.ctlpath.pc_wr_en)
         self.connect(self._regfile_wr_en, self.ctlpath.regfile_wr_en)
@@ -65,6 +58,7 @@ class Core(Module):
         self.connect(self._alu_func, self.ctlpath.alu_func)
         self.connect(self._next_pc_sel, self.ctlpath.next_pc_sel)
 
+        self.datapath = DataPath(name="datapath", parent=self)
         self.connect(self._addr, self.datapath.data_mem_addr)
         self.connect(self._wr_data, self.datapath.data_mem_wr_data)
         self.connect(self.datapath.data_mem_rd_data, self._rd_data)
@@ -81,6 +75,7 @@ class Core(Module):
         self.connect(self.datapath.clock, self.clock)
         self.connect(self.datapath.reset, self.reset)
 
+        self.data_mem_if = DataMemIf(name="data_mem_if", parent=self)
         self.connect(self.data_mem_if.addr, self._addr)
         self.connect(self.data_mem_if.wr_en, self._wr_en)
         self.connect(self.data_mem_if.wr_data, self._wr_data)

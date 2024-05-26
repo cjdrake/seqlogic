@@ -14,14 +14,7 @@ class DataPath(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-        self._build()
-        self._connect()
 
-        self.dff_en_ar(
-            self.pc, self.pc_next, self.pc_wr_en, self.clock, self.reset, uint2vec(TEXT_BASE, 32)
-        )
-
-    def _build(self):
         self.data_mem_addr = Bits(name="data_mem_addr", parent=self, dtype=Vec[32])
         self.data_mem_wr_data = Bits(name="data_mem_wr_data", parent=self, dtype=Vec[32])
         self.data_mem_rd_data = Bits(name="data_mem_rd_data", parent=self, dtype=Vec[32])
@@ -70,24 +63,26 @@ class DataPath(Module):
 
         # Submodules
         self.alu = Alu(name="alu", parent=self)
-        self.regfile = RegFile(name="regfile", parent=self)
-
-    def _connect(self):
-        self.connect(self.data_mem_addr, self.alu_result)
-        self.connect(self.data_mem_wr_data, self.rs2_data)
-
         self.connect(self.alu_result, self.alu.result)
         self.connect(self.alu_result_eq_zero, self.alu.result_eq_zero)
         self.connect(self.alu.alu_func, self.alu_func)
         self.connect(self.alu.op_a, self.alu_op_a)
         self.connect(self.alu.op_b, self.alu_op_b)
 
+        self.regfile = RegFile(name="regfile", parent=self)
         self.connect(self.regfile.wr_en, self.regfile_wr_en)
         self.connect(self.regfile.wr_data, self.wr_data)
         self.connect(self.rs1_data, self.regfile.rs1_data)
         self.connect(self.rs2_data, self.regfile.rs2_data)
         self.connect(self.regfile.clock, self.clock)
         self.connect(self.regfile.reset, self.reset)
+
+        self.connect(self.data_mem_addr, self.alu_result)
+        self.connect(self.data_mem_wr_data, self.rs2_data)
+
+        self.dff_en_ar(
+            self.pc, self.pc_next, self.pc_wr_en, self.clock, self.reset, uint2vec(TEXT_BASE, 32)
+        )
 
     @reactive
     async def p_c_0(self):

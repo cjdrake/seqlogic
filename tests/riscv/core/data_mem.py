@@ -23,10 +23,7 @@ class DataMem(Module):
         # self._depth = 2**self._word_addr_bits
         self._word_bytes = 2**self._byte_addr_bits
         self._width = self._word_bytes * BYTE_BITS
-        self._build()
 
-    def _build(self):
-        """Write docstring."""
         # Ports
         self.addr = Bits(name="addr", parent=self, dtype=Vec[self._word_addr_bits])
         self.wr_en = Bit(name="wr_en", parent=self)
