@@ -1,10 +1,39 @@
 """Arithmetic Logic Unit (ALU)."""
 
-from seqlogic import Bit, Bits, Module, changed
-from seqlogic.lbool import Vec
-from seqlogic.sim import reactive
+# pyright: reportAttributeAccessIssue=false
+
+from seqlogic import Bit, Bits, Module
+from seqlogic.lbool import Vec, dcs, xes
 
 from . import AluOp
+
+
+def alu_result(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
+    match op:
+        case AluOp.ADD:
+            return a + b
+        case AluOp.SUB:
+            return a - b
+        case AluOp.SLL:
+            return a << b[0:5]
+        case AluOp.SRL:
+            return a >> b[0:5]
+        case AluOp.SRA:
+            return a.arsh(b[0:5])[0]
+        case AluOp.SEQ:
+            return a.eq(b).zext(32 - 1)
+        case AluOp.SLT:
+            return a.lt(b).zext(32 - 1)
+        case AluOp.SLTU:
+            return a.ltu(b).zext(32 - 1)
+        case AluOp.XOR:
+            return a ^ b
+        case AluOp.OR:
+            return a | b
+        case AluOp.AND:
+            return a & b
+        case _:
+            return xes(32) if op.has_x() else dcs(32)
 
 
 class Alu(Module):
@@ -12,52 +41,19 @@ class Alu(Module):
 
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
-        self._build()
 
-    def _build(self):
-        # Ports
-        self.result = Bits(name="result", parent=self, dtype=Vec[32])
-        self.result_eq_zero = Bit(name="result_eq_zero", parent=self)
-        self.alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
-        self.op_a = Bits(name="op_a", parent=self, dtype=Vec[32])
-        self.op_b = Bits(name="op_b", parent=self, dtype=Vec[32])
+        result = Bits(name="result", parent=self, dtype=Vec[32])
+        result_eq_zero = Bit(name="result_eq_zero", parent=self)
+        alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
+        op_a = Bits(name="op_a", parent=self, dtype=Vec[32])
+        op_b = Bits(name="op_b", parent=self, dtype=Vec[32])
 
-    @reactive
-    async def p_c_0(self):
-        while True:
-            await changed(self.alu_func, self.op_a, self.op_b)
-            sel = self.alu_func.value
-            match sel:
-                case AluOp.ADD:
-                    self.result.next = self.op_a.value + self.op_b.value
-                case AluOp.SUB:
-                    self.result.next = self.op_a.value - self.op_b.value
-                case AluOp.SLL:
-                    self.result.next = self.op_a.value << self.op_b.value[0:5]
-                case AluOp.SRL:
-                    self.result.next = self.op_a.value >> self.op_b.value[0:5]
-                case AluOp.SRA:
-                    self.result.next, _ = self.op_a.value.arsh(self.op_b.value[0:5])
-                case AluOp.SEQ:
-                    y = self.op_a.value.eq(self.op_b.value)
-                    self.result.next = y.zext(32 - 1)
-                case AluOp.SLT:
-                    y = self.op_a.value.lt(self.op_b.value)
-                    self.result.next = y.zext(32 - 1)
-                case AluOp.SLTU:
-                    y = self.op_a.value.ltu(self.op_b.value)
-                    self.result.next = y.zext(32 - 1)
-                case AluOp.XOR:
-                    self.result.next = self.op_a.value ^ self.op_b.value
-                case AluOp.OR:
-                    self.result.next = self.op_a.value | self.op_b.value
-                case AluOp.AND:
-                    self.result.next = self.op_a.value & self.op_b.value
-                case _:
-                    self.result.xprop(sel)
+        self.combi(result, alu_result, alu_func, op_a, op_b)
+        self.combi(result_eq_zero, lambda x: x.eq("32h0000_0000"), result)
 
-    @reactive
-    async def p_c_1(self):
-        while True:
-            await changed(self.result)
-            self.result_eq_zero.next = self.result.value.eq("32h0000_0000")
+        # TODO(cjdrake): Remove this
+        self.result = result
+        self.result_eq_zero = result_eq_zero
+        self.alu_func = alu_func
+        self.op_a = op_a
+        self.op_b = op_b

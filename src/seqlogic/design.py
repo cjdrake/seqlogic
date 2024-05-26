@@ -102,6 +102,16 @@ class Module(Branch, _ProcIf, _TraceIf):
             assert isinstance(child, _TraceIf)
             child.dump_vcd(vcdw, pattern)
 
+    def combi(self, y: Bits, f: Callable, *xs: Bits):
+        """Combinational logic."""
+
+        async def proc():
+            while True:
+                await changed(*xs)
+                y.next = f(*[x.value for x in xs])
+
+        self._procs.append((Region.REACTIVE, proc, (), {}))
+
     def dff_en_ar(self, q: Bits, d: Bits, en: Bit, clk: Bit, rst: Bit, rval: Vec):
         """D Flip Flop with enable, and async reset."""
 
