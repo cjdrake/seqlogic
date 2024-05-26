@@ -17,7 +17,7 @@ from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
 from .lbool import Vec, VecEnum, lit2vec
-from .sim import Aggregate, Region, SimAwaitable, Singular, State, changed, get_loop
+from .sim import Aggregate, Region, SimAwaitable, Singular, State, changed, get_loop, resume
 
 _item2char = {
     0b00: "x",
@@ -101,6 +101,24 @@ class Module(Branch, _ProcIf, _TraceIf):
         for child in self._children:
             assert isinstance(child, _TraceIf)
             child.dump_vcd(vcdw, pattern)
+
+    def dff_en_ar(self, q: Bits, d: Bits, en: Bit, clk: Bit, rst: Bit, rval: Vec):
+        """D Flip Flop with enable, and async reset."""
+
+        async def proc():
+            while True:
+                state = await resume(
+                    (rst, rst.is_posedge),
+                    (clk, lambda: clk.is_posedge() and rst.is_neg() and en.value == "1b1"),
+                )
+                if state is rst:
+                    q.next = rval
+                elif state is clk:
+                    q.next = d.value
+                else:
+                    assert False
+
+        self._procs.append((Region.ACTIVE, proc, (), {}))
 
 
 class Bits(Leaf, Singular, _ProcIf, _TraceIf):

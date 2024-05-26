@@ -1,8 +1,8 @@
 """Data Path."""
 
-from seqlogic import Bit, Bits, Module, changed, resume
+from seqlogic import Bit, Bits, Module, changed
 from seqlogic.lbool import Vec, cat, rep, uint2vec
-from seqlogic.sim import active, reactive
+from seqlogic.sim import reactive
 
 from . import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu
@@ -16,6 +16,10 @@ class DataPath(Module):
         super().__init__(name, parent)
         self._build()
         self._connect()
+
+        self.dff_en_ar(
+            self.pc, self.pc_next, self.pc_wr_en, self.clock, self.reset, uint2vec(TEXT_BASE, 32)
+        )
 
     def _build(self):
         self.data_mem_addr = Bits(name="data_mem_addr", parent=self, dtype=Vec[32])
@@ -84,20 +88,6 @@ class DataPath(Module):
         self.rs2_data.connect(self.regfile.rs2_data)
         self.regfile.clock.connect(self.clock)
         self.regfile.reset.connect(self.reset)
-
-    @active
-    async def p_f_0(self):
-        def f():
-            return self.clock.is_posedge() and self.reset.is_neg() and self.pc_wr_en.value == "1b1"
-
-        while True:
-            state = await resume((self.reset, self.reset.is_posedge), (self.clock, f))
-            if state is self.reset:
-                self.pc.next = uint2vec(TEXT_BASE, 32)
-            elif state is self.clock:
-                self.pc.next = self.pc_next.value
-            else:
-                assert False
 
     @reactive
     async def p_c_0(self):
