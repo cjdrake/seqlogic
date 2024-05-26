@@ -1,8 +1,8 @@
 """Data Path."""
 
-from seqlogic import Bit, Bits, Module, changed
+from seqlogic import Bit, Bits, Module, changed, resume
 from seqlogic.lbool import Vec, cat, rep, uint2vec
-from seqlogic.sim import active, reactive, resume
+from seqlogic.sim import active, reactive
 
 from . import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu
