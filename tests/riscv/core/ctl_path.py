@@ -38,7 +38,7 @@ class CtlPath(Module):
         self.data_mem_rd_en = Bit(name="data_mem_rd_en", parent=self)
         self.data_mem_wr_en = Bit(name="data_mem_wr_en", parent=self)
         self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
-        self.alu_function = Bits(name="alu_function", parent=self, dtype=AluOp)
+        self.alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
         self.next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
 
         # State
@@ -131,18 +131,18 @@ class CtlPath(Module):
             sel = self._alu_op_type.value
             match sel:
                 case CtlAlu.ADD:
-                    self.alu_function.next = AluOp.ADD
+                    self.alu_func.next = AluOp.ADD
                 case CtlAlu.BRANCH:
-                    self.alu_function.next = self._branch_func.value
+                    self.alu_func.next = self._branch_func.value
                 case CtlAlu.OP:
                     sel = self.inst_funct7.value[5]
                     match sel:
                         case "1b0":
-                            self.alu_function.next = self._default_func.value
+                            self.alu_func.next = self._default_func.value
                         case "1b1":
-                            self.alu_function.next = self._secondary_func.value
+                            self.alu_func.next = self._secondary_func.value
                         case _:
-                            self.alu_function.xprop(sel)
+                            self.alu_func.xprop(sel)
                 case CtlAlu.OP_IMM:
                     a = self.inst_funct7.value[5]
                     b = self.inst_funct3.value.alu_logic.eq(Funct3AluLogic.SLL)
@@ -150,13 +150,13 @@ class CtlPath(Module):
                     sel = a & (b | c)
                     match sel:
                         case "1b0":
-                            self.alu_function.next = self._default_func.value
+                            self.alu_func.next = self._default_func.value
                         case "1b1":
-                            self.alu_function.next = self._secondary_func.value
+                            self.alu_func.next = self._secondary_func.value
                         case _:
-                            self.alu_function.xprop(sel)
+                            self.alu_func.xprop(sel)
                 case _:
-                    self.alu_function.xprop(sel)
+                    self.alu_func.xprop(sel)
 
     @reactive
     async def p_c_4(self):

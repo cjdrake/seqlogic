@@ -39,7 +39,7 @@ class DataPath(Module):
         self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
         self.alu_op_a_sel = Bits(name="alu_op_a_sel", parent=self, dtype=CtlAluA)
         self.alu_op_b_sel = Bits(name="alu_op_b_sel", parent=self, dtype=CtlAluB)
-        self.alu_function = Bits(name="alu_function", parent=self, dtype=AluOp)
+        self.alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
         self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
         self.next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
 
@@ -74,7 +74,7 @@ class DataPath(Module):
 
         self.alu_result.connect(self.alu.result)
         self.alu_result_eq_zero.connect(self.alu.result_eq_zero)
-        self.alu.alu_function.connect(self.alu_function)
+        self.alu.alu_func.connect(self.alu_func)
         self.alu.op_a.connect(self.alu_op_a)
         self.alu.op_b.connect(self.alu_op_b)
 

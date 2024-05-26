@@ -40,7 +40,7 @@ class Core(Module):
         self._alu_op_b_sel = Bits(name="alu_op_b_sel", parent=self, dtype=CtlAluB)
         self._reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
         self._next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
-        self._alu_function = Bits(name="alu_function", parent=self, dtype=AluOp)
+        self._alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
         self._alu_result_eq_zero = Bit(name="alu_result_eq_zero", parent=self)
         self._addr = Bits(name="addr", parent=self, dtype=Vec[32])
         self._wr_en = Bit(name="wr_en", parent=self)
@@ -62,7 +62,7 @@ class Core(Module):
         self._rd_en.connect(self.ctlpath.data_mem_rd_en)
         self._wr_en.connect(self.ctlpath.data_mem_wr_en)
         self._reg_writeback_sel.connect(self.ctlpath.reg_writeback_sel)
-        self._alu_function.connect(self.ctlpath.alu_function)
+        self._alu_func.connect(self.ctlpath.alu_func)
         self._next_pc_sel.connect(self.ctlpath.next_pc_sel)
 
         self._addr.connect(self.datapath.data_mem_addr)
@@ -77,7 +77,7 @@ class Core(Module):
         self.datapath.alu_op_b_sel.connect(self._alu_op_b_sel)
         self.datapath.reg_writeback_sel.connect(self._reg_writeback_sel)
         self.datapath.next_pc_sel.connect(self._next_pc_sel)
-        self.datapath.alu_function.connect(self._alu_function)
+        self.datapath.alu_func.connect(self._alu_func)
         self.datapath.clock.connect(self.clock)
         self.datapath.reset.connect(self.reset)
 

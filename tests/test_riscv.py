@@ -95,7 +95,7 @@ def test_dump():
             # ALU
             top.core.datapath.alu_result: X32,
             top.core.datapath.alu_result_eq_zero: "1bX",
-            top.core.datapath.alu_function: AluOp.X,
+            top.core.datapath.alu_func: AluOp.X,
             top.core.datapath.alu_op_a: X32,
             top.core.datapath.alu_op_b: X32,
             # PC
@@ -146,7 +146,7 @@ def test_dump():
             # ALU
             top.core.datapath.alu_result: "32h0000_0000",
             top.core.datapath.alu_result_eq_zero: "1b1",
-            top.core.datapath.alu_function: AluOp.ADD,
+            top.core.datapath.alu_func: AluOp.ADD,
             top.core.datapath.alu_op_a: "32h0000_0000",
             top.core.datapath.alu_op_b: "32h0000_0000",
             # PC
@@ -312,7 +312,7 @@ def test_dump():
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
             top.core.datapath.alu_result: "32h0000_0001",
-            top.core.datapath.alu_function: AluOp.SEQ,
+            top.core.datapath.alu_func: AluOp.SEQ,
             top.core.datapath.alu_op_b: "32h0000_0000",
             # PC
             top.core.datapath.pc_next: "32h0040_0018",
@@ -349,7 +349,7 @@ def test_dump():
             # Control
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
-            top.core.datapath.alu_function: AluOp.ADD,
+            top.core.datapath.alu_func: AluOp.ADD,
             top.core.datapath.alu_op_b: "32h0000_0001",
             # PC
             top.core.datapath.pc_next: "32h0040_001C",
@@ -528,7 +528,7 @@ def test_dump():
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
             top.core.datapath.alu_result: "32h0000_0001",
-            top.core.datapath.alu_function: AluOp.SEQ,
+            top.core.datapath.alu_func: AluOp.SEQ,
             top.core.datapath.alu_op_a: "32h0000_0002",
             top.core.datapath.alu_op_b: "32h0000_0002",
             # PC
@@ -570,7 +570,7 @@ def test_dump():
             top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
             top.core.datapath.alu_result: "32h0000_0003",
-            top.core.datapath.alu_function: AluOp.ADD,
+            top.core.datapath.alu_func: AluOp.ADD,
             top.core.datapath.alu_op_a: "32h0000_0000",
             top.core.datapath.alu_op_b: "32h0000_0003",
             # PC
@@ -764,7 +764,7 @@ def test_dump():
             top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
             top.core.datapath.alu_result: "32h0000_0001",
-            top.core.datapath.alu_function: AluOp.SEQ,
+            top.core.datapath.alu_func: AluOp.SEQ,
             top.core.datapath.alu_op_a: "32h0000_000A",
             top.core.datapath.alu_op_b: "32h0000_000A",
             # PC
@@ -809,7 +809,7 @@ def test_dump():
             # ALU
             top.core.datapath.alu_result: "32h0000_0000",
             top.core.datapath.alu_result_eq_zero: "1b1",
-            top.core.datapath.alu_function: AluOp.ADD,
+            top.core.datapath.alu_func: AluOp.ADD,
             top.core.datapath.alu_op_a: "32h0000_0000",
             top.core.datapath.alu_op_b: "32h0000_0000",
             # PC
