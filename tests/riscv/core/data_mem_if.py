@@ -12,39 +12,54 @@ class DataMemIf(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.data_format = Bits(name="data_format", parent=self, dtype=Vec[3])
+        data_format = Bits(name="data_format", parent=self, dtype=Vec[3])
 
-        self.addr = Bits(name="addr", parent=self, dtype=Vec[32])
-        self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_data = Bits(name="wr_data", parent=self, dtype=Vec[32])
-        self.rd_en = Bit(name="rd_en", parent=self)
-        self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[32])
+        addr = Bits(name="addr", parent=self, dtype=Vec[32])
+        wr_en = Bit(name="wr_en", parent=self)
+        wr_data = Bits(name="wr_data", parent=self, dtype=Vec[32])
+        rd_en = Bit(name="rd_en", parent=self)
+        rd_data = Bits(name="rd_data", parent=self, dtype=Vec[32])
 
-        self.bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
-        self.bus_wr_en = Bit(name="bus_wr_en", parent=self)
-        self.bus_wr_be = Bits(name="bus_wr_be", parent=self, dtype=Vec[4])
-        self.bus_wr_data = Bits(name="bus_wr_data", parent=self, dtype=Vec[32])
-        self.bus_rd_en = Bit(name="bus_rd_en", parent=self)
-        self.bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[32])
+        bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
+        bus_wr_en = Bit(name="bus_wr_en", parent=self)
+        bus_wr_be = Bits(name="bus_wr_be", parent=self, dtype=Vec[4])
+        bus_wr_data = Bits(name="bus_wr_data", parent=self, dtype=Vec[32])
+        bus_rd_en = Bit(name="bus_rd_en", parent=self)
+        bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[32])
 
-        self._byte_addr = Bits(name="byte_addr", parent=self, dtype=Vec[2])
+        byte_addr = Bits(name="byte_addr", parent=self, dtype=Vec[2])
 
-        self.connect(self.bus_addr, self.addr)
-        self.connect(self.bus_wr_en, self.wr_en)
-        self.connect(self.bus_rd_en, self.rd_en)
+        self.connect(bus_addr, addr)
+        self.connect(bus_wr_en, wr_en)
+        self.connect(bus_rd_en, rd_en)
+
+        # TODO(cjdrake): Remove
+        self.data_format = data_format
+        self.addr = addr
+        self.wr_en = wr_en
+        self.wr_data = wr_data
+        self.rd_en = rd_en
+        self.rd_data = rd_data
+        self.bus_addr = bus_addr
+        self.byte_addr = byte_addr
+        self.bus_wr_en = bus_wr_en
+        self.bus_wr_be = bus_wr_be
+        self.bus_wr_data = bus_wr_data
+        self.bus_rd_en = bus_rd_en
+        self.bus_rd_data = bus_rd_data
 
     @reactive
     async def p_c_0(self):
         while True:
-            await changed(self.data_format, self._byte_addr)
+            await changed(self.data_format, self.byte_addr)
             sel = self.data_format.value[:2]
             match sel:
                 case "2b00":
-                    self.bus_wr_be.next = "4b0001" << self._byte_addr.value
+                    self.bus_wr_be.next = "4b0001" << self.byte_addr.value
                 case "2b01":
-                    self.bus_wr_be.next = "4b0011" << self._byte_addr.value
+                    self.bus_wr_be.next = "4b0011" << self.byte_addr.value
                 case "2b10":
-                    self.bus_wr_be.next = "4b1111" << self._byte_addr.value
+                    self.bus_wr_be.next = "4b1111" << self.byte_addr.value
                 case "2b11":
                     self.bus_wr_be.next = "4b0000"
                 case _:
@@ -53,15 +68,15 @@ class DataMemIf(Module):
     @reactive
     async def p_c_1(self):
         while True:
-            await changed(self.addr, self.wr_data, self._byte_addr)
-            n = cat("3b000", self._byte_addr.value)
+            await changed(self.addr, self.wr_data, self.byte_addr)
+            n = cat("3b000", self.byte_addr.value)
             self.bus_wr_data.next = self.wr_data.value << n
 
     @reactive
     async def p_c_2(self):
         while True:
-            await changed(self.data_format, self.bus_rd_data, self._byte_addr)
-            n = cat("3b000", self._byte_addr.value)
+            await changed(self.data_format, self.bus_rd_data, self.byte_addr)
+            n = cat("3b000", self.byte_addr.value)
             data = self.bus_rd_data.value >> n
             sel = self.data_format.value[:2]
             match sel:
@@ -80,4 +95,4 @@ class DataMemIf(Module):
     async def p_c_3(self):
         while True:
             await changed(self.addr)
-            self._byte_addr.next = self.addr.value[:2]
+            self.byte_addr.next = self.addr.value[:2]

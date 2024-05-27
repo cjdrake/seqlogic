@@ -28,11 +28,11 @@ class TextMem(Module):
         self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
 
         # State
-        self._mem = Array(name="mem", parent=self, dtype=Vec[self._width])
+        self.mem = Array(name="mem", parent=self, dtype=Vec[self._width])
 
     @reactive
     async def p_c_0(self):
         while True:
-            await changed(self.rd_addr, self._mem)
+            await changed(self.rd_addr, self.mem)
             addr = self.rd_addr.value
-            self.rd_data.next = self._mem[addr].value
+            self.rd_data.next = self.mem[addr].value

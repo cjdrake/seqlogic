@@ -18,22 +18,31 @@ class DataMem(Module):
         byte_addr_bits: int = 2,
     ):
         super().__init__(name, parent)
-        self._word_addr_bits = word_addr_bits
-        self._byte_addr_bits = byte_addr_bits
+
         # self._depth = 2**self._word_addr_bits
-        self._word_bytes = 2**self._byte_addr_bits
-        self._width = self._word_bytes * BYTE_BITS
+        word_bytes = 2**byte_addr_bits
+        width = word_bytes * BYTE_BITS
 
         # Ports
-        self.addr = Bits(name="addr", parent=self, dtype=Vec[self._word_addr_bits])
-        self.wr_en = Bit(name="wr_en", parent=self)
-        self.wr_be = Bits(name="wr_be", parent=self, dtype=Vec[self._word_bytes])
-        self.wr_data = Bits(name="wr_data", parent=self, dtype=Vec[self._width])
-        self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
-        self.clock = Bit(name="clock", parent=self)
+        addr = Bits(name="addr", parent=self, dtype=Vec[word_addr_bits])
+        wr_en = Bit(name="wr_en", parent=self)
+        wr_be = Bits(name="wr_be", parent=self, dtype=Vec[word_bytes])
+        wr_data = Bits(name="wr_data", parent=self, dtype=Vec[width])
+        rd_data = Bits(name="rd_data", parent=self, dtype=Vec[width])
+        clock = Bit(name="clock", parent=self)
 
         # State
-        self._mem = Array(name="mem", parent=self, dtype=Vec[self._width])
+        mem = Array(name="mem", parent=self, dtype=Vec[width])
+
+        # TODO(cjdrake): Remove
+        self.word_bytes = word_bytes
+        self.addr = addr
+        self.wr_en = wr_en
+        self.wr_be = wr_be
+        self.wr_data = wr_data
+        self.rd_data = rd_data
+        self.clock = clock
+        self.mem = mem
 
     @active
     async def p_f_0(self):
@@ -47,16 +56,16 @@ class DataMem(Module):
             # If wr_en=1, addr/be must be known
             assert not addr.has_unknown() and not be.has_unknown()
             # fmt: off
-            self._mem[addr].next = cat(*[
+            self.mem[addr].next = cat(*[
                 self.wr_data.value[8*i:8*(i+1)] if be[i] else  # noqa
-                self._mem[addr].value[8*i:8*(i+1)]  # noqa
-                for i in range(self._word_bytes)
+                self.mem[addr].value[8*i:8*(i+1)]  # noqa
+                for i in range(self.word_bytes)
             ])
             # fmt: on
 
     @reactive
     async def p_c_0(self):
         while True:
-            await changed(self.addr, self._mem)
+            await changed(self.addr, self.mem)
             addr = self.addr.value
-            self.rd_data.next = self._mem[addr].value
+            self.rd_data.next = self.mem[addr].value

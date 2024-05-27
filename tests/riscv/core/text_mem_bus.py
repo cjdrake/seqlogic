@@ -17,46 +17,57 @@ class TextMemBus(Module):
 
     def __init__(self, name: str, parent: Module | None, depth: int = 1024):
         super().__init__(name, parent)
-        self._depth = depth
-        self._width = WORD_BYTES * BYTE_BITS
-        self._word_addr_bits = clog2(depth)
-        self._byte_addr_bits = clog2(WORD_BYTES)
-        self._text_start = uint2vec(TEXT_BASE, ADDR_BITS)
-        self._text_stop = uint2vec(TEXT_BASE + TEXT_SIZE, ADDR_BITS)
+
+        width = WORD_BYTES * BYTE_BITS
+        word_addr_bits = clog2(depth)
+        byte_addr_bits = clog2(WORD_BYTES)
+        text_start = uint2vec(TEXT_BASE, ADDR_BITS)
+        text_stop = uint2vec(TEXT_BASE + TEXT_SIZE, ADDR_BITS)
 
         # Ports
-        self.rd_addr = Bits(name="rd_addr", parent=self, dtype=Vec[ADDR_BITS])
-        self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
+        rd_addr = Bits(name="rd_addr", parent=self, dtype=Vec[ADDR_BITS])
+        rd_data = Bits(name="rd_data", parent=self, dtype=Vec[width])
 
         # State
-        self._is_text = Bit(name="is_text", parent=self)
-        self._text = Bits(name="text", parent=self, dtype=Vec[self._width])
+        is_text = Bit(name="is_text", parent=self)
+        text = Bits(name="text", parent=self, dtype=Vec[width])
 
         # Submodules
-        self.text_mem = TextMem(
+        text_mem = TextMem(
             "text_mem",
             parent=self,
-            word_addr_bits=self._word_addr_bits,
-            byte_addr_bits=self._byte_addr_bits,
+            word_addr_bits=word_addr_bits,
+            byte_addr_bits=byte_addr_bits,
         )
-        self.connect(self._text, self.text_mem.rd_data)
+        self.connect(text, text_mem.rd_data)
+
+        # TODO(cjdrake): Remove
+        self.word_addr_bits = word_addr_bits
+        self.byte_addr_bits = byte_addr_bits
+        self.text_start = text_start
+        self.text_stop = text_stop
+        self.rd_addr = rd_addr
+        self.rd_data = rd_data
+        self.is_text = is_text
+        self.text = text
+        self.text_mem = text_mem
 
     @reactive
     async def p_c_0(self):
         while True:
             await changed(self.rd_addr)
-            start_lte_addr = self._text_start.lteu(self.rd_addr.value)
-            addr_lt_stop = self.rd_addr.value.ltu(self._text_stop)
-            self._is_text.next = start_lte_addr & addr_lt_stop
+            start_lte_addr = self.text_start.lteu(self.rd_addr.value)
+            addr_lt_stop = self.rd_addr.value.ltu(self.text_stop)
+            self.is_text.next = start_lte_addr & addr_lt_stop
 
     @reactive
     async def p_c_1(self):
         while True:
-            await changed(self._is_text, self._text)
-            sel = self._is_text.value
+            await changed(self.is_text, self.text)
+            sel = self.is_text.value
             match sel:
                 case "1b1":
-                    self.rd_data.next = self._text.value
+                    self.rd_data.next = self.text.value
                 case _:
                     self.rd_data.xprop(sel)
 
@@ -64,6 +75,6 @@ class TextMemBus(Module):
     async def p_c_2(self):
         while True:
             await changed(self.rd_addr)
-            m = self._byte_addr_bits
-            n = self._byte_addr_bits + self._word_addr_bits
+            m = self.byte_addr_bits
+            n = self.byte_addr_bits + self.word_addr_bits
             self.text_mem.rd_addr.next = self.rd_addr.value[m:n]

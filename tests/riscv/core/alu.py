@@ -19,7 +19,8 @@ def alu_result(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
         case AluOp.SRL:
             return a >> b[0:5]
         case AluOp.SRA:
-            return a.arsh(b[0:5])[0]
+            y, _ = a.arsh(b[0:5])
+            return y
         case AluOp.SEQ:
             return a.eq(b).zext(32 - 1)
         case AluOp.SLT:
@@ -51,7 +52,7 @@ class Alu(Module):
         self.combi(result, alu_result, alu_func, op_a, op_b)
         self.combi(result_eq_zero, lambda x: x.eq("32h0000_0000"), result)
 
-        # TODO(cjdrake): Remove this
+        # TODO(cjdrake): Remove
         self.result = result
         self.result_eq_zero = result_eq_zero
         self.alu_func = alu_func

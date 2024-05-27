@@ -25,26 +25,46 @@ class CtlPath(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.inst_opcode = Bits(name="inst_opcode", parent=self, dtype=Opcode)
-        self.inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Funct3)
-        self.inst_funct7 = Bits(name="inst_funct7", parent=self, dtype=Vec[7])
-        self.alu_result_eq_zero = Bit(name="alu_result_eq_zero", parent=self)
-        self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
-        self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
-        self.alu_op_a_sel = Bits(name="alu_op_a_sel", parent=self, dtype=CtlAluA)
-        self.alu_op_b_sel = Bits(name="alu_op_b_sel", parent=self, dtype=CtlAluB)
-        self.data_mem_rd_en = Bit(name="data_mem_rd_en", parent=self)
-        self.data_mem_wr_en = Bit(name="data_mem_wr_en", parent=self)
-        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
-        self.alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
-        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
+        inst_opcode = Bits(name="inst_opcode", parent=self, dtype=Opcode)
+        inst_funct3 = Bits(name="inst_funct3", parent=self, dtype=Funct3)
+        inst_funct7 = Bits(name="inst_funct7", parent=self, dtype=Vec[7])
+        alu_result_eq_zero = Bit(name="alu_result_eq_zero", parent=self)
+        pc_wr_en = Bit(name="pc_wr_en", parent=self)
+        regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
+        alu_op_a_sel = Bits(name="alu_op_a_sel", parent=self, dtype=CtlAluA)
+        alu_op_b_sel = Bits(name="alu_op_b_sel", parent=self, dtype=CtlAluB)
+        data_mem_rd_en = Bit(name="data_mem_rd_en", parent=self)
+        data_mem_wr_en = Bit(name="data_mem_wr_en", parent=self)
+        reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
+        alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
+        next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
 
         # State
-        self._take_branch = Bit(name="take_branch", parent=self)
-        self._alu_op_type = Bits(name="alu_op_type", parent=self, dtype=CtlAlu)
-        self._default_func = Bits(name="default_funct", parent=self, dtype=AluOp)
-        self._secondary_func = Bits(name="secondary_funct", parent=self, dtype=AluOp)
-        self._branch_func = Bits(name="branch_funct", parent=self, dtype=AluOp)
+        take_branch = Bit(name="take_branch", parent=self)
+        alu_op_type = Bits(name="alu_op_type", parent=self, dtype=CtlAlu)
+        default_func = Bits(name="default_funct", parent=self, dtype=AluOp)
+        secondary_func = Bits(name="secondary_funct", parent=self, dtype=AluOp)
+        branch_func = Bits(name="branch_funct", parent=self, dtype=AluOp)
+
+        # TODO(cjdrake): Remove
+        self.inst_opcode = inst_opcode
+        self.inst_funct3 = inst_funct3
+        self.inst_funct7 = inst_funct7
+        self.alu_result_eq_zero = alu_result_eq_zero
+        self.pc_wr_en = pc_wr_en
+        self.regfile_wr_en = regfile_wr_en
+        self.alu_op_a_sel = alu_op_a_sel
+        self.alu_op_b_sel = alu_op_b_sel
+        self.data_mem_rd_en = data_mem_rd_en
+        self.data_mem_wr_en = data_mem_wr_en
+        self.reg_writeback_sel = reg_writeback_sel
+        self.alu_func = alu_func
+        self.next_pc_sel = next_pc_sel
+        self.take_branch = take_branch
+        self.alu_op_type = alu_op_type
+        self.default_func = default_func
+        self.secondary_func = secondary_func
+        self.branch_func = branch_func
 
     @reactive
     async def p_c_0(self):
@@ -53,19 +73,19 @@ class CtlPath(Module):
             sel = self.inst_funct3.value.branch
             match sel:
                 case Funct3Branch.EQ:
-                    self._take_branch.next = ~self.alu_result_eq_zero.value
+                    self.take_branch.next = ~self.alu_result_eq_zero.value
                 case Funct3Branch.NE:
-                    self._take_branch.next = self.alu_result_eq_zero.value
+                    self.take_branch.next = self.alu_result_eq_zero.value
                 case Funct3Branch.LT:
-                    self._take_branch.next = ~self.alu_result_eq_zero.value
+                    self.take_branch.next = ~self.alu_result_eq_zero.value
                 case Funct3Branch.GE:
-                    self._take_branch.next = self.alu_result_eq_zero.value
+                    self.take_branch.next = self.alu_result_eq_zero.value
                 case Funct3Branch.LTU:
-                    self._take_branch.next = ~self.alu_result_eq_zero.value
+                    self.take_branch.next = ~self.alu_result_eq_zero.value
                 case Funct3Branch.GEU:
-                    self._take_branch.next = self.alu_result_eq_zero.value
+                    self.take_branch.next = self.alu_result_eq_zero.value
                 case _:
-                    self._take_branch.xprop(sel)
+                    self.take_branch.xprop(sel)
 
     @reactive
     async def p_c_1(self):
@@ -74,31 +94,31 @@ class CtlPath(Module):
             sel = self.inst_funct3.value.alu_logic
             match sel:
                 case Funct3AluLogic.ADD_SUB:
-                    self._default_func.next = AluOp.ADD
+                    self.default_func.next = AluOp.ADD
                 case Funct3AluLogic.SLL:
-                    self._default_func.next = AluOp.SLL
+                    self.default_func.next = AluOp.SLL
                 case Funct3AluLogic.SLT:
-                    self._default_func.next = AluOp.SLT
+                    self.default_func.next = AluOp.SLT
                 case Funct3AluLogic.SLTU:
-                    self._default_func.next = AluOp.SLTU
+                    self.default_func.next = AluOp.SLTU
                 case Funct3AluLogic.XOR:
-                    self._default_func.next = AluOp.XOR
+                    self.default_func.next = AluOp.XOR
                 case Funct3AluLogic.SHIFTR:
-                    self._default_func.next = AluOp.SRL
+                    self.default_func.next = AluOp.SRL
                 case Funct3AluLogic.OR:
-                    self._default_func.next = AluOp.OR
+                    self.default_func.next = AluOp.OR
                 case Funct3AluLogic.AND:
-                    self._default_func.next = AluOp.AND
+                    self.default_func.next = AluOp.AND
                 case _:
-                    self._default_func.xprop(sel)
+                    self.default_func.xprop(sel)
 
             match sel:
                 case Funct3AluLogic.ADD_SUB:
-                    self._secondary_func.next = AluOp.SUB
+                    self.secondary_func.next = AluOp.SUB
                 case Funct3AluLogic.SHIFTR:
-                    self._secondary_func.next = AluOp.SRA
+                    self.secondary_func.next = AluOp.SRA
                 case _:
-                    self._secondary_func.xprop(sel)
+                    self.secondary_func.xprop(sel)
 
     @reactive
     async def p_c_2(self):
@@ -107,38 +127,38 @@ class CtlPath(Module):
             sel = self.inst_funct3.value.branch
             match sel:
                 case Funct3Branch.EQ | Funct3Branch.NE:
-                    self._branch_func.next = AluOp.SEQ
+                    self.branch_func.next = AluOp.SEQ
                 case Funct3Branch.LT | Funct3Branch.GE:
-                    self._branch_func.next = AluOp.SLT
+                    self.branch_func.next = AluOp.SLT
                 case Funct3Branch.LTU | Funct3Branch.GEU:
-                    self._branch_func.next = AluOp.SLTU
+                    self.branch_func.next = AluOp.SLTU
                 case _:
-                    self._branch_func.xprop(sel)
+                    self.branch_func.xprop(sel)
 
     @reactive
     async def p_c_3(self):
         while True:
             await changed(
-                self._alu_op_type,
+                self.alu_op_type,
                 self.inst_funct3,
                 self.inst_funct7,
-                self._secondary_func,
-                self._default_func,
-                self._branch_func,
+                self.secondary_func,
+                self.default_func,
+                self.branch_func,
             )
-            sel = self._alu_op_type.value
+            sel = self.alu_op_type.value
             match sel:
                 case CtlAlu.ADD:
                     self.alu_func.next = AluOp.ADD
                 case CtlAlu.BRANCH:
-                    self.alu_func.next = self._branch_func.value
+                    self.alu_func.next = self.branch_func.value
                 case CtlAlu.OP:
                     sel = self.inst_funct7.value[5]
                     match sel:
                         case "1b0":
-                            self.alu_func.next = self._default_func.value
+                            self.alu_func.next = self.default_func.value
                         case "1b1":
-                            self.alu_func.next = self._secondary_func.value
+                            self.alu_func.next = self.secondary_func.value
                         case _:
                             self.alu_func.xprop(sel)
                 case CtlAlu.OP_IMM:
@@ -148,9 +168,9 @@ class CtlPath(Module):
                     sel = a & (b | c)
                     match sel:
                         case "1b0":
-                            self.alu_func.next = self._default_func.value
+                            self.alu_func.next = self.default_func.value
                         case "1b1":
-                            self.alu_func.next = self._secondary_func.value
+                            self.alu_func.next = self.secondary_func.value
                         case _:
                             self.alu_func.xprop(sel)
                 case _:
@@ -159,7 +179,7 @@ class CtlPath(Module):
     @reactive
     async def p_c_4(self):
         while True:
-            await changed(self.inst_opcode, self._take_branch)
+            await changed(self.inst_opcode, self.take_branch)
             sel = self.inst_opcode.value
             match sel:
                 case (
@@ -173,7 +193,7 @@ class CtlPath(Module):
                 ):
                     self.next_pc_sel.next = CtlPc.PC4
                 case Opcode.BRANCH:
-                    sel = self._take_branch.value
+                    sel = self.take_branch.value
                     match sel:
                         case "1b0":
                             self.next_pc_sel.next = CtlPc.PC4
@@ -199,7 +219,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.IMM
-                    self._alu_op_type.next = CtlAlu.ADD
+                    self.alu_op_type.next = CtlAlu.ADD
                     self.data_mem_rd_en.next = "1b1"
                     self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.DATA
@@ -208,7 +228,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.next = "1b0"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.RS2
-                    self._alu_op_type.next = CtlAlu.ADD
+                    self.alu_op_type.next = CtlAlu.ADD
                     self.data_mem_rd_en.next = "1b0"
                     self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
@@ -217,7 +237,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.IMM
-                    self._alu_op_type.next = CtlAlu.OP_IMM
+                    self.alu_op_type.next = CtlAlu.OP_IMM
                     self.data_mem_rd_en.next = "1b0"
                     self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
@@ -226,7 +246,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.PC
                     self.alu_op_b_sel.next = CtlAluB.IMM
-                    self._alu_op_type.next = CtlAlu.ADD
+                    self.alu_op_type.next = CtlAlu.ADD
                     self.data_mem_rd_en.next = "1b0"
                     self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
@@ -235,7 +255,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.next = "1b0"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.IMM
-                    self._alu_op_type.next = CtlAlu.ADD
+                    self.alu_op_type.next = CtlAlu.ADD
                     self.data_mem_rd_en.next = "1b0"
                     self.data_mem_wr_en.next = "1b1"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
@@ -244,7 +264,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.RS2
-                    self._alu_op_type.next = CtlAlu.OP
+                    self.alu_op_type.next = CtlAlu.OP
                     self.data_mem_rd_en.next = "1b0"
                     self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
@@ -253,7 +273,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.RS2
-                    self._alu_op_type.next = CtlAlu.ADD
+                    self.alu_op_type.next = CtlAlu.ADD
                     self.data_mem_rd_en.next = "1b0"
                     self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.IMM
@@ -262,7 +282,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.next = "1b0"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.RS2
-                    self._alu_op_type.next = CtlAlu.BRANCH
+                    self.alu_op_type.next = CtlAlu.BRANCH
                     self.data_mem_rd_en.next = "1b0"
                     self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.ALU
@@ -271,7 +291,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.RS1
                     self.alu_op_b_sel.next = CtlAluB.IMM
-                    self._alu_op_type.next = CtlAlu.ADD
+                    self.alu_op_type.next = CtlAlu.ADD
                     self.data_mem_rd_en.next = "1b0"
                     self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.PC4
@@ -280,7 +300,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.next = "1b1"
                     self.alu_op_a_sel.next = CtlAluA.PC
                     self.alu_op_b_sel.next = CtlAluB.IMM
-                    self._alu_op_type.next = CtlAlu.ADD
+                    self.alu_op_type.next = CtlAlu.ADD
                     self.data_mem_rd_en.next = "1b0"
                     self.data_mem_wr_en.next = "1b0"
                     self.reg_writeback_sel.next = CtlWriteBack.PC4
@@ -289,7 +309,7 @@ class CtlPath(Module):
                     self.regfile_wr_en.xprop(sel)
                     self.alu_op_a_sel.xprop(sel)
                     self.alu_op_b_sel.xprop(sel)
-                    self._alu_op_type.xprop(sel)
+                    self.alu_op_type.xprop(sel)
                     self.data_mem_rd_en.xprop(sel)
                     self.data_mem_wr_en.xprop(sel)
                     self.reg_writeback_sel.xprop(sel)

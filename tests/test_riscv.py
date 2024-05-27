@@ -9,7 +9,6 @@ We are not presently interested in the details of RISC-V.
 It merely serves as a non-trivial example design.
 """
 
-# pylint: disable = protected-access
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportCallIssue=false
 
@@ -71,7 +70,7 @@ def test_dump():
     # Initialize instruction memory
     text = get_mem("tests/riscv/tests/add.text")
     for i, d in enumerate(text):
-        top.text_mem_bus.text_mem._mem.set_next(i, uint2vec(d, 32))
+        top.text_mem_bus.text_mem.mem.set_next(i, uint2vec(d, 32))
 
     loop.run(until=50)
 
@@ -79,8 +78,8 @@ def test_dump():
         # Initialize everything to X'es
         -1: {
             # Top
-            top._pc: X32,
-            top._inst: Inst(),
+            top.pc: X32,
+            top.inst: Inst(),
             top.bus_addr: X32,
             top.bus_wr_en: "1bX",
             top.bus_wr_data: X32,
@@ -116,8 +115,8 @@ def test_dump():
         },
         # @(posedge reset)
         5: {
-            top._pc: "32h0040_0000",
-            top._inst: Inst(
+            top.pc: "32h0040_0000",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
                 funct3="3b000",
@@ -167,8 +166,8 @@ def test_dump():
         },
         # @(posedge clock)
         11: {
-            top._pc: "32h0040_0004",
-            top._inst: Inst(
+            top.pc: "32h0040_0004",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00010",
                 funct3="3b000",
@@ -194,8 +193,8 @@ def test_dump():
         },
         # @(posedge clock)
         13: {
-            top._pc: "32h0040_0008",
-            top._inst: Inst(
+            top.pc: "32h0040_0008",
+            top.inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
                 funct3="3b000",
@@ -223,8 +222,8 @@ def test_dump():
         },
         # @(posedge clock)
         15: {
-            top._pc: "32h0040_000C",
-            top._inst: Inst(
+            top.pc: "32h0040_000C",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11101",
                 funct3="3b000",
@@ -252,8 +251,8 @@ def test_dump():
         },
         # @(posedge clock)
         17: {
-            top._pc: "32h0040_0010",
-            top._inst: Inst(
+            top.pc: "32h0040_0010",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11100",
                 funct3="3b000",
@@ -288,8 +287,8 @@ def test_dump():
         },
         # @(posedge clock)
         19: {
-            top._pc: "32h0040_0014",
-            top._inst: Inst(
+            top.pc: "32h0040_0014",
+            top.inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd="5b01100",
                 funct3="3b001",
@@ -327,8 +326,8 @@ def test_dump():
         },
         # @(posedge clock)
         21: {
-            top._pc: "32h0040_0018",
-            top._inst: Inst(
+            top.pc: "32h0040_0018",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
                 funct3="3b000",
@@ -361,8 +360,8 @@ def test_dump():
         },
         # @(posedge clock)
         23: {
-            top._pc: "32h0040_001C",
-            top._inst: Inst(
+            top.pc: "32h0040_001C",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00010",
                 funct3="3b000",
@@ -392,8 +391,8 @@ def test_dump():
         },
         # @(posedge clock)
         25: {
-            top._pc: "32h0040_0020",
-            top._inst: Inst(
+            top.pc: "32h0040_0020",
+            top.inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
                 funct3="3b000",
@@ -431,8 +430,8 @@ def test_dump():
         },
         # @(posedge clock)
         27: {
-            top._pc: "32h0040_0024",
-            top._inst: Inst(
+            top.pc: "32h0040_0024",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11101",
                 funct3="3b000",
@@ -465,8 +464,8 @@ def test_dump():
         },
         # @(posedge clock)
         29: {
-            top._pc: "32h0040_0028",
-            top._inst: Inst(
+            top.pc: "32h0040_0028",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11100",
                 funct3="3b000",
@@ -503,8 +502,8 @@ def test_dump():
         },
         # @(posedge clock)
         31: {
-            top._pc: "32h0040_002C",
-            top._inst: Inst(
+            top.pc: "32h0040_002C",
+            top.inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd="5b10100",
                 funct3="3b001",
@@ -545,8 +544,8 @@ def test_dump():
         },
         # @(posedge clock)
         33: {
-            top._pc: "32h0040_0030",
-            top._inst: Inst(
+            top.pc: "32h0040_0030",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
                 funct3="3b000",
@@ -587,8 +586,8 @@ def test_dump():
         },
         # @(posedge clock)
         35: {
-            top._pc: "32h0040_0034",
-            top._inst: Inst(
+            top.pc: "32h0040_0034",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00010",
                 funct3="3b000",
@@ -625,8 +624,8 @@ def test_dump():
         },
         # @(posedge clock)
         37: {
-            top._pc: "32h0040_0038",
-            top._inst: Inst(
+            top.pc: "32h0040_0038",
+            top.inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
                 funct3="3b000",
@@ -666,8 +665,8 @@ def test_dump():
         },
         # @(posedge clock)
         39: {
-            top._pc: "32h0040_003C",
-            top._inst: Inst(
+            top.pc: "32h0040_003C",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11101",
                 funct3="3b000",
@@ -704,8 +703,8 @@ def test_dump():
         },
         # @(posedge clock)
         41: {
-            top._pc: "32h0040_0040",
-            top._inst: Inst(
+            top.pc: "32h0040_0040",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11100",
                 funct3="3b000",
@@ -739,8 +738,8 @@ def test_dump():
         },
         # @(posedge clock)
         43: {
-            top._pc: "32h0040_0044",
-            top._inst: Inst(
+            top.pc: "32h0040_0044",
+            top.inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd="5b11100",
                 funct3="3b001",
@@ -783,8 +782,8 @@ def test_dump():
         },
         # @(posedge clock)
         45: {
-            top._pc: "32h0040_0048",
-            top._inst: Inst(
+            top.pc: "32h0040_0048",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
                 funct3="3b000",
@@ -828,8 +827,8 @@ def test_dump():
         },
         # @(posedge clock)
         47: {
-            top._pc: "32h0040_004C",
-            top._inst: Inst(
+            top.pc: "32h0040_004C",
+            top.inst: Inst(
                 opcode=Opcode.LUI,
                 rd="5b00010",
                 funct3="3b000",
@@ -860,8 +859,8 @@ def test_dump():
         },
         # @(posedge clock)
         49: {
-            top._pc: "32h0040_0050",
-            top._inst: Inst(
+            top.pc: "32h0040_0050",
+            top.inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
                 funct3="3b000",
@@ -913,12 +912,12 @@ def run_riscv_test(name: str) -> int:
     # Initialize instruction memory
     text = get_mem(f"tests/riscv/tests/{name}.text")
     for i, d in enumerate(text):
-        top.text_mem_bus.text_mem._mem.set_next(i, uint2vec(d, 32))
+        top.text_mem_bus.text_mem.mem.set_next(i, uint2vec(d, 32))
 
     # Initialize data memory
     data = get_mem(f"tests/riscv/tests/{name}.data")
     for i, d in enumerate(data):
-        top.data_mem_bus.data_mem._mem.set_next(i, uint2vec(d, 32))
+        top.data_mem_bus.data_mem.mem.set_next(i, uint2vec(d, 32))
 
     # Run the simulation
     for _ in loop.iter(until=10000):

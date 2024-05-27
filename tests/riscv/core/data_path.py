@@ -15,74 +15,100 @@ class DataPath(Module):
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
 
-        self.data_mem_addr = Bits(name="data_mem_addr", parent=self, dtype=Vec[32])
-        self.data_mem_wr_data = Bits(name="data_mem_wr_data", parent=self, dtype=Vec[32])
-        self.data_mem_rd_data = Bits(name="data_mem_rd_data", parent=self, dtype=Vec[32])
+        data_mem_addr = Bits(name="data_mem_addr", parent=self, dtype=Vec[32])
+        data_mem_wr_data = Bits(name="data_mem_wr_data", parent=self, dtype=Vec[32])
+        data_mem_rd_data = Bits(name="data_mem_rd_data", parent=self, dtype=Vec[32])
 
-        self.inst = Bits(name="inst", parent=self, dtype=Inst)
-        self.pc = Bits(name="pc", parent=self, dtype=Vec[32])
+        inst = Bits(name="inst", parent=self, dtype=Inst)
+        pc = Bits(name="pc", parent=self, dtype=Vec[32])
 
         # Immedate generate
-        self.immediate = Bits(name="immediate", parent=self, dtype=Vec[32])
+        immediate = Bits(name="immediate", parent=self, dtype=Vec[32])
 
         # PC + 4
-        self.pc_plus_4 = Bits(name="pc_plus_4", parent=self, dtype=Vec[32])
+        pc_plus_4 = Bits(name="pc_plus_4", parent=self, dtype=Vec[32])
 
         # PC + Immediate
-        self.pc_plus_immediate = Bits(name="pc_plus_immediate", parent=self, dtype=Vec[32])
+        pc_plus_immediate = Bits(name="pc_plus_immediate", parent=self, dtype=Vec[32])
 
         # Control signals
-        self.pc_wr_en = Bit(name="pc_wr_en", parent=self)
-        self.regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
-        self.alu_op_a_sel = Bits(name="alu_op_a_sel", parent=self, dtype=CtlAluA)
-        self.alu_op_b_sel = Bits(name="alu_op_b_sel", parent=self, dtype=CtlAluB)
-        self.alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
-        self.reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
-        self.next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
+        pc_wr_en = Bit(name="pc_wr_en", parent=self)
+        regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
+        alu_op_a_sel = Bits(name="alu_op_a_sel", parent=self, dtype=CtlAluA)
+        alu_op_b_sel = Bits(name="alu_op_b_sel", parent=self, dtype=CtlAluB)
+        alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
+        reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
+        next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
 
         # Select ALU Ops
-        self.alu_op_a = Bits(name="alu_op_a", parent=self, dtype=Vec[32])
-        self.alu_op_b = Bits(name="alu_op_b", parent=self, dtype=Vec[32])
+        alu_op_a = Bits(name="alu_op_a", parent=self, dtype=Vec[32])
+        alu_op_b = Bits(name="alu_op_b", parent=self, dtype=Vec[32])
 
         # ALU Outputs
-        self.alu_result = Bits(name="alu_result", parent=self, dtype=Vec[32])
-        self.alu_result_eq_zero = Bit(name="alu_result_eq_zero", parent=self)
+        alu_result = Bits(name="alu_result", parent=self, dtype=Vec[32])
+        alu_result_eq_zero = Bit(name="alu_result_eq_zero", parent=self)
 
         # Next PC
-        self.pc_next = Bits(name="pc_next", parent=self, dtype=Vec[32])
+        pc_next = Bits(name="pc_next", parent=self, dtype=Vec[32])
 
         # Regfile Write Data
-        self.wr_data = Bits(name="wr_data", parent=self, dtype=Vec[32])
+        wr_data = Bits(name="wr_data", parent=self, dtype=Vec[32])
 
-        self.clock = Bit(name="clock", parent=self)
-        self.reset = Bit(name="reset", parent=self)
+        clock = Bit(name="clock", parent=self)
+        reset = Bit(name="reset", parent=self)
 
         # State
-        self.rs1_data = Bits(name="rs1_data", parent=self, dtype=Vec[32])
-        self.rs2_data = Bits(name="rs2_data", parent=self, dtype=Vec[32])
+        rs1_data = Bits(name="rs1_data", parent=self, dtype=Vec[32])
+        rs2_data = Bits(name="rs2_data", parent=self, dtype=Vec[32])
 
         # Submodules
-        self.alu = Alu(name="alu", parent=self)
-        self.connect(self.alu_result, self.alu.result)
-        self.connect(self.alu_result_eq_zero, self.alu.result_eq_zero)
-        self.connect(self.alu.alu_func, self.alu_func)
-        self.connect(self.alu.op_a, self.alu_op_a)
-        self.connect(self.alu.op_b, self.alu_op_b)
+        alu = Alu(name="alu", parent=self)
+        self.connect(alu_result, alu.result)
+        self.connect(alu_result_eq_zero, alu.result_eq_zero)
+        self.connect(alu.alu_func, alu_func)
+        self.connect(alu.op_a, alu_op_a)
+        self.connect(alu.op_b, alu_op_b)
 
-        self.regfile = RegFile(name="regfile", parent=self)
-        self.connect(self.regfile.wr_en, self.regfile_wr_en)
-        self.connect(self.regfile.wr_data, self.wr_data)
-        self.connect(self.rs1_data, self.regfile.rs1_data)
-        self.connect(self.rs2_data, self.regfile.rs2_data)
-        self.connect(self.regfile.clock, self.clock)
-        self.connect(self.regfile.reset, self.reset)
+        regfile = RegFile(name="regfile", parent=self)
+        self.connect(regfile.wr_en, regfile_wr_en)
+        self.connect(regfile.wr_data, wr_data)
+        self.connect(rs1_data, regfile.rs1_data)
+        self.connect(rs2_data, regfile.rs2_data)
+        self.connect(regfile.clock, clock)
+        self.connect(regfile.reset, reset)
 
-        self.connect(self.data_mem_addr, self.alu_result)
-        self.connect(self.data_mem_wr_data, self.rs2_data)
+        self.connect(data_mem_addr, alu_result)
+        self.connect(data_mem_wr_data, rs2_data)
 
-        self.dff_en_ar(
-            self.pc, self.pc_next, self.pc_wr_en, self.clock, self.reset, uint2vec(TEXT_BASE, 32)
-        )
+        self.dff_en_ar(pc, pc_next, pc_wr_en, clock, reset, uint2vec(TEXT_BASE, 32))
+
+        # TODO(cjdrake): Remove
+        self.data_mem_addr = data_mem_addr
+        self.data_mem_wr_data = data_mem_wr_data
+        self.data_mem_rd_data = data_mem_rd_data
+        self.inst = inst
+        self.pc = pc
+        self.immediate = immediate
+        self.pc_plus_4 = pc_plus_4
+        self.pc_plus_immediate = pc_plus_immediate
+        self.pc_wr_en = pc_wr_en
+        self.regfile_wr_en = regfile_wr_en
+        self.alu_op_a_sel = alu_op_a_sel
+        self.alu_op_b_sel = alu_op_b_sel
+        self.alu_func = alu_func
+        self.reg_writeback_sel = reg_writeback_sel
+        self.next_pc_sel = next_pc_sel
+        self.alu_op_a = alu_op_a
+        self.alu_op_b = alu_op_b
+        self.alu_result = alu_result
+        self.alu_result_eq_zero = alu_result_eq_zero
+        self.pc_next = pc_next
+        self.wr_data = wr_data
+        self.clock = clock
+        self.reset = reset
+        self.rs1_data = rs1_data
+        self.rs2_data = rs2_data
+        self.regfile = regfile
 
     @reactive
     async def p_c_0(self):
