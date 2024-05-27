@@ -1,8 +1,45 @@
 """Data Memory Interface."""
 
-from seqlogic import Bit, Bits, Module, changed
+# pyright: reportAttributeAccessIssue=false
+
+from seqlogic import Module
 from seqlogic.lbool import Vec, cat, rep
-from seqlogic.sim import reactive
+
+
+def f_bus_wr_be(data_format: Vec[3], byte_addr: Vec[2]):
+    sel = data_format[:2]
+    match sel:
+        case "2b00":
+            return "4b0001" << byte_addr
+        case "2b01":
+            return "4b0011" << byte_addr
+        case "2b10":
+            return "4b1111" << byte_addr
+        case "2b11":
+            return "4b0000"
+        case _:
+            Vec[4].xprop(sel)
+
+
+def f_bus_wr_data(wr_data: Vec[32], byte_addr: Vec[2]) -> Vec[32]:
+    return wr_data << cat("3b000", byte_addr)
+
+
+def f_rd_data(data_format, bus_rd_data, byte_addr: Vec[2]) -> Vec[32]:
+    n = cat("3b000", byte_addr)
+    data = bus_rd_data >> n
+    sel = data_format[:2]
+    match sel:
+        case "2b00":
+            pad = ~(data_format[2]) & data[8 - 1]
+            return cat(data[:8], rep(pad, 24))
+        case "2b01":
+            pad = ~(data_format[2]) & data[16 - 1]
+            return cat(data[:16], rep(pad, 16))
+        case "2b10":
+            return data
+        case _:
+            return Vec[32].xprop(sel)
 
 
 class DataMemIf(Module):
@@ -12,87 +49,29 @@ class DataMemIf(Module):
         super().__init__(name, parent)
 
         # Ports
-        data_format = Bits(name="data_format", parent=self, dtype=Vec[3])
+        data_format = self.bits(name="data_format", dtype=Vec[3], port=True)
 
-        addr = Bits(name="addr", parent=self, dtype=Vec[32])
-        wr_en = Bit(name="wr_en", parent=self)
-        wr_data = Bits(name="wr_data", parent=self, dtype=Vec[32])
-        rd_en = Bit(name="rd_en", parent=self)
-        rd_data = Bits(name="rd_data", parent=self, dtype=Vec[32])
+        addr = self.bits(name="addr", dtype=Vec[32], port=True)
+        wr_en = self.bit(name="wr_en", port=True)
+        wr_data = self.bits(name="wr_data", dtype=Vec[32], port=True)
+        rd_en = self.bit(name="rd_en", port=True)
+        rd_data = self.bits(name="rd_data", dtype=Vec[32], port=True)
 
-        bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
-        bus_wr_en = Bit(name="bus_wr_en", parent=self)
-        bus_wr_be = Bits(name="bus_wr_be", parent=self, dtype=Vec[4])
-        bus_wr_data = Bits(name="bus_wr_data", parent=self, dtype=Vec[32])
-        bus_rd_en = Bit(name="bus_rd_en", parent=self)
-        bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[32])
+        bus_addr = self.bits(name="bus_addr", dtype=Vec[32], port=True)
+        bus_wr_en = self.bit(name="bus_wr_en", port=True)
+        bus_wr_be = self.bits(name="bus_wr_be", dtype=Vec[4], port=True)
+        bus_wr_data = self.bits(name="bus_wr_data", dtype=Vec[32], port=True)
+        bus_rd_en = self.bit(name="bus_rd_en", port=True)
+        bus_rd_data = self.bits(name="bus_rd_data", dtype=Vec[32], port=True)
 
-        byte_addr = Bits(name="byte_addr", parent=self, dtype=Vec[2])
+        byte_addr = self.bits(name="byte_addr", dtype=Vec[2])
 
         self.connect(bus_addr, addr)
         self.connect(bus_wr_en, wr_en)
         self.connect(bus_rd_en, rd_en)
 
-        # TODO(cjdrake): Remove
-        self.data_format = data_format
-        self.addr = addr
-        self.wr_en = wr_en
-        self.wr_data = wr_data
-        self.rd_en = rd_en
-        self.rd_data = rd_data
-        self.bus_addr = bus_addr
-        self.byte_addr = byte_addr
-        self.bus_wr_en = bus_wr_en
-        self.bus_wr_be = bus_wr_be
-        self.bus_wr_data = bus_wr_data
-        self.bus_rd_en = bus_rd_en
-        self.bus_rd_data = bus_rd_data
-
-    @reactive
-    async def p_c_0(self):
-        while True:
-            await changed(self.data_format, self.byte_addr)
-            sel = self.data_format.value[:2]
-            match sel:
-                case "2b00":
-                    self.bus_wr_be.next = "4b0001" << self.byte_addr.value
-                case "2b01":
-                    self.bus_wr_be.next = "4b0011" << self.byte_addr.value
-                case "2b10":
-                    self.bus_wr_be.next = "4b1111" << self.byte_addr.value
-                case "2b11":
-                    self.bus_wr_be.next = "4b0000"
-                case _:
-                    self.bus_wr_be.xprop(sel)
-
-    @reactive
-    async def p_c_1(self):
-        while True:
-            await changed(self.addr, self.wr_data, self.byte_addr)
-            n = cat("3b000", self.byte_addr.value)
-            self.bus_wr_data.next = self.wr_data.value << n
-
-    @reactive
-    async def p_c_2(self):
-        while True:
-            await changed(self.data_format, self.bus_rd_data, self.byte_addr)
-            n = cat("3b000", self.byte_addr.value)
-            data = self.bus_rd_data.value >> n
-            sel = self.data_format.value[:2]
-            match sel:
-                case "2b00":
-                    pad = ~(self.data_format.value[2]) & data[8 - 1]
-                    self.rd_data.next = cat(data[:8], rep(pad, 24))
-                case "2b01":
-                    pad = ~(self.data_format.value[2]) & data[16 - 1]
-                    self.rd_data.next = cat(data[:16], rep(pad, 16))
-                case "2b10":
-                    self.rd_data.next = data
-                case _:
-                    self.rd_data.xprop(sel)
-
-    @reactive
-    async def p_c_3(self):
-        while True:
-            await changed(self.addr)
-            self.byte_addr.next = self.addr.value[:2]
+        # Combinational Logic
+        self.combi(bus_wr_be, f_bus_wr_be, data_format, byte_addr)
+        self.combi(bus_wr_data, f_bus_wr_data, wr_data, byte_addr)
+        self.combi(rd_data, f_rd_data, data_format, bus_rd_data, byte_addr)
+        self.combi(byte_addr, lambda a: a[:2], addr)

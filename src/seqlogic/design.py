@@ -102,6 +102,34 @@ class Module(Branch, _ProcIf, _TraceIf):
             assert isinstance(child, _TraceIf)
             child.dump_vcd(vcdw, pattern)
 
+    def bits(self, name: str, dtype: type, port: bool = False) -> Bits:
+        # TODO(cjdrake): Check name
+        node = Bits(name, parent=self, dtype=dtype)
+        setattr(self, f"_{name}", node)
+        if port:
+            setattr(self, name, node)
+        return node
+
+    def bit(self, name: str, port: bool = False) -> Bit:
+        # TODO(cjdrake): Check name
+        node = Bit(name, parent=self)
+        setattr(self, f"_{name}", node)
+        if port:
+            setattr(self, name, node)
+        return node
+
+    def array(self, name: str, dtype: type) -> Array:
+        # TODO(cjdrake): Check name
+        node = Array(name, parent=self, dtype=dtype)
+        setattr(self, f"_{name}", node)
+        return node
+
+    def submod(self, name: str, mod: type, **params) -> Module:
+        # TODO(cjdrake): Check name
+        node = mod(name, parent=self, **params)
+        setattr(self, f"_{name}", node)
+        return node
+
     def combi(self, y: Bits, f: Callable, *xs: Bits):
         """Combinational logic."""
 
@@ -109,6 +137,19 @@ class Module(Branch, _ProcIf, _TraceIf):
             while True:
                 await changed(*xs)
                 y.next = f(*[x.value for x in xs])
+
+        self._procs.append((Region.REACTIVE, proc, (), {}))
+
+    def combis(self, ys: list[Bits], f: Callable, *xs: Bits):
+        """Combinational logic."""
+
+        async def proc():
+            while True:
+                await changed(*xs)
+                ret = f(*[x.value for x in xs])
+                assert len(ys) == len(ret)
+                for i, y in enumerate(ys):
+                    y.next = ret[i]
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
@@ -167,12 +208,6 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
         if self._vcd_change and self.dirty():
             self._vcd_change()
         super().update()
-
-    def xprop(self, sel: Vec):
-        if sel.has_x():
-            self.next = self.value.xes()
-        else:
-            self.next = self.value.dcs()
 
     # TraceIf
     def dump_waves(self, waves: defaultdict, pattern: str):

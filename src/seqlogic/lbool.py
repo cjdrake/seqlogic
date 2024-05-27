@@ -350,6 +350,12 @@ class Vec:
         obj._data = (1 << cls.nbits) - 1
         return obj
 
+    @classmethod
+    def xprop(cls, sel):
+        if sel.has_x():
+            return cls.xes()
+        return cls.dcs()
+
     def __init__(self, data: int):
         """Initialize.
 

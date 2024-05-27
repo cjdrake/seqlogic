@@ -1,8 +1,9 @@
 """RiscV Core."""
 
-from seqlogic import Bit, Bits, Module, changed
+# pyright: reportAttributeAccessIssue=false
+
+from seqlogic import Module
 from seqlogic.lbool import Vec
-from seqlogic.sim import reactive
 
 from . import AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
 from .ctl_path import CtlPath
@@ -17,36 +18,36 @@ class Core(Module):
         super().__init__(name, parent)
 
         # Ports
-        bus_addr = Bits(name="bus_addr", parent=self, dtype=Vec[32])
-        bus_wr_en = Bit(name="bus_wr_en", parent=self)
-        bus_wr_be = Bits(name="bus_wr_be", parent=self, dtype=Vec[4])
-        bus_wr_data = Bits(name="bus_wr_data", parent=self, dtype=Vec[32])
-        bus_rd_en = Bit(name="bus_rd_en", parent=self)
-        bus_rd_data = Bits(name="bus_rd_data", parent=self, dtype=Vec[32])
+        bus_addr = self.bits(name="bus_addr", dtype=Vec[32], port=True)
+        bus_wr_en = self.bit(name="bus_wr_en", port=True)
+        bus_wr_be = self.bits(name="bus_wr_be", dtype=Vec[4], port=True)
+        bus_wr_data = self.bits(name="bus_wr_data", dtype=Vec[32], port=True)
+        bus_rd_en = self.bit(name="bus_rd_en", port=True)
+        bus_rd_data = self.bits(name="bus_rd_data", dtype=Vec[32], port=True)
 
-        pc = Bits(name="pc", parent=self, dtype=Vec[32])
-        inst = Bits(name="inst", parent=self, dtype=Inst)
+        pc = self.bits(name="pc", dtype=Vec[32], port=True)
+        inst = self.bits(name="inst", dtype=Inst, port=True)
 
-        clock = Bit(name="clock", parent=self)
-        reset = Bit(name="reset", parent=self)
+        clock = self.bit(name="clock", port=True)
+        reset = self.bit(name="reset", port=True)
 
         # State
-        pc_wr_en = Bit(name="pc_wr_en", parent=self)
-        regfile_wr_en = Bit(name="regfile_wr_en", parent=self)
-        alu_op_a_sel = Bits(name="alu_op_a_sel", parent=self, dtype=CtlAluA)
-        alu_op_b_sel = Bits(name="alu_op_b_sel", parent=self, dtype=CtlAluB)
-        reg_writeback_sel = Bits(name="reg_writeback_sel", parent=self, dtype=CtlWriteBack)
-        next_pc_sel = Bits(name="next_pc_sel", parent=self, dtype=CtlPc)
-        alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
-        alu_result_eq_zero = Bit(name="alu_result_eq_zero", parent=self)
-        addr = Bits(name="addr", parent=self, dtype=Vec[32])
-        wr_en = Bit(name="wr_en", parent=self)
-        wr_data = Bits(name="wr_data", parent=self, dtype=Vec[32])
-        rd_en = Bit(name="rd_en", parent=self)
-        rd_data = Bits(name="rd_data", parent=self, dtype=Vec[32])
+        pc_wr_en = self.bit(name="pc_wr_en")
+        regfile_wr_en = self.bit(name="regfile_wr_en")
+        alu_op_a_sel = self.bits(name="alu_op_a_sel", dtype=CtlAluA)
+        alu_op_b_sel = self.bits(name="alu_op_b_sel", dtype=CtlAluB)
+        reg_writeback_sel = self.bits(name="reg_writeback_sel", dtype=CtlWriteBack)
+        next_pc_sel = self.bits(name="next_pc_sel", dtype=CtlPc)
+        alu_func = self.bits(name="alu_func", dtype=AluOp)
+        alu_result_eq_zero = self.bit(name="alu_result_eq_zero")
+        addr = self.bits(name="addr", dtype=Vec[32])
+        wr_en = self.bit(name="wr_en")
+        wr_data = self.bits(name="wr_data", dtype=Vec[32])
+        rd_en = self.bit(name="rd_en")
+        rd_data = self.bits(name="rd_data", dtype=Vec[32])
 
         # Submodules
-        ctlpath = CtlPath(name="ctlpath", parent=self)
+        ctlpath = self.submod(name="ctlpath", mod=CtlPath)
         self.connect(ctlpath.alu_result_eq_zero, alu_result_eq_zero)
         self.connect(pc_wr_en, ctlpath.pc_wr_en)
         self.connect(regfile_wr_en, ctlpath.regfile_wr_en)
@@ -58,7 +59,7 @@ class Core(Module):
         self.connect(alu_func, ctlpath.alu_func)
         self.connect(next_pc_sel, ctlpath.next_pc_sel)
 
-        datapath = DataPath(name="datapath", parent=self)
+        datapath = self.submod(name="datapath", mod=DataPath)
         self.connect(addr, datapath.data_mem_addr)
         self.connect(wr_data, datapath.data_mem_wr_data)
         self.connect(datapath.data_mem_rd_data, rd_data)
@@ -75,7 +76,7 @@ class Core(Module):
         self.connect(datapath.clock, clock)
         self.connect(datapath.reset, reset)
 
-        data_mem_if = DataMemIf(name="data_mem_if", parent=self)
+        data_mem_if = self.submod(name="data_mem_if", mod=DataMemIf)
         self.connect(data_mem_if.addr, addr)
         self.connect(data_mem_if.wr_en, wr_en)
         self.connect(data_mem_if.wr_data, wr_data)
@@ -88,29 +89,11 @@ class Core(Module):
         self.connect(bus_rd_en, data_mem_if.bus_rd_en)
         self.connect(data_mem_if.bus_rd_data, bus_rd_data)
 
-        # TODO(cjdrake): Remove
-        self.bus_addr = bus_addr
-        self.bus_wr_en = bus_wr_en
-        self.bus_wr_be = bus_wr_be
-        self.bus_wr_data = bus_wr_data
-        self.bus_rd_en = bus_rd_en
-        self.bus_rd_data = bus_rd_data
-
-        self.pc = pc
-        self.inst = inst
-
-        self.clock = clock
-        self.reset = reset
-
-        self.ctlpath = ctlpath
-        self.datapath = datapath
-        self.data_mem_if = data_mem_if
-
-    @reactive
-    async def p_c_0(self):
-        while True:
-            await changed(self.inst)
-            self.ctlpath.inst_opcode.next = self.inst.value.opcode
-            self.ctlpath.inst_funct3.next = self.inst.value.funct3
-            self.ctlpath.inst_funct7.next = self.inst.value.funct7
-            self.data_mem_if.data_format.next = self.inst.value.funct3
+        # Combinational Logic
+        ys = [
+            ctlpath.inst_opcode,
+            ctlpath.inst_funct3,
+            ctlpath.inst_funct7,
+            data_mem_if.data_format,
+        ]
+        self.combis(ys, lambda x: (x.opcode, x.funct3, x.funct7, x.funct3), inst)

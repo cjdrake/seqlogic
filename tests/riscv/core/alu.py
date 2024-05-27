@@ -2,8 +2,8 @@
 
 # pyright: reportAttributeAccessIssue=false
 
-from seqlogic import Bit, Bits, Module
-from seqlogic.lbool import Vec, dcs, xes
+from seqlogic import Module
+from seqlogic.lbool import Vec
 
 from . import AluOp
 
@@ -34,7 +34,7 @@ def alu_result(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
         case AluOp.AND:
             return a & b
         case _:
-            return xes(32) if op.has_x() else dcs(32)
+            return Vec[32].xprop(op)
 
 
 class Alu(Module):
@@ -43,18 +43,13 @@ class Alu(Module):
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
 
-        result = Bits(name="result", parent=self, dtype=Vec[32])
-        result_eq_zero = Bit(name="result_eq_zero", parent=self)
-        alu_func = Bits(name="alu_func", parent=self, dtype=AluOp)
-        op_a = Bits(name="op_a", parent=self, dtype=Vec[32])
-        op_b = Bits(name="op_b", parent=self, dtype=Vec[32])
+        # Ports
+        self.bits(name="result", dtype=Vec[32], port=True)
+        self.bit(name="result_eq_zero", port=True)
+        self.bits(name="alu_func", dtype=AluOp, port=True)
+        self.bits(name="op_a", dtype=Vec[32], port=True)
+        self.bits(name="op_b", dtype=Vec[32], port=True)
 
-        self.combi(result, alu_result, alu_func, op_a, op_b)
-        self.combi(result_eq_zero, lambda x: x.eq("32h0000_0000"), result)
-
-        # TODO(cjdrake): Remove
-        self.result = result
-        self.result_eq_zero = result_eq_zero
-        self.alu_func = alu_func
-        self.op_a = op_a
-        self.op_b = op_b
+        # Combinational Logic
+        self.combi(self._result, alu_result, self._alu_func, self._op_a, self._op_b)
+        self.combi(self._result_eq_zero, lambda x: x.eq("32h0000_0000"), self._result)

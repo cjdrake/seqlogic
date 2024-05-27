@@ -1,15 +1,20 @@
 """Text Memory Bus."""
 
-from seqlogic import Bit, Bits, Module, changed, clog2
+# pyright: reportAttributeAccessIssue=false
+
+from seqlogic import Module, clog2
 from seqlogic.lbool import Vec, uint2vec
-from seqlogic.sim import reactive
 
 from . import TEXT_BASE, TEXT_SIZE
 from .text_mem import TextMem
 
-ADDR_BITS = 32
-WORD_BYTES = 4
-BYTE_BITS = 8
+
+def f_rd_data(is_text: Vec[1], text: Vec[32]) -> Vec[32]:
+    match is_text:
+        case "1b1":
+            return text
+        case _:
+            return Vec[32].xprop(is_text)
 
 
 class TextMemBus(Module):
@@ -18,63 +23,34 @@ class TextMemBus(Module):
     def __init__(self, name: str, parent: Module | None, depth: int = 1024):
         super().__init__(name, parent)
 
-        width = WORD_BYTES * BYTE_BITS
+        # Parameters
         word_addr_bits = clog2(depth)
-        byte_addr_bits = clog2(WORD_BYTES)
-        text_start = uint2vec(TEXT_BASE, ADDR_BITS)
-        text_stop = uint2vec(TEXT_BASE + TEXT_SIZE, ADDR_BITS)
+        text_start = TEXT_BASE
+        text_stop = TEXT_BASE + TEXT_SIZE
 
         # Ports
-        rd_addr = Bits(name="rd_addr", parent=self, dtype=Vec[ADDR_BITS])
-        rd_data = Bits(name="rd_data", parent=self, dtype=Vec[width])
+        rd_addr = self.bits(name="rd_addr", dtype=Vec[32], port=True)
+        rd_data = self.bits(name="rd_data", dtype=Vec[32], port=True)
 
         # State
-        is_text = Bit(name="is_text", parent=self)
-        text = Bits(name="text", parent=self, dtype=Vec[width])
+        is_text = self.bit(name="is_text")
+        text = self.bits(name="text", dtype=Vec[32])
 
         # Submodules
-        text_mem = TextMem(
-            "text_mem",
-            parent=self,
+        text_mem = self.submod(
+            name="text_mem",
+            mod=TextMem,
             word_addr_bits=word_addr_bits,
-            byte_addr_bits=byte_addr_bits,
         )
         self.connect(text, text_mem.rd_data)
 
-        # TODO(cjdrake): Remove
-        self.word_addr_bits = word_addr_bits
-        self.byte_addr_bits = byte_addr_bits
-        self.text_start = text_start
-        self.text_stop = text_stop
-        self.rd_addr = rd_addr
-        self.rd_data = rd_data
-        self.is_text = is_text
-        self.text = text
-        self.text_mem = text_mem
+        # Combinational Logic
+        def f_is_text(addr: Vec[32]) -> Vec[1]:
+            start = uint2vec(text_start, 32)
+            stop = uint2vec(text_stop, 32)
+            return start.lteu(addr) & addr.ltu(stop)
 
-    @reactive
-    async def p_c_0(self):
-        while True:
-            await changed(self.rd_addr)
-            start_lte_addr = self.text_start.lteu(self.rd_addr.value)
-            addr_lt_stop = self.rd_addr.value.ltu(self.text_stop)
-            self.is_text.next = start_lte_addr & addr_lt_stop
-
-    @reactive
-    async def p_c_1(self):
-        while True:
-            await changed(self.is_text, self.text)
-            sel = self.is_text.value
-            match sel:
-                case "1b1":
-                    self.rd_data.next = self.text.value
-                case _:
-                    self.rd_data.xprop(sel)
-
-    @reactive
-    async def p_c_2(self):
-        while True:
-            await changed(self.rd_addr)
-            m = self.byte_addr_bits
-            n = self.byte_addr_bits + self.word_addr_bits
-            self.text_mem.rd_addr.next = self.rd_addr.value[m:n]
+        self.combi(is_text, f_is_text, rd_addr)
+        self.combi(rd_data, f_rd_data, is_text, text)
+        m, n = 2, 2 + word_addr_bits
+        self.combi(text_mem.rd_addr, lambda a: a[m:n], rd_addr)

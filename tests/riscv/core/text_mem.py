@@ -1,10 +1,10 @@
 """Text Memory."""
 
-from seqlogic import Array, Bits, Module, changed
+# pyright: reportAttributeAccessIssue=false
+
+from seqlogic import Module, changed
 from seqlogic.lbool import Vec
 from seqlogic.sim import reactive
-
-BYTE_BITS = 8
 
 
 class TextMem(Module):
@@ -15,24 +15,19 @@ class TextMem(Module):
         name: str,
         parent: Module | None,
         word_addr_bits: int = 10,
-        byte_addr_bits: int = 2,
     ):
         super().__init__(name, parent)
-        self._word_addr_bits = word_addr_bits
-        self._byte_addr_bits = byte_addr_bits
-        # self._depth = 2**self._word_addr_bits
-        self._width = 2**self._byte_addr_bits * BYTE_BITS
 
         # Ports
-        self.rd_addr = Bits(name="rd_addr", parent=self, dtype=Vec[self._word_addr_bits])
-        self.rd_data = Bits(name="rd_data", parent=self, dtype=Vec[self._width])
+        self.bits(name="rd_addr", dtype=Vec[word_addr_bits], port=True)
+        self.bits(name="rd_data", dtype=Vec[32], port=True)
 
         # State
-        self.mem = Array(name="mem", parent=self, dtype=Vec[self._width])
+        self.array(name="mem", dtype=Vec[32])
 
     @reactive
     async def p_c_0(self):
         while True:
-            await changed(self.rd_addr, self.mem)
-            addr = self.rd_addr.value
-            self.rd_data.next = self.mem[addr].value
+            await changed(self._rd_addr, self._mem)
+            addr = self._rd_addr.value
+            self._rd_data.next = self._mem[addr].value
