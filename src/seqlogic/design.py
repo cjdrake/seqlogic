@@ -227,6 +227,22 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
+    def mem_wr_en(self, mem: Array, addr: Bits, data: Bits, en: Bit, clk: Bit):
+        """Memory with enable."""
+
+        def f():
+            return clk.is_posedge() and en.value == "1b1"
+
+        async def proc():
+            while True:
+                state = await resume((clk, f))
+                if state is clk:
+                    mem[addr.value].next = data.value
+                else:
+                    assert False
+
+        self._procs.append((Region.ACTIVE, proc, (), {}))
+
 
 class Bits(Leaf, Singular, _ProcIf, _TraceIf):
     """Leaf-level btvector design component."""

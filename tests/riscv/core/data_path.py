@@ -169,7 +169,6 @@ class DataPath(Module):
         self.connect(rs1_data, regfile.rs1_data)
         self.connect(rs2_data, regfile.rs2_data)
         self.connect(regfile.clock, clock)
-        self.connect(regfile.reset, reset)
 
         self.connect(data_mem_addr, alu_result)
         self.connect(data_mem_wr_data, rs2_data)
