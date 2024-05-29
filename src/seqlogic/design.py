@@ -16,7 +16,7 @@ from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
-from .lbool import Vec, VecEnum, lit2vec
+from .lbool import Vec, VecEnum, cat, lit2vec
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, changed, get_loop, resume
 
 _item2char = {
@@ -235,8 +235,42 @@ class Module(Branch, _ProcIf, _TraceIf):
                 state = await resume(
                     (clk, lambda: clk.is_posedge() and en.value == "1b1"),
                 )
+                assert not addr.value.has_unknown()
                 if state is clk:
                     mem[addr.value].next = data.value
+                else:
+                    assert False
+
+        self._procs.append((Region.ACTIVE, proc, (), {}))
+
+    def mem_wr_be(
+        self,
+        mem: Array,
+        addr: Bits,
+        data: Bits,
+        en: Bit,
+        be: Bits,
+        clk: Bit,
+        nbytes: int = 4,
+    ):
+        """Memory with write byte enable."""
+
+        async def proc():
+            while True:
+                state = await resume(
+                    (clk, lambda: clk.is_posedge() and en.value == "1b1"),
+                )
+                assert not addr.value.has_unknown()
+                assert not be.value.has_unknown()
+                if state is clk:
+                    xs = []
+                    for i in range(nbytes):
+                        m, n = 8 * i, 8 * (i + 1)
+                        if be.value[i]:
+                            xs.append(data.value[m:n])
+                        else:
+                            xs.append(mem[addr.value].value[m:n])
+                    mem[addr.value].next = cat(*xs)
                 else:
                     assert False
 
