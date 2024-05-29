@@ -730,7 +730,9 @@ def run_riscv_test(name: str) -> int:
     # Initialize data memory
     data = get_mem(f"tests/riscv/tests/{name}.data")
     for i, d in enumerate(data):
-        top._data_mem_bus._data_mem._mem.set_next(i, uint2vec(d, 32))
+        addr = uint2vec(i, 10)
+        data = uint2vec(d, 32)
+        top._data_mem_bus._data_mem._mem.set_next(addr, data)
 
     # Run the simulation
     for _ in loop.iter(until=10000):

@@ -36,11 +36,12 @@ class DataMem(Module):
             # If wr_en=1, addr/be must be known
             assert not addr.has_unknown() and not be.has_unknown()
             # fmt: off
-            self._mem[addr].next = cat(*[
+            value = cat(*[
                 self._wr_data.value[8*i:8*(i+1)] if be[i] else  # noqa
-                self._mem[addr].value[8*i:8*(i+1)]  # noqa
+                self._mem.values[addr][8*i:8*(i+1)]  # noqa
                 for i in range(4)
             ])
+            self._mem.set_next(addr, value)
             # fmt: on
 
     @reactive
@@ -48,4 +49,4 @@ class DataMem(Module):
         while True:
             await changed(self._addr, self._mem)
             addr = self._addr.value
-            self._rd_data.next = self._mem[addr].value
+            self._rd_data.next = self._mem.values[addr]
