@@ -130,7 +130,7 @@ class Module(Branch, _ProcIf, _TraceIf):
         setattr(self, f"_{name}", node)
         return node
 
-    def combi(self, y: Bits, f: Callable, *xs: Bits):
+    def combi(self, y: Bits, f: Callable, *xs: State):
         """Combinational logic."""
 
         async def proc():
@@ -140,7 +140,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
-    def combis(self, ys: list[Bits], f: Callable, *xs: Bits):
+    def combis(self, ys: list[Bits], f: Callable, *xs: State):
         """Combinational logic."""
 
         async def proc():
@@ -335,34 +335,6 @@ class Array(Leaf, Aggregate, _ProcIf, _TraceIf):
         Aggregate.__init__(self, dtype.xes())
         _ProcIf.__init__(self)
         self._dtype = dtype
-
-    def __getitem__(self, key: int | Vec):
-        if isinstance(key, int):
-            return super().__getitem__(key)
-        if isinstance(key, Vec):
-            try:
-                i = key.to_uint()
-            except ValueError:
-                return _ArrayXPropItem(self._dtype)
-            return super().__getitem__(i)
-        assert TypeError("Expected key to be int or Vec")
-
-
-class _ArrayXPropItem:
-    """Array X-Prop item helper."""
-
-    def __init__(self, dtype: type):
-        self._dtype = dtype
-
-    def _get_value(self):
-        return self._dtype.xes()
-
-    value = property(fget=_get_value)
-
-    def _set_next(self, value):
-        pass
-
-    next = property(fset=_set_next)
 
 
 def simify(d: Module | Bits | Bit | Array):

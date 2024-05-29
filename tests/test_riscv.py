@@ -75,7 +75,7 @@ def test_dump():
     for i, d in enumerate(text):
         addr = uint2vec(i, 10)
         data = uint2vec(d, 32)
-        top._text_mem_bus._text_mem._mem.set_next(addr, data)
+        top._text_mem_bus._text_mem._mem[addr].next = data
 
     loop.run(until=50)
 
@@ -479,7 +479,7 @@ def test_dump():
                 funct7="7b0000000",
             ),
             top.bus_addr: "32h0000_0007",
-            top.bus_wr_data: "32h0000_0000",
+            top.bus_wr_data: "32bXXXXXXXX_00000000_00000000_00000000",
             # Decode
             top._core._datapath._immediate: "32h0000_0007",
             # ALU
@@ -491,10 +491,10 @@ def test_dump():
             top._core._datapath._pc_plus_immediate: "32h0040_003B",
             # Regfile
             top._core._datapath._wr_data: "32h0000_0007",
-            top._core._datapath._rs2_data: "32h0000_0000",
+            top._core._datapath._rs2_data: X32,
             # Data Mem
             top._core._datapath.data_mem_addr: "32h0000_0007",
-            top._core._datapath.data_mem_wr_data: "32h0000_0000",
+            top._core._datapath.data_mem_wr_data: X32,
         },
         # @(posedge clock)
         37: {
@@ -539,7 +539,7 @@ def test_dump():
                 rs2="5b01010",
                 funct7="7b0000000",
             ),
-            top.bus_wr_data: "32h0000_0000",
+            top.bus_wr_data: "32bXXXXXXXX_XXXXXXXX_00000000_00000000",
             # Decode
             top._core._datapath._immediate: "32h0000_000A",
             # Control
@@ -553,9 +553,9 @@ def test_dump():
             top._core._datapath._pc_plus_immediate: "32h0040_0046",
             # Regfile
             top._core._datapath._rs1_data: "32h0000_0000",
-            top._core._datapath._rs2_data: "32h0000_0000",
+            top._core._datapath._rs2_data: X32,
             # Data Mem
-            top._core._datapath.data_mem_wr_data: "32h0000_0000",
+            top._core._datapath.data_mem_wr_data: X32,
         },
         # @(posedge clock)
         41: {
@@ -569,6 +569,7 @@ def test_dump():
                 funct7="7b0000000",
             ),
             top.bus_addr: "32h0000_0004",
+            top.bus_wr_data: X32,
             # Decode
             top._core._datapath._immediate: "32h0000_0004",
             # ALU
@@ -665,17 +666,29 @@ def test_dump():
                 rs2="5b11111",
                 funct7="7b1111111",
             ),
+            top.bus_addr: X32,
+            top.bus_wr_data: X32,
             # Decode
             top._core._datapath._immediate: "32hFFFF_8000",
             # Control
             top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
             top._core._datapath.reg_writeback_sel: CtlWriteBack.IMM,
+            # ALU
+            top._core._datapath._alu_result: X32,
+            top._core._datapath.alu_result_eq_zero: "1bX",
+            top._core._datapath._alu_op_a: X32,
+            top._core._datapath._alu_op_b: X32,
             # PC
             top._core._datapath._pc_next: "32h0040_0050",
             top._core._datapath._pc_plus_4: "32h0040_0050",
             top._core._datapath._pc_plus_immediate: "32h003F_804C",
             # Regfile
             top._core._datapath._wr_data: "32hFFFF_8000",
+            top._core._datapath._rs1_data: X32,
+            top._core._datapath._rs2_data: X32,
+            # Data Mem
+            top._core._datapath.data_mem_addr: X32,
+            top._core._datapath.data_mem_wr_data: X32,
         },
         # @(posedge clock)
         49: {
@@ -697,12 +710,14 @@ def test_dump():
             # ALU
             top._core._datapath._alu_result: "32hFFFF_8000",
             top._core._datapath.alu_result_eq_zero: "1b0",
+            top._core._datapath._alu_op_a: "32h0000_0000",
             top._core._datapath._alu_op_b: "32hFFFF_8000",
             # Next PC
             top._core._datapath._pc_next: "32h0040_0054",
             top._core._datapath._pc_plus_4: "32h0040_0054",
             top._core._datapath._pc_plus_immediate: W32,
             # Regfile
+            top._core._datapath._rs1_data: "32h0000_0000",
             top._core._datapath._rs2_data: "32hFFFF_8000",
             # Data Mem
             top._core._datapath.data_mem_addr: "32hFFFF_8000",
@@ -725,14 +740,14 @@ def run_riscv_test(name: str) -> int:
     for i, d in enumerate(text):
         addr = uint2vec(i, 10)
         data = uint2vec(d, 32)
-        top._text_mem_bus._text_mem._mem.set_next(addr, data)
+        top._text_mem_bus._text_mem._mem[addr].next = data
 
     # Initialize data memory
     data = get_mem(f"tests/riscv/tests/{name}.data")
     for i, d in enumerate(data):
         addr = uint2vec(i, 10)
         data = uint2vec(d, 32)
-        top._data_mem_bus._data_mem._mem.set_next(addr, data)
+        top._data_mem_bus._data_mem._mem[addr].next = data
 
     # Run the simulation
     for _ in loop.iter(until=10000):

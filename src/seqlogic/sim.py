@@ -32,8 +32,13 @@ class State(ABC):
         # Reference to the event loop
         self._sim = _sim
 
+    def get_value(self):
+        raise NotImplementedError()
+
+    value = property(fget=get_value)
+
     def changed(self) -> bool:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def update(self):
         raise NotImplementedError()
@@ -80,29 +85,24 @@ class Aggregate(State):
 
     def __init__(self, value):
         super().__init__()
-        self._values = defaultdict(lambda: value)
-        self._next_values = defaultdict(lambda: value)
+        self._value = defaultdict(lambda: value)
+        self._next_value = defaultdict(lambda: value)
         self._changed: set[Hashable] = set()
 
     def __getitem__(self, key: Hashable):
         return _AggrItem(self, key)
 
-    def get_value(self, key: Hashable):
+    def get_value(self):
         if self._sim.region == Region.REACTIVE:
-            return self._next_values[key]
-        return self._values[key]
+            return self._next_value.copy()
+        return self._value.copy()
 
-    def get_values(self):
-        if self._sim.region == Region.REACTIVE:
-            return self._next_values.copy()
-        return self._values.copy()
-
-    values = property(fget=get_values)
+    value = property(fget=get_value)
 
     def set_next(self, key: Hashable, value):
-        if value != self._next_values[key]:
+        if value != self._next_value[key]:
             self._changed.add(key)
-        self._next_values[key] = value
+        self._next_value[key] = value
 
         # Notify the event loop
         _sim.touch(self)
@@ -112,24 +112,24 @@ class Aggregate(State):
 
     def update(self):
         for key in self._changed:
-            self._values[key] = self._next_values[key]
+            self._value[key] = self._next_value[key]
         self._changed.clear()
 
 
 class _AggrItem:
     """Wrap Aggregate item getter/setter."""
 
-    def __init__(self, obj: Aggregate, key: Hashable):
-        self._obj = obj
+    def __init__(self, aggr: Aggregate, key: Hashable):
+        self._aggr = aggr
         self._key = key
 
     def get_value(self):
-        return self._obj.get_value(self._key)
+        return self._aggr.value[self._key]
 
     value = property(fget=get_value)
 
     def set_next(self, value):
-        self._obj.set_next(self._key, value)
+        self._aggr.set_next(self._key, value)
 
     next = property(fset=set_next)
 

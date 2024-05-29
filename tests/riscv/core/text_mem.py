@@ -2,9 +2,10 @@
 
 # pyright: reportAttributeAccessIssue=false
 
-from seqlogic import Module, changed
+import operator
+
+from seqlogic import Module
 from seqlogic.lbool import Vec
-from seqlogic.sim import reactive
 
 
 class TextMem(Module):
@@ -19,15 +20,11 @@ class TextMem(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.bits(name="rd_addr", dtype=Vec[word_addr_bits], port=True)
-        self.bits(name="rd_data", dtype=Vec[32], port=True)
+        rd_addr = self.bits(name="rd_addr", dtype=Vec[word_addr_bits], port=True)
+        rd_data = self.bits(name="rd_data", dtype=Vec[32], port=True)
 
         # State
-        self.array(name="mem", dtype=Vec[32])
+        mem = self.array(name="mem", dtype=Vec[32])
 
-    @reactive
-    async def p_c_0(self):
-        while True:
-            await changed(self._rd_addr, self._mem)
-            addr = self._rd_addr.value
-            self._rd_data.next = self._mem.values[addr]
+        # Read Port
+        self.combi(rd_data, operator.getitem, mem, rd_addr)
