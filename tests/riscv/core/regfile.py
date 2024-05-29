@@ -3,7 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 
 from seqlogic import Module, changed, resume
-from seqlogic.lbool import Vec
+from seqlogic.lbool import Vec, uint2vec
 from seqlogic.sim import active, reactive
 
 
@@ -36,14 +36,15 @@ class RegFile(Module):
             state = await resume((self._reset, self._reset.is_posedge), (self._clock, f))
             if state is self._reset:
                 for i in range(32):
-                    self._regs[i].next = "32h0000_0000"
+                    addr = uint2vec(i, 5)
+                    self._regs.set_next(addr, "32h0000_0000")
             elif state is self._clock:
                 addr = self._wr_addr.value
                 # If wr_en=1, address must be known
                 assert not addr.has_unknown()
                 # Write to address zero has no effect
                 if addr != "5b0_0000":
-                    self._regs[addr].next = self._wr_data.value
+                    self._regs.set_next(addr, self._wr_data.value)
             else:
                 assert False
 
@@ -52,11 +53,11 @@ class RegFile(Module):
         while True:
             await changed(self._rs1_addr, self._regs)
             addr = self._rs1_addr.value
-            self._rs1_data.next = self._regs[addr].value
+            self._rs1_data.next = self._regs.values[addr]
 
     @reactive
     async def p_rd_port_2(self):
         while True:
             await changed(self._rs2_addr, self._regs)
             addr = self._rs2_addr.value
-            self._rs2_data.next = self._regs[addr].value
+            self._rs2_data.next = self._regs.values[addr]
