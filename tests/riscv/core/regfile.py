@@ -31,12 +31,12 @@ class RegFile(Module):
         en = self.bit(name="en")
         self.combi(en, lambda we, wa: we & wa.neq("5b0_0000"), wr_en, wr_addr)
 
+        # Write Port
+        self.mem_wr_en(regs, wr_addr, wr_data, en, clock)
+
         # Read Ports
         self.combi(rs1_data, operator.getitem, regs, rs1_addr)
         self.combi(rs2_data, operator.getitem, regs, rs2_addr)
-
-        # Write Port
-        self.mem_wr_en(regs, wr_addr, wr_data, en, clock)
 
     @active
     async def initial(self):

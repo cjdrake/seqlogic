@@ -228,14 +228,13 @@ class Module(Branch, _ProcIf, _TraceIf):
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
     def mem_wr_en(self, mem: Array, addr: Bits, data: Bits, en: Bit, clk: Bit):
-        """Memory with enable."""
-
-        def f():
-            return clk.is_posedge() and en.value == "1b1"
+        """Memory with write enable."""
 
         async def proc():
             while True:
-                state = await resume((clk, f))
+                state = await resume(
+                    (clk, lambda: clk.is_posedge() and en.value == "1b1"),
+                )
                 if state is clk:
                     mem[addr.value].next = data.value
                 else:
