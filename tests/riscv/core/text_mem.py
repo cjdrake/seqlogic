@@ -30,4 +30,4 @@ class TextMem(Module):
         while True:
             await changed(self._rd_addr, self._mem)
             addr = self._rd_addr.value
-            self._rd_data.next = self._mem[addr].value
+            self._rd_data.next = self._mem.values[addr]

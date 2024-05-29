@@ -73,7 +73,9 @@ def test_dump():
     # Initialize instruction memory
     text = get_mem("tests/riscv/tests/add.text")
     for i, d in enumerate(text):
-        top._text_mem_bus._text_mem._mem.set_next(i, uint2vec(d, 32))
+        addr = uint2vec(i, 10)
+        data = uint2vec(d, 32)
+        top._text_mem_bus._text_mem._mem.set_next(addr, data)
 
     loop.run(until=50)
 
@@ -721,7 +723,9 @@ def run_riscv_test(name: str) -> int:
     # Initialize instruction memory
     text = get_mem(f"tests/riscv/tests/{name}.text")
     for i, d in enumerate(text):
-        top._text_mem_bus._text_mem._mem.set_next(i, uint2vec(d, 32))
+        addr = uint2vec(i, 10)
+        data = uint2vec(d, 32)
+        top._text_mem_bus._text_mem._mem.set_next(addr, data)
 
     # Initialize data memory
     data = get_mem(f"tests/riscv/tests/{name}.data")
