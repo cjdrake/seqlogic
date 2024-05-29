@@ -22,6 +22,7 @@ class Hierarchy(ABC):
             name: Name of this tree node.
             parent: Parent tree node, or None.
         """
+        self._check_name(name)
         self._name = name
         self._parent = parent
 
@@ -47,6 +48,12 @@ class Hierarchy(ABC):
     @abstractmethod
     def iter_dfs(self) -> Generator[Hierarchy, None, None]:
         """Iterate through the design hierarchy in DFS order."""
+
+    @staticmethod
+    def _check_name(name: str):
+        valid = name.isidentifier() and not name.startswith("_")
+        if not valid:
+            raise ValueError(f"Expected public identifier, got {name}")
 
 
 class Branch(Hierarchy):

@@ -103,7 +103,7 @@ class Module(Branch, _ProcIf, _TraceIf):
             child.dump_vcd(vcdw, pattern)
 
     def bits(self, name: str, dtype: type, port: bool = False) -> Bits:
-        # TODO(cjdrake): Check name
+        self._check_name(name)
         node = Bits(name, parent=self, dtype=dtype)
         setattr(self, f"_{name}", node)
         if port:
@@ -111,7 +111,7 @@ class Module(Branch, _ProcIf, _TraceIf):
         return node
 
     def bit(self, name: str, port: bool = False) -> Bit:
-        # TODO(cjdrake): Check name
+        self._check_name(name)
         node = Bit(name, parent=self)
         setattr(self, f"_{name}", node)
         if port:
@@ -119,13 +119,13 @@ class Module(Branch, _ProcIf, _TraceIf):
         return node
 
     def array(self, name: str, dtype: type) -> Array:
-        # TODO(cjdrake): Check name
+        self._check_name(name)
         node = Array(name, parent=self, dtype=dtype)
         setattr(self, f"_{name}", node)
         return node
 
     def submod(self, name: str, mod: type, **params) -> Module:
-        # TODO(cjdrake): Check name
+        self._check_name(name)
         node = mod(name, parent=self, **params)
         setattr(self, f"_{name}", node)
         return node
