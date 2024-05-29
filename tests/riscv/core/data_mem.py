@@ -41,11 +41,10 @@ class DataMem(Module):
             be = self._wr_be.value
             # If wr_en=1, addr/be must be known
             assert not addr.has_unknown() and not be.has_unknown()
-            # fmt: off
-            data = cat(*[
-                self._wr_data.value[8*i:8*(i+1)] if be[i] else  # noqa
-                self._mem[addr].value[8*i:8*(i+1)]  # noqa
-                for i in range(4)
-            ])
-            self._mem[addr].next = data
-            # fmt: on
+            wr_word = self._wr_data.value
+            mem_word = self._mem[addr].value
+            xs = []
+            for i in range(32 // 8):
+                m, n = 8 * i, 8 * (i + 1)
+                xs.append(wr_word[m:n] if be[i] else mem_word[m:n])
+            self._mem[addr].next = cat(*xs)
