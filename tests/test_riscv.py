@@ -18,7 +18,7 @@ from collections import defaultdict
 from seqlogic import get_loop, simify
 from seqlogic.lbool import uint2vec
 
-from .riscv.core import AluOp, CtlAluA, CtlAluB, CtlPc, Inst, Opcode
+from .riscv.core import AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .riscv.core.top import Top
 
 loop = get_loop()
@@ -92,7 +92,7 @@ def test_dump():
             # Control
             top._core._datapath.alu_op_a_sel: CtlAluA.X,
             top._core._datapath.alu_op_b_sel: CtlAluB.X,
-            top._core._datapath.reg_writeback_sel: "3bXXX",
+            top._core._datapath.reg_writeback_sel: CtlWriteBack.X,
             # ALU
             top._core._datapath._alu_result: X32,
             top._core._datapath.alu_result_eq_zero: "1bX",
@@ -134,7 +134,7 @@ def test_dump():
             # Control
             top._core._datapath.alu_op_a_sel: CtlAluA.RS1,
             top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
-            top._core._datapath.reg_writeback_sel: "3b000",
+            top._core._datapath.reg_writeback_sel: CtlWriteBack.ALU,
             # ALU
             top._core._datapath._alu_result: "32h0000_0000",
             top._core._datapath.alu_result_eq_zero: "1b1",
@@ -667,7 +667,7 @@ def test_dump():
             top._core._datapath._immediate: "32hFFFF_8000",
             # Control
             top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
-            top._core._datapath.reg_writeback_sel: "3b011",
+            top._core._datapath.reg_writeback_sel: CtlWriteBack.IMM,
             # PC
             top._core._datapath._pc_next: "32h0040_0050",
             top._core._datapath._pc_plus_4: "32h0040_0050",
@@ -691,7 +691,7 @@ def test_dump():
             # Decode
             top._core._datapath._immediate: W32,
             # Control
-            top._core._datapath.reg_writeback_sel: "3b000",
+            top._core._datapath.reg_writeback_sel: CtlWriteBack.ALU,
             # ALU
             top._core._datapath._alu_result: "32hFFFF_8000",
             top._core._datapath.alu_result_eq_zero: "1b0",
