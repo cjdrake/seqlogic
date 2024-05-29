@@ -10,7 +10,7 @@ import inspect
 import re
 from abc import ABC
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 
 from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
@@ -140,16 +140,16 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
-    def combis(self, ys: list[Bits], f: Callable, *xs: State):
+    def combis(self, ys: Sequence[Bits], f: Callable, *xs: State):
         """Combinational logic."""
 
         async def proc():
             while True:
                 await changed(*xs)
-                ret = f(*[x.value for x in xs])
-                assert len(ys) == len(ret)
-                for i, y in enumerate(ys):
-                    y.next = ret[i]
+                yns = f(*[x.value for x in xs])
+                assert len(ys) == len(yns)
+                for y, yn in zip(ys, yns):
+                    y.next = yn
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
@@ -269,6 +269,7 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
 
     def dump_vcd(self, vcdw, pattern: str):
         assert isinstance(self._parent, Module)
+
         if issubclass(self._dtype, VecEnum):
             if re.match(pattern, self.qualname):
                 var = vcdw.register_var(
@@ -277,7 +278,13 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
                     var_type="string",
                     init=self._value.name,
                 )
-                self._vcd_change = lambda: vcdw.change(var, self._sim.time, self._next_value.name)
+
+                def f():
+                    value = self._next_value.name
+                    return vcdw.change(var, self._sim.time, value)
+
+                self._vcd_change = f
+
         elif issubclass(self._dtype, Vec):
             if re.match(pattern, self.qualname):
                 var = vcdw.register_var(
@@ -287,9 +294,12 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
                     size=len(self._value),
                     init=_vec2vcd(self._value),
                 )
-                self._vcd_change = lambda: vcdw.change(
-                    var, self._sim.time, _vec2vcd(self._next_value)
-                )
+
+                def f():
+                    value = _vec2vcd(self._next_value)
+                    return vcdw.change(var, self._sim.time, value)
+
+                self._vcd_change = f
 
 
 class Bit(Bits):
