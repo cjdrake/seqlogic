@@ -11,7 +11,7 @@ import heapq
 import inspect
 from abc import ABC
 from collections import defaultdict
-from collections.abc import Awaitable, Callable, Coroutine, Generator
+from collections.abc import Awaitable, Callable, Coroutine, Generator, Hashable
 from enum import IntEnum, auto
 from functools import partial
 from typing import TypeAlias
@@ -82,20 +82,27 @@ class Aggregate(State):
         super().__init__()
         self._values = defaultdict(lambda: value)
         self._next_values = defaultdict(lambda: value)
-        self._changed = set()
+        self._changed: set[Hashable] = set()
 
-    def __getitem__(self, key: int):
+    def __getitem__(self, key: Hashable):
         return _AggrItem(self, key)
 
-    def get_value(self, index: int):
+    def get_value(self, key: Hashable):
         if self._sim.region == Region.REACTIVE:
-            return self._next_values[index]
-        return self._values[index]
+            return self._next_values[key]
+        return self._values[key]
 
-    def set_next(self, index: int, value):
-        if value != self._next_values[index]:
-            self._changed.add(index)
-        self._next_values[index] = value
+    def get_values(self):
+        if self._sim.region == Region.REACTIVE:
+            return self._next_values.copy()
+        return self._values.copy()
+
+    values = property(fget=get_values)
+
+    def set_next(self, key: Hashable, value):
+        if value != self._next_values[key]:
+            self._changed.add(key)
+        self._next_values[key] = value
 
         # Notify the event loop
         _sim.touch(self)
@@ -104,25 +111,25 @@ class Aggregate(State):
         return bool(self._changed)
 
     def update(self):
-        for index in self._changed:
-            self._values[index] = self._next_values[index]
+        for key in self._changed:
+            self._values[key] = self._next_values[key]
         self._changed.clear()
 
 
 class _AggrItem:
     """Wrap Aggregate item getter/setter."""
 
-    def __init__(self, obj: Aggregate, index: int):
+    def __init__(self, obj: Aggregate, key: Hashable):
         self._obj = obj
-        self._index = index
+        self._key = key
 
     def get_value(self):
-        return self._obj.get_value(self._index)
+        return self._obj.get_value(self._key)
 
     value = property(fget=get_value)
 
     def set_next(self, value):
-        self._obj.set_next(self._index, value)
+        self._obj.set_next(self._key, value)
 
     next = property(fset=set_next)
 
