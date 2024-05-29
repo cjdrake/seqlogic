@@ -194,6 +194,21 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
+    def dff_en(self, q: Bits, d: Bits, en: Bit, clk: Bit):
+        """D Flip Flop with enable."""
+
+        async def proc():
+            while True:
+                state = await resume(
+                    (clk, lambda: clk.is_posedge() and en.value == "1b1"),
+                )
+                if state is clk:
+                    q.next = d.value
+                else:
+                    assert False
+
+        self._procs.append((Region.ACTIVE, proc, (), {}))
+
     def dff_en_ar(self, q: Bits, d: Bits, en: Bit, clk: Bit, rst: Bit, rval: Vec):
         """D Flip Flop with enable, and async reset."""
 
