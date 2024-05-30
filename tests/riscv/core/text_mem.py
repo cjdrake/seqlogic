@@ -1,7 +1,5 @@
 """Text Memory."""
 
-# pyright: reportAttributeAccessIssue=false
-
 import operator
 
 from seqlogic import Module

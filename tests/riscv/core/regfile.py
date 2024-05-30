@@ -1,12 +1,9 @@
 """Register File."""
 
-# pyright: reportAttributeAccessIssue=false
-
 import operator
 
 from seqlogic import Module
 from seqlogic.lbool import Vec, uint2vec
-from seqlogic.sim import active
 
 
 class RegFile(Module):
@@ -28,6 +25,10 @@ class RegFile(Module):
         # State
         regs = self.array(name="regs", dtype=Vec[32])
 
+        # Assign r0 to zero
+        a0 = uint2vec(0, 5)
+        self.const(regs[a0], "32h0000_0000")
+
         en = self.bit(name="en")
         self.combi(en, lambda we, wa: we & wa.neq("5b0_0000"), wr_en, wr_addr)
 
@@ -37,8 +38,3 @@ class RegFile(Module):
         # Read Ports
         self.combi(rs1_data, operator.getitem, regs, rs1_addr)
         self.combi(rs2_data, operator.getitem, regs, rs2_addr)
-
-    @active
-    async def initial(self):
-        a0 = uint2vec(0, 5)
-        self._regs[a0].next = "32h0000_0000"

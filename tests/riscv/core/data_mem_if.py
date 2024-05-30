@@ -1,7 +1,5 @@
 """Data Memory Interface."""
 
-# pyright: reportAttributeAccessIssue=false
-
 from seqlogic import Module
 from seqlogic.lbool import Vec, cat, rep
 

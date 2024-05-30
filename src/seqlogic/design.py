@@ -163,6 +163,14 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
+    def const(self, y, x: Vec | str):
+        """Assign constant value to output."""
+
+        async def proc():
+            y.next = x
+
+        self._procs.append((Region.ACTIVE, proc, (), {}))
+
     def dff(self, q: Bits, d: Bits, clk: Bit):
         """D Flip Flop."""
 
