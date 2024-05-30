@@ -45,11 +45,7 @@ class DataMemBus(Module):
         data = self.bits(name="data", dtype=Vec[32])
 
         # Submodules
-        data_mem = self.submod(
-            name="data_mem",
-            mod=DataMem,
-            word_addr_bits=word_addr_bits,
-        )
+        data_mem = self.submod(name="data_mem", mod=DataMem, word_addr_bits=word_addr_bits)
         self.connect(data_mem.wr_be, wr_be)
         self.connect(data_mem.wr_data, wr_data)
         self.connect(data, data_mem.rd_data)
@@ -64,5 +60,5 @@ class DataMemBus(Module):
         self.combi(is_data, f_is_data, addr)
         self.combi(data_mem.wr_en, operator.and_, wr_en, is_data)
         m, n = 2, 2 + word_addr_bits
-        self.combi(data_mem.addr, lambda x: x[m:n], addr)
+        self.combi(data_mem.addr, lambda a: a[m:n], addr)
         self.combi(rd_data, f_rd_data, rd_en, is_data, data)

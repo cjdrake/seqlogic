@@ -12,7 +12,9 @@ from .alu import Alu
 from .regfile import RegFile
 
 
-def f_pc_next(next_pc_sel, pc_plus_4, pc_plus_immediate, alu_result):
+def f_pc_next(
+    next_pc_sel: CtlPc, pc_plus_4: Vec[32], pc_plus_immediate: Vec[32], alu_result: Vec[32]
+) -> Vec[32]:
     sel = next_pc_sel
     match sel:
         case CtlPc.PC4:
@@ -25,7 +27,7 @@ def f_pc_next(next_pc_sel, pc_plus_4, pc_plus_immediate, alu_result):
             return Vec[32].xprop(sel)
 
 
-def f_alu_op_a(alu_op_a_sel, rs1_data, pc):
+def f_alu_op_a(alu_op_a_sel: CtlAluA, rs1_data: Vec[32], pc: Vec[32]) -> Vec[32]:
     sel = alu_op_a_sel
     match sel:
         case CtlAluA.RS1:
@@ -36,7 +38,7 @@ def f_alu_op_a(alu_op_a_sel, rs1_data, pc):
             return Vec[32].xprop(sel)
 
 
-def f_alu_op_b(alu_op_b_sel, rs2_data, immediate):
+def f_alu_op_b(alu_op_b_sel: CtlAluB, rs2_data: Vec[32], immediate: Vec[32]) -> Vec[32]:
     sel = alu_op_b_sel
     match sel:
         case CtlAluB.RS2:
@@ -47,7 +49,13 @@ def f_alu_op_b(alu_op_b_sel, rs2_data, immediate):
             return Vec[32].xprop(sel)
 
 
-def f_wr_data(reg_writeback_sel, alu_result, data_mem_rd_data, pc_plus_4, immediate):
+def f_wr_data(
+    reg_writeback_sel: CtlWriteBack,
+    alu_result: Vec[32],
+    data_mem_rd_data: Vec[32],
+    pc_plus_4: Vec[32],
+    immediate: Vec[32],
+) -> Vec[32]:
     sel = reg_writeback_sel
     match sel:
         case CtlWriteBack.ALU:
@@ -62,7 +70,7 @@ def f_wr_data(reg_writeback_sel, alu_result, data_mem_rd_data, pc_plus_4, immedi
             return Vec[32].xprop(sel)
 
 
-def f_immediate(inst):
+def f_immediate(inst) -> Vec[32]:
     sel = inst.opcode
     match sel:
         case Opcode.LOAD | Opcode.LOAD_FP | Opcode.OP_IMM | Opcode.JALR:

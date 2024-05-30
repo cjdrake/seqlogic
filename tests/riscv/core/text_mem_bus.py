@@ -37,11 +37,7 @@ class TextMemBus(Module):
         text = self.bits(name="text", dtype=Vec[32])
 
         # Submodules
-        text_mem = self.submod(
-            name="text_mem",
-            mod=TextMem,
-            word_addr_bits=word_addr_bits,
-        )
+        text_mem = self.submod(name="text_mem", mod=TextMem, word_addr_bits=word_addr_bits)
         self.connect(text, text_mem.rd_data)
 
         # Combinational Logic

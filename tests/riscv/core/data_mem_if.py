@@ -25,16 +25,15 @@ def f_bus_wr_data(wr_data: Vec[32], byte_addr: Vec[2]) -> Vec[32]:
     return wr_data << cat("3b000", byte_addr)
 
 
-def f_rd_data(data_format, bus_rd_data, byte_addr: Vec[2]) -> Vec[32]:
-    n = cat("3b000", byte_addr)
-    data = bus_rd_data >> n
+def f_rd_data(data_format: Vec[3], bus_rd_data: Vec[32], byte_addr: Vec[2]) -> Vec[32]:
+    data = bus_rd_data >> cat("3b000", byte_addr)
     sel = data_format[:2]
     match sel:
         case "2b00":
-            pad = ~(data_format[2]) & data[8 - 1]
+            pad = ~data_format[2] & data[8 - 1]
             return cat(data[:8], rep(pad, 24))
         case "2b01":
-            pad = ~(data_format[2]) & data[16 - 1]
+            pad = ~data_format[2] & data[16 - 1]
             return cat(data[:16], rep(pad, 16))
         case "2b10":
             return data

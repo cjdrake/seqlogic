@@ -151,7 +151,7 @@ def f_next_pc_sel(inst_opcode: Opcode, take_branch: Vec[1]):
             return CtlPc.xprop(sel)
 
 
-def f_ctl(inst_opcode):
+def f_ctl(inst_opcode: Opcode):
     sel = inst_opcode
     match sel:
         case Opcode.LOAD:
