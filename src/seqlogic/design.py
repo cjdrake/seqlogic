@@ -130,26 +130,42 @@ class Module(Branch, _ProcIf, _TraceIf):
         setattr(self, f"_{name}", node)
         return node
 
-    def combi(self, y: Bits, f: Callable, *xs: State):
+    def combi(self, y: Bits, f: Callable, *xs: Bits | Array):
         """Combinational logic."""
 
         async def proc():
             while True:
                 await changed(*xs)
-                y.next = f(*[x.value for x in xs])
+                vals = []
+                for x in xs:
+                    if isinstance(x, Bits):
+                        vals.append(x.value)
+                    elif isinstance(x, Array):
+                        vals.append(x.values)
+                    else:
+                        raise TypeError("Expected x to be Bits or Array")
+                y.next = f(*vals)
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
-    def combis(self, ys: Sequence[Bits], f: Callable, *xs: State):
+    def combis(self, ys: Sequence[Bits], f: Callable, *xs: Bits | Array):
         """Combinational logic."""
 
         async def proc():
             while True:
                 await changed(*xs)
-                yns = f(*[x.value for x in xs])
-                assert len(ys) == len(yns)
-                for y, yn in zip(ys, yns):
-                    y.next = yn
+                vals = []
+                for x in xs:
+                    if isinstance(x, Bits):
+                        vals.append(x.value)
+                    elif isinstance(x, Array):
+                        vals.append(x.values)
+                    else:
+                        raise TypeError("Expected x to be Bits or Array")
+                vals = f(*vals)
+                assert len(ys) == len(vals)
+                for y, val in zip(ys, vals):
+                    y.next = val
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
@@ -163,11 +179,11 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
-    def const(self, y, x: Vec | str):
+    def const(self, y: Bits, value):
         """Assign constant value to output."""
 
         async def proc():
-            y.next = x
+            y.next = value
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
@@ -184,7 +200,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def dff_ar(self, q: Bits, d: Bits, clk: Bit, rst: Bit, rval: Vec):
+    def dff_ar(self, q: Bits, d: Bits, clk: Bit, rst: Bit, rval):
         """D Flip Flop with async reset."""
 
         async def proc():
@@ -217,7 +233,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def dff_en_ar(self, q: Bits, d: Bits, en: Bit, clk: Bit, rst: Bit, rval: Vec):
+    def dff_en_ar(self, q: Bits, d: Bits, en: Bit, clk: Bit, rst: Bit, rval):
         """D Flip Flop with enable, and async reset."""
 
         async def proc():
@@ -286,7 +302,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
 
 class Bits(Leaf, Singular, _ProcIf, _TraceIf):
-    """Leaf-level btvector design component."""
+    """Leaf-level bitvector design component."""
 
     def __init__(self, name: str, parent: Module, dtype: type):
         Leaf.__init__(self, name, parent)
