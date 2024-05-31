@@ -42,30 +42,30 @@ class Top(Module):
         # Submodules:
         # 16K Instruction Memory
         text_mem_bus = self.submod(name="text_mem_bus", mod=TextMemBus, depth=1024)
-        self.connect(text_mem_bus.rd_addr, pc)
+        self.assign(text_mem_bus.rd_addr, pc)
 
         # 32K Data Memory
         data_mem_bus = self.submod(name="data_mem_bus", mod=DataMemBus, depth=1024)
-        self.connect(data_mem_bus.addr, bus_addr)
-        self.connect(data_mem_bus.wr_en, bus_wr_en)
-        self.connect(data_mem_bus.wr_be, bus_wr_be)
-        self.connect(data_mem_bus.wr_data, bus_wr_data)
-        self.connect(data_mem_bus.rd_en, bus_rd_en)
-        self.connect(bus_rd_data, data_mem_bus.rd_data)
-        self.connect(data_mem_bus.clock, clock)
+        self.assign(data_mem_bus.addr, bus_addr)
+        self.assign(data_mem_bus.wr_en, bus_wr_en)
+        self.assign(data_mem_bus.wr_be, bus_wr_be)
+        self.assign(data_mem_bus.wr_data, bus_wr_data)
+        self.assign(data_mem_bus.rd_en, bus_rd_en)
+        self.assign(bus_rd_data, data_mem_bus.rd_data)
+        self.assign(data_mem_bus.clock, clock)
 
         # RISC-V Core
         core = self.submod(name="core", mod=Core)
-        self.connect(bus_addr, core.bus_addr)
-        self.connect(bus_wr_en, core.bus_wr_en)
-        self.connect(bus_wr_be, core.bus_wr_be)
-        self.connect(bus_wr_data, core.bus_wr_data)
-        self.connect(bus_rd_en, core.bus_rd_en)
-        self.connect(core.bus_rd_data, bus_rd_data)
-        self.connect(pc, core.pc)
-        self.connect(core.inst, inst)
-        self.connect(core.clock, clock)
-        self.connect(core.reset, reset)
+        self.assign(bus_addr, core.bus_addr)
+        self.assign(bus_wr_en, core.bus_wr_en)
+        self.assign(bus_wr_be, core.bus_wr_be)
+        self.assign(bus_wr_data, core.bus_wr_data)
+        self.assign(bus_rd_en, core.bus_rd_en)
+        self.assign(core.bus_rd_data, bus_rd_data)
+        self.assign(pc, core.pc)
+        self.assign(core.inst, inst)
+        self.assign(core.clock, clock)
+        self.assign(core.reset, reset)
 
         # Combinational Logic
         self.combi(

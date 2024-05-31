@@ -27,10 +27,10 @@ class RegFile(Module):
 
         # Assign r0 to zero
         a0 = uint2vec(0, 5)
-        self.const(regs[a0], "32h0000_0000")
+        self.assign(regs[a0], "32h0000_0000")
 
         en = self.bit(name="en")
-        self.combi(en, lambda we, wa: we & wa.neq("5b0_0000"), wr_en, wr_addr)
+        self.combi(en, lambda we, a: we & a.neq("5b0_0000"), wr_en, wr_addr)
 
         # Write Port
         self.mem_wr_en(regs, wr_addr, wr_data, en, clock)

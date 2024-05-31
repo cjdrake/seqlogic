@@ -63,9 +63,9 @@ class DataMemIf(Module):
 
         byte_addr = self.bits(name="byte_addr", dtype=Vec[2])
 
-        self.connect(bus_addr, addr)
-        self.connect(bus_wr_en, wr_en)
-        self.connect(bus_rd_en, rd_en)
+        self.assign(bus_addr, addr)
+        self.assign(bus_wr_en, wr_en)
+        self.assign(bus_rd_en, rd_en)
 
         # Combinational Logic
         self.combi(bus_wr_be, f_bus_wr_be, data_format, byte_addr)

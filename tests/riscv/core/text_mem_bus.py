@@ -38,7 +38,7 @@ class TextMemBus(Module):
 
         # Submodules
         text_mem = self.submod(name="text_mem", mod=TextMem, word_addr_bits=word_addr_bits)
-        self.connect(text, text_mem.rd_data)
+        self.assign(text, text_mem.rd_data)
 
         # Combinational Logic
         def f_is_text(addr: Vec[32]) -> Vec[1]:

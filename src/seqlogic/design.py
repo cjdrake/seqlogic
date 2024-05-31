@@ -17,7 +17,7 @@ from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
 from .lbool import Vec, VecEnum, cat, lit2vec
-from .sim import Aggregate, Region, SimAwaitable, Singular, State, changed, get_loop, resume
+from .sim import Aggregate, Region, SimAwaitable, Singular, State, Value, changed, get_loop, resume
 
 _item2char = {
     0b00: "x",
@@ -169,23 +169,20 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
-    def connect(self, y: Bits, x: Bits):
-        """Connect input to output."""
-
-        async def proc():
-            while True:
-                await changed(x)
-                y.next = x.value
-
-        self._procs.append((Region.REACTIVE, proc, (), {}))
-
-    def const(self, y: Bits, value):
-        """Assign constant value to output."""
-
-        async def proc():
-            y.next = value
-
-        self._procs.append((Region.ACTIVE, proc, (), {}))
+    def assign(self, y: Value, x):
+        """Assign input to output."""
+        # fmt: off
+        if isinstance(x, Bits):
+            async def proc1():
+                while True:
+                    await changed(x)
+                    y.next = x.value
+            self._procs.append((Region.REACTIVE, proc1, (), {}))
+        else:
+            async def proc2():
+                y.next = x
+            self._procs.append((Region.ACTIVE, proc2, (), {}))
+        # fmt: on
 
     def dff(self, q: Bits, d: Bits, clk: Bit):
         """D Flip Flop."""

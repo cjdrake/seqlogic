@@ -46,10 +46,10 @@ class DataMemBus(Module):
 
         # Submodules
         data_mem = self.submod(name="data_mem", mod=DataMem, word_addr_bits=word_addr_bits)
-        self.connect(data_mem.wr_be, wr_be)
-        self.connect(data_mem.wr_data, wr_data)
-        self.connect(data, data_mem.rd_data)
-        self.connect(data_mem.clock, clock)
+        self.assign(data_mem.wr_be, wr_be)
+        self.assign(data_mem.wr_data, wr_data)
+        self.assign(data, data_mem.rd_data)
+        self.assign(data_mem.clock, clock)
 
         # Combinational Logic
         def f_is_data(addr: Vec[32]) -> Vec[1]:

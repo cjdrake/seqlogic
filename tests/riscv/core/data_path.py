@@ -165,21 +165,21 @@ class DataPath(Module):
 
         # Submodules
         alu = self.submod(name="alu", mod=Alu)
-        self.connect(alu_result, alu.result)
-        self.connect(alu_result_eq_zero, alu.result_eq_zero)
-        self.connect(alu.alu_func, alu_func)
-        self.connect(alu.op_a, alu_op_a)
-        self.connect(alu.op_b, alu_op_b)
+        self.assign(alu_result, alu.result)
+        self.assign(alu_result_eq_zero, alu.result_eq_zero)
+        self.assign(alu.alu_func, alu_func)
+        self.assign(alu.op_a, alu_op_a)
+        self.assign(alu.op_b, alu_op_b)
 
         regfile = self.submod(name="regfile", mod=RegFile)
-        self.connect(regfile.wr_en, regfile_wr_en)
-        self.connect(regfile.wr_data, wr_data)
-        self.connect(rs1_data, regfile.rs1_data)
-        self.connect(rs2_data, regfile.rs2_data)
-        self.connect(regfile.clock, clock)
+        self.assign(regfile.wr_en, regfile_wr_en)
+        self.assign(regfile.wr_data, wr_data)
+        self.assign(rs1_data, regfile.rs1_data)
+        self.assign(rs2_data, regfile.rs2_data)
+        self.assign(regfile.clock, clock)
 
-        self.connect(data_mem_addr, alu_result)
-        self.connect(data_mem_wr_data, rs2_data)
+        self.assign(data_mem_addr, alu_result)
+        self.assign(data_mem_wr_data, rs2_data)
 
         # Combinational Logic
         ys = [regfile.rs2_addr, regfile.rs1_addr, regfile.wr_addr]
