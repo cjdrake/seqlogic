@@ -10,7 +10,7 @@ import inspect
 import re
 from abc import ABC
 from collections import defaultdict
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 
 from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
@@ -130,12 +130,18 @@ class Module(Branch, _ProcIf, _TraceIf):
         setattr(self, f"_{name}", node)
         return node
 
-    def combi(self, y: Bits, f: Callable, *xs: Bits | Array):
+    def combi(self, ys: Value | tuple[Value, ...], f: Callable, *xs: Bits | Array):
         """Combinational logic."""
+
+        # Pack outputs
+        if not isinstance(ys, tuple):
+            ys = (ys,)
 
         async def proc():
             while True:
                 await changed(*xs)
+
+                # Get sim var values
                 vals = []
                 for x in xs:
                     if isinstance(x, Bits):
@@ -144,25 +150,14 @@ class Module(Branch, _ProcIf, _TraceIf):
                         vals.append(x.values)
                     else:
                         raise TypeError("Expected x to be Bits or Array")
-                y.next = f(*vals)
 
-        self._procs.append((Region.REACTIVE, proc, (), {}))
-
-    def combis(self, ys: Sequence[Bits], f: Callable, *xs: Bits | Array):
-        """Combinational logic."""
-
-        async def proc():
-            while True:
-                await changed(*xs)
-                vals = []
-                for x in xs:
-                    if isinstance(x, Bits):
-                        vals.append(x.value)
-                    elif isinstance(x, Array):
-                        vals.append(x.values)
-                    else:
-                        raise TypeError("Expected x to be Bits or Array")
+                # Apply f to inputs
                 vals = f(*vals)
+
+                # Pack inputs
+                if not isinstance(vals, tuple):
+                    vals = (vals,)
+
                 assert len(ys) == len(vals)
                 for y, val in zip(ys, vals):
                     y.next = val

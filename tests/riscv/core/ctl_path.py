@@ -296,15 +296,15 @@ class CtlPath(Module):
         # Combinational Logic
         self.combi(take_branch, f_take_branch, inst_funct3, alu_result_eq_zero)
 
-        ys = [default_func, secondary_func, branch_func]
-        self.combis(ys, f_func, inst_funct3)
+        ys = (default_func, secondary_func, branch_func)
+        self.combi(ys, f_func, inst_funct3)
 
-        xs = [alu_op_type, inst_funct3, inst_funct7, default_func, secondary_func, branch_func]
+        xs = (alu_op_type, inst_funct3, inst_funct7, default_func, secondary_func, branch_func)
         self.combi(alu_func, f_alu_func, *xs)
 
         self.combi(next_pc_sel, f_next_pc_sel, inst_opcode, take_branch)
 
-        ys = [
+        ys = (
             pc_wr_en,
             regfile_wr_en,
             alu_op_a_sel,
@@ -313,5 +313,5 @@ class CtlPath(Module):
             data_mem_wr_en,
             reg_writeback_sel,
             alu_op_type,
-        ]
-        self.combis(ys, f_ctl, inst_opcode)
+        )
+        self.combi(ys, f_ctl, inst_opcode)

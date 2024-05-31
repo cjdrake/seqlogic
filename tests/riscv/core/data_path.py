@@ -182,14 +182,14 @@ class DataPath(Module):
         self.assign(data_mem_wr_data, rs2_data)
 
         # Combinational Logic
-        ys = [regfile.rs2_addr, regfile.rs1_addr, regfile.wr_addr]
-        self.combis(ys, lambda x: (x.rs2, x.rs1, x.rd), inst)
+        ys = (regfile.rs2_addr, regfile.rs1_addr, regfile.wr_addr)
+        self.combi(ys, lambda x: (x.rs2, x.rs1, x.rd), inst)
         self.combi(pc_plus_4, lambda x: x + "32h0000_0004", pc)
         self.combi(pc_plus_immediate, operator.add, pc, immediate)
         self.combi(pc_next, f_pc_next, next_pc_sel, pc_plus_4, pc_plus_immediate, alu_result)
         self.combi(alu_op_a, f_alu_op_a, alu_op_a_sel, rs1_data, pc)
         self.combi(alu_op_b, f_alu_op_b, alu_op_b_sel, rs2_data, immediate)
-        xs = [reg_writeback_sel, alu_result, data_mem_rd_data, pc_plus_4, immediate]
+        xs = (reg_writeback_sel, alu_result, data_mem_rd_data, pc_plus_4, immediate)
         self.combi(wr_data, f_wr_data, *xs)
         self.combi(immediate, f_immediate, inst)
 

@@ -90,10 +90,10 @@ class Core(Module):
         self.assign(data_mem_if.bus_rd_data, bus_rd_data)
 
         # Combinational Logic
-        ys = [
+        ys = (
             ctlpath.inst_opcode,
             ctlpath.inst_funct3,
             ctlpath.inst_funct7,
             data_mem_if.data_format,
-        ]
-        self.combis(ys, lambda x: (x.opcode, x.funct3, x.funct7, x.funct3), inst)
+        )
+        self.combi(ys, lambda x: (x.opcode, x.funct3, x.funct7, x.funct3), inst)
