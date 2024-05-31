@@ -5,7 +5,7 @@
 from seqlogic import Module
 from seqlogic.lbool import Vec
 
-from . import AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
+from . import AluOp, CtlAluA, CtlAluB, CtlPc, Inst
 from .ctl_path import CtlPath
 from .data_mem_if import DataMemIf
 from .data_path import DataPath
@@ -36,7 +36,6 @@ class Core(Module):
         regfile_wr_en = self.bit(name="regfile_wr_en")
         alu_op_a_sel = self.bits(name="alu_op_a_sel", dtype=CtlAluA)
         alu_op_b_sel = self.bits(name="alu_op_b_sel", dtype=CtlAluB)
-        reg_writeback_sel = self.bits(name="reg_writeback_sel", dtype=CtlWriteBack)
         next_pc_sel = self.bits(name="next_pc_sel", dtype=CtlPc)
         alu_func = self.bits(name="alu_func", dtype=AluOp)
         alu_result_eq_zero = self.bit(name="alu_result_eq_zero")
@@ -55,7 +54,6 @@ class Core(Module):
         self.assign(alu_op_b_sel, ctlpath.alu_op_b_sel)
         self.assign(rd_en, ctlpath.data_mem_rd_en)
         self.assign(wr_en, ctlpath.data_mem_wr_en)
-        self.assign(reg_writeback_sel, ctlpath.reg_writeback_sel)
         self.assign(alu_func, ctlpath.alu_func)
         self.assign(next_pc_sel, ctlpath.next_pc_sel)
 
@@ -70,11 +68,13 @@ class Core(Module):
         self.assign(datapath.regfile_wr_en, regfile_wr_en)
         self.assign(datapath.alu_op_a_sel, alu_op_a_sel)
         self.assign(datapath.alu_op_b_sel, alu_op_b_sel)
-        self.assign(datapath.reg_writeback_sel, reg_writeback_sel)
         self.assign(datapath.next_pc_sel, next_pc_sel)
         self.assign(datapath.alu_func, alu_func)
         self.assign(datapath.clock, clock)
         self.assign(datapath.reset, reset)
+
+        # Experiment w/ direct connection
+        self.assign(datapath.reg_writeback_sel, ctlpath.reg_writeback_sel)
 
         data_mem_if = self.submod(name="data_mem_if", mod=DataMemIf)
         self.assign(data_mem_if.addr, addr)
