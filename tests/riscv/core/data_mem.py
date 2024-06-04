@@ -24,7 +24,7 @@ class DataMem(Module):
         mem = self.array(name="mem", dtype=Vec[32])
 
         # Write Port
-        self.mem_wr_be(mem, addr, wr_data, wr_en, wr_be, clock, nbytes=4)
+        self.mem_wr_be(mem, addr, wr_data, wr_en, wr_be, clock)
 
         # Read Port
         self.combi(rd_data, operator.getitem, mem, addr)

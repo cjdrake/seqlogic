@@ -4,6 +4,9 @@ Combine elements from hierarchy, bit vectors, and simulation into a
 straightforward API for creating a digital design.
 """
 
+# Simplify access to friend object attributes
+# pylint: disable = protected-access
+
 from __future__ import annotations
 
 import inspect
@@ -267,9 +270,11 @@ class Module(Branch, _ProcIf, _TraceIf):
         en: Bit,
         be: Bits,
         clk: Bit,
-        nbytes: int = 4,
     ):
         """Memory with write byte enable."""
+        width = mem._dtype._n
+        assert width % 8 == 0
+        nbytes = width // 8
 
         async def proc():
             while True:
