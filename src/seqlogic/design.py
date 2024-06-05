@@ -262,18 +262,12 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def mem_wr_be(
-        self,
-        mem: Array,
-        addr: Bits,
-        data: Bits,
-        en: Bit,
-        be: Bits,
-        clk: Bit,
-    ):
+    def mem_wr_be(self, mem: Array, addr: Bits, data: Bits, en: Bit, be: Bits, clk: Bit):
         """Memory with write byte enable."""
+
         width = mem._dtype._n
-        assert width % 8 == 0
+        if width % 8 != 0:
+            raise ValueError("Expected data width to be multiple of 8")
         nbytes = width // 8
 
         async def proc():
