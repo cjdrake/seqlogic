@@ -439,11 +439,23 @@ class Vec:
     def __or__(self, other: Vec | str) -> Vec:
         return self.or_(other)
 
+    def __ror__(self, other: Vec | str) -> Vec:
+        v = self._to_vec(other)
+        return v.__or__(self)
+
     def __and__(self, other: Vec | str) -> Vec:
         return self.and_(other)
 
+    def __rand__(self, other: Vec | str) -> Vec:
+        v = self._to_vec(other)
+        return v.__and__(self)
+
     def __xor__(self, other: Vec | str) -> Vec:
         return self.xor(other)
+
+    def __rxor__(self, other: Vec | str) -> Vec:
+        v = self._to_vec(other)
+        return v.__xor__(self)
 
     def __lshift__(self, n: int | Vec) -> Vec:
         return self.lsh(n)[0]
