@@ -5,7 +5,7 @@
 
 import pytest
 
-from seqlogic import lbool
+from seqlogic import lbconst, lbool
 from seqlogic.lbool import (
     Vec,
     and_,
@@ -58,8 +58,8 @@ LNOT = {
 
 def test_lnot():
     for x, y in LNOT.items():
-        x = lbool._from_char[x]
-        y = lbool._from_char[y]
+        x = lbconst.from_char[x]
+        y = lbconst.from_char[y]
         assert not_(x) == y
 
 
@@ -85,9 +85,9 @@ NOR = {
 
 def test_lnor():
     for xs, y in NOR.items():
-        x0 = lbool._from_char[xs[0]]
-        x1 = lbool._from_char[xs[1]]
-        y = lbool._from_char[y]
+        x0 = lbconst.from_char[xs[0]]
+        x1 = lbconst.from_char[xs[1]]
+        y = lbconst.from_char[y]
         assert nor(x0, x1) == y
 
 
@@ -113,9 +113,9 @@ OR = {
 
 def test_lor():
     for xs, y in OR.items():
-        x0 = lbool._from_char[xs[0]]
-        x1 = lbool._from_char[xs[1]]
-        y = lbool._from_char[y]
+        x0 = lbconst.from_char[xs[0]]
+        x1 = lbconst.from_char[xs[1]]
+        y = lbconst.from_char[y]
         assert or_(x0, x1) == y
 
 
@@ -141,9 +141,9 @@ NAND = {
 
 def test_lnand():
     for xs, y in NAND.items():
-        x0 = lbool._from_char[xs[0]]
-        x1 = lbool._from_char[xs[1]]
-        y = lbool._from_char[y]
+        x0 = lbconst.from_char[xs[0]]
+        x1 = lbconst.from_char[xs[1]]
+        y = lbconst.from_char[y]
         assert nand(x0, x1) == y
 
 
@@ -169,9 +169,9 @@ AND = {
 
 def test_land():
     for xs, y in AND.items():
-        x0 = lbool._from_char[xs[0]]
-        x1 = lbool._from_char[xs[1]]
-        y = lbool._from_char[y]
+        x0 = lbconst.from_char[xs[0]]
+        x1 = lbconst.from_char[xs[1]]
+        y = lbconst.from_char[y]
         assert and_(x0, x1) == y
 
 
@@ -197,9 +197,9 @@ XNOR = {
 
 def test_lxnor():
     for xs, y in XNOR.items():
-        x0 = lbool._from_char[xs[0]]
-        x1 = lbool._from_char[xs[1]]
-        y = lbool._from_char[y]
+        x0 = lbconst.from_char[xs[0]]
+        x1 = lbconst.from_char[xs[1]]
+        y = lbconst.from_char[y]
         assert xnor(x0, x1) == y
 
 
@@ -225,9 +225,9 @@ XOR = {
 
 def test_lxor():
     for xs, y in XOR.items():
-        x0 = lbool._from_char[xs[0]]
-        x1 = lbool._from_char[xs[1]]
-        y = lbool._from_char[y]
+        x0 = lbconst.from_char[xs[0]]
+        x1 = lbconst.from_char[xs[1]]
+        y = lbconst.from_char[y]
         assert xor(x0, x1) == y
 
 
@@ -253,9 +253,9 @@ IMPLIES = {
 
 def test_limplies():
     for xs, y in IMPLIES.items():
-        x0 = lbool._from_char[xs[0]]
-        x1 = lbool._from_char[xs[1]]
-        y = lbool._from_char[y]
+        x0 = lbconst.from_char[xs[0]]
+        x1 = lbconst.from_char[xs[1]]
+        y = lbconst.from_char[y]
         assert implies(x0, x1) == y
 
 
