@@ -29,7 +29,7 @@ which enables efficient, bit-wise operations and arithmetic.
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
 from functools import cached_property, partial
 
 from .util import classproperty, clog2
@@ -381,6 +381,10 @@ class Vec:
             n, d = self._get_items(i, j)
             return Vec[n](d)
         raise TypeError("Expected key to be int or slice")
+
+    def __iter__(self) -> Generator[Vec[1], None, None]:
+        for i in range(self._n):
+            yield self.__getitem__(i)
 
     def __str__(self) -> str:
         if self._n == 0:
