@@ -127,7 +127,7 @@ class Module(Branch, _ProcIf, _TraceIf):
         setattr(self, f"_{name}", node)
         return node
 
-    def submod(self, name: str, mod: type, **params) -> Module:
+    def submod(self, name: str, mod: type[Module], **params) -> Module:
         self._check_name(name)
         node = mod(name, parent=self, **params)
         setattr(self, f"_{name}", node)
@@ -295,7 +295,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 class Bits(Leaf, Singular, _ProcIf, _TraceIf):
     """Leaf-level bitvector design component."""
 
-    def __init__(self, name: str, parent: Module, dtype: type):
+    def __init__(self, name: str, parent: Module, dtype: type[Vec]):
         Leaf.__init__(self, name, parent)
         Singular.__init__(self, dtype.xes())
         _ProcIf.__init__(self)
@@ -404,7 +404,7 @@ class Bit(Bits):
 class Array(Leaf, Aggregate, _ProcIf, _TraceIf):
     """Leaf-level array of vec/enum/struct/union design components."""
 
-    def __init__(self, name: str, parent: Module, dtype: type):
+    def __init__(self, name: str, parent: Module, dtype: type[Vec]):
         Leaf.__init__(self, name, parent)
         Aggregate.__init__(self, dtype.xes())
         _ProcIf.__init__(self)
