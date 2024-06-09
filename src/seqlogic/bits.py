@@ -746,7 +746,7 @@ def ones(shape: tuple[int, ...]) -> Bits:
 def xes(shape: tuple[int, ...]) -> Bits:
     """Return a new logic_vector of given shape, filled with Xes."""
     n = math.prod(shape)
-    v = lbool.dcs(n)
+    v = Vec[n].dcs()
     return Bits(shape, v.data)
 
 

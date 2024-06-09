@@ -324,7 +324,6 @@ class Vec:
     * xes
     * zeros
     * ones
-    * dcs
     """
 
     def __class_getitem__(cls, n: int):
@@ -1520,11 +1519,6 @@ def zeros(n: int) -> Vec:
 def ones(n: int) -> Vec:
     """Return a vec packed with n 1 items."""
     return Vec[n](_fill(_1, n))
-
-
-def dcs(n: int) -> Vec:
-    """Return a vec packed with n DC items."""
-    return Vec[n](_fill(_W, n))
 
 
 # Empty
