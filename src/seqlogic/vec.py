@@ -1,4 +1,4 @@
-"""Logic vector data type."""
+"""Logic vector data types."""
 
 # Simplify access to friend object attributes
 # pylint: disable = protected-access

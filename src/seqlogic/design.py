@@ -1,6 +1,6 @@
-"""Design elements.
+"""Logic design components.
 
-Combine elements from hierarchy, bit vectors, and simulation into a
+Combine hierarchy, bit vectors, and simulation semantics into a
 straightforward API for creating a digital design.
 """
 

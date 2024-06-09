@@ -1,4 +1,4 @@
-"""Logic Design Hierarchy.
+"""Logic hierarchy.
 
 Implement the fundamental components of an N-ary tree.
 A tree has branches and leaves.

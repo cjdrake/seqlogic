@@ -1,4 +1,4 @@
-"""Lifted Boolean scalar and vector data types.
+"""Lifted Boolean functions.
 
 The conventional Boolean type consists of {False, True}, or {0, 1}.
 You can pack Booleans using an int, e.g. hex(0xaa | 0x55) == '0xff'.
