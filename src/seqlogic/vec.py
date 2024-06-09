@@ -12,7 +12,7 @@ import re
 from collections.abc import Generator, Iterable
 from functools import cached_property, partial
 
-from . import lbool
+from . import lbfunc
 from .lbconst import (
     BYTE_MASK,
     ITEM_BITS,
@@ -311,7 +311,7 @@ class Vec:
         """
         data = _0
         for i in range(self._n):
-            data = lbool.or_(data, self._get_item(i))
+            data = lbfunc.or_(data, self._get_item(i))
         return Vec[1](data)
 
     def nand(self, other: Vec | str) -> Vec:
@@ -382,7 +382,7 @@ class Vec:
         """
         data = _1
         for i in range(self._n):
-            data = lbool.and_(data, self._get_item(i))
+            data = lbfunc.and_(data, self._get_item(i))
         return Vec[1](data)
 
     def xnor(self, other: Vec | str) -> Vec:
@@ -455,7 +455,7 @@ class Vec:
         """
         data = _1
         for i in range(self._n):
-            data = lbool.xnor(data, self._get_item(i))
+            data = lbfunc.xnor(data, self._get_item(i))
         return Vec[1](data)
 
     def uxor(self) -> Vec[1]:
@@ -466,7 +466,7 @@ class Vec:
         """
         data = _0
         for i in range(self._n):
-            data = lbool.xor(data, self._get_item(i))
+            data = lbfunc.xor(data, self._get_item(i))
         return Vec[1](data)
 
     def to_uint(self) -> int:

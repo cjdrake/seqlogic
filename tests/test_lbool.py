@@ -6,7 +6,7 @@
 import pytest
 
 from seqlogic import lbconst
-from seqlogic.lbool import and_, implies, nand, nor, not_, or_, xnor, xor
+from seqlogic.lbfunc import and_, implies, nand, nor, not_, or_, xnor, xor
 from seqlogic.vec import Vec, cat, int2vec, rep, uint2vec, vec
 
 E = Vec[0](0)
