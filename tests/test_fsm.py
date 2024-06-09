@@ -6,11 +6,12 @@ Demonstrate usage of an enum.
 from collections import defaultdict
 
 from seqlogic import Bit, Bits, Module, get_loop
-from seqlogic.lbool import Vec, VecEnum, ones, zeros
+from seqlogic.lbool import Vec, VecEnum
 from seqlogic.sim import Region
 
 from .common import p_clk, p_dff, p_rst
 
+# pyright: reportArgumentType=false
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportReturnType=false
 
@@ -33,24 +34,24 @@ async def p_input(
     clock: Bit,
 ):
     await reset_n.negedge()
-    x.next = zeros(1)
+    x.next = "1b0"
 
     await reset_n.posedge()
     await clock.posedge()
     await clock.posedge()
-    x.next = ones(1)  # A => B
+    x.next = "1b1"  # A => B
 
     await clock.posedge()
-    x.next = ones(1)  # B => C
+    x.next = "1b1"  # B => C
 
     await clock.posedge()
-    x.next = ones(1)  # C => D
+    x.next = "1b1"  # C => D
 
     await clock.posedge()
-    x.next = ones(1)  # D => D
+    x.next = "1b1"  # D => D
 
     await clock.posedge()
-    x.next = zeros(1)  # D => A
+    x.next = "1b0"  # D => A
 
 
 def test_fsm():
@@ -99,8 +100,8 @@ def test_fsm():
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(Region.ACTIVE, p_rst, reset_n, init=ones(1), phase1=6, phase2=10)
-    loop.add_proc(Region.ACTIVE, p_clk, clock, init=zeros(1), shift=5, phase1=5, phase2=5)
+    loop.add_proc(Region.ACTIVE, p_rst, reset_n, init="1b1", phase1=6, phase2=10)
+    loop.add_proc(Region.ACTIVE, p_clk, clock, init="1b0", shift=5, phase1=5, phase2=5)
 
     loop.run(until=100)
 
@@ -113,92 +114,92 @@ def test_fsm():
             ps: SeqDetect.X,
         },
         0: {
-            reset_n: ones(1),
-            clock: zeros(1),
+            reset_n: "1b1",
+            clock: "1b0",
         },
         # clock.posedge; reset_n = 1
         5: {
-            clock: ones(1),
+            clock: "1b1",
         },
         # reset_n.negedge
         6: {
-            reset_n: zeros(1),
-            x: zeros(1),
+            reset_n: "1b0",
+            x: "1b0",
             ps: SeqDetect.A,
         },
         10: {
-            clock: zeros(1),
+            clock: "1b0",
         },
         # clock.posedge; reset_n = 0
         15: {
-            clock: ones(1),
+            clock: "1b1",
         },
         # reset_n.posedge
         16: {
-            reset_n: ones(1),
+            reset_n: "1b1",
         },
         20: {
-            clock: zeros(1),
+            clock: "1b0",
         },
         # clock.posedge; reset_n = 1
         25: {
-            clock: ones(1),
+            clock: "1b1",
         },
         30: {
-            clock: zeros(1),
+            clock: "1b0",
         },
         # clock.posedge
         35: {
-            clock: ones(1),
-            x: ones(1),
+            clock: "1b1",
+            x: "1b1",
         },
         40: {
-            clock: zeros(1),
+            clock: "1b0",
         },
         # clock.posedge
         45: {
-            clock: ones(1),
+            clock: "1b1",
             ps: SeqDetect.B,
         },
         50: {
-            clock: zeros(1),
+            clock: "1b0",
         },
         # clock.posedge
         55: {
-            clock: ones(1),
+            clock: "1b1",
             ps: SeqDetect.C,
         },
         60: {
-            clock: zeros(1),
+            clock: "1b0",
         },
         # clock.posedge
         65: {
-            clock: ones(1),
+            clock: "1b1",
             ps: SeqDetect.D,
         },
         70: {
-            clock: zeros(1),
+            clock: "1b0",
         },
         # clock.posedge
         75: {
-            clock: ones(1),
-            x: zeros(1),
+            clock: "1b1",
+            x: "1b0",
             # ps: D => D
         },
         80: {
-            clock: zeros(1),
+            clock: "1b0",
         },
         # clock.posedge
         85: {
-            clock: ones(1),
+            clock: "1b1",
             ps: SeqDetect.A,
         },
         90: {
-            clock: zeros(1),
+            clock: "1b0",
         },
         # clock.posedge
         95: {
-            clock: ones(1),
+            clock: "1b1",
         },
     }
 

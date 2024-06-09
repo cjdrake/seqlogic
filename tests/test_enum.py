@@ -2,13 +2,12 @@
 
 # pylint: disable = unused-variable
 
-# pyright: reportArgumentType = false
 # pyright: reportAttributeAccessIssue = false
 # pyright: reportCallIssue = false
 
 import pytest
 
-from seqlogic.lbool import Vec, VecEnum, ones, zeros
+from seqlogic.lbool import Vec, VecEnum
 
 
 class Color(VecEnum):
@@ -81,8 +80,8 @@ def test_basic():
 
 
 def test_slicing():
-    assert Color.GREEN[0] == ones(1)
-    assert Color.GREEN[1] == zeros(1)
+    assert Color.GREEN[0] == "1b1"
+    assert Color.GREEN[1] == "1b0"
 
 
 def test_enum_error():

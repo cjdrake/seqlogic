@@ -7,13 +7,12 @@ It might be useful to add to seqlogic library.
 from collections import defaultdict
 
 from seqlogic import Bit, resume, sleep
-from seqlogic.lbool import ones, zeros
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
 
 
-async def p_rst(reset: Bit, init=ones(1), phase1: int = 1, phase2: int = 1):
+async def p_rst(reset: Bit, init, phase1: int = 1, phase2: int = 1):
     r"""
     Simulate a reset signal.
 
@@ -45,7 +44,7 @@ async def p_rst(reset: Bit, init=ones(1), phase1: int = 1, phase2: int = 1):
 
 async def p_clk(
     clock: Bit,
-    init=zeros(1),
+    init,
     shift: int = 0,
     phase1: int = 1,
     phase2: int = 1,
@@ -101,5 +100,5 @@ async def p_dff(
         assert var in {reset_n, clock}
         if var is reset_n:
             q.next = reset_value
-        elif var is clock and reset_n.value == ones(1):
+        elif var is clock and reset_n.value == "1b1":
             q.next = d()
