@@ -725,7 +725,7 @@ E = Bits((0,), 0)
 def illogicals(shape: tuple[int, ...]) -> Bits:
     """Return a new logic_vector of given shape, filled with ILLOGICAL."""
     n = math.prod(shape)
-    v = lbool.xes(n)
+    v = Vec[n].xes()
     return Bits(shape, v.data)
 
 

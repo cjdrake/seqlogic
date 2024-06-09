@@ -3,7 +3,7 @@
 from collections import defaultdict
 
 from seqlogic import Bit, Bits, Module, get_loop
-from seqlogic.lbool import Vec, cat, ones, vec, xes, zeros
+from seqlogic.lbool import Vec, cat, ones, vec, zeros
 from seqlogic.sim import Region
 
 from .common import p_clk, p_dff, p_rst
@@ -53,9 +53,9 @@ def test_lfsr():
     exp = {
         # Initialize everything to X'es
         -1: {
-            top.reset_n: xes(1),
-            top.clock: xes(1),
-            top.q: xes(3),
+            top.reset_n: Vec[1].xes(),
+            top.clock: Vec[1].xes(),
+            top.q: Vec[3].xes(),
         },
         0: {
             top.reset_n: ones(1),

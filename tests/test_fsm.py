@@ -6,7 +6,7 @@ Demonstrate usage of an enum.
 from collections import defaultdict
 
 from seqlogic import Bit, Bits, Module, get_loop
-from seqlogic.lbool import VecEnum, ones, xes, zeros
+from seqlogic.lbool import Vec, VecEnum, ones, zeros
 from seqlogic.sim import Region
 
 from .common import p_clk, p_dff, p_rst
@@ -107,9 +107,9 @@ def test_fsm():
     exp = {
         # Initialize everything to X'es
         -1: {
-            reset_n: xes(1),
-            clock: xes(1),
-            x: xes(1),
+            reset_n: Vec[1].xes(),
+            clock: Vec[1].xes(),
+            x: Vec[1].xes(),
             ps: SeqDetect.X,
         },
         0: {

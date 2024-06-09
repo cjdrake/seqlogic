@@ -321,7 +321,6 @@ class Vec:
     * vec
     * uint2vec
     * int2vec
-    * xes
     * zeros
     * ones
     """
@@ -1504,11 +1503,6 @@ def rep(obj: Vec | int | str, n: int) -> Vec:
     """Repeat a vector n times."""
     objs = [obj] * n
     return cat(*objs)
-
-
-def xes(n: int) -> Vec:
-    """Return a vec packed with n X items."""
-    return Vec[n](0)
 
 
 def zeros(n: int) -> Vec:
