@@ -3,7 +3,7 @@
 import operator
 
 from seqlogic import Module
-from seqlogic.lbool import Vec, uint2vec
+from seqlogic.vec import Vec, uint2vec
 
 
 class RegFile(Module):

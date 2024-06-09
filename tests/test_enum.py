@@ -7,7 +7,7 @@
 
 import pytest
 
-from seqlogic.lbool import Vec, VecEnum
+from seqlogic.vec import Vec, VecEnum
 
 
 class Color(VecEnum):

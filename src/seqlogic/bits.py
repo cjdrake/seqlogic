@@ -8,8 +8,8 @@ import math
 from collections.abc import Collection, Generator
 from functools import cached_property
 
-from . import lbool
-from .lbool import Vec, bools2vec, int2vec, lit2vec, uint2vec
+from . import vec
+from .vec import Vec, bools2vec, int2vec, lit2vec, uint2vec
 
 
 class Bits:
@@ -732,14 +732,14 @@ def illogicals(shape: tuple[int, ...]) -> Bits:
 def zeros(shape: tuple[int, ...]) -> Bits:
     """Return a new logic_vector of given shape, filled with zeros."""
     n = math.prod(shape)
-    v = lbool.zeros(n)
+    v = vec.zeros(n)
     return Bits(shape, v.data)
 
 
 def ones(shape: tuple[int, ...]) -> Bits:
     """Return a new logic_vector of given shape, filled with ones."""
     n = math.prod(shape)
-    v = lbool.ones(n)
+    v = vec.ones(n)
     return Bits(shape, v.data)
 
 

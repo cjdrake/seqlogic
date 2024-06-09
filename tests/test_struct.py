@@ -7,7 +7,7 @@
 
 import pytest
 
-from seqlogic.lbool import Vec, VecEnum, VecStruct, vec
+from seqlogic.vec import Vec, VecEnum, VecStruct, vec
 
 
 class Pixel(VecStruct):

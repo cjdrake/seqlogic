@@ -3,7 +3,7 @@
 import operator
 
 from seqlogic import Module
-from seqlogic.lbool import Vec
+from seqlogic.vec import Vec
 
 
 class DataMem(Module):

@@ -1,6 +1,6 @@
 """Gray Code."""
 
-from ..lbool import Vec, cat
+from ..vec import Vec, cat
 
 
 def bin2gray(b: Vec) -> Vec:

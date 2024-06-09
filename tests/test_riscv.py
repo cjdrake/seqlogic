@@ -16,7 +16,7 @@ It merely serves as a non-trivial example design.
 from collections import defaultdict
 
 from seqlogic import get_loop, simify
-from seqlogic.lbool import uint2vec
+from seqlogic.vec import uint2vec
 
 from .riscv.core import AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .riscv.core.top import Top

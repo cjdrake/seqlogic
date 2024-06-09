@@ -6,8 +6,8 @@ Demonstrate usage of an enum.
 from collections import defaultdict
 
 from seqlogic import Bit, Bits, Module, get_loop
-from seqlogic.lbool import Vec, VecEnum
 from seqlogic.sim import Region
+from seqlogic.vec import Vec, VecEnum
 
 from .common import p_clk, p_dff, p_rst
 

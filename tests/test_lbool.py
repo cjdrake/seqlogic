@@ -5,23 +5,9 @@
 
 import pytest
 
-from seqlogic import lbconst, lbool
-from seqlogic.lbool import (
-    Vec,
-    and_,
-    cat,
-    implies,
-    int2vec,
-    nand,
-    nor,
-    not_,
-    or_,
-    rep,
-    uint2vec,
-    vec,
-    xnor,
-    xor,
-)
+from seqlogic import lbconst
+from seqlogic.lbool import and_, implies, nand, nor, not_, or_, xnor, xor
+from seqlogic.vec import Vec, cat, int2vec, rep, uint2vec, vec
 
 E = Vec[0](0)
 X = Vec[1](0b00)
@@ -301,12 +287,12 @@ def test_vec_eq():
 
 def test_vec_hash():
     s = set()
-    s.add(lbool.uint2vec(0))
-    s.add(lbool.uint2vec(1))
-    s.add(lbool.uint2vec(2))
-    s.add(lbool.uint2vec(3))
-    s.add(lbool.uint2vec(1))
-    s.add(lbool.uint2vec(2))
+    s.add(uint2vec(0))
+    s.add(uint2vec(1))
+    s.add(uint2vec(2))
+    s.add(uint2vec(3))
+    s.add(uint2vec(1))
+    s.add(uint2vec(2))
     assert len(s) == 4
 
 

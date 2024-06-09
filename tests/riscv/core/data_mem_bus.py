@@ -5,7 +5,7 @@
 import operator
 
 from seqlogic import Module, clog2
-from seqlogic.lbool import Vec, uint2vec
+from seqlogic.vec import Vec, uint2vec
 
 from . import DATA_BASE, DATA_SIZE
 from .data_mem import DataMem

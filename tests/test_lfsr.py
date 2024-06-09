@@ -3,8 +3,8 @@
 from collections import defaultdict
 
 from seqlogic import Bit, Bits, Module, get_loop
-from seqlogic.lbool import Vec, cat
 from seqlogic.sim import Region
+from seqlogic.vec import Vec, cat
 
 from .common import p_clk, p_dff, p_rst
 

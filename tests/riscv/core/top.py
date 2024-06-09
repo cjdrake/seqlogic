@@ -4,8 +4,8 @@
 # pyright: reportCallIssue=false
 
 from seqlogic import Module, sleep
-from seqlogic.lbool import Vec
 from seqlogic.sim import active
+from seqlogic.vec import Vec
 
 from . import Inst, Opcode
 from .core import Core

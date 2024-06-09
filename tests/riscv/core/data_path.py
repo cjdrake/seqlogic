@@ -5,7 +5,7 @@
 import operator
 
 from seqlogic import Module
-from seqlogic.lbool import Vec, cat, rep, uint2vec
+from seqlogic.vec import Vec, cat, rep, uint2vec
 
 from . import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu

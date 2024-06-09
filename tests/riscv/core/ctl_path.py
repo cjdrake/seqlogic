@@ -3,7 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 
 from seqlogic import Module
-from seqlogic.lbool import Vec
+from seqlogic.vec import Vec
 
 from . import (
     AluOp,

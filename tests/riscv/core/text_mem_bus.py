@@ -3,7 +3,7 @@
 # pyright: reportAttributeAccessIssue=false
 
 from seqlogic import Module, clog2
-from seqlogic.lbool import Vec, uint2vec
+from seqlogic.vec import Vec, uint2vec
 
 from . import TEXT_BASE, TEXT_SIZE
 from .text_mem import TextMem

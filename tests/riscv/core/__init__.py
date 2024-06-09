@@ -1,6 +1,6 @@
 """RiscV Constants and Types."""
 
-from seqlogic.lbool import Vec, VecEnum, VecStruct, VecUnion
+from seqlogic.vec import Vec, VecEnum, VecStruct, VecUnion
 
 TEXT_BASE = 0x0040_0000
 TEXT_BITS = 4 + 10 + 2  # 16K

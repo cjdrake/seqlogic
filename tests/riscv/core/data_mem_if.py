@@ -1,7 +1,7 @@
 """Data Memory Interface."""
 
 from seqlogic import Module
-from seqlogic.lbool import Vec, cat, rep
+from seqlogic.vec import Vec, cat, rep
 
 
 def f_bus_wr_be(data_format: Vec[3], byte_addr: Vec[2]):

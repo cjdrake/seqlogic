@@ -19,8 +19,8 @@ from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
-from .lbool import Vec, VecEnum, cat, lit2vec
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, Value, changed, get_loop, resume
+from .vec import Vec, VecEnum, cat, lit2vec
 
 _item2char = {
     0b00: "x",
