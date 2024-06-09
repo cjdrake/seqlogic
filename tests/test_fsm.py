@@ -3,6 +3,10 @@
 Demonstrate usage of an enum.
 """
 
+# pyright: reportArgumentType=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportReturnType=false
+
 from collections import defaultdict
 
 from seqlogic import Bit, Bits, Module, get_loop
@@ -10,11 +14,6 @@ from seqlogic.sim import Region
 from seqlogic.vec import Vec, VecEnum
 
 from .common import p_clk, p_dff, p_rst
-
-# pyright: reportArgumentType=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportReturnType=false
-
 
 loop = get_loop()
 
