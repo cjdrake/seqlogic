@@ -7,7 +7,7 @@ import operator
 from seqlogic import Module, clog2
 from seqlogic.vec import Vec, uint2vec
 
-from . import DATA_BASE, DATA_SIZE
+from . import DATA_BASE, DATA_SIZE, Addr
 from .data_mem import DataMem
 
 
@@ -32,7 +32,7 @@ class DataMemBus(Module):
         data_stop = DATA_BASE + DATA_SIZE
 
         # Ports
-        addr = self.input(name="addr", dtype=Vec[32])
+        addr = self.input(name="addr", dtype=Addr)
         wr_en = self.input(name="wr_en", dtype=Vec[1])
         wr_be = self.input(name="wr_be", dtype=Vec[4])
         wr_data = self.input(name="wr_data", dtype=Vec[32])

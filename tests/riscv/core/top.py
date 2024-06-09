@@ -7,7 +7,7 @@ from seqlogic import Module, sleep
 from seqlogic.sim import active
 from seqlogic.vec import Vec
 
-from . import Inst, Opcode
+from . import Addr, Inst, Opcode
 from .core import Core
 from .data_mem_bus import DataMemBus
 from .text_mem_bus import TextMemBus
@@ -26,7 +26,7 @@ class Top(Module):
         super().__init__(name, parent=None)
 
         # Ports
-        bus_addr = self.output(name="bus_addr", dtype=Vec[32])
+        bus_addr = self.output(name="bus_addr", dtype=Addr)
         bus_wr_en = self.output(name="bus_wr_en", dtype=Vec[1])
         bus_wr_be = self.output(name="bus_wr_be", dtype=Vec[4])
         bus_wr_data = self.output(name="bus_wr_data", dtype=Vec[32])

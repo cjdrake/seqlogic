@@ -1,5 +1,7 @@
 """Data Memory."""
 
+# pyright: reportArgumentType=false
+
 import operator
 
 from seqlogic import Module

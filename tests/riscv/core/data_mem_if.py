@@ -3,6 +3,8 @@
 from seqlogic import Module
 from seqlogic.vec import Vec, cat, rep
 
+from . import Addr
+
 
 def f_bus_wr_be(data_format: Vec[3], byte_addr: Vec[2]):
     sel = data_format[:2]
@@ -48,13 +50,13 @@ class DataMemIf(Module):
         # Ports
         data_format = self.input(name="data_format", dtype=Vec[3])
 
-        addr = self.input(name="addr", dtype=Vec[32])
+        addr = self.input(name="addr", dtype=Addr)
         wr_en = self.input(name="wr_en", dtype=Vec[1])
         wr_data = self.input(name="wr_data", dtype=Vec[32])
         rd_en = self.input(name="rd_en", dtype=Vec[1])
         rd_data = self.output(name="rd_data", dtype=Vec[32])
 
-        bus_addr = self.output(name="bus_addr", dtype=Vec[32])
+        bus_addr = self.output(name="bus_addr", dtype=Addr)
         bus_wr_en = self.output(name="bus_wr_en", dtype=Vec[1])
         bus_wr_be = self.output(name="bus_wr_be", dtype=Vec[4])
         bus_wr_data = self.output(name="bus_wr_data", dtype=Vec[32])

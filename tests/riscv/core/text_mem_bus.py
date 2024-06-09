@@ -5,7 +5,7 @@
 from seqlogic import Module, clog2
 from seqlogic.vec import Vec, uint2vec
 
-from . import TEXT_BASE, TEXT_SIZE
+from . import TEXT_BASE, TEXT_SIZE, Addr
 from .text_mem import TextMem
 
 
@@ -29,7 +29,7 @@ class TextMemBus(Module):
         text_stop = TEXT_BASE + TEXT_SIZE
 
         # Ports
-        rd_addr = self.input(name="rd_addr", dtype=Vec[32])
+        rd_addr = self.input(name="rd_addr", dtype=Addr)
         rd_data = self.output(name="rd_data", dtype=Vec[32])
 
         # State
@@ -48,7 +48,7 @@ class TextMemBus(Module):
         )
 
         # Combinational Logic
-        def f_is_text(addr: Vec[32]) -> Vec[1]:
+        def f_is_text(addr: Addr) -> Vec[1]:
             start = uint2vec(text_start, 32)
             stop = uint2vec(text_stop, 32)
             return start.lteu(addr) & addr.ltu(stop)

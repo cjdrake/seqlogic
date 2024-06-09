@@ -20,8 +20,7 @@ from . import (
 
 
 def f_take_branch(funct3: Funct3, alu_result_eq_zero: Vec[1]) -> Vec[1]:
-    sel = funct3.branch
-    match sel:
+    match funct3.branch:
         case Funct3Branch.EQ:
             return ~alu_result_eq_zero
         case Funct3Branch.NE:
@@ -35,12 +34,11 @@ def f_take_branch(funct3: Funct3, alu_result_eq_zero: Vec[1]) -> Vec[1]:
         case Funct3Branch.GEU:
             return alu_result_eq_zero
         case _:
-            return Vec[1].xprop(sel)
+            return Vec[1].xprop(funct3.branch)
 
 
 def f_func(funct3: Funct3):
-    sel = funct3.alu_logic
-    match sel:
+    match funct3.alu_logic:
         case Funct3AluLogic.ADD_SUB:
             default_func = AluOp.ADD
         case Funct3AluLogic.SLL:
@@ -58,18 +56,17 @@ def f_func(funct3: Funct3):
         case Funct3AluLogic.AND:
             default_func = AluOp.AND
         case _:
-            default_func = AluOp.xprop(sel)
+            default_func = AluOp.xprop(funct3.alu_logic)
 
-    match sel:
+    match funct3.alu_logic:
         case Funct3AluLogic.ADD_SUB:
             secondary_func = AluOp.SUB
         case Funct3AluLogic.SHIFTR:
             secondary_func = AluOp.SRA
         case _:
-            secondary_func = AluOp.xprop(sel)
+            secondary_func = AluOp.xprop(funct3.alu_logic)
 
-    sel = funct3.branch
-    match sel:
+    match funct3.branch:
         case Funct3Branch.EQ | Funct3Branch.NE:
             branch_func = AluOp.SEQ
         case Funct3Branch.LT | Funct3Branch.GE:
@@ -77,7 +74,7 @@ def f_func(funct3: Funct3):
         case Funct3Branch.LTU | Funct3Branch.GEU:
             branch_func = AluOp.SLTU
         case _:
-            branch_func = AluOp.xprop(sel)
+            branch_func = AluOp.xprop(funct3.branch)
 
     return (default_func, secondary_func, branch_func)
 
@@ -90,21 +87,19 @@ def f_alu_op(
     secondary_func: AluOp,
     branch_func: AluOp,
 ):
-    sel = alu_op_type
-    match sel:
+    match alu_op_type:
         case CtlAlu.ADD:
             return AluOp.ADD
         case CtlAlu.BRANCH:
             return branch_func
         case CtlAlu.OP:
-            sel = funct7[5]
-            match sel:
+            match funct7[5]:
                 case "1b0":
                     return default_func
                 case "1b1":
                     return secondary_func
                 case _:
-                    return AluOp.xprop(sel)
+                    return AluOp.xprop(funct7[5])
         case CtlAlu.OP_IMM:
             a = funct7[5]
             b = funct3.alu_logic.eq(Funct3AluLogic.SLL)
@@ -118,12 +113,11 @@ def f_alu_op(
                 case _:
                     return AluOp.xprop(sel)
         case _:
-            return AluOp.xprop(sel)
+            return AluOp.xprop(alu_op_type)
 
 
 def f_next_pc_sel(opcode: Opcode, take_branch: Vec[1]):
-    sel = opcode
-    match sel:
+    match opcode:
         case (
             Opcode.LOAD
             | Opcode.MISC_MEM  # noqa
@@ -135,25 +129,23 @@ def f_next_pc_sel(opcode: Opcode, take_branch: Vec[1]):
         ):
             return CtlPc.PC4
         case Opcode.BRANCH:
-            sel = take_branch
-            match sel:
+            match take_branch:
                 case "1b0":
                     return CtlPc.PC4
                 case "1b1":
                     return CtlPc.PC_IMM
                 case _:
-                    return CtlPc.xprop(sel)
+                    return CtlPc.xprop(take_branch)
         case Opcode.JALR:
             return CtlPc.RS1_IMM
         case Opcode.JAL:
             return CtlPc.PC_IMM
         case _:
-            return CtlPc.xprop(sel)
+            return CtlPc.xprop(opcode)
 
 
 def f_ctl(opcode: Opcode):
-    sel = opcode
-    match sel:
+    match opcode:
         case Opcode.LOAD:
             pc_wr_en = "1b1"
             reg_wr_en = "1b1"
@@ -245,14 +237,14 @@ def f_ctl(opcode: Opcode):
             reg_wr_sel = CtlWriteBack.PC4
             alu_op_type = CtlAlu.ADD
         case _:
-            pc_wr_en = Vec[1].xprop(sel)
-            reg_wr_en = Vec[1].xprop(sel)
-            alu_op_a_sel = CtlAluA.xprop(sel)
-            alu_op_b_sel = CtlAluB.xprop(sel)
-            data_mem_rd_en = Vec[1].xprop(sel)
-            data_mem_wr_en = Vec[1].xprop(sel)
-            reg_wr_sel = CtlWriteBack.xprop(sel)
-            alu_op_type = CtlAlu.xprop(sel)
+            pc_wr_en = Vec[1].xprop(opcode)
+            reg_wr_en = Vec[1].xprop(opcode)
+            alu_op_a_sel = CtlAluA.xprop(opcode)
+            alu_op_b_sel = CtlAluB.xprop(opcode)
+            data_mem_rd_en = Vec[1].xprop(opcode)
+            data_mem_wr_en = Vec[1].xprop(opcode)
+            reg_wr_sel = CtlWriteBack.xprop(opcode)
+            alu_op_type = CtlAlu.xprop(opcode)
     return (
         pc_wr_en,
         reg_wr_en,

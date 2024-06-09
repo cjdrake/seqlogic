@@ -8,7 +8,7 @@ import operator
 from seqlogic import Module
 from seqlogic.vec import Vec, cat, rep, uint2vec
 
-from . import TEXT_BASE, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
+from . import TEXT_BASE, Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu
 from .regfile import RegFile
 
@@ -16,8 +16,7 @@ from .regfile import RegFile
 def f_pc_next(
     next_pc_sel: CtlPc, pc_plus_4: Vec[32], pc_plus_immediate: Vec[32], alu_result: Vec[32]
 ) -> Vec[32]:
-    sel = next_pc_sel
-    match sel:
+    match next_pc_sel:
         case CtlPc.PC4:
             return pc_plus_4
         case CtlPc.PC_IMM:
@@ -25,29 +24,27 @@ def f_pc_next(
         case CtlPc.RS1_IMM:
             return cat("1b0", alu_result[1:])
         case _:
-            return Vec[32].xprop(sel)
+            return Vec[32].xprop(next_pc_sel)
 
 
 def f_alu_op_a(alu_op_a_sel: CtlAluA, rs1_data: Vec[32], pc: Vec[32]) -> Vec[32]:
-    sel = alu_op_a_sel
-    match sel:
+    match alu_op_a_sel:
         case CtlAluA.RS1:
             return rs1_data
         case CtlAluA.PC:
             return pc
         case _:
-            return Vec[32].xprop(sel)
+            return Vec[32].xprop(alu_op_a_sel)
 
 
 def f_alu_op_b(alu_op_b_sel: CtlAluB, rs2_data: Vec[32], immediate: Vec[32]) -> Vec[32]:
-    sel = alu_op_b_sel
-    match sel:
+    match alu_op_b_sel:
         case CtlAluB.RS2:
             return rs2_data
         case CtlAluB.IMM:
             return immediate
         case _:
-            return Vec[32].xprop(sel)
+            return Vec[32].xprop(alu_op_b_sel)
 
 
 def f_wr_data(
@@ -71,8 +68,7 @@ def f_wr_data(
 
 
 def f_immediate(inst) -> Vec[32]:
-    sel = inst.opcode
-    match sel:
+    match inst.opcode:
         case Opcode.LOAD | Opcode.LOAD_FP | Opcode.OP_IMM | Opcode.JALR:
             return cat(
                 inst[20:31],
@@ -107,7 +103,7 @@ def f_immediate(inst) -> Vec[32]:
                 rep(inst[31], 12),
             )
         case _:
-            return Vec[32].xprop(sel)
+            return Vec[32].xprop(inst.opcode)
 
 
 class DataPath(Module):
@@ -116,7 +112,7 @@ class DataPath(Module):
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
 
-        data_mem_addr = self.output(name="data_mem_addr", dtype=Vec[32])
+        data_mem_addr = self.output(name="data_mem_addr", dtype=Addr)
         data_mem_wr_data = self.output(name="data_mem_wr_data", dtype=Vec[32])
         data_mem_rd_data = self.input(name="data_mem_rd_data", dtype=Vec[32])
 

@@ -11,6 +11,9 @@ DATA_BITS = 5 + 10 + 2  # 32K
 DATA_SIZE = 2**DATA_BITS
 
 
+Addr = Vec[32]
+
+
 class Opcode(VecEnum):
     """Instruction Opcodes"""
 
