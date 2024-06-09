@@ -265,7 +265,7 @@ class Module(Branch, _ProcIf, _TraceIf):
     def mem_wr_be(self, mem: Array, addr: Bits, data: Bits, en: Bit, be: Bits, clk: Bit):
         """Memory with write byte enable."""
 
-        width = mem._dtype._n
+        width = mem._dtype.n
         if width % 8 != 0:
             raise ValueError("Expected data width to be multiple of 8")
         nbytes = width // 8

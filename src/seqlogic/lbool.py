@@ -335,6 +335,11 @@ class Vec:
         return vec_n
 
     @classproperty
+    def n(cls):  # pylint: disable=no-self-argument
+        """Return vector length."""
+        return cls._n
+
+    @classproperty
     def nbits(cls):  # pylint: disable=no-self-argument
         """Number of bits of data."""
         return ITEM_BITS * cls._n
