@@ -60,7 +60,7 @@ class DataMemBus(Module):
         )
 
         # Combinational Logic
-        def f_is_data(addr: Vec[32]) -> Vec[1]:
+        def f_is_data(addr: Addr) -> Vec[1]:
             start = uint2vec(data_start, 32)
             stop = uint2vec(data_stop, 32)
             return start.lteu(addr) & addr.ltu(stop)
