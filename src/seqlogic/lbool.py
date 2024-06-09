@@ -1591,8 +1591,8 @@ class _VecEnumMeta(type):
             setattr(enum, name, obj)
 
         # Override Vec __new__ method
-        def _new(cls, arg: Vec | str | int):
-            if isinstance(arg, Vec[cls._n]):
+        def _new(cls: type[Vec], arg: Vec | str | int):
+            if isinstance(arg, Vec[cls.n]):
                 data = arg.data
             elif isinstance(arg, str):
                 n, data = _lit2vec(arg)
@@ -1601,14 +1601,14 @@ class _VecEnumMeta(type):
                 data = arg
                 cls.check_data(data)
             else:
-                s = f"Expected arg to be Vec[{cls._n}], str, or int"
+                s = f"Expected arg to be Vec[{cls.n}], str, or int"
                 raise TypeError(s)
             try:
                 obj = getattr(cls, data2name[data])
             except KeyError:
                 obj = object.__new__(enum)  # pyright: ignore[reportArgumentType]
                 obj._data = data
-                obj._name = f"{cls.__name__}({Vec[cls._n].__str__(obj)})"
+                obj._name = f"{cls.__name__}({Vec[cls.n].__str__(obj)})"
             return obj
 
         enum.__new__ = _new
@@ -1659,7 +1659,7 @@ class _VecStructMeta(type):
 
         # Scan attributes for field_name: field_type items
         struct_attrs = {}
-        fields: list[tuple[str, type]] = []
+        fields: list[tuple[str, type[Vec]]] = []
         for key, val in attrs.items():
             if key == "__annotations__":
                 for field_name, field_type in val.items():
@@ -1672,11 +1672,11 @@ class _VecStructMeta(type):
         base = 0
         for field_name, field_type in fields:
             struct_attrs[f"_{field_name}_base"] = base
-            struct_attrs[f"_{field_name}_size"] = field_type._n
-            base += field_type._n
+            struct_attrs[f"_{field_name}_size"] = field_type.n
+            base += field_type.n
 
         # Create Struct class
-        n = sum(field_type._n for _, field_type in fields)
+        n = sum(field_type.n for _, field_type in fields)
         struct = super().__new__(mcs, name, bases + (Vec[n],), struct_attrs)
 
         # Override Vec __init__ method
@@ -1761,7 +1761,7 @@ class _VecUnionMeta(type):
 
         # Scan attributes for field_name: field_type items
         union_attrs = {}
-        fields: list[tuple[str, type]] = []
+        fields: list[tuple[str, type[Vec]]] = []
         for key, val in attrs.items():
             if key == "__annotations__":
                 for field_name, field_type in val.items():
@@ -1772,10 +1772,10 @@ class _VecUnionMeta(type):
 
         # Add union member base/size attributes
         for field_name, field_type in fields:
-            union_attrs[f"_{field_name}_size"] = field_type._n
+            union_attrs[f"_{field_name}_size"] = field_type.n
 
         # Create Union class
-        n = max(field_type._n for _, field_type in fields)
+        n = max(field_type.n for _, field_type in fields)
         union = super().__new__(mcs, name, bases + (Vec[n],), union_attrs)
 
         # Override Vec __init__ method
