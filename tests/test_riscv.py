@@ -60,9 +60,9 @@ def test_dump():
     top.dump_waves(waves, r"/top/core/datapath.pc_plus_4")
     top.dump_waves(waves, r"/top/core/datapath.pc_plus_immediate")
     top.dump_waves(waves, r"/top/core/datapath.pc_wr_en")
-    top.dump_waves(waves, r"/top/core/datapath.reg_writeback_sel")
+    top.dump_waves(waves, r"/top/core/datapath.reg_wr_sel")
     top.dump_waves(waves, r"/top/core/datapath.next_pc_sel")
-    top.dump_waves(waves, r"/top/core/datapath.regfile_wr_en")
+    top.dump_waves(waves, r"/top/core/datapath.reg_wr_en")
     top.dump_waves(waves, r"/top/core/datapath.wr_data")
     top.dump_waves(waves, r"/top/core/datapath.rs[12]_data")
     top.dump_waves(waves, r"/top/core/datapath.data_mem_addr")
@@ -94,11 +94,11 @@ def test_dump():
             # Control
             top._core._datapath.alu_op_a_sel: CtlAluA.X,
             top._core._datapath.alu_op_b_sel: CtlAluB.X,
-            top._core._datapath.reg_writeback_sel: CtlWriteBack.X,
+            top._core._datapath.reg_wr_sel: CtlWriteBack.X,
             # ALU
             top._core._datapath._alu_result: X32,
             top._core._datapath.alu_result_eq_zero: "1bX",
-            top._core._datapath.alu_func: AluOp.X,
+            top._core._datapath.alu_op: AluOp.X,
             top._core._datapath._alu_op_a: X32,
             top._core._datapath._alu_op_b: X32,
             # PC
@@ -108,7 +108,7 @@ def test_dump():
             top._core._datapath._pc_plus_immediate: X32,
             top._core._datapath.pc_wr_en: "1bX",
             # Regfile
-            top._core._datapath.regfile_wr_en: "1bX",
+            top._core._datapath.reg_wr_en: "1bX",
             top._core._datapath._wr_data: X32,
             top._core._datapath._rs1_data: X32,
             top._core._datapath._rs2_data: X32,
@@ -136,11 +136,11 @@ def test_dump():
             # Control
             top._core._datapath.alu_op_a_sel: CtlAluA.RS1,
             top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
-            top._core._datapath.reg_writeback_sel: CtlWriteBack.ALU,
+            top._core._datapath.reg_wr_sel: CtlWriteBack.ALU,
             # ALU
             top._core._datapath._alu_result: "32h0000_0000",
             top._core._datapath.alu_result_eq_zero: "1b1",
-            top._core._datapath.alu_func: AluOp.ADD,
+            top._core._datapath.alu_op: AluOp.ADD,
             top._core._datapath._alu_op_a: "32h0000_0000",
             top._core._datapath._alu_op_b: "32h0000_0000",
             # PC
@@ -150,7 +150,7 @@ def test_dump():
             top._core._datapath._pc_plus_immediate: "32h0040_0000",
             top._core._datapath.pc_wr_en: "1b1",
             # Regfile
-            top._core._datapath.regfile_wr_en: "1b1",
+            top._core._datapath.reg_wr_en: "1b1",
             top._core._datapath._wr_data: "32h0000_0000",
             top._core._datapath._rs1_data: "32h0000_0000",
             top._core._datapath._rs2_data: "32h0000_0000",
@@ -259,14 +259,14 @@ def test_dump():
             top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
             top._core._datapath._alu_result: "32h0000_0001",
-            top._core._datapath.alu_func: AluOp.SEQ,
+            top._core._datapath.alu_op: AluOp.SEQ,
             top._core._datapath._alu_op_b: "32h0000_0000",
             # PC
             top._core._datapath._pc_next: "32h0040_0018",
             top._core._datapath._pc_plus_4: "32h0040_0018",
             top._core._datapath._pc_plus_immediate: "32h0040_04E0",
             # Regfile
-            top._core._datapath.regfile_wr_en: "1b0",
+            top._core._datapath.reg_wr_en: "1b0",
             top._core._datapath._wr_data: "32h0000_0001",
             # Data Mem
             top._core._datapath.data_mem_addr: "32h0000_0001",
@@ -287,14 +287,14 @@ def test_dump():
             # Control
             top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
-            top._core._datapath.alu_func: AluOp.ADD,
+            top._core._datapath.alu_op: AluOp.ADD,
             top._core._datapath._alu_op_b: "32h0000_0001",
             # PC
             top._core._datapath._pc_next: "32h0040_001C",
             top._core._datapath._pc_plus_4: "32h0040_001C",
             top._core._datapath._pc_plus_immediate: "32h0040_0019",
             # Regfile
-            top._core._datapath.regfile_wr_en: "1b1",
+            top._core._datapath.reg_wr_en: "1b1",
         },
         # @(posedge clock)
         23: {
@@ -420,7 +420,7 @@ def test_dump():
             top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
             top._core._datapath._alu_result: "32h0000_0001",
-            top._core._datapath.alu_func: AluOp.SEQ,
+            top._core._datapath.alu_op: AluOp.SEQ,
             top._core._datapath._alu_op_a: "32h0000_0002",
             top._core._datapath._alu_op_b: "32h0000_0002",
             # PC
@@ -428,7 +428,7 @@ def test_dump():
             top._core._datapath._pc_plus_4: "32h0040_0030",
             top._core._datapath._pc_plus_immediate: "32h0040_04E0",
             # Regfile
-            top._core._datapath.regfile_wr_en: "1b0",
+            top._core._datapath.reg_wr_en: "1b0",
             top._core._datapath._wr_data: "32h0000_0001",
             top._core._datapath._rs1_data: "32h0000_0002",
             # Data Mem
@@ -453,7 +453,7 @@ def test_dump():
             top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
             top._core._datapath._alu_result: "32h0000_0003",
-            top._core._datapath.alu_func: AluOp.ADD,
+            top._core._datapath.alu_op: AluOp.ADD,
             top._core._datapath._alu_op_a: "32h0000_0000",
             top._core._datapath._alu_op_b: "32h0000_0003",
             # PC
@@ -461,7 +461,7 @@ def test_dump():
             top._core._datapath._pc_plus_4: "32h0040_0034",
             top._core._datapath._pc_plus_immediate: "32h0040_0033",
             # Regfile
-            top._core._datapath.regfile_wr_en: "1b1",
+            top._core._datapath.reg_wr_en: "1b1",
             top._core._datapath._wr_data: "32h0000_0003",
             top._core._datapath._rs1_data: "32h0000_0000",
             # Data Mem
@@ -603,7 +603,7 @@ def test_dump():
             top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
             top._core._datapath._alu_result: "32h0000_0001",
-            top._core._datapath.alu_func: AluOp.SEQ,
+            top._core._datapath.alu_op: AluOp.SEQ,
             top._core._datapath._alu_op_a: "32h0000_000A",
             top._core._datapath._alu_op_b: "32h0000_000A",
             # PC
@@ -611,7 +611,7 @@ def test_dump():
             top._core._datapath._pc_plus_4: "32h0040_0048",
             top._core._datapath._pc_plus_immediate: "32h0040_04E0",
             # Regfile
-            top._core._datapath.regfile_wr_en: "1b0",
+            top._core._datapath.reg_wr_en: "1b0",
             top._core._datapath._wr_data: "32h0000_0001",
             top._core._datapath._rs1_data: "32h0000_000A",
             top._core._datapath._rs2_data: "32h0000_000A",
@@ -639,7 +639,7 @@ def test_dump():
             # ALU
             top._core._datapath._alu_result: "32h0000_0000",
             top._core._datapath.alu_result_eq_zero: "1b1",
-            top._core._datapath.alu_func: AluOp.ADD,
+            top._core._datapath.alu_op: AluOp.ADD,
             top._core._datapath._alu_op_a: "32h0000_0000",
             top._core._datapath._alu_op_b: "32h0000_0000",
             # PC
@@ -647,7 +647,7 @@ def test_dump():
             top._core._datapath._pc_plus_4: "32h0040_004C",
             top._core._datapath._pc_plus_immediate: "32h0040_0048",
             # Regfile
-            top._core._datapath.regfile_wr_en: "1b1",
+            top._core._datapath.reg_wr_en: "1b1",
             top._core._datapath._wr_data: "32h0000_0000",
             top._core._datapath._rs1_data: "32h0000_0000",
             top._core._datapath._rs2_data: "32h0000_0000",
@@ -672,7 +672,7 @@ def test_dump():
             top._core._datapath._immediate: "32hFFFF_8000",
             # Control
             top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
-            top._core._datapath.reg_writeback_sel: CtlWriteBack.IMM,
+            top._core._datapath.reg_wr_sel: CtlWriteBack.IMM,
             # ALU
             top._core._datapath._alu_result: X32,
             top._core._datapath.alu_result_eq_zero: "1bX",
@@ -706,7 +706,7 @@ def test_dump():
             # Decode
             top._core._datapath._immediate: W32,
             # Control
-            top._core._datapath.reg_writeback_sel: CtlWriteBack.ALU,
+            top._core._datapath.reg_wr_sel: CtlWriteBack.ALU,
             # ALU
             top._core._datapath._alu_result: "32hFFFF_8000",
             top._core._datapath.alu_result_eq_zero: "1b0",

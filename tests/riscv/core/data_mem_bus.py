@@ -32,24 +32,32 @@ class DataMemBus(Module):
         data_stop = DATA_BASE + DATA_SIZE
 
         # Ports
-        addr = self.bits(name="addr", dtype=Vec[32], port=True)
-        wr_en = self.bit(name="wr_en", port=True)
-        wr_be = self.bits(name="wr_be", dtype=Vec[4], port=True)
-        wr_data = self.bits(name="wr_data", dtype=Vec[32], port=True)
-        rd_en = self.bit(name="rd_en", port=True)
-        rd_data = self.bits(name="rd_data", dtype=Vec[32], port=True)
-        clock = self.bit(name="clock", port=True)
+        addr = self.input(name="addr", dtype=Vec[32])
+        wr_en = self.input(name="wr_en", dtype=Vec[1])
+        wr_be = self.input(name="wr_be", dtype=Vec[4])
+        wr_data = self.input(name="wr_data", dtype=Vec[32])
+        rd_en = self.input(name="rd_en", dtype=Vec[1])
+        rd_data = self.output(name="rd_data", dtype=Vec[32])
+        clock = self.input(name="clock", dtype=Vec[1])
 
         # State
         is_data = self.bit(name="is_data")
         data = self.bits(name="data", dtype=Vec[32])
 
         # Submodules
-        data_mem = self.submod(name="data_mem", mod=DataMem, word_addr_bits=word_addr_bits)
-        self.assign(data_mem.wr_be, wr_be)
-        self.assign(data_mem.wr_data, wr_data)
-        self.assign(data, data_mem.rd_data)
-        self.assign(data_mem.clock, clock)
+        m, n = 2, 2 + word_addr_bits
+        self.submod(
+            name="data_mem",
+            mod=DataMem,
+            word_addr_bits=word_addr_bits,
+        ).connect(
+            addr=(lambda a: a[m:n], addr),
+            wr_en=(operator.and_, wr_en, is_data),
+            wr_be=wr_be,
+            wr_data=wr_data,
+            rd_data=data,
+            clock=clock,
+        )
 
         # Combinational Logic
         def f_is_data(addr: Vec[32]) -> Vec[1]:
@@ -58,7 +66,4 @@ class DataMemBus(Module):
             return start.lteu(addr) & addr.ltu(stop)
 
         self.combi(is_data, f_is_data, addr)
-        self.combi(data_mem.wr_en, operator.and_, wr_en, is_data)
-        m, n = 2, 2 + word_addr_bits
-        self.combi(data_mem.addr, lambda a: a[m:n], addr)
         self.combi(rd_data, f_rd_data, rd_en, is_data, data)

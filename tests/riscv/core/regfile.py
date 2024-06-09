@@ -1,5 +1,7 @@
 """Register File."""
 
+# pyright: reportArgumentType=false
+
 import operator
 
 from seqlogic import Module
@@ -13,14 +15,14 @@ class RegFile(Module):
         super().__init__(name, parent)
 
         # Ports
-        wr_en = self.bit(name="wr_en", port=True)
-        wr_addr = self.bits(name="wr_addr", dtype=Vec[5], port=True)
-        wr_data = self.bits(name="wr_data", dtype=Vec[32], port=True)
-        rs1_addr = self.bits(name="rs1_addr", dtype=Vec[5], port=True)
-        rs1_data = self.bits(name="rs1_data", dtype=Vec[32], port=True)
-        rs2_addr = self.bits(name="rs2_addr", dtype=Vec[5], port=True)
-        rs2_data = self.bits(name="rs2_data", dtype=Vec[32], port=True)
-        clock = self.bit(name="clock", port=True)
+        wr_en = self.input(name="wr_en", dtype=Vec[1])
+        wr_addr = self.input(name="wr_addr", dtype=Vec[5])
+        wr_data = self.input(name="wr_data", dtype=Vec[32])
+        rs1_addr = self.input(name="rs1_addr", dtype=Vec[5])
+        rs1_data = self.output(name="rs1_data", dtype=Vec[32])
+        rs2_addr = self.input(name="rs2_addr", dtype=Vec[5])
+        rs2_data = self.output(name="rs2_data", dtype=Vec[32])
+        clock = self.input(name="clock", dtype=Vec[1])
 
         # State
         regs = self.array(name="regs", dtype=Vec[32])

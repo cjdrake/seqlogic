@@ -8,7 +8,7 @@ from seqlogic.vec import Vec
 from . import AluOp
 
 
-def alu_result(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
+def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
     match op:
         case AluOp.ADD:
             return a + b
@@ -44,12 +44,10 @@ class Alu(Module):
         super().__init__(name, parent)
 
         # Ports
-        self.bits(name="result", dtype=Vec[32], port=True)
-        self.bit(name="result_eq_zero", port=True)
-        self.bits(name="alu_func", dtype=AluOp, port=True)
-        self.bits(name="op_a", dtype=Vec[32], port=True)
-        self.bits(name="op_b", dtype=Vec[32], port=True)
+        y = self.output(name="y", dtype=Vec[32])
+        op = self.input(name="op", dtype=AluOp)
+        a = self.input(name="a", dtype=Vec[32])
+        b = self.input(name="b", dtype=Vec[32])
 
         # Combinational Logic
-        self.combi(self._result, alu_result, self._alu_func, self._op_a, self._op_b)
-        self.combi(self._result_eq_zero, lambda x: x.eq("32h0000_0000"), self._result)
+        self.combi(y, f, op, a, b)

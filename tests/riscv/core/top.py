@@ -26,12 +26,12 @@ class Top(Module):
         super().__init__(name, parent=None)
 
         # Ports
-        bus_addr = self.bits(name="bus_addr", dtype=Vec[32], port=True)
-        bus_wr_en = self.bit(name="bus_wr_en", port=True)
-        bus_wr_be = self.bits(name="bus_wr_be", dtype=Vec[4], port=True)
-        bus_wr_data = self.bits(name="bus_wr_data", dtype=Vec[32], port=True)
-        bus_rd_en = self.bit(name="bus_rd_en", port=True)
-        bus_rd_data = self.bits(name="bus_rd_data", dtype=Vec[32], port=True)
+        bus_addr = self.output(name="bus_addr", dtype=Vec[32])
+        bus_wr_en = self.output(name="bus_wr_en", dtype=Vec[1])
+        bus_wr_be = self.output(name="bus_wr_be", dtype=Vec[4])
+        bus_wr_data = self.output(name="bus_wr_data", dtype=Vec[32])
+        bus_rd_en = self.output(name="bus_rd_en", dtype=Vec[1])
+        bus_rd_data = self.output(name="bus_rd_data", dtype=Vec[32])
 
         pc = self.bits(name="pc", dtype=Vec[32])
         inst = self.bits(name="inst", dtype=Inst)
@@ -41,44 +41,55 @@ class Top(Module):
 
         # Submodules:
         # 16K Instruction Memory
-        text_mem_bus = self.submod(name="text_mem_bus", mod=TextMemBus, depth=1024)
-        self.assign(text_mem_bus.rd_addr, pc)
+        self.submod(
+            name="text_mem_bus",
+            mod=TextMemBus,
+            depth=1024,
+        ).connect(
+            rd_addr=pc,
+            rd_data=(
+                lambda d: Inst(
+                    opcode=Opcode(d[0:7]),
+                    rd=d[7:12],
+                    funct3=d[12:15],
+                    rs1=d[15:20],
+                    rs2=d[20:25],
+                    funct7=d[25:32],
+                ),
+                inst,
+            ),
+        )
 
         # 32K Data Memory
-        data_mem_bus = self.submod(name="data_mem_bus", mod=DataMemBus, depth=1024)
-        self.assign(data_mem_bus.addr, bus_addr)
-        self.assign(data_mem_bus.wr_en, bus_wr_en)
-        self.assign(data_mem_bus.wr_be, bus_wr_be)
-        self.assign(data_mem_bus.wr_data, bus_wr_data)
-        self.assign(data_mem_bus.rd_en, bus_rd_en)
-        self.assign(bus_rd_data, data_mem_bus.rd_data)
-        self.assign(data_mem_bus.clock, clock)
+        self.submod(
+            name="data_mem_bus",
+            mod=DataMemBus,
+            depth=1024,
+        ).connect(
+            addr=bus_addr,
+            wr_en=bus_wr_en,
+            wr_be=bus_wr_be,
+            wr_data=bus_wr_data,
+            rd_en=bus_rd_en,
+            rd_data=bus_rd_data,
+            clock=clock,
+        )
 
         # RISC-V Core
-        core = self.submod(name="core", mod=Core)
-        self.assign(bus_addr, core.bus_addr)
-        self.assign(bus_wr_en, core.bus_wr_en)
-        self.assign(bus_wr_be, core.bus_wr_be)
-        self.assign(bus_wr_data, core.bus_wr_data)
-        self.assign(bus_rd_en, core.bus_rd_en)
-        self.assign(core.bus_rd_data, bus_rd_data)
-        self.assign(pc, core.pc)
-        self.assign(core.inst, inst)
-        self.assign(core.clock, clock)
-        self.assign(core.reset, reset)
-
-        # Combinational Logic
-        self.combi(
-            inst,
-            lambda data: Inst(
-                opcode=Opcode(data[0:7]),
-                rd=data[7:12],
-                funct3=data[12:15],
-                rs1=data[15:20],
-                rs2=data[20:25],
-                funct7=data[25:32],
-            ),
-            text_mem_bus.rd_data,
+        self.submod(
+            name="core",
+            mod=Core,
+        ).connect(
+            bus_addr=bus_addr,
+            bus_wr_en=bus_wr_en,
+            bus_wr_be=bus_wr_be,
+            bus_wr_data=bus_wr_data,
+            bus_rd_en=bus_rd_en,
+            bus_rd_data=bus_rd_data,
+            pc=pc,
+            inst=inst,
+            clock=clock,
+            reset=reset,
         )
 
     @active

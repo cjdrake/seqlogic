@@ -18,8 +18,8 @@ class TextMem(Module):
         super().__init__(name, parent)
 
         # Ports
-        rd_addr = self.bits(name="rd_addr", dtype=Vec[word_addr_bits], port=True)
-        rd_data = self.bits(name="rd_data", dtype=Vec[32], port=True)
+        rd_addr = self.input(name="rd_addr", dtype=Vec[word_addr_bits])
+        rd_data = self.output(name="rd_data", dtype=Vec[32])
 
         # State
         mem = self.array(name="mem", dtype=Vec[32])

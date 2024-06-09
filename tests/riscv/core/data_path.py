@@ -1,5 +1,6 @@
 """Data Path."""
 
+# pyright: reportArgumentType=false
 # pyright: reportAttributeAccessIssue=false
 
 import operator
@@ -50,14 +51,13 @@ def f_alu_op_b(alu_op_b_sel: CtlAluB, rs2_data: Vec[32], immediate: Vec[32]) -> 
 
 
 def f_wr_data(
-    reg_writeback_sel: CtlWriteBack,
+    reg_wr_sel: CtlWriteBack,
     alu_result: Vec[32],
     data_mem_rd_data: Vec[32],
     pc_plus_4: Vec[32],
     immediate: Vec[32],
 ) -> Vec[32]:
-    sel = reg_writeback_sel
-    match sel:
+    match reg_wr_sel:
         case CtlWriteBack.ALU:
             return alu_result
         case CtlWriteBack.DATA:
@@ -67,7 +67,7 @@ def f_wr_data(
         case CtlWriteBack.IMM:
             return immediate
         case _:
-            return Vec[32].xprop(sel)
+            return Vec[32].xprop(reg_wr_sel)
 
 
 def f_immediate(inst) -> Vec[32]:
@@ -116,26 +116,27 @@ class DataPath(Module):
     def __init__(self, name: str, parent: Module | None):
         super().__init__(name, parent)
 
-        data_mem_addr = self.bits(name="data_mem_addr", dtype=Vec[32], port=True)
-        data_mem_wr_data = self.bits(name="data_mem_wr_data", dtype=Vec[32], port=True)
-        data_mem_rd_data = self.bits(name="data_mem_rd_data", dtype=Vec[32], port=True)
+        data_mem_addr = self.output(name="data_mem_addr", dtype=Vec[32])
+        data_mem_wr_data = self.output(name="data_mem_wr_data", dtype=Vec[32])
+        data_mem_rd_data = self.input(name="data_mem_rd_data", dtype=Vec[32])
 
-        inst = self.bits(name="inst", dtype=Inst, port=True)
-        pc = self.bits(name="pc", dtype=Vec[32], port=True)
+        inst = self.input(name="inst", dtype=Inst)
+        pc = self.output(name="pc", dtype=Vec[32])
+
+        # Datapath=>Control
+        alu_result_eq_zero = self.output(name="alu_result_eq_zero", dtype=Vec[1])
 
         # Control=>Datapath
-        pc_wr_en = self.bit(name="pc_wr_en", port=True)
-        regfile_wr_en = self.bit(name="regfile_wr_en", port=True)
-        alu_op_a_sel = self.bits(name="alu_op_a_sel", dtype=CtlAluA, port=True)
-        alu_op_b_sel = self.bits(name="alu_op_b_sel", dtype=CtlAluB, port=True)
-        alu_func = self.bits(name="alu_func", dtype=AluOp, port=True)
-        reg_writeback_sel = self.bits(name="reg_writeback_sel", dtype=CtlWriteBack, port=True)
-        next_pc_sel = self.bits(name="next_pc_sel", dtype=CtlPc, port=True)
-        # Datapath=>Control
-        alu_result_eq_zero = self.bit(name="alu_result_eq_zero", port=True)
+        pc_wr_en = self.input(name="pc_wr_en", dtype=Vec[1])
+        reg_wr_en = self.input(name="reg_wr_en", dtype=Vec[1])
+        alu_op_a_sel = self.input(name="alu_op_a_sel", dtype=CtlAluA)
+        alu_op_b_sel = self.input(name="alu_op_b_sel", dtype=CtlAluB)
+        alu_op = self.input(name="alu_op", dtype=AluOp)
+        reg_wr_sel = self.input(name="reg_wr_sel", dtype=CtlWriteBack)
+        next_pc_sel = self.input(name="next_pc_sel", dtype=CtlPc)
 
-        clock = self.bit(name="clock", port=True)
-        reset = self.bit(name="reset", port=True)
+        clock = self.input(name="clock", dtype=Vec[1])
+        reset = self.input(name="reset", dtype=Vec[1])
 
         # Immedate generate
         immediate = self.bits(name="immediate", dtype=Vec[32])
@@ -156,42 +157,56 @@ class DataPath(Module):
         # Next PC
         pc_next = self.bits(name="pc_next", dtype=Vec[32])
 
-        # Regfile Write Data
+        # Regfile Write
         wr_data = self.bits(name="wr_data", dtype=Vec[32])
 
-        # State
+        # Regfile Read
         rs1_data = self.bits(name="rs1_data", dtype=Vec[32])
         rs2_data = self.bits(name="rs2_data", dtype=Vec[32])
 
         # Submodules
-        alu = self.submod(name="alu", mod=Alu)
-        self.assign(alu_result, alu.result)
-        self.assign(alu_result_eq_zero, alu.result_eq_zero)
-        self.assign(alu.alu_func, alu_func)
-        self.assign(alu.op_a, alu_op_a)
-        self.assign(alu.op_b, alu_op_b)
+        self.submod(
+            name="alu",
+            mod=Alu,
+        ).connect(
+            y=alu_result,
+            op=alu_op,
+            a=alu_op_a,
+            b=alu_op_b,
+        )
 
-        regfile = self.submod(name="regfile", mod=RegFile)
-        self.assign(regfile.wr_en, regfile_wr_en)
-        self.assign(regfile.wr_data, wr_data)
-        self.assign(rs1_data, regfile.rs1_data)
-        self.assign(rs2_data, regfile.rs2_data)
-        self.assign(regfile.clock, clock)
+        self.submod(
+            name="regfile",
+            mod=RegFile,
+        ).connect(
+            wr_en=reg_wr_en,
+            wr_addr=(lambda x: x.rd, inst),
+            wr_data=wr_data,
+            rs1_addr=(lambda x: x.rs1, inst),
+            rs1_data=rs1_data,
+            rs2_addr=(lambda x: x.rs2, inst),
+            rs2_data=rs2_data,
+            clock=clock,
+        )
+
+        # Combinational Logic
+        self.combi(alu_result_eq_zero, lambda x: x.eq("32h0000_0000"), alu_result)
 
         self.assign(data_mem_addr, alu_result)
         self.assign(data_mem_wr_data, rs2_data)
 
-        # Combinational Logic
-        ys = (regfile.rs2_addr, regfile.rs1_addr, regfile.wr_addr)
-        self.combi(ys, lambda x: (x.rs2, x.rs1, x.rd), inst)
+        self.combi(immediate, f_immediate, inst)
+
         self.combi(pc_plus_4, lambda x: x + "32h0000_0004", pc)
         self.combi(pc_plus_immediate, operator.add, pc, immediate)
         self.combi(pc_next, f_pc_next, next_pc_sel, pc_plus_4, pc_plus_immediate, alu_result)
+
         self.combi(alu_op_a, f_alu_op_a, alu_op_a_sel, rs1_data, pc)
         self.combi(alu_op_b, f_alu_op_b, alu_op_b_sel, rs2_data, immediate)
-        xs = (reg_writeback_sel, alu_result, data_mem_rd_data, pc_plus_4, immediate)
+
+        xs = (reg_wr_sel, alu_result, data_mem_rd_data, pc_plus_4, immediate)
         self.combi(wr_data, f_wr_data, *xs)
-        self.combi(immediate, f_immediate, inst)
 
         # Sequential Logic
-        self.dff_en_ar(pc, pc_next, pc_wr_en, clock, reset, uint2vec(TEXT_BASE, 32))
+        pc_rval = uint2vec(TEXT_BASE, 32)
+        self.dff_en_ar(pc, pc_next, pc_wr_en, clock, reset, pc_rval)

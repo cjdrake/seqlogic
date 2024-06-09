@@ -29,16 +29,23 @@ class TextMemBus(Module):
         text_stop = TEXT_BASE + TEXT_SIZE
 
         # Ports
-        rd_addr = self.bits(name="rd_addr", dtype=Vec[32], port=True)
-        rd_data = self.bits(name="rd_data", dtype=Vec[32], port=True)
+        rd_addr = self.input(name="rd_addr", dtype=Vec[32])
+        rd_data = self.output(name="rd_data", dtype=Vec[32])
 
         # State
         is_text = self.bit(name="is_text")
         text = self.bits(name="text", dtype=Vec[32])
 
         # Submodules
-        text_mem = self.submod(name="text_mem", mod=TextMem, word_addr_bits=word_addr_bits)
-        self.assign(text, text_mem.rd_data)
+        m, n = 2, 2 + word_addr_bits
+        self.submod(
+            name="text_mem",
+            mod=TextMem,
+            word_addr_bits=word_addr_bits,
+        ).connect(
+            rd_addr=(lambda a: a[m:n], rd_addr),
+            rd_data=text,
+        )
 
         # Combinational Logic
         def f_is_text(addr: Vec[32]) -> Vec[1]:
@@ -48,5 +55,3 @@ class TextMemBus(Module):
 
         self.combi(is_text, f_is_text, rd_addr)
         self.combi(rd_data, f_rd_data, is_text, text)
-        m, n = 2, 2 + word_addr_bits
-        self.combi(text_mem.rd_addr, lambda a: a[m:n], rd_addr)

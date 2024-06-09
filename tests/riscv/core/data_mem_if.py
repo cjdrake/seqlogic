@@ -46,20 +46,20 @@ class DataMemIf(Module):
         super().__init__(name, parent)
 
         # Ports
-        data_format = self.bits(name="data_format", dtype=Vec[3], port=True)
+        data_format = self.input(name="data_format", dtype=Vec[3])
 
-        addr = self.bits(name="addr", dtype=Vec[32], port=True)
-        wr_en = self.bit(name="wr_en", port=True)
-        wr_data = self.bits(name="wr_data", dtype=Vec[32], port=True)
-        rd_en = self.bit(name="rd_en", port=True)
-        rd_data = self.bits(name="rd_data", dtype=Vec[32], port=True)
+        addr = self.input(name="addr", dtype=Vec[32])
+        wr_en = self.input(name="wr_en", dtype=Vec[1])
+        wr_data = self.input(name="wr_data", dtype=Vec[32])
+        rd_en = self.input(name="rd_en", dtype=Vec[1])
+        rd_data = self.output(name="rd_data", dtype=Vec[32])
 
-        bus_addr = self.bits(name="bus_addr", dtype=Vec[32], port=True)
-        bus_wr_en = self.bit(name="bus_wr_en", port=True)
-        bus_wr_be = self.bits(name="bus_wr_be", dtype=Vec[4], port=True)
-        bus_wr_data = self.bits(name="bus_wr_data", dtype=Vec[32], port=True)
-        bus_rd_en = self.bit(name="bus_rd_en", port=True)
-        bus_rd_data = self.bits(name="bus_rd_data", dtype=Vec[32], port=True)
+        bus_addr = self.output(name="bus_addr", dtype=Vec[32])
+        bus_wr_en = self.output(name="bus_wr_en", dtype=Vec[1])
+        bus_wr_be = self.output(name="bus_wr_be", dtype=Vec[4])
+        bus_wr_data = self.output(name="bus_wr_data", dtype=Vec[32])
+        bus_rd_en = self.output(name="bus_rd_en", dtype=Vec[1])
+        bus_rd_data = self.input(name="bus_rd_data", dtype=Vec[32])
 
         byte_addr = self.bits(name="byte_addr", dtype=Vec[2])
 

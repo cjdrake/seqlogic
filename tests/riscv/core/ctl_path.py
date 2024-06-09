@@ -19,8 +19,8 @@ from . import (
 )
 
 
-def f_take_branch(inst_funct3: Funct3, alu_result_eq_zero: Vec[1]) -> Vec[1]:
-    sel = inst_funct3.branch
+def f_take_branch(funct3: Funct3, alu_result_eq_zero: Vec[1]) -> Vec[1]:
+    sel = funct3.branch
     match sel:
         case Funct3Branch.EQ:
             return ~alu_result_eq_zero
@@ -38,8 +38,8 @@ def f_take_branch(inst_funct3: Funct3, alu_result_eq_zero: Vec[1]) -> Vec[1]:
             return Vec[1].xprop(sel)
 
 
-def f_func(inst_funct3: Funct3):
-    sel = inst_funct3.alu_logic
+def f_func(funct3: Funct3):
+    sel = funct3.alu_logic
     match sel:
         case Funct3AluLogic.ADD_SUB:
             default_func = AluOp.ADD
@@ -68,7 +68,7 @@ def f_func(inst_funct3: Funct3):
         case _:
             secondary_func = AluOp.xprop(sel)
 
-    sel = inst_funct3.branch
+    sel = funct3.branch
     match sel:
         case Funct3Branch.EQ | Funct3Branch.NE:
             branch_func = AluOp.SEQ
@@ -82,10 +82,10 @@ def f_func(inst_funct3: Funct3):
     return (default_func, secondary_func, branch_func)
 
 
-def f_alu_func(
+def f_alu_op(
     alu_op_type: CtlAlu,
-    inst_funct3: Funct3,
-    inst_funct7: Vec[7],
+    funct3: Funct3,
+    funct7: Vec[7],
     default_func: AluOp,
     secondary_func: AluOp,
     branch_func: AluOp,
@@ -97,7 +97,7 @@ def f_alu_func(
         case CtlAlu.BRANCH:
             return branch_func
         case CtlAlu.OP:
-            sel = inst_funct7[5]
+            sel = funct7[5]
             match sel:
                 case "1b0":
                     return default_func
@@ -106,9 +106,9 @@ def f_alu_func(
                 case _:
                     return AluOp.xprop(sel)
         case CtlAlu.OP_IMM:
-            a = inst_funct7[5]
-            b = inst_funct3.alu_logic.eq(Funct3AluLogic.SLL)
-            c = inst_funct3.alu_logic.eq(Funct3AluLogic.SHIFTR)
+            a = funct7[5]
+            b = funct3.alu_logic.eq(Funct3AluLogic.SLL)
+            c = funct3.alu_logic.eq(Funct3AluLogic.SHIFTR)
             sel = a & (b | c)
             match sel:
                 case "1b0":
@@ -121,8 +121,8 @@ def f_alu_func(
             return AluOp.xprop(sel)
 
 
-def f_next_pc_sel(inst_opcode: Opcode, take_branch: Vec[1]):
-    sel = inst_opcode
+def f_next_pc_sel(opcode: Opcode, take_branch: Vec[1]):
+    sel = opcode
     match sel:
         case (
             Opcode.LOAD
@@ -151,116 +151,116 @@ def f_next_pc_sel(inst_opcode: Opcode, take_branch: Vec[1]):
             return CtlPc.xprop(sel)
 
 
-def f_ctl(inst_opcode: Opcode):
-    sel = inst_opcode
+def f_ctl(opcode: Opcode):
+    sel = opcode
     match sel:
         case Opcode.LOAD:
             pc_wr_en = "1b1"
-            regfile_wr_en = "1b1"
+            reg_wr_en = "1b1"
             alu_op_a_sel = CtlAluA.RS1
             alu_op_b_sel = CtlAluB.IMM
             data_mem_rd_en = "1b1"
             data_mem_wr_en = "1b0"
-            reg_writeback_sel = CtlWriteBack.DATA
+            reg_wr_sel = CtlWriteBack.DATA
             alu_op_type = CtlAlu.ADD
         case Opcode.MISC_MEM:
             pc_wr_en = "1b1"
-            regfile_wr_en = "1b0"
+            reg_wr_en = "1b0"
             alu_op_a_sel = CtlAluA.RS1
             alu_op_b_sel = CtlAluB.RS2
             data_mem_rd_en = "1b0"
             data_mem_wr_en = "1b0"
-            reg_writeback_sel = CtlWriteBack.ALU
+            reg_wr_sel = CtlWriteBack.ALU
             alu_op_type = CtlAlu.ADD
         case Opcode.OP_IMM:
             pc_wr_en = "1b1"
-            regfile_wr_en = "1b1"
+            reg_wr_en = "1b1"
             alu_op_a_sel = CtlAluA.RS1
             alu_op_b_sel = CtlAluB.IMM
             data_mem_rd_en = "1b0"
             data_mem_wr_en = "1b0"
-            reg_writeback_sel = CtlWriteBack.ALU
+            reg_wr_sel = CtlWriteBack.ALU
             alu_op_type = CtlAlu.OP_IMM
         case Opcode.AUIPC:
             pc_wr_en = "1b1"
-            regfile_wr_en = "1b1"
+            reg_wr_en = "1b1"
             alu_op_a_sel = CtlAluA.PC
             alu_op_b_sel = CtlAluB.IMM
             data_mem_rd_en = "1b0"
             data_mem_wr_en = "1b0"
-            reg_writeback_sel = CtlWriteBack.ALU
+            reg_wr_sel = CtlWriteBack.ALU
             alu_op_type = CtlAlu.ADD
         case Opcode.STORE:
             pc_wr_en = "1b1"
-            regfile_wr_en = "1b0"
+            reg_wr_en = "1b0"
             alu_op_a_sel = CtlAluA.RS1
             alu_op_b_sel = CtlAluB.IMM
             data_mem_rd_en = "1b0"
             data_mem_wr_en = "1b1"
-            reg_writeback_sel = CtlWriteBack.ALU
+            reg_wr_sel = CtlWriteBack.ALU
             alu_op_type = CtlAlu.ADD
         case Opcode.OP:
             pc_wr_en = "1b1"
-            regfile_wr_en = "1b1"
+            reg_wr_en = "1b1"
             alu_op_a_sel = CtlAluA.RS1
             alu_op_b_sel = CtlAluB.RS2
             data_mem_rd_en = "1b0"
             data_mem_wr_en = "1b0"
-            reg_writeback_sel = CtlWriteBack.ALU
+            reg_wr_sel = CtlWriteBack.ALU
             alu_op_type = CtlAlu.OP
         case Opcode.LUI:
             pc_wr_en = "1b1"
-            regfile_wr_en = "1b1"
+            reg_wr_en = "1b1"
             alu_op_a_sel = CtlAluA.RS1
             alu_op_b_sel = CtlAluB.RS2
             data_mem_rd_en = "1b0"
             data_mem_wr_en = "1b0"
-            reg_writeback_sel = CtlWriteBack.IMM
+            reg_wr_sel = CtlWriteBack.IMM
             alu_op_type = CtlAlu.ADD
         case Opcode.BRANCH:
             pc_wr_en = "1b1"
-            regfile_wr_en = "1b0"
+            reg_wr_en = "1b0"
             alu_op_a_sel = CtlAluA.RS1
             alu_op_b_sel = CtlAluB.RS2
             data_mem_rd_en = "1b0"
             data_mem_wr_en = "1b0"
-            reg_writeback_sel = CtlWriteBack.ALU
+            reg_wr_sel = CtlWriteBack.ALU
             alu_op_type = CtlAlu.BRANCH
         case Opcode.JALR:
             pc_wr_en = "1b1"
-            regfile_wr_en = "1b1"
+            reg_wr_en = "1b1"
             alu_op_a_sel = CtlAluA.RS1
             alu_op_b_sel = CtlAluB.IMM
             data_mem_rd_en = "1b0"
             data_mem_wr_en = "1b0"
-            reg_writeback_sel = CtlWriteBack.PC4
+            reg_wr_sel = CtlWriteBack.PC4
             alu_op_type = CtlAlu.ADD
         case Opcode.JAL:
             pc_wr_en = "1b1"
-            regfile_wr_en = "1b1"
+            reg_wr_en = "1b1"
             alu_op_a_sel = CtlAluA.PC
             alu_op_b_sel = CtlAluB.IMM
             data_mem_rd_en = "1b0"
             data_mem_wr_en = "1b0"
-            reg_writeback_sel = CtlWriteBack.PC4
+            reg_wr_sel = CtlWriteBack.PC4
             alu_op_type = CtlAlu.ADD
         case _:
             pc_wr_en = Vec[1].xprop(sel)
-            regfile_wr_en = Vec[1].xprop(sel)
+            reg_wr_en = Vec[1].xprop(sel)
             alu_op_a_sel = CtlAluA.xprop(sel)
             alu_op_b_sel = CtlAluB.xprop(sel)
             data_mem_rd_en = Vec[1].xprop(sel)
             data_mem_wr_en = Vec[1].xprop(sel)
-            reg_writeback_sel = CtlWriteBack.xprop(sel)
+            reg_wr_sel = CtlWriteBack.xprop(sel)
             alu_op_type = CtlAlu.xprop(sel)
     return (
         pc_wr_en,
-        regfile_wr_en,
+        reg_wr_en,
         alu_op_a_sel,
         alu_op_b_sel,
         data_mem_rd_en,
         data_mem_wr_en,
-        reg_writeback_sel,
+        reg_wr_sel,
         alu_op_type,
     )
 
@@ -272,19 +272,20 @@ class CtlPath(Module):
         super().__init__(name, parent)
 
         # Ports
-        inst_opcode = self.bits(name="inst_opcode", dtype=Opcode, port=True)
-        inst_funct3 = self.bits(name="inst_funct3", dtype=Funct3, port=True)
-        inst_funct7 = self.bits(name="inst_funct7", dtype=Vec[7], port=True)
-        alu_result_eq_zero = self.bit(name="alu_result_eq_zero", port=True)
-        pc_wr_en = self.bit(name="pc_wr_en", port=True)
-        regfile_wr_en = self.bit(name="regfile_wr_en", port=True)
-        alu_op_a_sel = self.bits(name="alu_op_a_sel", dtype=CtlAluA, port=True)
-        alu_op_b_sel = self.bits(name="alu_op_b_sel", dtype=CtlAluB, port=True)
-        data_mem_rd_en = self.bit(name="data_mem_rd_en", port=True)
-        data_mem_wr_en = self.bit(name="data_mem_wr_en", port=True)
-        reg_writeback_sel = self.bits(name="reg_writeback_sel", dtype=CtlWriteBack, port=True)
-        alu_func = self.bits(name="alu_func", dtype=AluOp, port=True)
-        next_pc_sel = self.bits(name="next_pc_sel", dtype=CtlPc, port=True)
+        opcode = self.input(name="opcode", dtype=Opcode)
+        funct3 = self.input(name="funct3", dtype=Funct3)
+        funct7 = self.input(name="funct7", dtype=Vec[7])
+        alu_result_eq_zero = self.input(name="alu_result_eq_zero", dtype=Vec[1])
+
+        pc_wr_en = self.output(name="pc_wr_en", dtype=Vec[1])
+        reg_wr_en = self.output(name="reg_wr_en", dtype=Vec[1])
+        alu_op_a_sel = self.output(name="alu_op_a_sel", dtype=CtlAluA)
+        alu_op_b_sel = self.output(name="alu_op_b_sel", dtype=CtlAluB)
+        data_mem_rd_en = self.output(name="data_mem_rd_en", dtype=Vec[1])
+        data_mem_wr_en = self.output(name="data_mem_wr_en", dtype=Vec[1])
+        reg_wr_sel = self.output(name="reg_wr_sel", dtype=CtlWriteBack)
+        alu_op = self.output(name="alu_op", dtype=AluOp)
+        next_pc_sel = self.output(name="next_pc_sel", dtype=CtlPc)
 
         # State
         take_branch = self.bit(name="take_branch")
@@ -294,24 +295,24 @@ class CtlPath(Module):
         branch_func = self.bits(name="branch_func", dtype=AluOp)
 
         # Combinational Logic
-        self.combi(take_branch, f_take_branch, inst_funct3, alu_result_eq_zero)
+        self.combi(take_branch, f_take_branch, funct3, alu_result_eq_zero)
 
         ys = (default_func, secondary_func, branch_func)
-        self.combi(ys, f_func, inst_funct3)
+        self.combi(ys, f_func, funct3)
 
-        xs = (alu_op_type, inst_funct3, inst_funct7, default_func, secondary_func, branch_func)
-        self.combi(alu_func, f_alu_func, *xs)
+        xs = (alu_op_type, funct3, funct7, default_func, secondary_func, branch_func)
+        self.combi(alu_op, f_alu_op, *xs)
 
-        self.combi(next_pc_sel, f_next_pc_sel, inst_opcode, take_branch)
+        self.combi(next_pc_sel, f_next_pc_sel, opcode, take_branch)
 
         ys = (
             pc_wr_en,
-            regfile_wr_en,
+            reg_wr_en,
             alu_op_a_sel,
             alu_op_b_sel,
             data_mem_rd_en,
             data_mem_wr_en,
-            reg_writeback_sel,
+            reg_wr_sel,
             alu_op_type,
         )
-        self.combi(ys, f_ctl, inst_opcode)
+        self.combi(ys, f_ctl, opcode)

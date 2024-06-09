@@ -13,12 +13,12 @@ class DataMem(Module):
         super().__init__(name, parent)
 
         # Ports
-        addr = self.bits(name="addr", dtype=Vec[word_addr_bits], port=True)
-        wr_en = self.bit(name="wr_en", port=True)
-        wr_be = self.bits(name="wr_be", dtype=Vec[4], port=True)
-        wr_data = self.bits(name="wr_data", dtype=Vec[32], port=True)
-        rd_data = self.bits(name="rd_data", dtype=Vec[32], port=True)
-        clock = self.bit(name="clock", port=True)
+        addr = self.input(name="addr", dtype=Vec[word_addr_bits])
+        wr_en = self.input(name="wr_en", dtype=Vec[1])
+        wr_be = self.input(name="wr_be", dtype=Vec[4])
+        wr_data = self.input(name="wr_data", dtype=Vec[32])
+        rd_data = self.output(name="rd_data", dtype=Vec[32])
+        clock = self.input(name="clock", dtype=Vec[1])
 
         # State
         mem = self.array(name="mem", dtype=Vec[32])

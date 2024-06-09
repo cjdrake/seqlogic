@@ -87,6 +87,10 @@ class Module(Branch, _ProcIf, _TraceIf):
         Branch.__init__(self, name, parent)
         _ProcIf.__init__(self)
 
+        # Ports: name => connected
+        self._inputs = {}
+        self._outputs = {}
+
     @property
     def scope(self) -> str:
         """Return the branch's full name using dot separator syntax."""
@@ -104,6 +108,48 @@ class Module(Branch, _ProcIf, _TraceIf):
         for child in self._children:
             assert isinstance(child, _TraceIf)
             child.dump_vcd(vcdw, pattern)
+
+    def input(self, name: str, dtype: type) -> Bits:
+        self._check_name(name)
+        assert issubclass(dtype, Vec) and dtype.n > 0
+        if dtype.n == 1:
+            node = Bit(name, parent=self)
+        else:
+            node = Bits(name, parent=self, dtype=dtype)
+        self._inputs[name] = False
+        setattr(self, name, node)
+        return node
+
+    def output(self, name: str, dtype: type) -> Bits:
+        self._check_name(name)
+        assert issubclass(dtype, Vec) and dtype.n > 0
+        if dtype.n == 1:
+            node = Bit(name, parent=self)
+        else:
+            node = Bits(name, parent=self, dtype=dtype)
+        self._outputs[name] = False
+        setattr(self, name, node)
+        return node
+
+    def connect(self, **ports):
+        for name, rhs in ports.items():
+            lhs = getattr(self, name)
+            if isinstance(rhs, Bits):
+                if name in self._inputs:
+                    self.assign(lhs, rhs)
+                elif name in self._outputs:
+                    self.assign(rhs, lhs)
+                else:
+                    raise ValueError(f"Invalid port: {name}")
+            elif isinstance(rhs, tuple):
+                if name in self._inputs:
+                    self.combi(lhs, rhs[0], *rhs[1:])
+                elif name in self._outputs:
+                    self.combi(rhs[1:], rhs[0], lhs)
+                else:
+                    raise ValueError(f"Invalid port: {name}")
+            else:
+                raise ValueError(f"Port {name} invalid connection")
 
     def bits(self, name: str, dtype: type, port: bool = False) -> Bits:
         self._check_name(name)
