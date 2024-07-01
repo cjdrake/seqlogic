@@ -1,7 +1,5 @@
 """RiscV Core."""
 
-# xpyright: reportAttributeAccessIssue=false
-
 from seqlogic import Module
 from seqlogic.vec import Vec
 

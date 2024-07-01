@@ -1,5 +1,6 @@
 """Arithmetic Logic Unit (ALU)."""
 
+# pyright: reportArgumentType=false
 # pyright: reportAttributeAccessIssue=false
 
 from seqlogic import Module

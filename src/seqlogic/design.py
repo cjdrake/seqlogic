@@ -4,9 +4,6 @@ Combine hierarchy, bit vectors, and simulation semantics into a
 straightforward API for creating a digital design.
 """
 
-# Simplify access to friend object attributes
-# pylint: disable = protected-access
-
 from __future__ import annotations
 
 import inspect
@@ -20,20 +17,19 @@ from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, Value, changed, get_loop, resume
-from .vec import Vec, VecEnum, cat, lit2vec
+from .vec import Vec, VecEnum, _lit2vec, cat
 
-_item2char = {
-    0b00: "x",
-    0b01: "0",
-    0b10: "1",
-    0b11: "x",
+_item2char: dict[tuple[int, int], str] = {
+    (0, 0): "x",
+    (1, 0): "0",
+    (0, 1): "1",
+    (1, 1): "x",
 }
 
 
 def _vec2vcd(v: Vec) -> VarValue:
     """Convert bit array to VCD value."""
-    # pylint: disable = protected-access
-    return "".join(_item2char[v._get_item(i)] for i in range(len(v) - 1, -1, -1))
+    return "".join(_item2char[v.get_item(i)] for i in range(len(v) - 1, -1, -1))
 
 
 class _TraceIf(ABC):
@@ -311,7 +307,7 @@ class Module(Branch, _ProcIf, _TraceIf):
     def mem_wr_be(self, mem: Array, addr: Bits, data: Bits, en: Bit, be: Bits, clk: Bit):
         """Memory with write byte enable."""
 
-        width = mem._dtype.n
+        width = mem._dtype.n  # pylint: disable = protected-access
         if width % 8 != 0:
             raise ValueError("Expected data width to be multiple of 8")
         nbytes = width // 8
@@ -352,7 +348,7 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
     # Singular => State
     def set_next(self, value):
         if isinstance(value, str):
-            value = lit2vec(value)
+            value = _lit2vec(value)
         assert isinstance(value, self._dtype)
         super().set_next(value)
 
