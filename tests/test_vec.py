@@ -1015,10 +1015,10 @@ ADD_VALS = [
 ]
 
 
-def test_vec_add():
+def test_vec_fadd():
     """Test bits add method."""
     for a, b, ci, s, co in ADD_VALS:
-        assert vec(a).add(b, ci) == (s, co)
+        assert vec(a).fadd(b, ci) == (s, co)
         if ci == F:
             assert vec(a) + b == s
             assert a + vec(b) == s

@@ -186,12 +186,12 @@ class Vec:
         return v.rsh(self)[0]
 
     def __add__(self, other: Vec | str) -> Vec:
-        return self.add(other, ci=_Vec0)[0]
+        return self.hadd(other)[0]
 
     def __radd__(self, other: Vec | str) -> Vec:
         v = _to_vec(other)
         self.check_len(len(v))
-        return v._add(self, ci=_Vec0)[0]
+        return v._hadd(self)[0]
 
     def __sub__(self, other: Vec | str) -> Vec:
         return self.sub(other)[0]
@@ -858,11 +858,27 @@ class Vec:
         y = Vec[self._n](d0, d1)
         return y, co
 
-    def _add(self, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
-        """Twos complement addition.
+    def _hadd(self, b: Vec) -> tuple[Vec, Vec[1]]:
+        # Rename for readability
+        n, a = self._n, self
+
+        # X/DC propagation
+        if a.has_x() or b.has_x():
+            return Vec[n](0, 0), _VecX
+        if a.has_dc() or b.has_dc():
+            return Vec[n](self.dmax, self.dmax), _VecW
+
+        s = a.data[1] + b.data[1]
+        co = (_Vec0, _Vec1)[s > self.dmax]  # pylint: disable=comparison-with-callable
+        s &= self.dmax
+
+        return Vec[n](s ^ self.dmax, s), co
+
+    def hadd(self, other: Vec | str) -> tuple[Vec, Vec[1]]:
+        """Half addition.
 
         Args:
-            other: vec of equal length.
+            b: vec of equal length.
 
         Returns:
             2-tuple of (sum, carry-out).
@@ -870,30 +886,47 @@ class Vec:
         Raises:
             ValueError: vec lengths are invalid/inconsistent.
         """
+        b = _to_vec(other)
+        b.check_len(self._n)
+        return self._hadd(b)
+
+    def _fadd(self, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
         # Rename for readability
         n, a = self._n, self
 
+        # X/DC propagation
         if a.has_x() or b.has_x() or ci.has_x():
             return Vec[n](0, 0), _VecX
         if a.has_dc() or b.has_dc() or ci.has_dc():
             return Vec[n](self.dmax, self.dmax), _VecW
 
         s = a.data[1] + b.data[1] + ci.data[1]
-
         co = (_Vec0, _Vec1)[s > self.dmax]  # pylint: disable=comparison-with-callable
         s &= self.dmax
 
         return Vec[n](s ^ self.dmax, s), co
 
-    def add(self, other: Vec | str, ci: Vec[1] | str) -> tuple[Vec, Vec[1]]:
+    def fadd(self, other: Vec | str, ci: Vec[1] | str) -> tuple[Vec, Vec[1]]:
+        """Full addition.
+
+        Args:
+            b: vec of equal length.
+            ci: one bit carry-in vec.
+
+        Returns:
+            2-tuple of (sum, carry-out).
+
+        Raises:
+            ValueError: vec lengths are invalid/inconsistent.
+        """
         b = _to_vec(other)
         b.check_len(self._n)
         ci = _to_vec(ci)
         ci.check_len(1)
-        return self._add(b, ci)
+        return self._fadd(b, ci)
 
     def _sub(self, b: Vec) -> tuple[Vec, Vec[1]]:
-        return self._add(b.not_(), ci=_Vec1)
+        return self._fadd(b.not_(), ci=_Vec1)
 
     def sub(self, other: Vec | str) -> tuple[Vec, Vec[1]]:
         """Twos complement subtraction.
@@ -920,7 +953,7 @@ class Vec:
             2-tuple of (sum, carry-out).
         """
         zero = Vec[self._n](self.dmax, 0)
-        return zero._add(self.not_(), ci=_Vec1)
+        return zero._fadd(self.not_(), ci=_Vec1)
 
     def count_xes(self) -> int:
         """Return number of X items."""
