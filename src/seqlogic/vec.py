@@ -186,20 +186,24 @@ class Vec:
         return v.rsh(self)[0]
 
     def __add__(self, other: Vec | str) -> Vec:
-        return self.hadd(other)[0]
+        s, co = self.hadd(other)
+        return cat(s, co)
 
     def __radd__(self, other: Vec | str) -> Vec:
         v = _to_vec(other)
         self.check_len(len(v))
-        return v._hadd(self)[0]
+        s, co = v._hadd(self)
+        return cat(s, co)
 
     def __sub__(self, other: Vec | str) -> Vec:
-        return self.sub(other)[0]
+        s, co = self.sub(other)
+        return cat(s, co)
 
     def __rsub__(self, other: Vec | str) -> Vec:
         v = _to_vec(other)
         self.check_len(len(v))
-        return v._sub(self)[0]
+        s, co = v._sub(self)
+        return cat(s, co)
 
     def __neg__(self) -> Vec:
         return self.neg()[0]

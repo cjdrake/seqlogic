@@ -1020,8 +1020,8 @@ def test_vec_fadd():
     for a, b, ci, s, co in ADD_VALS:
         assert vec(a).fadd(b, ci) == (s, co)
         if ci == F:
-            assert vec(a) + b == s
-            assert a + vec(b) == s
+            assert vec(a) + b == cat(s, co)
+            assert a + vec(b) == cat(s, co)
 
 
 SUB_VALS = [
@@ -1051,8 +1051,8 @@ SUB_VALS = [
 def test_vec_sub():
     for a, b, s, co in SUB_VALS:
         assert vec(a).sub(b) == (s, co)
-        assert vec(a) - b == s
-        assert a - vec(b) == s
+        assert vec(a) - b == cat(s, co)
+        assert a - vec(b) == cat(s, co)
 
 
 def test_vec_neg():

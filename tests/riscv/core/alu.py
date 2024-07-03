@@ -12,9 +12,11 @@ from . import AluOp
 def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
     match op:
         case AluOp.ADD:
-            return a + b
+            s, _ = a.hadd(b)
+            return s
         case AluOp.SUB:
-            return a - b
+            s, _ = a.sub(b)
+            return s
         case AluOp.SLL:
             return a << b[0:5]
         case AluOp.SRL:

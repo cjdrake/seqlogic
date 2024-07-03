@@ -3,8 +3,6 @@
 # pyright: reportArgumentType=false
 # pyright: reportAttributeAccessIssue=false
 
-import operator
-
 from seqlogic import Module
 from seqlogic.vec import Vec, cat, rep, uint2vec
 
@@ -193,8 +191,8 @@ class DataPath(Module):
 
         self.combi(immediate, f_immediate, inst)
 
-        self.combi(pc_plus_4, lambda x: x + "32h0000_0004", pc)
-        self.combi(pc_plus_immediate, operator.add, pc, immediate)
+        self.combi(pc_plus_4, lambda x: x.hadd("32h0000_0004")[0], pc)
+        self.combi(pc_plus_immediate, lambda a, b: a.hadd(b)[0], pc, immediate)
         self.combi(pc_next, f_pc_next, next_pc_sel, pc_plus_4, pc_plus_immediate, alu_result)
 
         self.combi(alu_op_a, f_alu_op_a, alu_op_a_sel, rs1_data, pc)
