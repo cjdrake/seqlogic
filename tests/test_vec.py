@@ -684,7 +684,7 @@ def test_vec_eq():
         vec("1b0").eq("2b00")
 
 
-NEQ = [
+NE = [
     ("1b0", "1b0", F),
     ("1b0", "1b1", T),
     ("1b0", "1bX", X),
@@ -700,15 +700,15 @@ NEQ = [
 ]
 
 
-def test_vec_neq():
-    for a, b, y in NEQ:
-        assert vec(a).neq(b) == y
+def test_vec_ne():
+    for a, b, y in NE:
+        assert vec(a).ne(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").neq(1.0e42)  # pyright: ignore[reportArgumentType]
+        vec("1b0").ne(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").neq("2b00")
+        vec("1b0").ne("2b00")
 
 
 LTU = [
@@ -732,7 +732,7 @@ def test_vec_ltu():
         vec("1b0").ltu("2b00")
 
 
-LTEU = [
+LEU = [
     ("1b0", "1b0", T),
     ("1b0", "1b1", T),
     ("1b1", "1b0", F),
@@ -742,15 +742,15 @@ LTEU = [
 ]
 
 
-def test_vec_lteu():
-    for a, b, y in LTEU:
-        assert vec(a).lteu(b) == y
+def test_vec_leu():
+    for a, b, y in LEU:
+        assert vec(a).leu(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").lteu(1.0e42)  # pyright: ignore[reportArgumentType]
+        vec("1b0").leu(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").lteu("2b00")
+        vec("1b0").leu("2b00")
 
 
 LT = [
@@ -774,7 +774,7 @@ def test_vec_lt():
         vec("1b0").lt("2b00")
 
 
-LTE = [
+LE = [
     ("1b0", "1b0", T),
     ("1b0", "1b1", F),
     ("1b1", "1b0", T),
@@ -784,15 +784,15 @@ LTE = [
 ]
 
 
-def test_vec_lte():
-    for a, b, y in LTE:
-        assert vec(a).lte(b) == y
+def test_vec_le():
+    for a, b, y in LE:
+        assert vec(a).le(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").lte(1.0e42)  # pyright: ignore[reportArgumentType]
+        vec("1b0").le(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").lte("2b00")
+        vec("1b0").le("2b00")
 
 
 GTU = [
@@ -816,7 +816,7 @@ def test_vec_gtu():
         vec("1b0").gtu("2b00")
 
 
-GTEU = [
+GEU = [
     ("1b0", "1b0", T),
     ("1b0", "1b1", F),
     ("1b1", "1b0", T),
@@ -826,15 +826,15 @@ GTEU = [
 ]
 
 
-def test_vec_gteu():
-    for a, b, y in GTEU:
-        assert vec(a).gteu(b) == y
+def test_vec_geu():
+    for a, b, y in GEU:
+        assert vec(a).geu(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").gteu(1.0e42)  # pyright: ignore[reportArgumentType]
+        vec("1b0").geu(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").gteu("2b00")
+        vec("1b0").geu("2b00")
 
 
 GT = [
@@ -858,7 +858,7 @@ def test_vec_gt():
         vec("1b0").gt("2b00")
 
 
-GTE = [
+GE = [
     ("1b0", "1b0", T),
     ("1b0", "1b1", T),
     ("1b1", "1b0", F),
@@ -868,15 +868,15 @@ GTE = [
 ]
 
 
-def test_vec_gte():
-    for a, b, y in GTE:
-        assert vec(a).gte(b) == y
+def test_vec_ge():
+    for a, b, y in GE:
+        assert vec(a).ge(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").gte(1.0e42)  # pyright: ignore[reportArgumentType]
+        vec("1b0").ge(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").gte("2b00")
+        vec("1b0").ge("2b00")
 
 
 def test_vec_zext():

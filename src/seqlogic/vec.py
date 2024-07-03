@@ -567,10 +567,10 @@ class Vec:
         v.check_len(self._n)
         return self._eq(v)
 
-    def _neq(self, v: Vec) -> Vec[1]:
+    def _ne(self, v: Vec) -> Vec[1]:
         return self._xor(v).uor()
 
-    def neq(self, other: Vec | str) -> Vec[1]:
+    def ne(self, other: Vec | str) -> Vec[1]:
         """Not Equal operator.
 
         Args:
@@ -581,7 +581,7 @@ class Vec:
         """
         v = _to_vec(other)
         v.check_len(self._n)
-        return self._neq(v)
+        return self._ne(v)
 
     def ltu(self, other: Vec | str) -> Vec[1]:
         """Less than operator (unsigned).
@@ -599,7 +599,7 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def lteu(self, other: Vec | str) -> Vec[1]:
+    def leu(self, other: Vec | str) -> Vec[1]:
         """Less than or equal operator (unsigned).
 
         Args:
@@ -631,7 +631,7 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def lte(self, other: Vec | str) -> Vec[1]:
+    def le(self, other: Vec | str) -> Vec[1]:
         """Less than or equal operator (signed).
 
         Args:
@@ -663,7 +663,7 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def gteu(self, other: Vec | str) -> Vec[1]:
+    def geu(self, other: Vec | str) -> Vec[1]:
         """Greater than or equal operator (unsigned).
 
         Args:
@@ -695,7 +695,7 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def gte(self, other: Vec | str) -> Vec[1]:
+    def ge(self, other: Vec | str) -> Vec[1]:
         """Greater than or equal operator (signed).
 
         Args:
