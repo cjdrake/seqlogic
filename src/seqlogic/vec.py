@@ -547,6 +547,9 @@ class Vec:
             return -(self.not_().to_uint() + 1)
         return self.to_uint()
 
+    def _eq(self, v: Vec) -> Vec[1]:
+        return self._xnor(v).uand()
+
     def eq(self, other: Vec | str) -> Vec[1]:
         """Equal operator.
 
@@ -558,7 +561,10 @@ class Vec:
         """
         v = _to_vec(other)
         v.check_len(self._n)
-        return self._xnor(v).uand()
+        return self._eq(v)
+
+    def _neq(self, v: Vec) -> Vec[1]:
+        return self._xor(v).uor()
 
     def neq(self, other: Vec | str) -> Vec[1]:
         """Not Equal operator.
@@ -571,7 +577,7 @@ class Vec:
         """
         v = _to_vec(other)
         v.check_len(self._n)
-        return self._xor(v).uor()
+        return self._neq(v)
 
     def ltu(self, other: Vec | str) -> Vec[1]:
         """Less than operator (unsigned).
