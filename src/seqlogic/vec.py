@@ -558,10 +558,7 @@ class Vec:
         """
         v = _to_vec(other)
         v.check_len(self._n)
-        try:
-            return (_Vec0, _Vec1)[self.to_uint() == v.to_uint()]
-        except ValueError:
-            return _VecX
+        return self._xnor(v).uand()
 
     def neq(self, other: Vec | str) -> Vec[1]:
         """Not Equal operator.
@@ -574,10 +571,7 @@ class Vec:
         """
         v = _to_vec(other)
         v.check_len(self._n)
-        try:
-            return (_Vec0, _Vec1)[self.to_uint() != v.to_uint()]
-        except ValueError:
-            return _VecX
+        return self._xor(v).uor()
 
     def ltu(self, other: Vec | str) -> Vec[1]:
         """Less than operator (unsigned).
