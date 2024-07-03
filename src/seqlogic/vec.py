@@ -920,7 +920,7 @@ class Vec:
             2-tuple of (sum, carry-out).
         """
         zero = Vec[self._n](self.dmax, 0)
-        return zero._sub(self)
+        return zero._add(self.not_(), ci=_Vec1)
 
     def count_xes(self) -> int:
         """Return number of X items."""
