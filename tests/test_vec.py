@@ -929,12 +929,12 @@ def test_vec_ge():
         vec("1b0").ge("2b00")
 
 
-def test_vec_zext():
+def test_vec_uxt():
     v = vec("4b1010")
     with pytest.raises(ValueError):
-        v.zext(-1)
-    assert v.zext(0) is v
-    assert v.zext(4) == vec("8b0000_1010")
+        v.uxt(-1)
+    assert v.uxt(0) is v
+    assert v.uxt(4) == vec("8b0000_1010")
 
 
 def test_vec_sxt():

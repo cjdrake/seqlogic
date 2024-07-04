@@ -25,11 +25,11 @@ def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
             y, _ = a.arsh(b[0:5])
             return y
         case AluOp.SEQ:
-            return a.eq(b).zext(32 - 1)
+            return a.eq(b).uxt(32 - 1)
         case AluOp.SLT:
-            return a.lt(b).zext(32 - 1)
+            return a.lt(b).uxt(32 - 1)
         case AluOp.SLTU:
-            return a.ltu(b).zext(32 - 1)
+            return a.ltu(b).uxt(32 - 1)
         case AluOp.XOR:
             return a ^ b
         case AluOp.OR:
