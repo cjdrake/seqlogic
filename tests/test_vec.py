@@ -526,9 +526,9 @@ def test_vec_or():
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        v0.nor(1.0e42)  # pyright: ignore[reportArgumentType]
+        v0.or_(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        v0.nor("1b0")
+        v0.or_("1b0")
 
 
 def test_vec_nand():
@@ -545,9 +545,9 @@ def test_vec_nand():
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        v0.nor(1.0e42)  # pyright: ignore[reportArgumentType]
+        v0.nand(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        v0.nor("1b0")
+        v0.nand("1b0")
 
 
 def test_vec_and():
@@ -564,9 +564,9 @@ def test_vec_and():
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        v0.nor(1.0e42)  # pyright: ignore[reportArgumentType]
+        v0.and_(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        v0.nor("1b0")
+        v0.and_("1b0")
 
 
 def test_vec_xnor():
@@ -583,9 +583,9 @@ def test_vec_xnor():
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        v0.nor(1.0e42)  # pyright: ignore[reportArgumentType]
+        v0.xnor(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        v0.nor("1b0")
+        v0.xnor("1b0")
 
 
 def test_vec_xor():
@@ -602,9 +602,9 @@ def test_vec_xor():
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        v0.nor(1.0e42)  # pyright: ignore[reportArgumentType]
+        v0.xor(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        v0.nor("1b0")
+        v0.xor("1b0")
 
 
 UOR = {
