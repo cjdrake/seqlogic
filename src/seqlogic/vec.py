@@ -647,7 +647,7 @@ class Vec:
         y = Vec[self._n](d0, d1)
         return y, co
 
-    def neg(self) -> tuple[Vec, Vec[1]]:
+    def neg(self) -> AddResult:
         """Twos complement negation.
 
         Computed using 0 - self.
@@ -656,7 +656,8 @@ class Vec:
             2-tuple of (sum, carry-out).
         """
         zero = Vec[self._n](self._dmax, 0)
-        return _add(zero, self.not_(), ci=_Vec1)
+        s, co = _add(zero, self.not_(), ci=_Vec1)
+        return AddResult(s, co)
 
     def count_xes(self) -> int:
         """Return number of X items."""
