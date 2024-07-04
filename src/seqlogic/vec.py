@@ -27,15 +27,6 @@ def _vec_n(n: int) -> type[Vec]:
     return cls
 
 
-def _to_vec(obj: Vec | str) -> Vec:
-    if isinstance(obj, Vec):
-        return obj
-    if isinstance(obj, str):
-        return _lit2vec(obj)
-    s = f"Expected Vec or lit, got {obj.__class__.__name__}"
-    raise TypeError(s)
-
-
 @cache
 def _mask(n: int) -> int:
     """Return n bit mask."""
@@ -187,15 +178,17 @@ class Vec:
         return self.lsh(n)[0]
 
     def __rlshift__(self, other: Vec | str) -> Vec:
-        v = _to_vec(other)
-        return v.lsh(self)[0]
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        return other.lsh(self)[0]
 
     def __rshift__(self, n: int | Vec) -> Vec:
         return self.rsh(n)[0]
 
     def __rrshift__(self, other: Vec | str) -> Vec:
-        v = _to_vec(other)
-        return v.rsh(self)[0]
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        return other.rsh(self)[0]
 
     def __add__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
@@ -368,10 +361,11 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) < unsigned(other)
         """
-        v = _to_vec(other)
-        v.check_len(self._n)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
         try:
-            return (_Vec0, _Vec1)[self.to_uint() < v.to_uint()]
+            return (_Vec0, _Vec1)[self.to_uint() < other.to_uint()]
         except ValueError:
             return _VecX
 
@@ -384,10 +378,11 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) < signed(other)
         """
-        v = _to_vec(other)
-        v.check_len(self._n)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
         try:
-            return (_Vec0, _Vec1)[self.to_int() < v.to_int()]
+            return (_Vec0, _Vec1)[self.to_int() < other.to_int()]
         except ValueError:
             return _VecX
 
@@ -400,10 +395,11 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) ≤ unsigned(other)
         """
-        v = _to_vec(other)
-        v.check_len(self._n)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
         try:
-            return (_Vec0, _Vec1)[self.to_uint() <= v.to_uint()]
+            return (_Vec0, _Vec1)[self.to_uint() <= other.to_uint()]
         except ValueError:
             return _VecX
 
@@ -416,10 +412,11 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) ≤ signed(other)
         """
-        v = _to_vec(other)
-        v.check_len(self._n)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
         try:
-            return (_Vec0, _Vec1)[self.to_int() <= v.to_int()]
+            return (_Vec0, _Vec1)[self.to_int() <= other.to_int()]
         except ValueError:
             return _VecX
 
@@ -432,10 +429,11 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) > unsigned(other)
         """
-        v = _to_vec(other)
-        v.check_len(self._n)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
         try:
-            return (_Vec0, _Vec1)[self.to_uint() > v.to_uint()]
+            return (_Vec0, _Vec1)[self.to_uint() > other.to_uint()]
         except ValueError:
             return _VecX
 
@@ -448,10 +446,11 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) > signed(other)
         """
-        v = _to_vec(other)
-        v.check_len(self._n)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
         try:
-            return (_Vec0, _Vec1)[self.to_int() > v.to_int()]
+            return (_Vec0, _Vec1)[self.to_int() > other.to_int()]
         except ValueError:
             return _VecX
 
@@ -464,10 +463,11 @@ class Vec:
         Returns:
             Vec[1] result of unsigned(self) ≥ unsigned(other)
         """
-        v = _to_vec(other)
-        v.check_len(self._n)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
         try:
-            return (_Vec0, _Vec1)[self.to_uint() >= v.to_uint()]
+            return (_Vec0, _Vec1)[self.to_uint() >= other.to_uint()]
         except ValueError:
             return _VecX
 
@@ -480,10 +480,11 @@ class Vec:
         Returns:
             Vec[1] result of signed(self) ≥ signed(other)
         """
-        v = _to_vec(other)
-        v.check_len(self._n)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
         try:
-            return (_Vec0, _Vec1)[self.to_int() >= v.to_int()]
+            return (_Vec0, _Vec1)[self.to_int() >= other.to_int()]
         except ValueError:
             return _VecX
 
@@ -1345,8 +1346,9 @@ class _VecEnumMeta(type):
             setattr(enum, name, obj)
 
         # Override Vec __new__ method
-        def _new(cls: type[Vec], arg: Vec | str):
-            v = _to_vec(arg)
+        def _new(cls: type[Vec], v: Vec | str):
+            if isinstance(v, str):
+                v = _lit2vec(v)
             v.check_len(cls.n)
             try:
                 obj = getattr(cls, data2name[v.data])
@@ -1359,7 +1361,7 @@ class _VecEnumMeta(type):
         enum.__new__ = _new
 
         # Override Vec __init__ method (to do nothing)
-        enum.__init__ = lambda self, arg: None
+        enum.__init__ = lambda self, v: None
 
         # Override Vec xes/dcs methods
         enum.xes = classmethod(lambda cls: getattr(cls, "X"))
