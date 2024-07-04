@@ -25,7 +25,7 @@ def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
         case AluOp.SEQ:
             return a.eq(b).xt(32 - 1)
         case AluOp.SLT:
-            return a.lt(b).xt(32 - 1)
+            return a.slt(b).xt(32 - 1)
         case AluOp.SLTU:
             return a.ult(b).xt(32 - 1)
         case AluOp.XOR:

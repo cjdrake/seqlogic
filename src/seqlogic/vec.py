@@ -374,8 +374,8 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def lt(self, other: Vec | str) -> Vec[1]:
-        """Less than operator (signed).
+    def slt(self, other: Vec | str) -> Vec[1]:
+        """Signed Less than operator.
 
         Args:
             other: vec of equal length.
@@ -408,8 +408,8 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def le(self, other: Vec | str) -> Vec[1]:
-        """Less than or equal operator (signed).
+    def sle(self, other: Vec | str) -> Vec[1]:
+        """Signed less than or equal operator.
 
         Args:
             other: vec of equal length.
@@ -442,8 +442,8 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def gt(self, other: Vec | str) -> Vec[1]:
-        """Greater than operator (signed).
+    def sgt(self, other: Vec | str) -> Vec[1]:
+        """Signed greater than operator.
 
         Args:
             other: vec of equal length.
@@ -476,8 +476,8 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def ge(self, other: Vec | str) -> Vec[1]:
-        """Greater than or equal operator (signed).
+    def sge(self, other: Vec | str) -> Vec[1]:
+        """Signed greater than or equal operator.
 
         Args:
             other: vec of equal length.
