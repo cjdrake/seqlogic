@@ -52,6 +52,12 @@ class Vec:
     def __class_getitem__(cls, n: int):
         return _vec_n(n)
 
+    @classmethod
+    def _from_data(cls, d0: int, d1: int) -> Vec:
+        obj = object.__new__(cls)
+        obj._data = (d0, d1)
+        return obj
+
     @classproperty
     def n(cls) -> int:  # pylint: disable=no-self-argument
         return cls._n
@@ -68,15 +74,11 @@ class Vec:
 
     @classmethod
     def xes(cls) -> Vec:
-        obj = object.__new__(cls)
-        obj._data = (0, 0)
-        return obj
+        return cls._from_data(0, 0)
 
     @classmethod
     def dcs(cls) -> Vec:
-        obj = object.__new__(cls)
-        obj._data = (cls._dmax, cls._dmax)
-        return obj
+        return cls._from_data(cls._dmax, cls._dmax)
 
     @classmethod
     def xprop(cls, sel: Vec) -> Vec:
@@ -1356,27 +1358,29 @@ class _VecEnumMeta(type):
             obj._name = name
             setattr(enum, name, obj)
 
-        # Override Vec __new__ method
+        def _from_data(cls, d0: int, d1: int) -> Vec:
+            try:
+                obj = getattr(cls, data2name[(d0, d1)])
+            except KeyError:
+                obj = object.__new__(cls)  # pyright: ignore[reportArgumentType]
+                obj._data = (d0, d1)
+                obj._name = f"{cls.__name__}({Vec[cls.n].__str__(obj)})"
+            return obj
+
+        # Override Vec._from_data method
+        enum._from_data = classmethod(_from_data)
+
+        # Override Vec.__new__ method
         def _new(cls: type[Vec], v: Vec | str):
             if isinstance(v, str):
                 v = _lit2vec(v)
             v._check_len(cls.n)
-            try:
-                obj = getattr(cls, data2name[v.data])
-            except KeyError:
-                obj = object.__new__(enum)  # pyright: ignore[reportArgumentType]
-                obj._data = v.data
-                obj._name = f"{cls.__name__}({Vec[cls.n].__str__(obj)})"
-            return obj
+            return cls._from_data(v._data[0], v._data[1])
 
         enum.__new__ = _new
 
-        # Override Vec __init__ method (to do nothing)
+        # Override Vec.__init__ method (to do nothing)
         enum.__init__ = lambda self, v: None
-
-        # Override Vec xes/dcs methods
-        enum.xes = classmethod(lambda cls: getattr(cls, "X"))
-        enum.dcs = classmethod(lambda cls: getattr(cls, "DC"))
 
         # Create name property
         enum.name = property(fget=lambda self: self._name)
@@ -1484,15 +1488,7 @@ class _VecStructMeta(type):
             mask = _mask(n)
             d0 = (self._data[0] >> offset) & mask
             d1 = (self._data[1] >> offset) & mask
-            if issubclass(cls, VecEnum):
-                v = Vec[n](d0, d1)
-                return cls(v)  # pyright: ignore[reportCallIssue]
-            if issubclass(cls, (VecStruct, VecUnion)):
-                obj = object.__new__(cls)
-                obj._data = (d0, d1)
-                return obj
-            # Vec
-            return cls(d0, d1)
+            return cls._from_data(d0, d1)
 
         for fn, ft in fields:
             setattr(struct, fn, property(fget=partial(_fget, fn, ft)))
@@ -1562,15 +1558,7 @@ class _VecUnionMeta(type):
             mask = _mask(n)
             d0 = self.data[0] & mask
             d1 = self.data[1] & mask
-            if issubclass(cls, VecEnum):
-                v = Vec[n](d0, d1)
-                return cls(v)  # pyright: ignore[reportCallIssue]
-            if issubclass(cls, (VecStruct, VecUnion)):
-                obj = object.__new__(cls)
-                obj._data = (d0, d1)
-                return obj
-            # Vec
-            return cls(d0, d1)
+            return cls._from_data(d0, d1)
 
         for fn, ft in fields:
             setattr(union, fn, property(fget=partial(_fget, fn, ft)))
