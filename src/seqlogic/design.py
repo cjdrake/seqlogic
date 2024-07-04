@@ -19,6 +19,10 @@ from .sim import Aggregate, Region, SimAwaitable, Singular, State, Value, change
 from .vec import Vec, VecEnum, _lit2vec, cat
 
 
+class DesignError(Exception):
+    """Design Error."""
+
+
 class _TraceIf(ABC):
     """Tracing interface.
 
@@ -119,16 +123,36 @@ class Module(Branch, _ProcIf, _TraceIf):
             lhs = getattr(self, name)
             if isinstance(rhs, Bits):
                 if name in self._inputs:
-                    self.assign(lhs, rhs)
+                    if not self._inputs[name]:
+                        self.assign(lhs, rhs)
+                        self._inputs[name] = True
+                    else:
+                        s = f"Input Port {name} already connected"
+                        raise DesignError(s)
                 elif name in self._outputs:
-                    self.assign(rhs, lhs)
+                    if not self._outputs[name]:
+                        self.assign(rhs, lhs)
+                        self._outputs[name] = True
+                    else:
+                        s = f"Output Port {name} already connected"
+                        raise DesignError(s)
                 else:
                     raise ValueError(f"Invalid port: {name}")
             elif isinstance(rhs, tuple):
                 if name in self._inputs:
-                    self.combi(lhs, rhs[0], *rhs[1:])
+                    if not self._inputs[name]:
+                        self.combi(lhs, rhs[0], *rhs[1:])
+                        self._inputs[name] = True
+                    else:
+                        s = f"Input Port {name} already connected"
+                        raise DesignError(s)
                 elif name in self._outputs:
-                    self.combi(rhs[1:], rhs[0], lhs)
+                    if not self._outputs[name]:
+                        self.combi(rhs[1:], rhs[0], lhs)
+                        self._outputs[name] = True
+                    else:
+                        s = f"Output Port {name} already connected"
+                        raise DesignError(s)
                 else:
                     raise ValueError(f"Invalid port: {name}")
             else:
