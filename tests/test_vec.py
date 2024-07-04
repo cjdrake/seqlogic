@@ -771,15 +771,15 @@ LTU = [
 ]
 
 
-def test_vec_ltu():
+def test_vec_ult():
     for a, b, y in LTU:
-        assert vec(a).ltu(b) == y
+        assert vec(a).ult(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").ltu(1.0e42)  # pyright: ignore[reportArgumentType]
+        vec("1b0").ult(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").ltu("2b00")
+        vec("1b0").ult("2b00")
 
 
 LEU = [
@@ -792,15 +792,15 @@ LEU = [
 ]
 
 
-def test_vec_leu():
+def test_vec_ule():
     for a, b, y in LEU:
-        assert vec(a).leu(b) == y
+        assert vec(a).ule(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").leu(1.0e42)  # pyright: ignore[reportArgumentType]
+        vec("1b0").ule(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").leu("2b00")
+        vec("1b0").ule("2b00")
 
 
 LT = [
@@ -845,7 +845,7 @@ def test_vec_le():
         vec("1b0").le("2b00")
 
 
-GTU = [
+UGT = [
     ("1b0", "1b0", F),
     ("1b0", "1b1", F),
     ("1b1", "1b0", T),
@@ -855,18 +855,18 @@ GTU = [
 ]
 
 
-def test_vec_gtu():
-    for a, b, y in GTU:
-        assert vec(a).gtu(b) == y
+def test_vec_ugt():
+    for a, b, y in UGT:
+        assert vec(a).ugt(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").gtu(1.0e42)  # pyright: ignore[reportArgumentType]
+        vec("1b0").ugt(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").gtu("2b00")
+        vec("1b0").ugt("2b00")
 
 
-GEU = [
+UGE = [
     ("1b0", "1b0", T),
     ("1b0", "1b1", F),
     ("1b1", "1b0", T),
@@ -876,15 +876,15 @@ GEU = [
 ]
 
 
-def test_vec_geu():
-    for a, b, y in GEU:
-        assert vec(a).geu(b) == y
+def test_vec_uge():
+    for a, b, y in UGE:
+        assert vec(a).uge(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").geu(1.0e42)  # pyright: ignore[reportArgumentType]
+        vec("1b0").uge(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").geu("2b00")
+        vec("1b0").uge("2b00")
 
 
 GT = [

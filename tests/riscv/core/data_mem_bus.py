@@ -63,7 +63,7 @@ class DataMemBus(Module):
         def f_is_data(addr: Addr) -> Vec[1]:
             start = uint2vec(data_start, 32)
             stop = uint2vec(data_stop, 32)
-            return start.leu(addr) & addr.ltu(stop)
+            return start.ule(addr) & addr.ult(stop)
 
         self.combi(is_data, f_is_data, addr)
         self.combi(rd_data, f_rd_data, rd_en, is_data, data)

@@ -583,7 +583,7 @@ class Vec:
         v.check_len(self._n)
         return self._ne(v)
 
-    def ltu(self, other: Vec | str) -> Vec[1]:
+    def ult(self, other: Vec | str) -> Vec[1]:
         """Less than operator (unsigned).
 
         Args:
@@ -596,22 +596,6 @@ class Vec:
         v.check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_uint() < v.to_uint()]
-        except ValueError:
-            return _VecX
-
-    def leu(self, other: Vec | str) -> Vec[1]:
-        """Less than or equal operator (unsigned).
-
-        Args:
-            other: vec of equal length.
-
-        Returns:
-            Vec[1] result of unsigned(self) ≤ unsigned(other)
-        """
-        v = _to_vec(other)
-        v.check_len(self._n)
-        try:
-            return (_Vec0, _Vec1)[self.to_uint() <= v.to_uint()]
         except ValueError:
             return _VecX
 
@@ -631,6 +615,22 @@ class Vec:
         except ValueError:
             return _VecX
 
+    def ule(self, other: Vec | str) -> Vec[1]:
+        """Less than or equal operator (unsigned).
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Vec[1] result of unsigned(self) ≤ unsigned(other)
+        """
+        v = _to_vec(other)
+        v.check_len(self._n)
+        try:
+            return (_Vec0, _Vec1)[self.to_uint() <= v.to_uint()]
+        except ValueError:
+            return _VecX
+
     def le(self, other: Vec | str) -> Vec[1]:
         """Less than or equal operator (signed).
 
@@ -647,7 +647,7 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def gtu(self, other: Vec | str) -> Vec[1]:
+    def ugt(self, other: Vec | str) -> Vec[1]:
         """Greater than operator (unsigned).
 
         Args:
@@ -660,22 +660,6 @@ class Vec:
         v.check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_uint() > v.to_uint()]
-        except ValueError:
-            return _VecX
-
-    def geu(self, other: Vec | str) -> Vec[1]:
-        """Greater than or equal operator (unsigned).
-
-        Args:
-            other: vec of equal length.
-
-        Returns:
-            Vec[1] result of unsigned(self) ≥ unsigned(other)
-        """
-        v = _to_vec(other)
-        v.check_len(self._n)
-        try:
-            return (_Vec0, _Vec1)[self.to_uint() >= v.to_uint()]
         except ValueError:
             return _VecX
 
@@ -692,6 +676,22 @@ class Vec:
         v.check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_int() > v.to_int()]
+        except ValueError:
+            return _VecX
+
+    def uge(self, other: Vec | str) -> Vec[1]:
+        """Greater than or equal operator (unsigned).
+
+        Args:
+            other: vec of equal length.
+
+        Returns:
+            Vec[1] result of unsigned(self) ≥ unsigned(other)
+        """
+        v = _to_vec(other)
+        v.check_len(self._n)
+        try:
+            return (_Vec0, _Vec1)[self.to_uint() >= v.to_uint()]
         except ValueError:
             return _VecX
 
