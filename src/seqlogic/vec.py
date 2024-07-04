@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import re
+from collections import namedtuple
 from collections.abc import Generator, Iterable
 from functools import cache, partial
 
@@ -1024,7 +1025,10 @@ def _add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
     return Vec[n](s ^ dmax, s), co
 
 
-def add(a: Vec | str, b: Vec | str, ci: Vec[1] | str | None = None) -> tuple[Vec, Vec[1]]:
+AddResult = namedtuple("AddResult", ["s", "co"])
+
+
+def add(a: Vec | str, b: Vec | str, ci: Vec[1] | str | None = None) -> AddResult:
     """Addition with carry-in.
 
     Args:
@@ -1048,10 +1052,11 @@ def add(a: Vec | str, b: Vec | str, ci: Vec[1] | str | None = None) -> tuple[Vec
     elif isinstance(ci, str):
         ci = _lit2vec(ci)
         ci._check_len(1)
-    return _add(a, b, ci)
+    s, co = _add(a, b, ci)
+    return AddResult(s, co)
 
 
-def sub(a: Vec | str, b: Vec | str) -> tuple[Vec, Vec[1]]:
+def sub(a: Vec | str, b: Vec | str) -> AddResult:
     """Twos complement subtraction.
 
     Args:
@@ -1069,7 +1074,8 @@ def sub(a: Vec | str, b: Vec | str) -> tuple[Vec, Vec[1]]:
     if isinstance(b, str):
         b = _lit2vec(b)
         b._check_len(len(a))
-    return _add(a, b.not_(), ci=_Vec1)
+    s, co = _add(a, b.not_(), ci=_Vec1)
+    return AddResult(s, co)
 
 
 def _bools2vec(xs: Iterable[int]) -> Vec:
