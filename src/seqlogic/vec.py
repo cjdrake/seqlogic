@@ -12,7 +12,7 @@ import re
 from collections.abc import Generator, Iterable
 from functools import cache, partial
 
-from .lbconst import _W, _X, _0, _1, from_char, to_char
+from .lbconst import _W, _X, _0, _1, from_char, to_char, to_vcd_char
 from .util import classproperty, clog2
 
 _VecN = {}
@@ -89,11 +89,11 @@ class Vec:
     def __getitem__(self, key: int | slice) -> Vec:
         if isinstance(key, int):
             i = self._norm_index(key)
-            d0, d1 = self.get_item(i)
+            d0, d1 = self._get_item(i)
             return Vec[1](d0, d1)
         if isinstance(key, slice):
             i, j = self._norm_slice(key)
-            n, (d0, d1) = self.get_items(i, j)
+            n, (d0, d1) = self._get_items(i, j)
             return Vec[n](d0, d1)
         raise TypeError("Expected key to be int or slice")
 
@@ -109,12 +109,16 @@ class Vec:
         for i in range(self._n):
             if i % 4 == 0 and i != 0:
                 chars.append("_")
-            chars.append(to_char[self.get_item(i)])
+            chars.append(to_char[self._get_item(i)])
         return prefix + "".join(reversed(chars))
 
     def __repr__(self) -> str:
         d0, d1 = self._data
         return f"Vec[{self._n}](0b{d0:0{self._n}b}, 0b{d1:0{self._n}b})"
+
+    def to_vcd_val(self) -> str:
+        """Convert bit array to VCD value."""
+        return "".join(to_vcd_char[self._get_item(i)] for i in range(self._n - 1, -1, -1))
 
     def __bool__(self) -> bool:
         return self.to_uint() != 0
@@ -249,7 +253,7 @@ class Vec:
         """
         y0, y1 = _0
         for i in range(self._n):
-            x0, x1 = self.get_item(i)
+            x0, x1 = self._get_item(i)
             y0, y1 = (y0 & x0, y0 & x1 | y1 & x0 | y1 & x1)
         return Vec[1](y0, y1)
 
@@ -261,7 +265,7 @@ class Vec:
         """
         y0, y1 = _1
         for i in range(self._n):
-            x0, x1 = self.get_item(i)
+            x0, x1 = self._get_item(i)
             y0, y1 = (y0 & x0 | y0 & x1 | y1 & x0, y1 & x1)
         return Vec[1](y0, y1)
 
@@ -273,7 +277,7 @@ class Vec:
         """
         y0, y1 = _1
         for i in range(self._n):
-            x0, x1 = self.get_item(i)
+            x0, x1 = self._get_item(i)
             y0, y1 = (y0 & x1 | y1 & x0, y0 & x0 | y1 & x1)
         return Vec[1](y0, y1)
 
@@ -285,7 +289,7 @@ class Vec:
         """
         y0, y1 = _0
         for i in range(self._n):
-            x0, x1 = self.get_item(i)
+            x0, x1 = self._get_item(i)
             y0, y1 = (y0 & x0 | y1 & x1, y0 & x1 | y1 & x0)
         return Vec[1](y0, y1)
 
@@ -313,7 +317,7 @@ class Vec:
         """
         if self._n == 0:
             return 0
-        sign = self.get_item(self._n - 1)
+        sign = self._get_item(self._n - 1)
         if sign == _1:
             return -(self.not_().to_uint() + 1)
         return self.to_uint()
@@ -527,7 +531,7 @@ class Vec:
         if n == 0:
             return self
 
-        sign0, sign1 = self.get_item(self._n - 1)
+        sign0, sign1 = self._get_item(self._n - 1)
         ext0 = _mask(n) * sign0
         ext1 = _mask(n) * sign1
         d0 = self._data[0] | ext0 << self._n
@@ -631,7 +635,7 @@ class Vec:
             return self, _VecE
 
         co, sh = self[:n], self[n:]
-        sign0, sign1 = self.get_item(self._n - 1)
+        sign0, sign1 = self._get_item(self._n - 1)
         ext0 = _mask(n) * sign0
         ext1 = _mask(n) * sign1
         d0 = sh.data[0] | ext0 << len(sh)
@@ -722,10 +726,10 @@ class Vec:
             stop += self._n
         return start, stop
 
-    def get_item(self, i: int) -> tuple[int, int]:
+    def _get_item(self, i: int) -> tuple[int, int]:
         return (self._data[0] >> i) & 1, (self._data[1] >> i) & 1
 
-    def get_items(self, i: int, j: int) -> tuple[int, tuple[int, int]]:
+    def _get_items(self, i: int, j: int) -> tuple[int, tuple[int, int]]:
         n = j - i
         mask = _mask(n)
         return n, ((self._data[0] >> i) & mask, (self._data[1] >> i) & mask)

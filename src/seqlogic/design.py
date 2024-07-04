@@ -12,24 +12,11 @@ from abc import ABC
 from collections import defaultdict
 from collections.abc import Callable
 
-from vcd.writer import VarValue
 from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, Value, changed, get_loop, resume
 from .vec import Vec, VecEnum, _lit2vec, cat
-
-_item2char: dict[tuple[int, int], str] = {
-    (0, 0): "x",
-    (1, 0): "0",
-    (0, 1): "1",
-    (1, 1): "x",
-}
-
-
-def _vec2vcd(v: Vec) -> VarValue:
-    """Convert bit array to VCD value."""
-    return "".join(_item2char[v.get_item(i)] for i in range(len(v) - 1, -1, -1))
 
 
 class _TraceIf(ABC):
@@ -398,11 +385,11 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
                     name=self.name,
                     var_type="reg",
                     size=len(self._value),
-                    init=_vec2vcd(self._value),
+                    init=self._value.to_vcd_val(),
                 )
 
                 def f():
-                    value = _vec2vcd(self._next_value)
+                    value = self._next_value.to_vcd_val()
                     return vcdw.change(var, self._sim.time, value)
 
                 self._vcd_change = f
