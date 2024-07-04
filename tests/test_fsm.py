@@ -9,7 +9,7 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Bit, Bits, Module, get_loop
+from seqlogic import Bits, Module, get_loop
 from seqlogic.sim import Region
 from seqlogic.vec import Vec, VecEnum
 
@@ -28,9 +28,9 @@ class SeqDetect(VecEnum):
 
 
 async def p_input(
-    x: Bit,
-    reset_n: Bit,
-    clock: Bit,
+    x: Bits,
+    reset_n: Bits,
+    clock: Bits,
 ):
     await reset_n.negedge()
     x.next = "1b0"
@@ -58,10 +58,10 @@ def test_fsm():
     loop.reset()
 
     top = Module(name="top")
-    clock = Bit(name="clock", parent=top)
-    reset_n = Bit(name="reset_n", parent=top)
+    clock = Bits(name="clock", parent=top, dtype=Vec[1])
+    reset_n = Bits(name="reset_n", parent=top, dtype=Vec[1])
     ps = Bits(name="ps", parent=top, dtype=SeqDetect)
-    x = Bit(name="x", parent=top)
+    x = Bits(name="x", parent=top, dtype=Vec[1])
 
     waves = defaultdict(dict)
     top.dump_waves(waves, r".*")

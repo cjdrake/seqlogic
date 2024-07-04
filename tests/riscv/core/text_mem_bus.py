@@ -33,7 +33,7 @@ class TextMemBus(Module):
         rd_data = self.output(name="rd_data", dtype=Vec[32])
 
         # State
-        is_text = self.bit(name="is_text")
+        is_text = self.bits(name="is_text", dtype=Vec[1])
         text = self.bits(name="text", dtype=Vec[32])
 
         # Submodules

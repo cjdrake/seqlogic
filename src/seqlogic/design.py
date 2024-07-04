@@ -99,10 +99,7 @@ class Module(Branch, _ProcIf, _TraceIf):
     def input(self, name: str, dtype: type) -> Bits:
         self._check_name(name)
         assert issubclass(dtype, Vec) and dtype.n > 0
-        if dtype.n == 1:
-            node = Bit(name, parent=self)
-        else:
-            node = Bits(name, parent=self, dtype=dtype)
+        node = Bits(name, parent=self, dtype=dtype)
         self._inputs[name] = False
         setattr(self, name, node)
         return node
@@ -110,10 +107,7 @@ class Module(Branch, _ProcIf, _TraceIf):
     def output(self, name: str, dtype: type) -> Bits:
         self._check_name(name)
         assert issubclass(dtype, Vec) and dtype.n > 0
-        if dtype.n == 1:
-            node = Bit(name, parent=self)
-        else:
-            node = Bits(name, parent=self, dtype=dtype)
+        node = Bits(name, parent=self, dtype=dtype)
         self._outputs[name] = False
         setattr(self, name, node)
         return node
@@ -161,14 +155,6 @@ class Module(Branch, _ProcIf, _TraceIf):
     def bits(self, name: str, dtype: type, port: bool = False) -> Bits:
         self._check_name(name)
         node = Bits(name, parent=self, dtype=dtype)
-        setattr(self, f"_{name}", node)
-        if port:
-            setattr(self, name, node)
-        return node
-
-    def bit(self, name: str, port: bool = False) -> Bit:
-        self._check_name(name)
-        node = Bit(name, parent=self)
         setattr(self, f"_{name}", node)
         if port:
             setattr(self, name, node)
@@ -235,7 +221,7 @@ class Module(Branch, _ProcIf, _TraceIf):
             self._procs.append((Region.ACTIVE, proc2, (), {}))
         # fmt: on
 
-    def dff(self, q: Bits, d: Bits, clk: Bit):
+    def dff(self, q: Bits, d: Bits, clk: Bits):
         """D Flip Flop."""
 
         async def proc():
@@ -248,7 +234,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def dff_ar(self, q: Bits, d: Bits, clk: Bit, rst: Bit, rval):
+    def dff_ar(self, q: Bits, d: Bits, clk: Bits, rst: Bits, rval):
         """D Flip Flop with async reset."""
 
         async def proc():
@@ -266,7 +252,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def dff_en(self, q: Bits, d: Bits, en: Bit, clk: Bit):
+    def dff_en(self, q: Bits, d: Bits, en: Bits, clk: Bits):
         """D Flip Flop with enable."""
 
         async def proc():
@@ -281,7 +267,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def dff_en_ar(self, q: Bits, d: Bits, en: Bit, clk: Bit, rst: Bit, rval):
+    def dff_en_ar(self, q: Bits, d: Bits, en: Bits, clk: Bits, rst: Bits, rval):
         """D Flip Flop with enable, and async reset."""
 
         async def proc():
@@ -299,7 +285,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def mem_wr_en(self, mem: Array, addr: Bits, data: Bits, en: Bit, clk: Bit):
+    def mem_wr_en(self, mem: Array, addr: Bits, data: Bits, en: Bits, clk: Bits):
         """Memory with write enable."""
 
         async def proc():
@@ -315,7 +301,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def mem_wr_be(self, mem: Array, addr: Bits, data: Bits, en: Bit, be: Bits, clk: Bit):
+    def mem_wr_be(self, mem: Array, addr: Bits, data: Bits, en: Bits, be: Bits, clk: Bits):
         """Memory with write byte enable."""
 
         width = mem._dtype.n  # pylint: disable = protected-access
@@ -418,28 +404,33 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
 
                 self._vcd_change = f
 
-
-class Bit(Bits):
-    """One-bit specialization of Bits that supports edge detection."""
-
-    def __init__(self, name: str, parent: Module):
-        super().__init__(name, parent, dtype=Vec[1])
-
     def is_neg(self) -> bool:
         """Return True when bit is stable 0 => 0."""
-        return self._value == "1b0" and self._next_value == "1b0"
+        try:
+            return not self._value and not self._next_value
+        except ValueError:
+            return False
 
     def is_posedge(self) -> bool:
         """Return True when bit transitions 0 => 1."""
-        return self._value == "1b0" and self._next_value == "1b1"
+        try:
+            return not self._value and self._next_value
+        except ValueError:
+            return False
 
     def is_negedge(self) -> bool:
         """Return True when bit transition 1 => 0."""
-        return self._value == "1b1" and self._next_value == "1b0"
+        try:
+            return self._value and not self._next_value
+        except ValueError:
+            return False
 
     def is_pos(self) -> bool:
         """Return True when bit is stable 1 => 1."""
-        return self._value == "1b1" and self._next_value == "1b1"
+        try:
+            return self._value and self._next_value
+        except ValueError:
+            return False
 
     async def posedge(self) -> State:
         """Suspend; resume execution at signal posedge."""
@@ -464,7 +455,7 @@ class Array(Leaf, Aggregate, _ProcIf, _TraceIf):
         self._dtype = dtype
 
 
-def simify(d: Module | Bits | Bit | Array):
+def simify(d: Module | Bits | Array):
     """Add design processes to the simulator."""
     loop = get_loop()
     for node in d.iter_bfs():

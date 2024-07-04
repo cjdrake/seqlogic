@@ -30,19 +30,19 @@ class Core(Module):
         reset = self.input(name="reset", dtype=Vec[1])
 
         # State
-        pc_wr_en = self.bit(name="pc_wr_en")
-        reg_wr_en = self.bit(name="reg_wr_en")
+        pc_wr_en = self.bits(name="pc_wr_en", dtype=Vec[1])
+        reg_wr_en = self.bits(name="reg_wr_en", dtype=Vec[1])
         alu_op_a_sel = self.bits(name="alu_op_a_sel", dtype=CtlAluA)
         alu_op_b_sel = self.bits(name="alu_op_b_sel", dtype=CtlAluB)
         next_pc_sel = self.bits(name="next_pc_sel", dtype=CtlPc)
         alu_op = self.bits(name="alu_op", dtype=AluOp)
-        alu_result_eq_zero = self.bit(name="alu_result_eq_zero")
+        alu_result_eq_zero = self.bits(name="alu_result_eq_zero", dtype=Vec[1])
         reg_wr_sel = self.bits(name="reg_wr_sel", dtype=CtlWriteBack)
 
         addr = self.bits(name="addr", dtype=Addr)
-        wr_en = self.bit(name="wr_en")
+        wr_en = self.bits(name="wr_en", dtype=Vec[1])
         wr_data = self.bits(name="wr_data", dtype=Vec[32])
-        rd_en = self.bit(name="rd_en")
+        rd_en = self.bits(name="rd_en", dtype=Vec[1])
         rd_data = self.bits(name="rd_data", dtype=Vec[32])
 
         # Submodules

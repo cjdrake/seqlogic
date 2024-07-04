@@ -6,13 +6,13 @@ It might be useful to add to seqlogic library.
 
 from collections import defaultdict
 
-from seqlogic import Bit, resume, sleep
+from seqlogic import Bits, resume, sleep
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
 
 
-async def p_rst(reset: Bit, init, phase1: int = 1, phase2: int = 1):
+async def p_rst(reset: Bits, init, phase1: int = 1, phase2: int = 1):
     r"""
     Simulate a reset signal.
 
@@ -43,7 +43,7 @@ async def p_rst(reset: Bit, init, phase1: int = 1, phase2: int = 1):
 
 
 async def p_clk(
-    clock: Bit,
+    clock: Bits,
     init,
     shift: int = 0,
     phase1: int = 1,
@@ -90,9 +90,9 @@ async def p_clk(
 async def p_dff(
     q,
     d,
-    reset_n: Bit,
+    reset_n: Bits,
     reset_value,
-    clock: Bit,
+    clock: Bits,
 ):
     """D Flop Flop with asynchronous, negedge-triggered reset."""
     while True:

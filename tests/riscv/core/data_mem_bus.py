@@ -41,7 +41,7 @@ class DataMemBus(Module):
         clock = self.input(name="clock", dtype=Vec[1])
 
         # State
-        is_data = self.bit(name="is_data")
+        is_data = self.bits(name="is_data", dtype=Vec[1])
         data = self.bits(name="data", dtype=Vec[32])
 
         # Submodules

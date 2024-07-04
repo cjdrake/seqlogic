@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 
-from seqlogic import Bit, Bits, Module, get_loop
+from seqlogic import Bits, Module, get_loop
 from seqlogic.sim import Region
 from seqlogic.vec import Vec, cat
 
@@ -17,8 +17,8 @@ class Top(Module):
     def __init__(self):
         super().__init__(name="top", parent=None)
         # Control
-        self.reset_n = Bit(name="reset_n", parent=self)
-        self.clock = Bit(name="clock", parent=self)
+        self.reset_n = Bits(name="reset_n", parent=self, dtype=Vec[1])
+        self.clock = Bits(name="clock", parent=self, dtype=Vec[1])
         # State
         self.q = Bits(name="q", parent=self, dtype=Vec[3])
 

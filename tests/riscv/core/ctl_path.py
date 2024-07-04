@@ -281,7 +281,7 @@ class CtlPath(Module):
         next_pc_sel = self.output(name="next_pc_sel", dtype=CtlPc)
 
         # State
-        take_branch = self.bit(name="take_branch")
+        take_branch = self.bits(name="take_branch", dtype=Vec[1])
         alu_op_type = self.bits(name="alu_op_type", dtype=CtlAlu)
         default_func = self.bits(name="default_func", dtype=AluOp)
         secondary_func = self.bits(name="secondary_func", dtype=AluOp)

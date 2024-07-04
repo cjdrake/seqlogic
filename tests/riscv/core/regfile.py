@@ -31,7 +31,7 @@ class RegFile(Module):
         a0 = uint2vec(0, 5)
         self.assign(regs[a0], "32h0000_0000")
 
-        en = self.bit(name="en")
+        en = self.bits(name="en", dtype=Vec[1])
         self.combi(en, lambda we, a: we & a.ne("5b0_0000"), wr_en, wr_addr)
 
         # Write Port

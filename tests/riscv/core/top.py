@@ -36,8 +36,8 @@ class Top(Module):
         pc = self.bits(name="pc", dtype=Vec[32])
         inst = self.bits(name="inst", dtype=Inst)
 
-        clock = self.bit(name="clock")
-        reset = self.bit(name="reset")
+        clock = self.bits(name="clock", dtype=Vec[1])
+        reset = self.bits(name="reset", dtype=Vec[1])
 
         # Submodules:
         # 16K Instruction Memory
