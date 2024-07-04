@@ -53,11 +53,11 @@ class Vec:
         return cls._n
 
     @classproperty
-    def dmax(cls) -> int:  # pylint: disable=no-self-argument
+    def _dmax(cls) -> int:  # pylint: disable=no-self-argument
         return _mask(cls._n)
 
     @classmethod
-    def check_len(cls, n: int):
+    def _check_len(cls, n: int):
         """Check for valid input length."""
         if n != cls._n:
             raise TypeError(f"Expected n = {cls._n}, got {n}")
@@ -71,7 +71,7 @@ class Vec:
     @classmethod
     def dcs(cls) -> Vec:
         obj = object.__new__(cls)
-        obj._data = (cls.dmax, cls.dmax)
+        obj._data = (cls._dmax, cls._dmax)
         return obj
 
     @classmethod
@@ -141,37 +141,37 @@ class Vec:
     def __or__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         return _or_(self, other)
 
     def __ror__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        self.check_len(len(other))
+        self._check_len(len(other))
         return _or_(other, self)
 
     def __and__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         return _and_(self, other)
 
     def __rand__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        self.check_len(len(other))
+        self._check_len(len(other))
         return _and_(other, self)
 
     def __xor__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         return _xor(self, other)
 
     def __rxor__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        self.check_len(len(other))
+        self._check_len(len(other))
         return _xor(other, self)
 
     def __lshift__(self, n: int | Vec) -> Vec:
@@ -193,28 +193,28 @@ class Vec:
     def __add__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         s, co = _add(self, other, _Vec0)
         return cat(s, co)
 
     def __radd__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        self.check_len(len(other))
+        self._check_len(len(other))
         s, co = _add(other, self, _Vec0)
         return cat(s, co)
 
     def __sub__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         s, co = _add(self, other.not_(), _Vec1)
         return cat(s, co)
 
     def __rsub__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        self.check_len(len(other))
+        self._check_len(len(other))
         s, co = _add(other, self.not_(), _Vec1)
         return cat(s, co)
 
@@ -332,7 +332,7 @@ class Vec:
         """
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         return self._eq(other)
 
     def _ne(self, v: Vec) -> Vec[1]:
@@ -349,7 +349,7 @@ class Vec:
         """
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         return self._ne(other)
 
     def ult(self, other: Vec | str) -> Vec[1]:
@@ -363,7 +363,7 @@ class Vec:
         """
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_uint() < other.to_uint()]
         except ValueError:
@@ -380,7 +380,7 @@ class Vec:
         """
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_int() < other.to_int()]
         except ValueError:
@@ -397,7 +397,7 @@ class Vec:
         """
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_uint() <= other.to_uint()]
         except ValueError:
@@ -414,7 +414,7 @@ class Vec:
         """
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_int() <= other.to_int()]
         except ValueError:
@@ -431,7 +431,7 @@ class Vec:
         """
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_uint() > other.to_uint()]
         except ValueError:
@@ -448,7 +448,7 @@ class Vec:
         """
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_int() > other.to_int()]
         except ValueError:
@@ -465,7 +465,7 @@ class Vec:
         """
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_uint() >= other.to_uint()]
         except ValueError:
@@ -482,7 +482,7 @@ class Vec:
         """
         if isinstance(other, str):
             other = _lit2vec(other)
-        other.check_len(self._n)
+        other._check_len(self._n)
         try:
             return (_Vec0, _Vec1)[self.to_int() >= other.to_int()]
         except ValueError:
@@ -647,22 +647,22 @@ class Vec:
         Returns:
             2-tuple of (sum, carry-out).
         """
-        zero = Vec[self._n](self.dmax, 0)
+        zero = Vec[self._n](self._dmax, 0)
         return _add(zero, self.not_(), ci=_Vec1)
 
     def count_xes(self) -> int:
         """Return number of X items."""
-        d: int = (self._data[0] | self._data[1]) ^ self.dmax
+        d: int = (self._data[0] | self._data[1]) ^ self._dmax
         return d.bit_count()
 
     def count_zeros(self) -> int:
         """Return number of 0 items."""
-        d: int = self._data[0] & (self._data[1] ^ self.dmax)
+        d: int = self._data[0] & (self._data[1] ^ self._dmax)
         return d.bit_count()
 
     def count_ones(self) -> int:
         """Return number of 1 items."""
-        d: int = (self._data[0] ^ self.dmax) & self._data[1]
+        d: int = (self._data[0] ^ self._dmax) & self._data[1]
         return d.bit_count()
 
     def count_dcs(self) -> int:
@@ -671,7 +671,7 @@ class Vec:
 
     def count_unknown(self) -> int:
         """Return number of X/DC items."""
-        d: int = self._data[0] ^ self._data[1] ^ self.dmax
+        d: int = self._data[0] ^ self._data[1] ^ self._dmax
         return d.bit_count()
 
     def onehot(self) -> bool:
@@ -684,7 +684,7 @@ class Vec:
 
     def has_x(self) -> bool:
         """Return True if vec contains at least one X item."""
-        return bool((self._data[0] | self._data[1]) ^ self.dmax)
+        return bool((self._data[0] | self._data[1]) ^ self._dmax)
 
     def has_dc(self) -> bool:
         """Return True if vec contains at least one DC item."""
@@ -692,7 +692,7 @@ class Vec:
 
     def has_unknown(self) -> bool:
         """Return True if vec contains at least one X/DC item."""
-        return bool(self._data[0] ^ self._data[1] ^ self.dmax)
+        return bool(self._data[0] ^ self._data[1] ^ self._dmax)
 
     def _norm_index(self, index: int) -> int:
         a, b = -self._n, self._n
@@ -776,7 +776,7 @@ def or_(v0: Vec | str, *vs: Vec | str) -> Vec:
     for v in vs:
         if isinstance(v, str):
             v = _lit2vec(v)
-        v.check_len(n)
+        v._check_len(n)
         y = _or_(y, v)
     return y
 
@@ -859,7 +859,7 @@ def and_(v0: Vec | str, *vs: Vec | str) -> Vec:
     for v in vs:
         if isinstance(v, str):
             v = _lit2vec(v)
-        v.check_len(n)
+        v._check_len(n)
         y = _and_(y, v)
     return y
 
@@ -945,7 +945,7 @@ def xnor(v0: Vec | str, *vs: Vec | str) -> Vec:
     for v in vs:
         if isinstance(v, str):
             v = _lit2vec(v)
-        v.check_len(n)
+        v._check_len(n)
         y = _xnor(y, v)
     return y
 
@@ -998,7 +998,7 @@ def xor(v0: Vec | str, *vs: Vec | str) -> Vec:
     for v in vs:
         if isinstance(v, str):
             v = _lit2vec(v)
-        v.check_len(n)
+        v._check_len(n)
         y = _xor(y, v)
     return y
 
@@ -1038,12 +1038,12 @@ def add(a: Vec | str, b: Vec | str, ci: Vec[1] | str | None = None) -> tuple[Vec
         a = _lit2vec(a)
     if isinstance(b, str):
         b = _lit2vec(b)
-        b.check_len(len(a))
+        b._check_len(len(a))
     if ci is None:
         ci = _Vec0
     elif isinstance(ci, str):
         ci = _lit2vec(ci)
-        ci.check_len(1)
+        ci._check_len(1)
     return _add(a, b, ci)
 
 
@@ -1064,7 +1064,7 @@ def sub(a: Vec | str, b: Vec | str) -> tuple[Vec, Vec[1]]:
         a = _lit2vec(a)
     if isinstance(b, str):
         b = _lit2vec(b)
-        b.check_len(len(a))
+        b._check_len(len(a))
     return _add(a, b.not_(), ci=_Vec1)
 
 
@@ -1349,7 +1349,7 @@ class _VecEnumMeta(type):
         def _new(cls: type[Vec], v: Vec | str):
             if isinstance(v, str):
                 v = _lit2vec(v)
-            v.check_len(cls.n)
+            v._check_len(cls.n)
             try:
                 obj = getattr(cls, data2name[v.data])
             except KeyError:

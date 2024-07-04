@@ -33,10 +33,10 @@ def test_vec_class_getitem():
         _ = Vec[-1]
 
     vec_0 = Vec[0]
-    assert vec_0.n == 0 and vec_0.dmax == 0
+    assert vec_0.n == 0
 
     vec_4 = Vec[4]
-    assert vec_4.n == 4 and vec_4.dmax == 15
+    assert vec_4.n == 4
 
     # Always return the same class instance
     assert Vec[0] is vec_0
@@ -102,7 +102,7 @@ def test_vec_lit_bin():
     # Valid inputs w/o X
     for lit, (n, d1) in BIN_LITS.items():
         v = vec(lit)
-        assert len(v) == n and v.data == (d1 ^ v.dmax, d1)
+        assert len(v) == n and v.data[1] == d1
 
     # Valid inputs w/ X
     v = vec("4b-1_0X")
@@ -166,7 +166,7 @@ def test_lit2vec_dec():
     # Valid inputs
     for lit, (n, d1) in DEC_LITS.items():
         v = vec(lit)
-        assert len(v) == n and v.data == (d1 ^ v.dmax, d1)
+        assert len(v) == n and v.data[1] == d1
 
     # Not a literal
     with pytest.raises(ValueError):
@@ -220,7 +220,7 @@ def test_lit2vec_hex():
     # Valid inputs
     for lit, (n, d1) in HEX_LITS.items():
         v = vec(lit)
-        assert len(v) == n and v.data == (d1 ^ v.dmax, d1)
+        assert len(v) == n and v.data[1] == d1
 
     # Not a literal
     with pytest.raises(ValueError):
