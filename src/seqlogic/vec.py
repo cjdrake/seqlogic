@@ -148,28 +148,40 @@ class Vec:
         return self.not_()
 
     def __or__(self, other: Vec | str) -> Vec:
-        return self.or_(other)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
+        return _or_(self, other)
 
     def __ror__(self, other: Vec | str) -> Vec:
-        v = _to_vec(other)
-        self.check_len(len(v))
-        return v._or_(self)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        self.check_len(len(other))
+        return _or_(other, self)
 
     def __and__(self, other: Vec | str) -> Vec:
-        return self.and_(other)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
+        return _and_(self, other)
 
     def __rand__(self, other: Vec | str) -> Vec:
-        v = _to_vec(other)
-        self.check_len(len(v))
-        return v._and_(self)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        self.check_len(len(other))
+        return _and_(other, self)
 
     def __xor__(self, other: Vec | str) -> Vec:
-        return self.xor(other)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
+        return _xor(self, other)
 
     def __rxor__(self, other: Vec | str) -> Vec:
-        v = _to_vec(other)
-        self.check_len(len(v))
-        return v._xor(self)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        self.check_len(len(other))
+        return _xor(other, self)
 
     def __lshift__(self, n: int | Vec) -> Vec:
         return self.lsh(n)[0]
@@ -228,86 +240,6 @@ class Vec:
         y0, y1 = x1, x0
         return Vec[self._n](y0, y1)
 
-    def _nor(self, v: Vec) -> Vec:
-        x0, x1 = self._data, v.data
-        y0 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
-        y1 = x0[0] & x1[0]
-        return Vec[self._n](y0, y1)
-
-    def nor(self, other: Vec | str) -> Vec:
-        """Bitwise lifted NOR.
-
-        f(x0, x1) -> y:
-            0 0 => 1
-            1 - => 0
-            X - => X
-            - 0 => -
-
-               x1
-               00 01 11 10
-              +--+--+--+--+
-        x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
-              +--+--+--+--+
-           01 |00|10|11|01|
-              +--+--+--+--+
-           11 |00|11|11|01|  y0 = x0[0] & x1[1]
-              +--+--+--+--+     | x0[1] & x1[0]
-           10 |00|01|01|01|     | x0[1] & x1[1]
-              +--+--+--+--+
-
-        Args:
-            other: vec of equal length.
-
-        Returns:
-            vec of equal length, data contains NOR result.
-
-        Raises:
-            ValueError: vec lengths do not match.
-        """
-        v = _to_vec(other)
-        v.check_len(self._n)
-        return self._nor(v)
-
-    def _or_(self, v: Vec) -> Vec:
-        x0, x1 = self._data, v.data
-        y0 = x0[0] & x1[0]
-        y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
-        return Vec[self._n](y0, y1)
-
-    def or_(self, other: Vec | str) -> Vec:
-        """Bitwise lifted OR.
-
-        f(x0, x1) -> y:
-            0 0 => 0
-            1 - => 1
-            X - => X
-            - 0 => -
-
-               x1
-               00 01 11 10
-              +--+--+--+--+
-        x0 00 |00|00|00|00|  y1 = x0[0] & x1[1]
-              +--+--+--+--+     | x0[1] & x1[0]
-           01 |00|01|11|10|     | x0[1] & x1[1]
-              +--+--+--+--+
-           11 |00|11|11|10|  y0 = x0[0] & x1[0]
-              +--+--+--+--+
-           10 |00|10|10|10|
-              +--+--+--+--+
-
-        Args:
-            other: vec of equal length.
-
-        Returns:
-            vec of equal length, data contains OR result.
-
-        Raises:
-            ValueError: vec lengths do not match.
-        """
-        v = _to_vec(other)
-        v.check_len(self._n)
-        return self._or_(v)
-
     def uor(self) -> Vec[1]:
         """Unary lifted OR reduction.
 
@@ -320,86 +252,6 @@ class Vec:
             y0, y1 = (y0 & x0, y0 & x1 | y1 & x0 | y1 & x1)
         return Vec[1](y0, y1)
 
-    def _nand(self, v: Vec) -> Vec:
-        x0, x1 = self._data, v.data
-        y0 = x0[1] & x1[1]
-        y1 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
-        return Vec[self._n](y0, y1)
-
-    def nand(self, other: Vec | str) -> Vec:
-        """Bitwise lifted NAND.
-
-        f(x0, x1) -> y:
-            1 1 => 0
-            0 - => 1
-            X - => X
-            - 1 => -
-
-               x1
-               00 01 11 10
-              +--+--+--+--+
-        x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
-              +--+--+--+--+     | x0[0] & x1[1]
-           01 |00|10|10|10|     | x0[1] & x1[0]
-              +--+--+--+--+
-           11 |00|10|11|11|  y0 = x0[1] & x1[1]
-              +--+--+--+--+
-           10 |00|10|11|01|
-              +--+--+--+--+
-
-        Args:
-            other: vec of equal length.
-
-        Returns:
-            vec of equal length, data contains NAND result.
-
-        Raises:
-            ValueError: vec lengths do not match.
-        """
-        v = _to_vec(other)
-        v.check_len(self._n)
-        return self._nand(v)
-
-    def _and_(self, v: Vec) -> Vec:
-        x0, x1 = self._data, v.data
-        y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
-        y1 = x0[1] & x1[1]
-        return Vec[self._n](y0, y1)
-
-    def and_(self, other: Vec | str) -> Vec:
-        """Bitwise lifted AND.
-
-        f(x0, x1) -> y:
-            1 1 => 1
-            0 - => 0
-            X - => X
-            - 1 => -
-
-               x1
-               00 01 11 10
-              +--+--+--+--+
-        x0 00 |00|00|00|00|  y1 = x0[1] & x1[1]
-              +--+--+--+--+
-           01 |00|01|01|01|
-              +--+--+--+--+
-           11 |00|01|11|11|  y0 = x0[0] & x1[0]
-              +--+--+--+--+     | x0[0] & x1[1]
-           10 |00|01|11|10|     | x0[1] & x1[0]
-              +--+--+--+--+
-
-        Args:
-            other: vec of equal length.
-
-        Returns:
-            vec of equal length, data contains AND result.
-
-        Raises:
-            ValueError: vec lengths do not match.
-        """
-        v = _to_vec(other)
-        v.check_len(self._n)
-        return self._and_(v)
-
     def uand(self) -> Vec[1]:
         """Unary lifted AND reduction.
 
@@ -411,92 +263,6 @@ class Vec:
             x0, x1 = self.get_item(i)
             y0, y1 = (y0 & x0 | y0 & x1 | y1 & x0, y1 & x1)
         return Vec[1](y0, y1)
-
-    def _xnor(self, v: Vec) -> Vec:
-        x0, x1 = self._data, v.data
-        y0 = x0[0] & x1[1] | x0[1] & x1[0]
-        y1 = x0[0] & x1[0] | x0[1] & x1[1]
-        return Vec[self._n](y0, y1)
-
-    def xnor(self, other: Vec | str) -> Vec:
-        """Bitwise lifted XNOR.
-
-        f(x0, x1) -> y:
-            0 0 => 1
-            0 1 => 0
-            1 0 => 0
-            1 1 => 1
-            X - => X
-            - 0 => -
-            - 1 => -
-
-               x1
-               00 01 11 10
-              +--+--+--+--+
-        x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
-              +--+--+--+--+     | x0[1] & x1[1]
-           01 |00|10|11|01|
-              +--+--+--+--+
-           11 |00|11|11|11|  y0 = x0[0] & x1[1]
-              +--+--+--+--+     | x0[1] & x1[0]
-           10 |00|01|11|10|
-              +--+--+--+--+
-
-        Args:
-            other: vec of equal length.
-
-        Returns:
-            vec of equal length, data contains XNOR result.
-
-        Raises:
-            ValueError: vec lengths do not match.
-        """
-        v = _to_vec(other)
-        v.check_len(self._n)
-        return self._xnor(v)
-
-    def _xor(self, v: Vec) -> Vec:
-        x0, x1 = self._data, v.data
-        y0 = x0[0] & x1[0] | x0[1] & x1[1]
-        y1 = x0[0] & x1[1] | x0[1] & x1[0]
-        return Vec[self._n](y0, y1)
-
-    def xor(self, other: Vec | str) -> Vec:
-        """Bitwise lifted XOR.
-
-        f(x0, x1) -> y:
-            0 0 => 0
-            0 1 => 1
-            1 0 => 1
-            1 1 => 0
-            X - => X
-            - 0 => -
-            - 1 => -
-
-               x1
-               00 01 11 10
-              +--+--+--+--+
-        x0 00 |00|00|00|00|  y1 = x0[0] & x1[1]
-              +--+--+--+--+     | x0[1] & x1[0]
-           01 |00|01|11|10|
-              +--+--+--+--+
-           11 |00|11|11|11|  y0 = x0[0] & x1[0]
-              +--+--+--+--+     | x0[1] & x1[1]
-           10 |00|10|11|01|
-              +--+--+--+--+
-
-        Args:
-            other: vec of equal length.
-
-        Returns:
-            vec of equal length, data contains XOR result.
-
-        Raises:
-            ValueError: vec lengths do not match.
-        """
-        v = _to_vec(other)
-        v.check_len(self._n)
-        return self._xor(v)
 
     def uxnor(self) -> Vec[1]:
         """Unary lifted XNOR reduction.
@@ -552,7 +318,7 @@ class Vec:
         return self.to_uint()
 
     def _eq(self, v: Vec) -> Vec[1]:
-        return self._xnor(v).uand()
+        return _xnor(self, v).uand()
 
     def eq(self, other: Vec | str) -> Vec[1]:
         """Equal operator.
@@ -563,12 +329,13 @@ class Vec:
         Returns:
             Vec[1] result of self == other
         """
-        v = _to_vec(other)
-        v.check_len(self._n)
-        return self._eq(v)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
+        return self._eq(other)
 
     def _ne(self, v: Vec) -> Vec[1]:
-        return self._xor(v).uor()
+        return _xor(self, v).uor()
 
     def ne(self, other: Vec | str) -> Vec[1]:
         """Not Equal operator.
@@ -579,9 +346,10 @@ class Vec:
         Returns:
             Vec[1] result of self != other
         """
-        v = _to_vec(other)
-        v.check_len(self._n)
-        return self._ne(v)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
+        return self._ne(other)
 
     def ult(self, other: Vec | str) -> Vec[1]:
         """Less than operator (unsigned).
@@ -1038,6 +806,278 @@ class Vec:
         n = j - i
         mask = _mask(n)
         return n, ((self._data[0] >> i) & mask, (self._data[1] >> i) & mask)
+
+
+def _or_(v0: Vec, v1: Vec) -> Vec:
+    n = len(v0)
+    x0, x1 = v0.data, v1.data
+    y0 = x0[0] & x1[0]
+    y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
+    return Vec[n](y0, y1)
+
+
+def or_(v0: Vec | str, *vs: Vec | str) -> Vec:
+    """Bitwise lifted OR.
+
+    f(x0, x1) -> y:
+        0 0 => 0
+        1 - => 1
+        X - => X
+        - 0 => -
+
+           x1
+           00 01 11 10
+          +--+--+--+--+
+    x0 00 |00|00|00|00|  y1 = x0[0] & x1[1]
+          +--+--+--+--+     | x0[1] & x1[0]
+       01 |00|01|11|10|     | x0[1] & x1[1]
+          +--+--+--+--+
+       11 |00|11|11|10|  y0 = x0[0] & x1[0]
+          +--+--+--+--+
+       10 |00|10|10|10|
+          +--+--+--+--+
+
+    Args:
+        other: vec of equal length.
+
+    Returns:
+        vec of equal length, data contains OR result.
+
+    Raises:
+        ValueError: vec lengths do not match.
+    """
+    if isinstance(v0, str):
+        v0 = _lit2vec(v0)
+    n = len(v0)
+    y = v0
+    for v in vs:
+        if isinstance(v, str):
+            v = _lit2vec(v)
+        v.check_len(n)
+        y = _or_(y, v)
+    return y
+
+
+def nor(v0: Vec | str, *vs: Vec | str) -> Vec:
+    """Bitwise lifted NOR.
+
+    f(x0, x1) -> y:
+        0 0 => 1
+        1 - => 0
+        X - => X
+        - 0 => -
+
+           x1
+           00 01 11 10
+          +--+--+--+--+
+    x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
+          +--+--+--+--+
+       01 |00|10|11|01|
+          +--+--+--+--+
+       11 |00|11|11|01|  y0 = x0[0] & x1[1]
+          +--+--+--+--+     | x0[1] & x1[0]
+       10 |00|01|01|01|     | x0[1] & x1[1]
+          +--+--+--+--+
+
+    Args:
+        other: vec of equal length.
+
+    Returns:
+        vec of equal length, data contains NOR result.
+
+    Raises:
+        ValueError: vec lengths do not match.
+    """
+    return ~or_(v0, *vs)
+
+
+def _and_(v0: Vec, v1: Vec) -> Vec:
+    n = len(v0)
+    x0, x1 = v0.data, v1.data
+    y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
+    y1 = x0[1] & x1[1]
+    return Vec[n](y0, y1)
+
+
+def and_(v0: Vec | str, *vs: Vec | str) -> Vec:
+    """Bitwise lifted AND.
+
+    f(x0, x1) -> y:
+        1 1 => 1
+        0 - => 0
+        X - => X
+        - 1 => -
+
+           x1
+           00 01 11 10
+          +--+--+--+--+
+    x0 00 |00|00|00|00|  y1 = x0[1] & x1[1]
+          +--+--+--+--+
+       01 |00|01|01|01|
+          +--+--+--+--+
+       11 |00|01|11|11|  y0 = x0[0] & x1[0]
+          +--+--+--+--+     | x0[0] & x1[1]
+       10 |00|01|11|10|     | x0[1] & x1[0]
+          +--+--+--+--+
+
+    Args:
+        other: vec of equal length.
+
+    Returns:
+        vec of equal length, data contains AND result.
+
+    Raises:
+        ValueError: vec lengths do not match.
+    """
+    if isinstance(v0, str):
+        v0 = _lit2vec(v0)
+    n = len(v0)
+    y = v0
+    for v in vs:
+        if isinstance(v, str):
+            v = _lit2vec(v)
+        v.check_len(n)
+        y = _and_(y, v)
+    return y
+
+
+def nand(v0: Vec | str, *vs: Vec | str) -> Vec:
+    """Bitwise lifted NAND.
+
+    f(x0, x1) -> y:
+        1 1 => 0
+        0 - => 1
+        X - => X
+        - 1 => -
+
+           x1
+           00 01 11 10
+          +--+--+--+--+
+    x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
+          +--+--+--+--+     | x0[0] & x1[1]
+       01 |00|10|10|10|     | x0[1] & x1[0]
+          +--+--+--+--+
+       11 |00|10|11|11|  y0 = x0[1] & x1[1]
+          +--+--+--+--+
+       10 |00|10|11|01|
+          +--+--+--+--+
+
+    Args:
+        other: vec of equal length.
+
+    Returns:
+        vec of equal length, data contains NAND result.
+
+    Raises:
+        ValueError: vec lengths do not match.
+    """
+    return ~and_(v0, *vs)
+
+
+def _xnor(v0: Vec, v1: Vec) -> Vec:
+    n = len(v0)
+    x0, x1 = v0.data, v1.data
+    y0 = x0[0] & x1[1] | x0[1] & x1[0]
+    y1 = x0[0] & x1[0] | x0[1] & x1[1]
+    return Vec[n](y0, y1)
+
+
+def xnor(v0: Vec | str, *vs: Vec | str) -> Vec:
+    """Bitwise lifted XNOR.
+
+    f(x0, x1) -> y:
+        0 0 => 1
+        0 1 => 0
+        1 0 => 0
+        1 1 => 1
+        X - => X
+        - 0 => -
+        - 1 => -
+
+           x1
+           00 01 11 10
+          +--+--+--+--+
+    x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
+          +--+--+--+--+     | x0[1] & x1[1]
+       01 |00|10|11|01|
+          +--+--+--+--+
+       11 |00|11|11|11|  y0 = x0[0] & x1[1]
+          +--+--+--+--+     | x0[1] & x1[0]
+       10 |00|01|11|10|
+          +--+--+--+--+
+
+    Args:
+        other: vec of equal length.
+
+    Returns:
+        vec of equal length, data contains XNOR result.
+
+    Raises:
+        ValueError: vec lengths do not match.
+    """
+    if isinstance(v0, str):
+        v0 = _lit2vec(v0)
+    n = len(v0)
+    y = v0
+    for v in vs:
+        if isinstance(v, str):
+            v = _lit2vec(v)
+        v.check_len(n)
+        y = _xnor(y, v)
+    return y
+
+
+def _xor(v0: Vec, v1: Vec) -> Vec:
+    n = len(v0)
+    x0, x1 = v0.data, v1.data
+    y0 = x0[0] & x1[0] | x0[1] & x1[1]
+    y1 = x0[0] & x1[1] | x0[1] & x1[0]
+    return Vec[n](y0, y1)
+
+
+def xor(v0: Vec | str, *vs: Vec | str) -> Vec:
+    """Bitwise lifted XOR.
+
+    f(x0, x1) -> y:
+        0 0 => 0
+        0 1 => 1
+        1 0 => 1
+        1 1 => 0
+        X - => X
+        - 0 => -
+        - 1 => -
+
+           x1
+           00 01 11 10
+          +--+--+--+--+
+    x0 00 |00|00|00|00|  y1 = x0[0] & x1[1]
+          +--+--+--+--+     | x0[1] & x1[0]
+       01 |00|01|11|10|
+          +--+--+--+--+
+       11 |00|11|11|11|  y0 = x0[0] & x1[0]
+          +--+--+--+--+     | x0[1] & x1[1]
+       10 |00|10|11|01|
+          +--+--+--+--+
+
+    Args:
+        other: vec of equal length.
+
+    Returns:
+        vec of equal length, data contains XOR result.
+
+    Raises:
+        ValueError: vec lengths do not match.
+    """
+    if isinstance(v0, str):
+        v0 = _lit2vec(v0)
+    n = len(v0)
+    y = v0
+    for v in vs:
+        if isinstance(v, str):
+            v = _lit2vec(v)
+        v.check_len(n)
+        y = _xor(y, v)
+    return y
 
 
 def _bools2vec(xs: Iterable[int]) -> Vec:
