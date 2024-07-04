@@ -34,6 +34,9 @@ def _mask(n: int) -> int:
     return (1 << n) - 1
 
 
+AddResult = namedtuple("AddResult", ["s", "co"])
+
+
 class Vec:
     """One dimensional vector of lbool items.
 
@@ -1023,9 +1026,6 @@ def _add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
     s &= dmax
 
     return Vec[n](s ^ dmax, s), co
-
-
-AddResult = namedtuple("AddResult", ["s", "co"])
 
 
 def add(a: Vec | str, b: Vec | str, ci: Vec[1] | str | None = None) -> AddResult:
