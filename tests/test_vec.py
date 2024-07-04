@@ -115,6 +115,60 @@ def test_vec_lit_bin():
         vec("4b1010_1010")
 
 
+DEC_LITS = {
+    "1d0": (1, 0),
+    "1d1": (1, 1),
+    "2d0": (2, 0),
+    "2d1": (2, 1),
+    "2d2": (2, 2),
+    "2d3": (2, 3),
+    "3d4": (3, 4),
+    "3d5": (3, 5),
+    "3d6": (3, 6),
+    "3d7": (3, 7),
+    "4d8": (4, 8),
+    "4d9": (4, 9),
+    "4d10": (4, 10),
+    "4d11": (4, 11),
+    "4d12": (4, 12),
+    "4d13": (4, 13),
+    "4d14": (4, 14),
+    "4d15": (4, 15),
+    "5d16": (5, 16),
+    "5d31": (5, 31),
+    "6d32": (6, 32),
+    "6d63": (6, 63),
+    "7d64": (7, 64),
+    "7d127": (7, 127),
+    "8d128": (8, 128),
+    "8d255": (8, 255),
+    "9d256": (9, 256),
+    "9d511": (9, 511),
+}
+
+
+def test_lit2vec_dec():
+    # Valid inputs
+    for lit, (n, d1) in DEC_LITS.items():
+        v = vec(lit)
+        assert len(v) == n and v.data == (d1 ^ v.dmax, d1)
+
+    # Not a literal
+    with pytest.raises(ValueError):
+        vec("invalid")
+
+    # Size cannot be zero
+    with pytest.raises(ValueError):
+        vec("0d0")
+    # Contains illegal characters
+    with pytest.raises(ValueError):
+        vec("8hd3@d_b33f")
+
+    # Size is too small
+    with pytest.raises(ValueError):
+        vec("8d256")
+
+
 HEX_LITS = {
     "1h0": (1, 0x0),
     "1h1": (1, 0x1),
@@ -163,10 +217,6 @@ def test_lit2vec_hex():
     # Contains illegal characters
     with pytest.raises(ValueError):
         vec("8hd3@d_b33f")
-
-    # Size is too big
-    with pytest.raises(ValueError):
-        vec("16hdead_beef")
 
     # Size is too small
     with pytest.raises(ValueError):

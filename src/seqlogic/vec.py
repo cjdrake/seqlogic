@@ -12,7 +12,7 @@ import re
 from collections.abc import Generator, Iterable
 from functools import cache, partial
 
-from .lbconst import _W, _X, _0, _1, from_char, from_hexchar, to_char
+from .lbconst import _W, _X, _0, _1, from_char, to_char
 from .util import classproperty, clog2
 
 _VecN = {}
@@ -1054,49 +1054,50 @@ def _bools2vec(xs: Iterable[int]) -> Vec:
     return Vec[n](d ^ _mask(n), d)
 
 
-_LIT_RE = re.compile(
-    r"((?P<BinSize>[1-9][0-9]*)b(?P<BinDigits>[X01\-_]+))|"
-    r"((?P<HexSize>[1-9][0-9]*)h(?P<HexDigits>[0-9a-fA-F_]+))"
-)
+_LIT_PREFIX_RE = re.compile(r"(?P<Size>[1-9][0-9]*)(?P<Base>[bdh])")
 
 
 def _parse_lit(lit: str) -> tuple[int, tuple[int, int]]:
-    if m := _LIT_RE.fullmatch(lit):
+    if m := _LIT_PREFIX_RE.match(lit):
+        n = int(m.group("Size"))
+        base = m.group("Base")
+        prefix_len = len(m.group())
+        digits = lit[prefix_len:]
         # Binary
-        if m.group("BinSize"):
-            n = int(m.group("BinSize"))
-            digits = m.group("BinDigits").replace("_", "")
+        if base == "b":
+            digits = digits.replace("_", "")
             if len(digits) != n:
                 s = f"Expected {n} digits, got {len(digits)}"
                 raise ValueError(s)
             d0, d1 = 0, 0
             for i, c in enumerate(reversed(digits)):
-                x = from_char[c]
+                try:
+                    x = from_char[c]
+                except KeyError as e:
+                    raise ValueError(f"Invalid literal: {lit}") from e
                 d0 |= x[0] << i
                 d1 |= x[1] << i
             return n, (d0, d1)
-        # Hexadecimal
-        elif m.group("HexSize"):
-            n = int(m.group("HexSize"))
-            digits = m.group("HexDigits").replace("_", "")
-            exp = (n + 3) // 4
-            if len(digits) != exp:
-                s = f"Expected {exp} digits, got {len(digits)}"
+        # Decimal
+        elif base == "d":
+            d1 = int(digits, base=10)
+            dmax = _mask(n)
+            if d1 > dmax:
+                s = f"Expected digits in range [0, {dmax}], got {digits}"
                 raise ValueError(s)
-            d0, d1 = 0, 0
-            for i, c in enumerate(reversed(digits)):
-                k = min(n - 4 * i, 4)
-                try:
-                    x = from_hexchar[k][c]
-                except KeyError as e:
-                    raise ValueError(f"Character overflows size: {c}") from e
-                d0 |= x[0] << (4 * i)
-                d1 |= x[1] << (4 * i)
-            return n, (d0, d1)
+            return n, (d1 ^ dmax, d1)
+        # Hexadecimal
+        elif base == "h":
+            d1 = int(digits, base=16)
+            dmax = _mask(n)
+            if d1 > dmax:
+                s = f"Expected digits in range [0, {dmax}], got {digits}"
+                raise ValueError(s)
+            return n, (d1 ^ dmax, d1)
         else:  # pragma: no cover
             assert False
     else:
-        raise ValueError(f"Expected str literal, got {lit}")
+        raise ValueError(f"Invalid literal: {lit}")
 
 
 def _lit2vec(lit: str) -> Vec:
