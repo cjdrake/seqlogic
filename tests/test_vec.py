@@ -937,15 +937,15 @@ def test_vec_zext():
     assert v.zext(4) == vec("8b0000_1010")
 
 
-def test_vec_sext():
+def test_vec_sxt():
     v1 = vec("4b1010")
     v2 = vec("4b0101")
     with pytest.raises(ValueError):
-        v1.sext(-1)
-    assert v1.sext(0) is v1
-    assert v1.sext(4) == vec("8b1111_1010")
-    assert v2.sext(0) is v2
-    assert v2.sext(4) == vec("8b0000_0101")
+        v1.sxt(-1)
+    assert v1.sxt(0) is v1
+    assert v1.sxt(4) == vec("8b1111_1010")
+    assert v2.sxt(0) is v2
+    assert v2.sxt(4) == vec("8b0000_0101")
 
 
 def test_vec_lsh():

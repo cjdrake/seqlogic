@@ -733,7 +733,7 @@ class Vec:
         d1 = self._data[1]
         return Vec[self._n + n](d0, d1)
 
-    def sext(self, n: int) -> Vec:
+    def sxt(self, n: int) -> Vec:
         """Sign extend by n bits.
 
         Args:
