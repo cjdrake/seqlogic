@@ -3,7 +3,8 @@
 import pytest
 
 from seqlogic.lbconst import _W, _X, _0, _1
-from seqlogic.vec import Vec, and_, cat, int2vec, nand, nor, or_, rep, uint2vec, vec, xnor, xor
+from seqlogic.vec import (Vec, add, and_, cat, int2vec, nand, nor, or_, rep,
+                          sub, uint2vec, vec, xnor, xor)
 
 E = Vec[0](*_X)
 X = Vec[1](*_X)
@@ -1065,10 +1066,10 @@ ADD_VALS = [
 ]
 
 
-def test_vec_fadd():
+def test_vec_add():
     """Test bits add method."""
     for a, b, ci, s, co in ADD_VALS:
-        assert vec(a).fadd(b, ci) == (s, co)
+        assert add(a, b, ci) == (s, co)
         if ci == F:
             assert vec(a) + b == cat(s, co)
             assert a + vec(b) == cat(s, co)
@@ -1100,7 +1101,7 @@ SUB_VALS = [
 
 def test_vec_sub():
     for a, b, s, co in SUB_VALS:
-        assert vec(a).sub(b) == (s, co)
+        assert sub(a, b) == (s, co)
         assert vec(a) - b == cat(s, co)
         assert a - vec(b) == cat(s, co)
 

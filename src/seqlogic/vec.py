@@ -198,23 +198,31 @@ class Vec:
         return v.rsh(self)[0]
 
     def __add__(self, other: Vec | str) -> Vec:
-        s, co = self.hadd(other)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
+        s, co = _add(self, other, _Vec0)
         return cat(s, co)
 
     def __radd__(self, other: Vec | str) -> Vec:
-        v = _to_vec(other)
-        self.check_len(len(v))
-        s, co = v._hadd(self)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        self.check_len(len(other))
+        s, co = _add(other, self, _Vec0)
         return cat(s, co)
 
     def __sub__(self, other: Vec | str) -> Vec:
-        s, co = self.sub(other)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        other.check_len(self._n)
+        s, co = _add(self, other.not_(), _Vec1)
         return cat(s, co)
 
     def __rsub__(self, other: Vec | str) -> Vec:
-        v = _to_vec(other)
-        self.check_len(len(v))
-        s, co = v._sub(self)
+        if isinstance(other, str):
+            other = _lit2vec(other)
+        self.check_len(len(other))
+        s, co = _add(other, self.not_(), _Vec1)
         return cat(s, co)
 
     def __neg__(self) -> Vec:
@@ -525,7 +533,7 @@ class Vec:
         d1 = self._data[1] | ext1 << self._n
         return Vec[self._n + n](d0, d1)
 
-    def lsh(self, n: int | Vec, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
+    def lsh(self, n: int | Vec, ci: Vec | None = None) -> tuple[Vec, Vec]:
         """Left shift by n bits.
 
         Args:
@@ -561,7 +569,7 @@ class Vec:
         y = Vec[self._n](d0, d1)
         return y, co
 
-    def rsh(self, n: int | Vec, ci: Vec[1] | None = None) -> tuple[Vec, Vec]:
+    def rsh(self, n: int | Vec, ci: Vec | None = None) -> tuple[Vec, Vec]:
         """Right shift by n bits.
 
         Args:
@@ -630,92 +638,6 @@ class Vec:
         y = Vec[self._n](d0, d1)
         return y, co
 
-    def _hadd(self, b: Vec) -> tuple[Vec, Vec[1]]:
-        # Rename for readability
-        n, a = self._n, self
-
-        # X/DC propagation
-        if a.has_x() or b.has_x():
-            return Vec[n](0, 0), _VecX
-        if a.has_dc() or b.has_dc():
-            return Vec[n](self.dmax, self.dmax), _VecW
-
-        s = a.data[1] + b.data[1]
-        co = (_Vec0, _Vec1)[s > self.dmax]  # pylint: disable=comparison-with-callable
-        s &= self.dmax
-
-        return Vec[n](s ^ self.dmax, s), co
-
-    def hadd(self, other: Vec | str) -> tuple[Vec, Vec[1]]:
-        """Half addition.
-
-        Args:
-            b: vec of equal length.
-
-        Returns:
-            2-tuple of (sum, carry-out).
-
-        Raises:
-            ValueError: vec lengths are invalid/inconsistent.
-        """
-        b = _to_vec(other)
-        b.check_len(self._n)
-        return self._hadd(b)
-
-    def _fadd(self, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
-        # Rename for readability
-        n, a = self._n, self
-
-        # X/DC propagation
-        if a.has_x() or b.has_x() or ci.has_x():
-            return Vec[n](0, 0), _VecX
-        if a.has_dc() or b.has_dc() or ci.has_dc():
-            return Vec[n](self.dmax, self.dmax), _VecW
-
-        s = a.data[1] + b.data[1] + ci.data[1]
-        co = (_Vec0, _Vec1)[s > self.dmax]  # pylint: disable=comparison-with-callable
-        s &= self.dmax
-
-        return Vec[n](s ^ self.dmax, s), co
-
-    def fadd(self, other: Vec | str, ci: Vec[1] | str) -> tuple[Vec, Vec[1]]:
-        """Full addition.
-
-        Args:
-            b: vec of equal length.
-            ci: one bit carry-in vec.
-
-        Returns:
-            2-tuple of (sum, carry-out).
-
-        Raises:
-            ValueError: vec lengths are invalid/inconsistent.
-        """
-        b = _to_vec(other)
-        b.check_len(self._n)
-        ci = _to_vec(ci)
-        ci.check_len(1)
-        return self._fadd(b, ci)
-
-    def _sub(self, b: Vec) -> tuple[Vec, Vec[1]]:
-        return self._fadd(b.not_(), ci=_Vec1)
-
-    def sub(self, other: Vec | str) -> tuple[Vec, Vec[1]]:
-        """Twos complement subtraction.
-
-        Args:
-            other: vec of equal length.
-
-        Returns:
-            2-tuple of (sum, carry-out).
-
-        Raises:
-            ValueError: vec lengths are invalid/inconsistent.
-        """
-        b = _to_vec(other)
-        b.check_len(self._n)
-        return self._sub(b)
-
     def neg(self) -> tuple[Vec, Vec[1]]:
         """Twos complement negation.
 
@@ -725,7 +647,7 @@ class Vec:
             2-tuple of (sum, carry-out).
         """
         zero = Vec[self._n](self.dmax, 0)
-        return zero._fadd(self.not_(), ci=_Vec1)
+        return _add(zero, self.not_(), ci=_Vec1)
 
     def count_xes(self) -> int:
         """Return number of X items."""
@@ -1078,6 +1000,71 @@ def xor(v0: Vec | str, *vs: Vec | str) -> Vec:
         v.check_len(n)
         y = _xor(y, v)
     return y
+
+
+def _add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
+    n = len(a)
+    dmax = _mask(n)
+
+    # X/DC propagation
+    if a.has_x() or b.has_x() or ci.has_x():
+        return Vec[n](0, 0), _VecX
+    if a.has_dc() or b.has_dc() or ci.has_dc():
+        return Vec[n](dmax, dmax), _VecW
+
+    s = a.data[1] + b.data[1] + ci.data[1]
+    co = (_Vec0, _Vec1)[s > dmax]
+    s &= dmax
+
+    return Vec[n](s ^ dmax, s), co
+
+
+def add(a: Vec | str, b: Vec | str, ci: Vec[1] | str | None = None) -> tuple[Vec, Vec[1]]:
+    """Addition with carry-in.
+
+    Args:
+        a: vec
+        b: vec of equal length.
+        ci: one bit carry-in vec.
+
+    Returns:
+        2-tuple of (sum, carry-out).
+
+    Raises:
+        ValueError: vec lengths are invalid/inconsistent.
+    """
+    if isinstance(a, str):
+        a = _lit2vec(a)
+    if isinstance(b, str):
+        b = _lit2vec(b)
+        b.check_len(len(a))
+    if ci is None:
+        ci = _Vec0
+    elif isinstance(ci, str):
+        ci = _lit2vec(ci)
+        ci.check_len(1)
+    return _add(a, b, ci)
+
+
+def sub(a: Vec | str, b: Vec | str) -> tuple[Vec, Vec[1]]:
+    """Twos complement subtraction.
+
+    Args:
+        a: vec
+        b: vec of equal length.
+
+    Returns:
+        2-tuple of (sum, carry-out).
+
+    Raises:
+        ValueError: vec lengths are invalid/inconsistent.
+    """
+    if isinstance(a, str):
+        a = _lit2vec(a)
+    if isinstance(b, str):
+        b = _lit2vec(b)
+        b.check_len(len(a))
+    return _add(a, b.not_(), ci=_Vec1)
 
 
 def _bools2vec(xs: Iterable[int]) -> Vec:

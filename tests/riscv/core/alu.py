@@ -4,7 +4,7 @@
 # pyright: reportAttributeAccessIssue=false
 
 from seqlogic import Module
-from seqlogic.vec import Vec
+from seqlogic.vec import Vec, add, sub
 
 from . import AluOp
 
@@ -12,10 +12,10 @@ from . import AluOp
 def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
     match op:
         case AluOp.ADD:
-            s, _ = a.hadd(b)
+            s, _ = add(a, b)
             return s
         case AluOp.SUB:
-            s, _ = a.sub(b)
+            s, _ = sub(a, b)
             return s
         case AluOp.SLL:
             return a << b[0:5]
