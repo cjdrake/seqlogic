@@ -776,7 +776,7 @@ def test_vec_ne():
         vec("1b0").ne("2b00")
 
 
-LTU = [
+LT = [
     ("1b0", "1b0", F),
     ("1b0", "1b1", T),
     ("1b1", "1b0", F),
@@ -786,18 +786,18 @@ LTU = [
 ]
 
 
-def test_vec_ult():
-    for a, b, y in LTU:
-        assert vec(a).ult(b) == y
+def test_vec_lt():
+    for a, b, y in LT:
+        assert vec(a).lt(b) == y
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").ult(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").lt(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").ult("2b00")
+        vec("1b0").lt("2b00")
 
 
-LEU = [
+LE = [
     ("1b0", "1b0", T),
     ("1b0", "1b1", T),
     ("1b1", "1b0", F),
@@ -807,15 +807,15 @@ LEU = [
 ]
 
 
-def test_vec_ule():
-    for a, b, y in LEU:
-        assert vec(a).ule(b) == y
+def test_vec_le():
+    for a, b, y in LE:
+        assert vec(a).le(b) == y
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").ule(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").le(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").ule("2b00")
+        vec("1b0").le("2b00")
 
 
 SLT = [
@@ -860,7 +860,7 @@ def test_vec_sle():
         vec("1b0").sle("2b00")
 
 
-UGT = [
+GT = [
     ("1b0", "1b0", F),
     ("1b0", "1b1", F),
     ("1b1", "1b0", T),
@@ -871,17 +871,17 @@ UGT = [
 
 
 def test_vec_ugt():
-    for a, b, y in UGT:
-        assert vec(a).ugt(b) == y
+    for a, b, y in GT:
+        assert vec(a).gt(b) == y
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").ugt(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").gt(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").ugt("2b00")
+        vec("1b0").gt("2b00")
 
 
-UGE = [
+GE = [
     ("1b0", "1b0", T),
     ("1b0", "1b1", F),
     ("1b1", "1b0", T),
@@ -892,14 +892,14 @@ UGE = [
 
 
 def test_vec_uge():
-    for a, b, y in UGE:
-        assert vec(a).uge(b) == y
+    for a, b, y in GE:
+        assert vec(a).ge(b) == y
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").uge(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").ge(1.0e42)  # pyright: ignore[reportArgumentType]
     with pytest.raises(TypeError):
-        vec("1b0").uge("2b00")
+        vec("1b0").ge("2b00")
 
 
 SGT = [

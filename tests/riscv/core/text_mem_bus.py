@@ -51,7 +51,7 @@ class TextMemBus(Module):
         def f_is_text(addr: Addr) -> Vec[1]:
             start = uint2vec(text_start, 32)
             stop = uint2vec(text_stop, 32)
-            return start.ule(addr) & addr.ult(stop)
+            return start.le(addr) & addr.lt(stop)
 
         self.combi(is_text, f_is_text, rd_addr)
         self.combi(rd_data, f_rd_data, is_text, text)

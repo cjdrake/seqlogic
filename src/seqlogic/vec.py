@@ -357,8 +357,8 @@ class Vec:
         other._check_len(self._n)
         return self._ne(other)
 
-    def ult(self, other: Vec | str) -> Vec[1]:
-        """Less than operator (unsigned).
+    def lt(self, other: Vec | str) -> Vec[1]:
+        """Unsigned less than operator.
 
         Args:
             other: vec of equal length.
@@ -391,8 +391,8 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def ule(self, other: Vec | str) -> Vec[1]:
-        """Less than or equal operator (unsigned).
+    def le(self, other: Vec | str) -> Vec[1]:
+        """Unsigned less than or equal operator.
 
         Args:
             other: vec of equal length.
@@ -425,8 +425,8 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def ugt(self, other: Vec | str) -> Vec[1]:
-        """Greater than operator (unsigned).
+    def gt(self, other: Vec | str) -> Vec[1]:
+        """Unsigned greater than operator.
 
         Args:
             other: vec of equal length.
@@ -459,8 +459,8 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def uge(self, other: Vec | str) -> Vec[1]:
-        """Greater than or equal operator (unsigned).
+    def ge(self, other: Vec | str) -> Vec[1]:
+        """Unsigned greater than or equal operator.
 
         Args:
             other: vec of equal length.
