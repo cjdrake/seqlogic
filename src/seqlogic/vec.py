@@ -493,8 +493,8 @@ class Vec:
         except ValueError:
             return _VecX
 
-    def uxt(self, n: int) -> Vec:
-        """Zero (unsigned) extend by n bits.
+    def xt(self, n: int) -> Vec:
+        """Unsigned extend by n bits.
 
         Args:
             n: Non-negative number of bits.

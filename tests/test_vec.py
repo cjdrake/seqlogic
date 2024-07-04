@@ -3,22 +3,8 @@
 import pytest
 
 from seqlogic.lbconst import _W, _X, _0, _1
-from seqlogic.vec import (
-    Vec,
-    add,
-    and_,
-    cat,
-    int2vec,
-    nand,
-    nor,
-    or_,
-    rep,
-    sub,
-    uint2vec,
-    vec,
-    xnor,
-    xor,
-)
+from seqlogic.vec import (Vec, add, and_, cat, int2vec, nand, nor, or_, rep,
+                          sub, uint2vec, vec, xnor, xor)
 
 E = Vec[0](*_X)
 X = Vec[1](*_X)
@@ -944,12 +930,12 @@ def test_vec_ge():
         vec("1b0").ge("2b00")
 
 
-def test_vec_uxt():
+def test_vec_xt():
     v = vec("4b1010")
     with pytest.raises(ValueError):
-        v.uxt(-1)
-    assert v.uxt(0) is v
-    assert v.uxt(4) == vec("8b0000_1010")
+        v.xt(-1)
+    assert v.xt(0) is v
+    assert v.xt(4) == vec("8b0000_1010")
 
 
 def test_vec_sxt():
