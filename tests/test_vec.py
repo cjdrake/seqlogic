@@ -1015,27 +1015,27 @@ def test_vec_rsh():
 
 def test_vec_arsh():
     v = vec("4b1111")
-    assert v.arsh(0) == ("4b1111", E)
-    assert v.arsh(1) == ("4b1111", "1b1")
-    assert v.arsh(2) == ("4b1111", "2b11")
-    assert v.arsh(3) == ("4b1111", "3b111")
-    assert v.arsh(4) == ("4b1111", "4b1111")
+    assert v.srsh(0) == ("4b1111", E)
+    assert v.srsh(1) == ("4b1111", "1b1")
+    assert v.srsh(2) == ("4b1111", "2b11")
+    assert v.srsh(3) == ("4b1111", "3b111")
+    assert v.srsh(4) == ("4b1111", "4b1111")
 
     v = vec("4b0111")
-    assert v.arsh(0) == ("4b0111", E)
-    assert v.arsh(1) == ("4b0011", "1b1")
-    assert v.arsh(2) == ("4b0001", "2b11")
-    assert v.arsh(3) == ("4b0000", "3b111")
-    assert v.arsh(4) == ("4b0000", "4b0111")
+    assert v.srsh(0) == ("4b0111", E)
+    assert v.srsh(1) == ("4b0011", "1b1")
+    assert v.srsh(2) == ("4b0001", "2b11")
+    assert v.srsh(3) == ("4b0000", "3b111")
+    assert v.srsh(4) == ("4b0000", "4b0111")
 
     with pytest.raises(ValueError):
-        v.arsh(-1)
+        v.srsh(-1)
     with pytest.raises(ValueError):
-        v.arsh(5)
+        v.srsh(5)
 
-    assert vec("2b01").arsh(vec("1bX")) == (vec("2bXX"), E)
-    assert vec("2b01").arsh(vec("1b-")) == (vec("2b--"), E)
-    assert vec("2b01").arsh(vec("1b1")) == (vec("2b00"), T)
+    assert vec("2b01").srsh(vec("1bX")) == (vec("2bXX"), E)
+    assert vec("2b01").srsh(vec("1b-")) == (vec("2b--"), E)
+    assert vec("2b01").srsh(vec("1b1")) == (vec("2b00"), T)
 
 
 ADD_VALS = [

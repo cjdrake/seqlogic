@@ -614,8 +614,8 @@ class Vec:
         y = Vec[self._n](d0, d1)
         return y, co
 
-    def arsh(self, n: int | Vec) -> tuple[Vec, Vec]:
-        """Arithmetically right shift by n bits.
+    def srsh(self, n: int | Vec) -> tuple[Vec, Vec]:
+        """Signed (arithmetic) right shift by n bits.
 
         Args:
             n: Non-negative number of bits.
