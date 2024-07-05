@@ -249,7 +249,7 @@ class Vec:
         """
         x0, x1 = self._data
         y0, y1 = x1, x0
-        return Vec[self._n](y0, y1)
+        return self._from_data(y0, y1)
 
     def uor(self) -> Vec[1]:
         """Unary lifted OR reduction.

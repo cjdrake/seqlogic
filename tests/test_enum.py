@@ -1,10 +1,13 @@
 """Test seqlogic.vec.VecEnum class."""
 
+# pylint: disable = invalid-unary-operand-type
 # pylint: disable = unused-variable
+# pylint: disable = unidiomatic-typecheck
 
 # PyRight is confused by MetaClass behavior
 # pyright: reportAttributeAccessIssue = false
 # pyright: reportCallIssue = false
+# pyright: reportOperatorIssue = false
 
 import pytest
 
@@ -71,6 +74,15 @@ def test_basic():
 
     # with pytest.raises(TypeError):
     #    _ = Color(1.0e42)
+
+
+def test_typing():
+    """Advanced type behavior."""
+    assert ~Color.GREEN is Color.BLUE
+    assert ~Color.BLUE is Color.GREEN
+
+    assert type(~Color.RED) is Color
+    assert (~Color.RED).name == "Color(2b11)"
 
 
 def test_slicing():
