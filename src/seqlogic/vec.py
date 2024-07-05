@@ -50,32 +50,24 @@ class Vec:
 
     _n: int
 
-    def __class_getitem__(cls, n: int):
+    def __class_getitem__(cls, n: int) -> type[Vec]:
         return _vec_n(n)
-
-    @classmethod
-    def _from_data(cls, d0: int, d1: int) -> Vec:
-        obj = object.__new__(cls)
-        obj._data = (d0, d1)
-        return obj
 
     @classproperty
     def n(cls) -> int:  # pylint: disable=no-self-argument
         return cls._n
 
-    @classproperty
-    def _dmax(cls) -> int:  # pylint: disable=no-self-argument
-        return _mask(cls._n)
-
-    @classmethod
-    def _check_len(cls, n: int):
-        """Check for valid input length."""
-        if n != cls._n:
-            raise TypeError(f"Expected n = {cls._n}, got {n}")
-
     @classmethod
     def xes(cls) -> Vec:
         return cls._from_data(0, 0)
+
+    @classmethod
+    def zeros(cls) -> Vec:
+        return cls._from_data(cls._dmax, 0)
+
+    @classmethod
+    def ones(cls) -> Vec:
+        return cls._from_data(0, cls._dmax)
 
     @classmethod
     def dcs(cls) -> Vec:
@@ -91,6 +83,21 @@ class Vec:
         if sel.has_x():
             return cls.xes()
         return cls.dcs()
+
+    @classproperty
+    def _dmax(cls) -> int:  # pylint: disable=no-self-argument
+        return _mask(cls._n)
+
+    @classmethod
+    def _from_data(cls, d0: int, d1: int) -> Vec:
+        obj = object.__new__(cls)
+        obj._data = (d0, d1)
+        return obj
+
+    @classmethod
+    def _check_len(cls, n: int):
+        if n != cls._n:
+            raise TypeError(f"Expected n = {cls._n}, got {n}")
 
     def __init__(self, d0: int, d1: int):
         self._data = (d0, d1)
@@ -583,8 +590,8 @@ class Vec:
             raise ValueError(f"Expected ci to have len {n}")
 
         sh, co = self[:-n], self[-n:]
-        d0 = ci.data[0] | sh.data[0] << n
-        d1 = ci.data[1] | sh.data[1] << n
+        d0 = ci._data[0] | sh._data[0] << n
+        d1 = ci._data[1] | sh._data[1] << n
         y = self._from_data(d0, d1)
         return y, co
 
@@ -619,8 +626,8 @@ class Vec:
             raise ValueError(f"Expected ci to have len {n}")
 
         co, sh = self[:n], self[n:]
-        d0 = sh.data[0] | ci.data[0] << len(sh)
-        d1 = sh.data[1] | ci.data[1] << len(sh)
+        d0 = sh._data[0] | ci._data[0] << len(sh)
+        d1 = sh._data[1] | ci._data[1] << len(sh)
         y = self._from_data(d0, d1)
         return y, co
 
@@ -652,8 +659,8 @@ class Vec:
         sign0, sign1 = self._get_item(self._n - 1)
         ext0 = _mask(n) * sign0
         ext1 = _mask(n) * sign1
-        d0 = sh.data[0] | ext0 << len(sh)
-        d1 = sh.data[1] | ext1 << len(sh)
+        d0 = sh._data[0] | ext0 << len(sh)
+        d1 = sh._data[1] | ext1 << len(sh)
         y = self._from_data(d0, d1)
         return y, co
 
@@ -751,7 +758,7 @@ class Vec:
 
 
 def _or_(v0: Vec, v1: Vec) -> Vec:
-    x0, x1 = v0.data, v1.data
+    x0, x1 = v0._data, v1._data
     y0 = x0[0] & x1[0]
     y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
     return v0._from_data(y0, y1)
@@ -833,7 +840,7 @@ def nor(v0: Vec | str, *vs: Vec | str) -> Vec:
 
 
 def _and_(v0: Vec, v1: Vec) -> Vec:
-    x0, x1 = v0.data, v1.data
+    x0, x1 = v0._data, v1._data
     y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
     y1 = x0[1] & x1[1]
     return v0._from_data(y0, y1)
@@ -915,14 +922,14 @@ def nand(v0: Vec | str, *vs: Vec | str) -> Vec:
 
 
 def _xnor(v0: Vec, v1: Vec) -> Vec:
-    x0, x1 = v0.data, v1.data
+    x0, x1 = v0._data, v1._data
     y0 = x0[0] & x1[1] | x0[1] & x1[0]
     y1 = x0[0] & x1[0] | x0[1] & x1[1]
     return v0._from_data(y0, y1)
 
 
 def _xor(v0: Vec, v1: Vec) -> Vec:
-    x0, x1 = v0.data, v1.data
+    x0, x1 = v0._data, v1._data
     y0 = x0[0] & x1[0] | x0[1] & x1[1]
     y1 = x0[0] & x1[1] | x0[1] & x1[0]
     return v0._from_data(y0, y1)
@@ -1019,7 +1026,7 @@ def _add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
     if a.has_dc() or b.has_dc() or ci.has_dc():
         return Vec[n](dmax, dmax), _VecW
 
-    s = a.data[1] + b.data[1] + ci.data[1]
+    s = a._data[1] + b._data[1] + ci._data[1]
     co = (_Vec0, _Vec1)[s > dmax]
     s &= dmax
 
@@ -1281,8 +1288,8 @@ def cat(*objs: Vec | int | str) -> Vec:
     n = 0
     d0, d1 = 0, 0
     for v in vs:
-        d0 |= v.data[0] << n
-        d1 |= v.data[1] << n
+        d0 |= v._data[0] << n
+        d1 |= v._data[1] << n
         n += len(v)
     return Vec[n](d0, d1)
 
@@ -1359,7 +1366,7 @@ class _VecEnumMeta(type):
             except KeyError:
                 obj = object.__new__(cls)  # pyright: ignore[reportArgumentType]
                 obj._data = (d0, d1)
-                obj._name = f"{cls.__name__}({Vec[cls.n].__str__(obj)})"
+                obj._name = f"{cls.__name__}({Vec[cls._n].__str__(obj)})"
             return obj
 
         # Override Vec._from_data method
@@ -1369,7 +1376,7 @@ class _VecEnumMeta(type):
         def _new(cls: type[Vec], v: Vec | str):
             if isinstance(v, str):
                 v = _lit2vec(v)
-            v._check_len(cls.n)
+            v._check_len(cls._n)
             return cls._from_data(v._data[0], v._data[1])
 
         enum.__new__ = _new
@@ -1401,8 +1408,8 @@ def _struct_init_source(fields: list[tuple[str, type]]) -> str:
         lines.append(f"        got, exp = len({fn}), self._{fn}_size\n")
         lines.append("        if got != exp:\n")
         lines.append(f'            raise TypeError(f"{s}")\n')
-        lines.append(f"        d0 |= {fn}.data[0] << self._{fn}_base\n")
-        lines.append(f"        d1 |= {fn}.data[1] << self._{fn}_base\n")
+        lines.append(f"        d0 |= {fn}._data[0] << self._{fn}_base\n")
+        lines.append(f"        d1 |= {fn}._data[1] << self._{fn}_base\n")
     lines.append("    self._data = (d0, d1)\n")
     return "".join(lines)
 
@@ -1433,11 +1440,11 @@ class _VecStructMeta(type):
         base = 0
         for field_name, field_type in fields:
             struct_attrs[f"_{field_name}_base"] = base
-            struct_attrs[f"_{field_name}_size"] = field_type.n
-            base += field_type.n
+            struct_attrs[f"_{field_name}_size"] = field_type._n
+            base += field_type._n
 
         # Create Struct class
-        n = sum(field_type.n for _, field_type in fields)
+        n = sum(field_type._n for _, field_type in fields)
         struct = super().__new__(mcs, name, bases + (Vec[n],), struct_attrs)
 
         # Override Vec __init__ method
@@ -1505,7 +1512,7 @@ def _union_init_source(n: int) -> str:
     lines.append(f"    got, exp = len(v), {n}\n")
     lines.append("    if got > exp:\n")
     lines.append(f'        raise TypeError("{s}")\n')
-    lines.append("    self._data = v.data\n")
+    lines.append("    self._data = v._data\n")
     return "".join(lines)
 
 
@@ -1533,10 +1540,10 @@ class _VecUnionMeta(type):
 
         # Add union member base/size attributes
         for field_name, field_type in fields:
-            union_attrs[f"_{field_name}_size"] = field_type.n
+            union_attrs[f"_{field_name}_size"] = field_type._n
 
         # Create Union class
-        n = max(field_type.n for _, field_type in fields)
+        n = max(field_type._n for _, field_type in fields)
         union = super().__new__(mcs, name, bases + (Vec[n],), union_attrs)
 
         # Override Vec __init__ method
@@ -1551,8 +1558,8 @@ class _VecUnionMeta(type):
         def _fget(name, cls, self):
             n = getattr(self, f"_{name}_size")
             mask = _mask(n)
-            d0 = self.data[0] & mask
-            d1 = self.data[1] & mask
+            d0 = self._data[0] & mask
+            d1 = self._data[1] & mask
             return cls._from_data(d0, d1)
 
         for fn, ft in fields:
