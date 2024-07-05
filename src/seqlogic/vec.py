@@ -665,7 +665,7 @@ class Vec:
         Returns:
             2-tuple of (sum, carry-out).
         """
-        zero = Vec[self._n](self._dmax, 0)
+        zero = self._from_data(self._dmax, 0)
         s, co = _add(zero, self.not_(), ci=_Vec1)
         return AddResult(s, co)
 
@@ -751,11 +751,10 @@ class Vec:
 
 
 def _or_(v0: Vec, v1: Vec) -> Vec:
-    n = len(v0)
     x0, x1 = v0.data, v1.data
     y0 = x0[0] & x1[0]
     y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
-    return Vec[n](y0, y1)
+    return v0._from_data(y0, y1)
 
 
 def or_(v0: Vec | str, *vs: Vec | str) -> Vec:
@@ -834,11 +833,10 @@ def nor(v0: Vec | str, *vs: Vec | str) -> Vec:
 
 
 def _and_(v0: Vec, v1: Vec) -> Vec:
-    n = len(v0)
     x0, x1 = v0.data, v1.data
     y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
     y1 = x0[1] & x1[1]
-    return Vec[n](y0, y1)
+    return v0._from_data(y0, y1)
 
 
 def and_(v0: Vec | str, *vs: Vec | str) -> Vec:
@@ -917,55 +915,17 @@ def nand(v0: Vec | str, *vs: Vec | str) -> Vec:
 
 
 def _xnor(v0: Vec, v1: Vec) -> Vec:
-    n = len(v0)
     x0, x1 = v0.data, v1.data
     y0 = x0[0] & x1[1] | x0[1] & x1[0]
     y1 = x0[0] & x1[0] | x0[1] & x1[1]
-    return Vec[n](y0, y1)
+    return v0._from_data(y0, y1)
 
 
 def _xor(v0: Vec, v1: Vec) -> Vec:
-    n = len(v0)
     x0, x1 = v0.data, v1.data
     y0 = x0[0] & x1[0] | x0[1] & x1[1]
     y1 = x0[0] & x1[1] | x0[1] & x1[0]
-    return Vec[n](y0, y1)
-
-
-def xnor(v0: Vec | str, *vs: Vec | str) -> Vec:
-    """Bitwise lifted XNOR.
-
-    f(x0, x1) -> y:
-        0 0 => 1
-        0 1 => 0
-        1 0 => 0
-        1 1 => 1
-        X - => X
-        - 0 => -
-        - 1 => -
-
-           x1
-           00 01 11 10
-          +--+--+--+--+
-    x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
-          +--+--+--+--+     | x0[1] & x1[1]
-       01 |00|10|11|01|
-          +--+--+--+--+
-       11 |00|11|11|11|  y0 = x0[0] & x1[1]
-          +--+--+--+--+     | x0[1] & x1[0]
-       10 |00|01|11|10|
-          +--+--+--+--+
-
-    Args:
-        other: vec of equal length.
-
-    Returns:
-        vec of equal length, data contains XNOR result.
-
-    Raises:
-        ValueError: vec lengths do not match.
-    """
-    return ~xor(v0, *vs)
+    return v0._from_data(y0, y1)
 
 
 def xor(v0: Vec | str, *vs: Vec | str) -> Vec:
@@ -1011,6 +971,42 @@ def xor(v0: Vec | str, *vs: Vec | str) -> Vec:
         v._check_len(n)
         y = _xor(y, v)
     return y
+
+
+def xnor(v0: Vec | str, *vs: Vec | str) -> Vec:
+    """Bitwise lifted XNOR.
+
+    f(x0, x1) -> y:
+        0 0 => 1
+        0 1 => 0
+        1 0 => 0
+        1 1 => 1
+        X - => X
+        - 0 => -
+        - 1 => -
+
+           x1
+           00 01 11 10
+          +--+--+--+--+
+    x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
+          +--+--+--+--+     | x0[1] & x1[1]
+       01 |00|10|11|01|
+          +--+--+--+--+
+       11 |00|11|11|11|  y0 = x0[0] & x1[1]
+          +--+--+--+--+     | x0[1] & x1[0]
+       10 |00|01|11|10|
+          +--+--+--+--+
+
+    Args:
+        other: vec of equal length.
+
+    Returns:
+        vec of equal length, data contains XNOR result.
+
+    Raises:
+        ValueError: vec lengths do not match.
+    """
+    return ~xor(v0, *vs)
 
 
 def _add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
