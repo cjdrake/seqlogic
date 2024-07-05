@@ -1023,7 +1023,7 @@ def _add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
     co = (_Vec0, _Vec1)[s > dmax]
     s &= dmax
 
-    return Vec[n](s ^ dmax, s), co
+    return a._from_data(s ^ dmax, s), co
 
 
 def add(a: Vec | str, b: Vec | str, ci: Vec[1] | str | None = None) -> AddResult:
