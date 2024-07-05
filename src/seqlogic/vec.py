@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import random
 import re
 from collections import namedtuple
 from collections.abc import Generator, Iterable
@@ -79,6 +80,11 @@ class Vec:
     @classmethod
     def dcs(cls) -> Vec:
         return cls._from_data(cls._dmax, cls._dmax)
+
+    @classmethod
+    def rand(cls) -> Vec:
+        d1 = random.getrandbits(cls._n)
+        return cls._from_data(cls._dmax ^ d1, d1)
 
     @classmethod
     def xprop(cls, sel: Vec) -> Vec:
