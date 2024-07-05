@@ -924,6 +924,14 @@ def _xnor(v0: Vec, v1: Vec) -> Vec:
     return Vec[n](y0, y1)
 
 
+def _xor(v0: Vec, v1: Vec) -> Vec:
+    n = len(v0)
+    x0, x1 = v0.data, v1.data
+    y0 = x0[0] & x1[0] | x0[1] & x1[1]
+    y1 = x0[0] & x1[1] | x0[1] & x1[0]
+    return Vec[n](y0, y1)
+
+
 def xnor(v0: Vec | str, *vs: Vec | str) -> Vec:
     """Bitwise lifted XNOR.
 
@@ -957,24 +965,7 @@ def xnor(v0: Vec | str, *vs: Vec | str) -> Vec:
     Raises:
         ValueError: vec lengths do not match.
     """
-    if isinstance(v0, str):
-        v0 = _lit2vec(v0)
-    n = len(v0)
-    y = v0
-    for v in vs:
-        if isinstance(v, str):
-            v = _lit2vec(v)
-        v._check_len(n)
-        y = _xnor(y, v)
-    return y
-
-
-def _xor(v0: Vec, v1: Vec) -> Vec:
-    n = len(v0)
-    x0, x1 = v0.data, v1.data
-    y0 = x0[0] & x1[0] | x0[1] & x1[1]
-    y1 = x0[0] & x1[1] | x0[1] & x1[0]
-    return Vec[n](y0, y1)
+    return ~xor(v0, *vs)
 
 
 def xor(v0: Vec | str, *vs: Vec | str) -> Vec:
