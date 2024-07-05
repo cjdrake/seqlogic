@@ -99,6 +99,8 @@ class Vec:
             return Vec[1](d0, d1)
         if isinstance(key, slice):
             i, j = self._norm_slice(key)
+            if i == 0 and j == self._n:
+                return self
             n, (d0, d1) = self._get_items(i, j)
             return Vec[n](d0, d1)
         raise TypeError("Expected key to be int or slice")
@@ -577,7 +579,7 @@ class Vec:
         sh, co = self[:-n], self[-n:]
         d0 = ci.data[0] | sh.data[0] << n
         d1 = ci.data[1] | sh.data[1] << n
-        y = Vec[self._n](d0, d1)
+        y = self._from_data(d0, d1)
         return y, co
 
     def rsh(self, n: int | Vec, ci: Vec | None = None) -> tuple[Vec, Vec]:
@@ -613,7 +615,7 @@ class Vec:
         co, sh = self[:n], self[n:]
         d0 = sh.data[0] | ci.data[0] << len(sh)
         d1 = sh.data[1] | ci.data[1] << len(sh)
-        y = Vec[self._n](d0, d1)
+        y = self._from_data(d0, d1)
         return y, co
 
     def srsh(self, n: int | Vec) -> tuple[Vec, Vec]:
@@ -646,7 +648,7 @@ class Vec:
         ext1 = _mask(n) * sign1
         d0 = sh.data[0] | ext0 << len(sh)
         d1 = sh.data[1] | ext1 << len(sh)
-        y = Vec[self._n](d0, d1)
+        y = self._from_data(d0, d1)
         return y, co
 
     def neg(self) -> AddResult:

@@ -84,6 +84,9 @@ def test_typing():
     assert type(~Color.RED) is Color
     assert (~Color.RED).name == "Color(2b11)"
 
+    assert (Color.GREEN << 1) is Color.BLUE
+    assert (Color.BLUE >> 1) is Color.GREEN
+
 
 def test_slicing():
     assert Color.GREEN[0] == "1b1"
