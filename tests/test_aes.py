@@ -1,12 +1,13 @@
 """Test AES Algorithm."""
 
 # pyright: reportArgumentType=false
+# pyright: reportAttributeAccessIssue=false
 
-from seqlogic.algorithms.aes import decrypt, encrypt, key_expansion
-from seqlogic.vec import uint2vec
+from seqlogic.algorithms.aes import Text, decrypt, encrypt, key_expansion
+from seqlogic.vec import Vec, uint2vec
 
 
-def _s2v(s: str):
+def _s2v(s: str) -> Vec:
     a = bytearray.fromhex(s)
     return uint2vec(int.from_bytes(a, byteorder="little"), 4 * len(s))
 
@@ -30,10 +31,13 @@ A1_EXP = [
 
 def test_a1():
     """Test using values from Appendix A.1."""
-    key = _s2v("2b7e151628aed2a6abf7158809cf4f3c").reshape((4, 32))
-    kxp = key_expansion(4, key)
-    for i, w in enumerate(kxp):
-        assert str(w) == f"32b{A1_EXP[i]:039_b}"
+    v = _s2v("2b7e151628aed2a6abf7158809cf4f3c")
+    key = v.reshape((4, 32))
+    rkeys = key_expansion(key)
+    for i, rkey in enumerate(rkeys):
+        for j, w in enumerate(rkey):
+            k = len(rkey) * i + j
+            assert str(w) == f"32b{A1_EXP[k]:039_b}"
 
 
 # fmt: off
@@ -57,10 +61,13 @@ A2_EXP = [
 
 def test_a2():
     """Test using values from Appendix A.2."""
-    key = _s2v("8e73b0f7da0e6452c810f32b809079e562f8ead2522c6b7b").reshape((6, 32))
-    kxp = key_expansion(6, key)
-    for i, w in enumerate(kxp):
-        assert str(w) == f"32b{A2_EXP[i]:039_b}"
+    v = _s2v("8e73b0f7da0e6452c810f32b809079e562f8ead2522c6b7b")
+    key = v.reshape((6, 32))
+    rkeys = key_expansion(key)
+    for i, rkey in enumerate(rkeys):
+        for j, w in enumerate(rkey):
+            k = len(rkey) * i + j
+            assert str(w) == f"32b{A2_EXP[k]:039_b}"
 
 
 # fmt: off
@@ -86,40 +93,52 @@ A3_EXP = [
 
 def test_a3():
     """Test using values from Appendix A.3."""
-    key = _s2v("603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4").reshape((8, 32))
-    kxp = key_expansion(8, key)
-    for i, w in enumerate(kxp):
-        assert str(w) == f"32b{A3_EXP[i]:039_b}"
+    v = _s2v("603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4")
+    key = v.reshape((8, 32))
+    rkeys = key_expansion(key)
+    for i, rkey in enumerate(rkeys):
+        for j, w in enumerate(rkey):
+            k = len(rkey) * i + j
+            assert str(w) == f"32b{A3_EXP[k]:039_b}"
 
 
-PT = _s2v("00112233445566778899aabbccddeeff").reshape((4, 32))
+PT = _s2v("00112233445566778899aabbccddeeff").reshape(Text.shape)
 
 
 def test_c1():
     """Test using values from Appendix C.1."""
-    key = _s2v("000102030405060708090a0b0c0d0e0f").reshape((4, 32))
-    ct = _s2v("69c4e0d86a7b0430d8cdb78070b4c55a")
-    ct_got = encrypt(4, PT, key)
+    v = _s2v("000102030405060708090a0b0c0d0e0f")
+    key = v.reshape((4, 32))
+    ct_got = encrypt(PT, key)
+
+    ct = _s2v("69c4e0d86a7b0430d8cdb78070b4c55a").reshape(Text.shape)
     assert ct_got == ct
-    pt_got = decrypt(4, ct, key)
+
+    pt_got = decrypt(ct, key)
     assert pt_got == PT
 
 
 def test_c2():
     """Test using values from Appendix C.2."""
-    key = _s2v("000102030405060708090a0b0c0d0e0f1011121314151617").reshape((6, 32))
-    ct = _s2v("dda97ca4864cdfe06eaf70a0ec0d7191")
-    ct_got = encrypt(6, PT, key)
+    v = _s2v("000102030405060708090a0b0c0d0e0f1011121314151617")
+    key = v.reshape((6, 32))
+    ct_got = encrypt(PT, key)
+
+    ct = _s2v("dda97ca4864cdfe06eaf70a0ec0d7191").reshape(Text.shape)
     assert ct_got == ct
-    pt_got = decrypt(6, ct, key)
+
+    pt_got = decrypt(ct, key)
     assert pt_got == PT
 
 
 def test_c3():
     """Test using values from Appendix C.3."""
-    key = _s2v("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f").reshape((8, 32))
-    ct = _s2v("8ea2b7ca516745bfeafc49904b496089")
-    ct_got = encrypt(8, PT, key)
+    v = _s2v("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
+    key = v.reshape((8, 32))
+    ct_got = encrypt(PT, key)
+
+    ct = _s2v("8ea2b7ca516745bfeafc49904b496089").reshape(Text.shape)
     assert ct_got == ct
-    pt_got = decrypt(8, ct, key)
+
+    pt_got = decrypt(ct, key)
     assert pt_got == PT

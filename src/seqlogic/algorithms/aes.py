@@ -6,6 +6,7 @@ See https://csrc.nist.gov/pubs/fips/197/final for details.
 # PyLint/PyRight are confused by MetaClass behavior
 # pyright: reportArgumentType=false
 # pyright: reportAttributeAccessIssue=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportIndexIssue=false
 # pyright: reportOperatorIssue=false
 # pyright: reportReturnType=false
@@ -13,15 +14,21 @@ See https://csrc.nist.gov/pubs/fips/197/final for details.
 from collections import deque
 
 from ..bits import Bits, stack
-from ..vec import _Vec1, cat, rep, uint2vec
+from ..vec import rep, uint2vec
 
 NB = 4
 
-_BYTE_BITS = 8
-_WORD_BYTES = 4
-_WORD_BITS = _WORD_BYTES * _BYTE_BITS
-_BYTE_SHAPE = (_BYTE_BITS,)
-_TEXT_SHAPE = (NB * _WORD_BITS,)
+Byte = Bits[8]
+Text = Bits[4 * 32]
+
+# Nk = {4, 6, 8}
+Key = Bits[4, 32] | Bits[6, 32] | Bits[8, 32]
+# Nr = {10, 12, 14}
+RoundKeys = Bits[11, 4, 32] | Bits[13, 4, 32] | Bits[15, 4, 32]
+
+Word = Bits[4, 8]
+State = Bits[4, 32]
+Matrix = Bits[4, 4, 4]
 
 
 # fmt: off
@@ -99,252 +106,226 @@ _INV_MTXA = [
 
 
 # Convert raw data to bits
-SBOX = stack(*[uint2vec(x, _BYTE_BITS) for x in _SBOX])
-INV_SBOX = stack(*[uint2vec(x, _BYTE_BITS) for x in _INV_SBOX])
-RCON = stack(*[uint2vec(x, _BYTE_BITS) for x in _RCON])
-MTXA = stack(*[uint2vec(x, 16) for x in _MTXA])
-INV_MTXA = stack(*[uint2vec(x, 16) for x in _INV_MTXA])
+SBOX = stack(*[uint2vec(x, 8) for x in _SBOX])
+INV_SBOX = stack(*[uint2vec(x, 8) for x in _INV_SBOX])
+
+RCON = stack(*[uint2vec(x, 8) for x in _RCON])
+
+MTXA = stack(*[uint2vec(x, 16) for x in _MTXA]).reshape(Matrix.shape)
+INV_MTXA = stack(*[uint2vec(x, 16) for x in _INV_MTXA]).reshape(Matrix.shape)
 
 
-def sub_word(w: Bits) -> Bits:
+def sub_word(w: Word) -> Word:
     """AES SubWord() function.
 
     Function used in the Key Expansion routine that takes a four-byte input word
     and applies an S-box to each of the four bytes to produce an output word.
     """
-    w = w.reshape((_WORD_BYTES, _BYTE_BITS))
-    return cat(*[SBOX[w[b].to_uint()] for b in range(_WORD_BYTES)])
+    return stack(*[SBOX[b.to_uint()] for b in w])
 
 
-def inv_sub_word(w: Bits) -> Bits:
+def inv_sub_word(w: Word) -> Word:
     """AES InvSubWord() function.
 
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
     """
-    w = w.reshape((_WORD_BYTES, _BYTE_BITS))
-    return cat(*[INV_SBOX[w[b].to_uint()] for b in range(_WORD_BYTES)])
+    return stack(*[INV_SBOX[b.to_uint()] for b in w])
 
 
-def rot_word(w: Bits) -> Bits:
+def rot_word(w: Word) -> Word:
     """AES RotWord() function.
 
     Function used in the Key Expansion routine that takes a four-byte word and
     performs a cyclic permutation.
     """
-    w = w.reshape((_WORD_BYTES, _BYTE_BITS))
-    bytes_ = deque(w[b] for b in range(_WORD_BYTES))
-    bytes_.rotate(-1)
-    return cat(*bytes_)
+    bs = deque(w)
+    bs.rotate(-1)
+    return stack(*bs)
 
 
-def xtime(b: Bits, n: int) -> Bits:
+def xtime(b: Byte, n: int) -> Byte:
     """Repeated polynomial multiplication in GF(2^8)."""
-    b = b.reshape(_BYTE_SHAPE)
     for _ in range(n):
-        b = (b << 1) ^ (uint2vec(0x1B, _BYTE_BITS) & rep(b[7], _BYTE_BITS))
+        b = (b << 1) ^ ("8h1B" & rep(b[7], 8))
     return b
 
 
-def _rowxcol(row: Bits, col: Bits) -> Bits:
+def _rowxcol(row: Bits[4, 4], col: Word) -> Bits:
     """Multiply one row and one column."""
-    row = row.reshape((4, 4))
-    col = col.reshape((_WORD_BYTES, _BYTE_BITS))
-
-    y = uint2vec(0, _BYTE_BITS)
+    y = "8h00"
     for i in range(4):
         for j in range(4):
-            if row[i, j] == _Vec1:
+            # TODO(cjdrake): Fix ValueError
+            if row[i, j]:
                 y ^= xtime(col[3 - i], j)
-
     return y
 
 
-def _multiply(a: Bits, col: Bits) -> Bits:
+def _multiply(a: Matrix, col: Word) -> Bits:
     """Multiply a matrix by one column."""
-    a = a.reshape((4, 4, 4))
-    col = col.reshape((_WORD_BYTES, _BYTE_BITS))
-    return stack(*[_rowxcol(a[c], col) for c in range(NB)])
+    return stack(*[_rowxcol(a[c], col.reshape(Word.shape)) for c in range(NB)])
 
 
-def mix_columns(state: Bits) -> Bits:
+def mix_columns(state: State) -> State:
     """AES MixColumns() function.
 
     Transformation in the Cipher that takes all of the columns of the State and
     mixes their data (independently of one another) to produce new columns.
     """
-    state = state.reshape((NB, _WORD_BYTES, _BYTE_BITS))
     return stack(*[_multiply(MTXA, state[c]) for c in range(NB)])
 
 
-def inv_mix_columns(state: Bits) -> Bits:
+def inv_mix_columns(state: State) -> State:
     """AES InvMixColumns function.
 
     Transformation in the Inverse Cipher that is the inverse of MixColumns().
     """
-    state = state.reshape((NB, _WORD_BYTES, _BYTE_BITS))
     return stack(*[_multiply(INV_MTXA, state[c]) for c in range(NB)])
 
 
-def add_round_key(state: Bits, rkey: Bits) -> Bits:
-    """AES AddRoundKey() function.
-
-    Transformation in the Cipher and Inverse Cipher in which a Round Key is
-    added to the State using an XOR operation. The length of a Round Key equals
-    the size of the State (i.e., for Nb = 4, the Round Key length equals 128
-    bits/16 bytes).
-    """
-    state = state.reshape((NB, _WORD_BITS))
-    rkey = rkey.reshape((NB, _WORD_BITS))
-    words = [state[c] ^ rkey[c] for c in range(NB)]
-    return stack(*words)
-
-
-def sub_bytes(state: Bits) -> Bits:
+def sub_bytes(state: State) -> State:
     """AES SubBytes() function.
 
     Transformation in the Cipher that processes the State using a non­linear
     byte substitution table (S-box) that operates on each of the State bytes
     independently.
     """
-    state = state.reshape((NB, _WORD_BITS))
-    words = [sub_word(state[c]) for c in range(NB)]
-    return stack(*words)
+    ws = [sub_word(state[c].reshape(Word.shape)) for c in range(NB)]
+    return stack(*ws)
 
 
-def inv_sub_bytes(state: Bits) -> Bits:
+def inv_sub_bytes(state: State) -> State:
     """AES InvSubBytes() function.
 
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
     """
-    state = state.reshape((NB, _WORD_BITS))
-    words = [inv_sub_word(state[c]) for c in range(NB)]
-    return stack(*words)
+    ws = [inv_sub_word(state[c].reshape(Word.shape)) for c in range(NB)]
+    return stack(*ws)
 
 
-def shift_rows(state: Bits) -> Bits:
+def shift_rows(state: State) -> State:
     """AES ShiftRows() function.
 
     Transformation in the Cipher that processes the State by cyclically shifting
     the last three rows of the State by different offsets.
     """
-    state = state.reshape((NB, _WORD_BYTES, _BYTE_BITS))
+    rows = state.reshape((NB, 4, 8))
 
-    bytes_ = []
+    bs = []
     cs = deque(range(NB))
     for _ in range(NB):
         for r in range(4):
-            bytes_.append(state[cs[r], r])
+            bs.append(rows[cs[r], r])
         cs.rotate(-1)
 
-    return stack(*bytes_)
+    return stack(*bs).reshape(State.shape)
 
 
-def inv_shift_rows(state: Bits) -> Bits:
+def inv_shift_rows(state: State) -> State:
     """AES InvShiftRows() function.
 
     Transformation in the Inverse Cipher that is the inverse of ShiftRows().
     """
-    state = state.reshape((NB, _WORD_BYTES, _BYTE_BITS))
+    rows = state.reshape((NB, 4, 8))
 
-    bytes_ = []
+    bs = []
     cs = deque(reversed(range(NB)))
     for _ in range(NB):
         cs.rotate(1)
         for r in range(4):
-            bytes_.append(state[cs[r], r])
+            bs.append(rows[cs[r], r])
 
-    return stack(*bytes_)
+    return stack(*bs).reshape(State.shape)
 
 
-def key_expansion(nk: int, key: Bits) -> Bits:
+def key_expansion(key: Key) -> RoundKeys:
     """Expand the key into the round key.
 
     See NIST FIPS 197 Section 5.2.
     """
+    nk = len(key)
+    nr = nk + 6
     assert nk in (4, 6, 8)
 
-    nr = nk + 6
-    key = key.reshape((nk, _WORD_BITS))
-
-    w = [key[k] for k in range(nk)]
-    for k in range(nk, NB * (nr + 1)):
-        temp = w[k - 1]
-        if k % nk == 0:
-            temp = sub_word(rot_word(temp)) ^ RCON[k // nk].xt(_BYTE_BITS * 3)
-        elif nk > 6 and k % nk == 4:
+    ws = list(key)
+    for i in range(nk, NB * (nr + 1)):
+        temp = ws[i - 1].reshape(Word.shape)
+        if i % nk == 0:
+            temp = sub_word(rot_word(temp)) ^ RCON[i // nk].xt(8 * 3)
+        elif nk > 6 and i % nk == 4:
             temp = sub_word(temp)
-        w.append(w[k - nk] ^ temp)
+        ws.append(ws[i - nk] ^ temp)
 
-    return stack(*w)
-
-
-def _rksl(k: int) -> slice:
-    return slice(NB * k, NB * (k + 1))
+    return stack(*ws).reshape(((nr + 1), 4, 32))
 
 
-def cipher(nk: int, pt: Bits, rkey: Bits):
+def cipher(pt: Text, rkeys: RoundKeys) -> Text:
     """AES encryption cipher.
 
     See NIST FIPS 197 Section 5.1.
     """
+    nr = len(rkeys) - 1
+    nk = nr - 6
     assert nk in (4, 6, 8)
 
-    nr = nk + 6
-    rkey = rkey.reshape((NB * (nr + 1), _WORD_BITS))
+    state = pt.reshape(State.shape)
 
     # first round
-    state = add_round_key(pt, rkey[_rksl(0)])
+    state ^= rkeys[0]
 
-    for k in range(1, nr):
+    for i in range(1, nr):
         state = sub_bytes(state)
         state = shift_rows(state)
         state = mix_columns(state)
-        state = add_round_key(state, rkey[_rksl(k)])
+        state ^= rkeys[i]
 
     # final round
     state = sub_bytes(state)
     state = shift_rows(state)
-    state = add_round_key(state, rkey[_rksl(nr)])
+    state ^= rkeys[nr]
 
-    return state.reshape(_TEXT_SHAPE)
+    return state.reshape(Text.shape)
 
 
-def inv_cipher(nk: int, ct: Bits, rkey: Bits):
+def inv_cipher(ct: Text, rkeys: RoundKeys) -> Text:
     """AES decryption cipher.
 
     SEE NIST FIPS 197 Section 5.3.
     """
+    nr = len(rkeys) - 1
+    nk = nr - 6
     assert nk in (4, 6, 8)
 
-    nr = nk + 6
-    rkey = rkey.reshape((NB * (nr + 1), _WORD_BITS))
+    state = ct.reshape(State.shape)
 
     # first round
-    state = add_round_key(ct, rkey[_rksl(nr)])
+    state ^= rkeys[nr]
 
-    for k in range(nr - 1, 0, -1):
+    for i in range(nr - 1, 0, -1):
         state = inv_shift_rows(state)
         state = inv_sub_bytes(state)
-        state = add_round_key(state, rkey[_rksl(k)])
+        state ^= rkeys[i]
         state = inv_mix_columns(state)
 
     # final round
     state = inv_shift_rows(state)
     state = inv_sub_bytes(state)
-    state = add_round_key(state, rkey[_rksl(0)])
+    state ^= rkeys[0]
 
-    return state.reshape(_TEXT_SHAPE)
+    return state.reshape(Text.shape)
 
 
-def encrypt(nk: int, pt: Bits, key: Bits) -> Bits:
+def encrypt(pt: Text, key: Key) -> Text:
     """Encrypt a plain text block."""
+    nk = len(key)
     assert nk in (4, 6, 8)
-    rkey = key_expansion(nk, key)
-    return cipher(nk, pt, rkey)
+    rkeys = key_expansion(key)
+    return cipher(pt, rkeys)
 
 
-def decrypt(nk: int, ct: Bits, key: Bits) -> Bits:
+def decrypt(ct: Text, key: Key) -> Text:
     """Decrypt a plain text block."""
+    nk = len(key)
     assert nk in (4, 6, 8)
-    rkey = key_expansion(nk, key)
-    return inv_cipher(nk, ct, rkey)
+    rkeys = key_expansion(key)
+    return inv_cipher(ct, rkeys)
