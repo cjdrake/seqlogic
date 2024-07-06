@@ -162,7 +162,7 @@ class Vec:
 
     # Comparison
     def __eq__(self, obj: object) -> bool:
-        if isinstance(obj, Vec[self.size]):
+        if isinstance(obj, self.__class__):
             return self._data == obj._data
         if isinstance(obj, str):
             size, data = _parse_lit(obj)
@@ -170,7 +170,7 @@ class Vec:
         return False
 
     def __hash__(self) -> int:
-        return hash(self.size) ^ hash(self._data)
+        return hash(self.shape) ^ hash(self._data)
 
     # Bitwise Arithmetic
     def __invert__(self) -> Vec:
