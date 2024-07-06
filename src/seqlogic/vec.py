@@ -1,5 +1,8 @@
 """Logic vector data types."""
 
+# Ignore warnings due to classproperty usage
+# pylint: disable = comparison-with-callable
+# pylint: disable = invalid-unary-operand-type
 # Simplify access to friend object attributes
 # pylint: disable = protected-access
 
@@ -54,7 +57,7 @@ class Vec:
         return _vec_n(n)
 
     @classproperty
-    def size(cls) -> int:
+    def size(cls) -> int:  # pylint: disable=no-self-argument
         return cls._size
 
     @classmethod
@@ -102,7 +105,7 @@ class Vec:
     def __init__(self, d0: int, d1: int):
         self._data = (d0, d1)
 
-    def __len__(self) -> int:
+    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
         return self.size
 
     def __getitem__(self, key: int | slice) -> Vec:
@@ -114,8 +117,8 @@ class Vec:
             i, j = self._norm_slice(key)
             if i == 0 and j == self.size:
                 return self
-            n, (d0, d1) = self._get_items(i, j)
-            return Vec[n](d0, d1)
+            size, (d0, d1) = self._get_items(i, j)
+            return Vec[size](d0, d1)
         raise TypeError("Expected key to be int or slice")
 
     def __iter__(self) -> Generator[Vec[1], None, None]:
@@ -153,8 +156,8 @@ class Vec:
         if isinstance(obj, Vec[self.size]):
             return self._data == obj._data
         if isinstance(obj, str):
-            n, data = _parse_lit(obj)
-            return self.size == n and self._data == data
+            size, data = _parse_lit(obj)
+            return self.size == size and self._data == data
         return False
 
     def __hash__(self) -> int:
@@ -173,7 +176,7 @@ class Vec:
     def __ror__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        self._check_size(len(other))
+        self._check_size(other.size)
         return _or_(other, self)
 
     def __and__(self, other: Vec | str) -> Vec:
@@ -185,7 +188,7 @@ class Vec:
     def __rand__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        self._check_size(len(other))
+        self._check_size(other.size)
         return _and_(other, self)
 
     def __xor__(self, other: Vec | str) -> Vec:
@@ -197,7 +200,7 @@ class Vec:
     def __rxor__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        self._check_size(len(other))
+        self._check_size(other.size)
         return _xor(other, self)
 
     def __lshift__(self, n: int | Vec) -> Vec:
@@ -226,7 +229,7 @@ class Vec:
     def __radd__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        self._check_size(len(other))
+        self._check_size(other.size)
         s, co = _add(other, self, _Vec0)
         return cat(s, co)
 
@@ -240,7 +243,7 @@ class Vec:
     def __rsub__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        self._check_size(len(other))
+        self._check_size(other.size)
         s, co = _add(other, self.not_(), _Vec1)
         return cat(s, co)
 
@@ -627,8 +630,8 @@ class Vec:
             raise ValueError(f"Expected ci to have len {n}")
 
         co, sh = self[:n], self[n:]
-        d0 = sh._data[0] | ci._data[0] << len(sh)
-        d1 = sh._data[1] | ci._data[1] << len(sh)
+        d0 = sh._data[0] | ci._data[0] << sh.size
+        d1 = sh._data[1] | ci._data[1] << sh.size
         y = self._from_data(d0, d1)
         return y, co
 
@@ -660,8 +663,8 @@ class Vec:
         sign0, sign1 = self._get_item(self.size - 1)
         ext0 = _mask(n) * sign0
         ext1 = _mask(n) * sign1
-        d0 = sh._data[0] | ext0 << len(sh)
-        d1 = sh._data[1] | ext1 << len(sh)
+        d0 = sh._data[0] | ext0 << sh.size
+        d1 = sh._data[1] | ext1 << sh.size
         y = self._from_data(d0, d1)
         return y, co
 
@@ -753,9 +756,9 @@ class Vec:
         return (self._data[0] >> i) & 1, (self._data[1] >> i) & 1
 
     def _get_items(self, i: int, j: int) -> tuple[int, tuple[int, int]]:
-        n = j - i
-        mask = _mask(n)
-        return n, ((self._data[0] >> i) & mask, (self._data[1] >> i) & mask)
+        size = j - i
+        mask = _mask(size)
+        return size, ((self._data[0] >> i) & mask, (self._data[1] >> i) & mask)
 
 
 def _or_(v0: Vec, v1: Vec) -> Vec:
@@ -797,12 +800,11 @@ def or_(v0: Vec | str, *vs: Vec | str) -> Vec:
     """
     if isinstance(v0, str):
         v0 = _lit2vec(v0)
-    n = len(v0)
     y = v0
     for v in vs:
         if isinstance(v, str):
             v = _lit2vec(v)
-        v._check_size(n)
+        v._check_size(v0.size)
         y = _or_(y, v)
     return y
 
@@ -879,12 +881,11 @@ def and_(v0: Vec | str, *vs: Vec | str) -> Vec:
     """
     if isinstance(v0, str):
         v0 = _lit2vec(v0)
-    n = len(v0)
     y = v0
     for v in vs:
         if isinstance(v, str):
             v = _lit2vec(v)
-        v._check_size(n)
+        v._check_size(v0.size)
         y = _and_(y, v)
     return y
 
@@ -971,12 +972,11 @@ def xor(v0: Vec | str, *vs: Vec | str) -> Vec:
     """
     if isinstance(v0, str):
         v0 = _lit2vec(v0)
-    n = len(v0)
     y = v0
     for v in vs:
         if isinstance(v, str):
             v = _lit2vec(v)
-        v._check_size(n)
+        v._check_size(v0.size)
         y = _xor(y, v)
     return y
 
@@ -1018,14 +1018,14 @@ def xnor(v0: Vec | str, *vs: Vec | str) -> Vec:
 
 
 def _add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
-    n = len(a)
-    dmax = _mask(n)
+    size = a.size
+    dmax = _mask(size)
 
     # X/DC propagation
     if a.has_x() or b.has_x() or ci.has_x():
-        return Vec[n](0, 0), _VecX
+        return Vec[size](0, 0), _VecX
     if a.has_dc() or b.has_dc() or ci.has_dc():
-        return Vec[n](dmax, dmax), _VecW
+        return Vec[size](dmax, dmax), _VecW
 
     s = a._data[1] + b._data[1] + ci._data[1]
     co = (_Vec0, _Vec1)[s > dmax]
@@ -1052,7 +1052,7 @@ def add(a: Vec | str, b: Vec | str, ci: Vec[1] | str | None = None) -> AddResult
         a = _lit2vec(a)
     if isinstance(b, str):
         b = _lit2vec(b)
-        b._check_size(len(a))
+        b._check_size(a.size)
     if ci is None:
         ci = _Vec0
     elif isinstance(ci, str):
@@ -1079,7 +1079,7 @@ def sub(a: Vec | str, b: Vec | str) -> AddResult:
         a = _lit2vec(a)
     if isinstance(b, str):
         b = _lit2vec(b)
-        b._check_size(len(a))
+        b._check_size(a.size)
     s, co = _add(a, b.not_(), ci=_Vec1)
     return AddResult(s, co)
 
@@ -1091,11 +1091,11 @@ def _bools2vec(xs: Iterable[int]) -> Vec:
     For data in the form of [0, 1, 0, 1, ...],
     or [False, True, False, True, ...].
     """
-    n, d = 0, 0
+    size, d1 = 0, 0
     for x in xs:
-        d |= x << n
-        n += 1
-    return Vec[n](d ^ _mask(n), d)
+        d1 |= x << size
+        size += 1
+    return Vec[size](d1 ^ _mask(size), d1)
 
 
 _LIT_PREFIX_RE = re.compile(r"(?P<Size>[1-9][0-9]*)(?P<Base>[bdh])")
@@ -1103,15 +1103,15 @@ _LIT_PREFIX_RE = re.compile(r"(?P<Size>[1-9][0-9]*)(?P<Base>[bdh])")
 
 def _parse_lit(lit: str) -> tuple[int, tuple[int, int]]:
     if m := _LIT_PREFIX_RE.match(lit):
-        n = int(m.group("Size"))
+        size = int(m.group("Size"))
         base = m.group("Base")
         prefix_len = len(m.group())
         digits = lit[prefix_len:]
         # Binary
         if base == "b":
             digits = digits.replace("_", "")
-            if len(digits) != n:
-                s = f"Expected {n} digits, got {len(digits)}"
+            if len(digits) != size:
+                s = f"Expected {size} digits, got {len(digits)}"
                 raise ValueError(s)
             d0, d1 = 0, 0
             for i, c in enumerate(reversed(digits)):
@@ -1121,23 +1121,23 @@ def _parse_lit(lit: str) -> tuple[int, tuple[int, int]]:
                     raise ValueError(f"Invalid literal: {lit}") from e
                 d0 |= x[0] << i
                 d1 |= x[1] << i
-            return n, (d0, d1)
+            return size, (d0, d1)
         # Decimal
         elif base == "d":
             d1 = int(digits, base=10)
-            dmax = _mask(n)
+            dmax = _mask(size)
             if d1 > dmax:
                 s = f"Expected digits in range [0, {dmax}], got {digits}"
                 raise ValueError(s)
-            return n, (d1 ^ dmax, d1)
+            return size, (d1 ^ dmax, d1)
         # Hexadecimal
         elif base == "h":
             d1 = int(digits, base=16)
-            dmax = _mask(n)
+            dmax = _mask(size)
             if d1 > dmax:
                 s = f"Expected digits in range [0, {dmax}], got {digits}"
                 raise ValueError(s)
-            return n, (d1 ^ dmax, d1)
+            return size, (d1 ^ dmax, d1)
         else:  # pragma: no cover
             assert False
     else:
@@ -1163,8 +1163,8 @@ def _lit2vec(lit: str) -> Vec:
     Raises:
         ValueError: If input literal has a syntax error.
     """
-    n, (d0, d1) = _parse_lit(lit)
-    return Vec[n](d0, d1)
+    size, (d0, d1) = _parse_lit(lit)
+    return Vec[size](d0, d1)
 
 
 def vec(obj=None) -> Vec:
@@ -1286,13 +1286,13 @@ def cat(*objs: Vec | int | str) -> Vec:
     if len(vs) == 1:
         return vs[0]
 
-    n = 0
+    size = 0
     d0, d1 = 0, 0
     for v in vs:
-        d0 |= v._data[0] << n
-        d1 |= v._data[1] << n
-        n += len(v)
-    return Vec[n](d0, d1)
+        d0 |= v._data[0] << size
+        d1 |= v._data[1] << size
+        size += v.size
+    return Vec[size](d0, d1)
 
 
 def rep(obj: Vec | int | str, n: int) -> Vec:
@@ -1321,21 +1321,21 @@ class _VecEnumMeta(type):
 
         enum_attrs = {}
         data2name: dict[tuple[int, int], str] = {}
-        n = None
+        size = None
         for key, val in attrs.items():
             if key.startswith("__"):
                 enum_attrs[key] = val
             # NAME = lit
             else:
-                if n is None:
-                    n, data = _parse_lit(val)
+                if size is None:
+                    size, data = _parse_lit(val)
                 else:
-                    n_i, data = _parse_lit(val)
-                    if n_i != n:
-                        raise ValueError(f"Expected lit len {n}, got {n_i}")
+                    size_i, data = _parse_lit(val)
+                    if size_i != size:
+                        raise ValueError(f"Expected lit len {size}, got {size_i}")
                 if key in ("X", "DC"):
                     raise ValueError(f"Cannot use reserved name = '{key}'")
-                dmax = _mask(n)
+                dmax = _mask(size)
                 if data in ((0, 0), (dmax, dmax)):
                     raise ValueError(f"Cannot use reserved value = {val}")
                 if data in data2name:
@@ -1343,16 +1343,16 @@ class _VecEnumMeta(type):
                 data2name[data] = key
 
         # Empty Enum
-        if n is None:
+        if size is None:
             raise ValueError("Empty Enum is not supported")
 
         # Add X/DC members
         data2name[(0, 0)] = "X"
-        dmax = _mask(n)
+        dmax = _mask(size)
         data2name[(dmax, dmax)] = "DC"
 
         # Create Enum class
-        enum = super().__new__(mcs, name, bases + (Vec[n],), enum_attrs)
+        enum = super().__new__(mcs, name, bases + (Vec[size],), enum_attrs)
 
         # Instantiate members
         for data, name in data2name.items():
@@ -1406,7 +1406,7 @@ def _struct_init_source(fields: list[tuple[str, type]]) -> str:
         lines.append(f"    if {fn} is not None:\n")
         lines.append(f"        if isinstance({fn}, str):\n")
         lines.append(f"            {fn} = _lit2vec({fn})\n")
-        lines.append(f"        got, exp = len({fn}), self._{fn}_size\n")
+        lines.append(f"        got, exp = {fn}.size, self._{fn}_size\n")
         lines.append("        if got != exp:\n")
         lines.append(f'            raise TypeError(f"{s}")\n')
         lines.append(f"        d0 |= {fn}._data[0] << self._{fn}_base\n")
@@ -1445,8 +1445,8 @@ class _VecStructMeta(type):
             base += field_type.size
 
         # Create Struct class
-        n = sum(field_type.size for _, field_type in fields)
-        struct = super().__new__(mcs, name, bases + (Vec[n],), struct_attrs)
+        size = sum(field_type.size for _, field_type in fields)
+        struct = super().__new__(mcs, name, bases + (Vec[size],), struct_attrs)
 
         # Override Vec __init__ method
         source = _struct_init_source(fields)
@@ -1486,9 +1486,9 @@ class _VecStructMeta(type):
 
         # Create Struct fields
         def _fget(name, cls, self):
-            n = getattr(self, f"_{name}_size")
+            size = getattr(self, f"_{name}_size")
             offset = getattr(self, f"_{name}_base")
-            mask = _mask(n)
+            mask = _mask(size)
             d0 = (self._data[0] >> offset) & mask
             d1 = (self._data[1] >> offset) & mask
             return cls._from_data(d0, d1)
@@ -1503,14 +1503,14 @@ class VecStruct(metaclass=_VecStructMeta):
     """Struct Base Class: Create struct."""
 
 
-def _union_init_source(n: int) -> str:
+def _union_init_source(size: int) -> str:
     """Return source code for Union __init__ method w/ fields."""
     lines = []
     s = "Expected input to have at most {{exp}} bits, got {{got}}"
     lines.append("def init(self, v):\n")
     lines.append("    if isinstance(v, str):")
     lines.append("        v = _lit2vec(v)\n")
-    lines.append(f"    got, exp = len(v), {n}\n")
+    lines.append(f"    got, exp = v.size, {size}\n")
     lines.append("    if got > exp:\n")
     lines.append(f'        raise TypeError("{s}")\n')
     lines.append("    self._data = v._data\n")
@@ -1544,11 +1544,11 @@ class _VecUnionMeta(type):
             union_attrs[f"_{field_name}_size"] = field_type.size
 
         # Create Union class
-        n = max(field_type.size for _, field_type in fields)
-        union = super().__new__(mcs, name, bases + (Vec[n],), union_attrs)
+        size = max(field_type.size for _, field_type in fields)
+        union = super().__new__(mcs, name, bases + (Vec[size],), union_attrs)
 
         # Override Vec __init__ method
-        source = _union_init_source(n)
+        source = _union_init_source(size)
         globals_ = {"Vec": Vec, "_lit2vec": _lit2vec}
         globals_.update({ft.__name__: ft for _, ft in fields})
         locals_ = {}
@@ -1557,8 +1557,8 @@ class _VecUnionMeta(type):
 
         # Create Union fields
         def _fget(name, cls, self):
-            n = getattr(self, f"_{name}_size")
-            mask = _mask(n)
+            size = getattr(self, f"_{name}_size")
+            mask = _mask(size)
             d0 = self._data[0] & mask
             d1 = self._data[1] & mask
             return cls._from_data(d0, d1)
