@@ -729,31 +729,31 @@ class Vec:
         return bool(self._data[0] ^ self._data[1] ^ self._dmax)
 
     def _norm_index(self, index: int) -> int:
-        a, b = -self.size, self.size
-        if not a <= index < b:
-            s = f"Expected index in [{a}, {b}), got {index}"
+        lo, hi = -self.size, self.size
+        if not lo <= index < hi:
+            s = f"Expected index in [{lo}, {hi}), got {index}"
             raise IndexError(s)
         # Normalize negative start index
         if index < 0:
-            return index + self.size
+            return index + hi
         return index
 
     def _norm_slice(self, sl: slice) -> tuple[int, int]:
         if sl.step is not None:
             raise ValueError("Slice step is not supported")
-        a, b = -self.size, self.size
+        lo, hi = -self.size, self.size
         # Normalize start index
         start = sl.start
-        if start is None or start < a:
-            start = a
+        if start is None or start < lo:
+            start = lo
         if start < 0:
-            start += self.size
+            start += hi
         # Normalize stop index
         stop = sl.stop
-        if stop is None or stop > b:
-            stop = b
+        if stop is None or stop > hi:
+            stop = hi
         if stop < 0:
-            stop += self.size
+            stop += hi
         return start, stop
 
     def _get_item(self, i: int) -> tuple[int, int]:
