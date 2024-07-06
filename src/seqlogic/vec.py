@@ -165,7 +165,7 @@ class Vec:
         return False
 
     def __hash__(self) -> int:
-        return hash(self.size) ^ hash(self._data[0]) ^ hash(self._data[1])
+        return hash(self.size) ^ hash(self._data)
 
     # Bitwise Arithmetic
     def __invert__(self) -> Vec:
