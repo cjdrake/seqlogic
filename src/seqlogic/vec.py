@@ -60,6 +60,10 @@ class Vec:
     def size(cls) -> int:  # pylint: disable=no-self-argument
         return cls._size
 
+    @classproperty
+    def shape(cls) -> tuple[int, ...]:  # pylint: disable=no-self-argument
+        return (cls._size,)
+
     @classmethod
     def xes(cls) -> Vec:
         return cls._from_data(0, 0)
@@ -1018,15 +1022,13 @@ def xnor(v0: Vec | str, *vs: Vec | str) -> Vec:
 
 
 def _add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
-    size = a.size
-    dmax = _mask(size)
-
     # X/DC propagation
     if a.has_x() or b.has_x() or ci.has_x():
         return a.xes(), _VecX
     if a.has_dc() or b.has_dc() or ci.has_dc():
         return a.dcs(), _VecW
 
+    dmax = _mask(a.size)
     s = a._data[1] + b._data[1] + ci._data[1]
     co = (_Vec0, _Vec1)[s > dmax]
     s &= dmax
