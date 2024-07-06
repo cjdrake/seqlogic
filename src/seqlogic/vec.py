@@ -1023,9 +1023,9 @@ def _add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
 
     # X/DC propagation
     if a.has_x() or b.has_x() or ci.has_x():
-        return Vec[size](0, 0), _VecX
+        return a.xes(), _VecX
     if a.has_dc() or b.has_dc() or ci.has_dc():
-        return Vec[size](dmax, dmax), _VecW
+        return a.dcs(), _VecW
 
     s = a._data[1] + b._data[1] + ci._data[1]
     co = (_Vec0, _Vec1)[s > dmax]
