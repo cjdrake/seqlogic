@@ -1243,18 +1243,18 @@ def int2vec(num: int, n: int | None = None) -> Vec:
 
     # Compute required number of bits
     if neg:
-        d = -num
-        req_n = clog2(d) + 1
+        d1 = -num
+        req_n = clog2(d1) + 1
     else:
-        d = num
-        req_n = clog2(d + 1) + 1
+        d1 = num
+        req_n = clog2(d1 + 1) + 1
     if n is None:
         n = req_n
     elif n < req_n:
         s = f"Overflow: num = {num} required n ≥ {req_n}, got {n}"
         raise ValueError(s)
 
-    v = Vec[n](d ^ _mask(n), d)
+    v = Vec[n](d1 ^ _mask(n), d1)
     return v.neg()[0] if neg else v
 
 
