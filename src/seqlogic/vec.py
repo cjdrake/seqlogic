@@ -61,7 +61,11 @@ class Vec:
         return cls._size
 
     @classproperty
-    def shape(cls) -> tuple[int, ...]:  # pylint: disable=no-self-argument
+    def shape(cls) -> tuple[int, ...] | None:  # pylint: disable=no-self-argument
+        if cls._size == 0:
+            return None
+        if cls._size == 1:
+            return ()
         return (cls._size,)
 
     @classmethod
