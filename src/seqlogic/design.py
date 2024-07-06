@@ -98,7 +98,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
     def input(self, name: str, dtype: type) -> Bits:
         self._check_name(name)
-        assert issubclass(dtype, Vec) and dtype.n > 0
+        assert issubclass(dtype, Vec) and dtype.size > 0
         node = Bits(name, parent=self, dtype=dtype)
         self._inputs[name] = False
         setattr(self, name, node)
@@ -106,7 +106,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
     def output(self, name: str, dtype: type) -> Bits:
         self._check_name(name)
-        assert issubclass(dtype, Vec) and dtype.n > 0
+        assert issubclass(dtype, Vec) and dtype.size > 0
         node = Bits(name, parent=self, dtype=dtype)
         self._outputs[name] = False
         setattr(self, name, node)
@@ -304,7 +304,7 @@ class Module(Branch, _ProcIf, _TraceIf):
     def mem_wr_be(self, mem: Array, addr: Bits, data: Bits, en: Bits, be: Bits, clk: Bits):
         """Memory with write byte enable."""
 
-        width = mem._dtype.n  # pylint: disable = protected-access
+        width = mem._dtype.size  # pylint: disable = protected-access
         if width % 8 != 0:
             raise ValueError("Expected data width to be multiple of 8")
         nbytes = width // 8

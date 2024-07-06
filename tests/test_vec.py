@@ -33,10 +33,10 @@ def test_vec_class_getitem():
         _ = Vec[-1]
 
     vec_0 = Vec[0]
-    assert vec_0.n == 0
+    assert vec_0.size == 0
 
     vec_4 = Vec[4]
-    assert vec_4.n == 4
+    assert vec_4.size == 4
 
     # Always return the same class instance
     assert Vec[0] is vec_0
