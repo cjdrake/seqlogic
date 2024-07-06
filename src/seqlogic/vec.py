@@ -145,9 +145,10 @@ class Vec:
         return prefix + "".join(reversed(chars))
 
     def __repr__(self) -> str:
+        name = self.__class__.__name__
         n = self.size
         d0, d1 = self._data
-        return f"Vec[{n}](0b{d0:0{n}b}, 0b{d1:0{n}b})"
+        return f"{name}(0b{d0:0{n}b}, 0b{d1:0{n}b})"
 
     def to_vcd_val(self) -> str:
         """Convert bit array to VCD value."""
@@ -212,20 +213,24 @@ class Vec:
         return _xor(other, self)
 
     def __lshift__(self, n: int | Vec) -> Vec:
-        return self.lsh(n)[0]
+        y, _ = self.lsh(n)
+        return y
 
     def __rlshift__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        return other.lsh(self)[0]
+        y, _ = other.lsh(self)
+        return y
 
     def __rshift__(self, n: int | Vec) -> Vec:
-        return self.rsh(n)[0]
+        y, _ = self.rsh(n)
+        return y
 
     def __rrshift__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
-        return other.rsh(self)[0]
+        y, _ = other.rsh(self)
+        return y
 
     def __add__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
@@ -255,8 +260,10 @@ class Vec:
         s, co = _add(other, self.not_(), _Vec1)
         return cat(s, co)
 
+    # TODO(cjdrake): Should this append co?
     def __neg__(self) -> Vec:
-        return self.neg()[0]
+        s, _ = self.neg()
+        return s
 
     @property
     def data(self) -> tuple[int, int]:
@@ -601,10 +608,14 @@ class Vec:
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
 
-        sh, co = self[:-n], self[-n:]
-        d0 = ci._data[0] | sh._data[0] << n
-        d1 = ci._data[1] | sh._data[1] << n
+        _, (sh0, sh1) = self._get_items(0, self.size - n)
+        d0 = ci._data[0] | sh0 << n
+        d1 = ci._data[1] | sh1 << n
         y = self._from_data(d0, d1)
+
+        co_size, (co0, co1) = self._get_items(self.size - n, self.size)
+        co = Vec[co_size](co0, co1)
+
         return y, co
 
     def rsh(self, n: int | Vec, ci: Vec | None = None) -> tuple[Vec, Vec]:
@@ -637,10 +648,14 @@ class Vec:
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
 
-        co, sh = self[:n], self[n:]
-        d0 = sh._data[0] | ci._data[0] << sh.size
-        d1 = sh._data[1] | ci._data[1] << sh.size
+        sh_size, (sh0, sh1) = self._get_items(n, self.size)
+        d0 = sh0 | ci._data[0] << sh_size
+        d1 = sh1 | ci._data[1] << sh_size
         y = self._from_data(d0, d1)
+
+        co_size, (co0, co1) = self._get_items(0, n)
+        co = Vec[co_size](co0, co1)
+
         return y, co
 
     def srsh(self, n: int | Vec) -> tuple[Vec, Vec]:
@@ -667,13 +682,17 @@ class Vec:
         if n == 0:
             return self, _VecE
 
-        co, sh = self[:n], self[n:]
         sign0, sign1 = self._get_item(self.size - 1)
-        ext0 = _mask(n) * sign0
-        ext1 = _mask(n) * sign1
-        d0 = sh._data[0] | ext0 << sh.size
-        d1 = sh._data[1] | ext1 << sh.size
+        ci0, ci1 = _mask(n) * sign0, _mask(n) * sign1
+
+        sh_size, (sh0, sh1) = self._get_items(n, self.size)
+        d0 = sh0 | ci0 << sh_size
+        d1 = sh1 | ci1 << sh_size
         y = self._from_data(d0, d1)
+
+        co_size, (co0, co1) = self._get_items(0, n)
+        co = Vec[co_size](co0, co1)
+
         return y, co
 
     def neg(self) -> AddResult:
@@ -1259,7 +1278,7 @@ def int2vec(num: int, n: int | None = None) -> Vec:
         raise ValueError(s)
 
     v = Vec[n](d1 ^ _mask(n), d1)
-    return v.neg()[0] if neg else v
+    return v.neg().s if neg else v
 
 
 def cat(*objs: Vec | int | str) -> Vec:
