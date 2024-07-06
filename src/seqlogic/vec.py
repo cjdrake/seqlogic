@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import math
 import random
 import re
 from collections import namedtuple
@@ -162,7 +163,7 @@ class Vec:
 
     # Comparison
     def __eq__(self, obj: object) -> bool:
-        if isinstance(obj, self.__class__):
+        if isinstance(obj, Vec[self.size]):
             return self._data == obj._data
         if isinstance(obj, str):
             size, data = _parse_lit(obj)
@@ -268,6 +269,16 @@ class Vec:
     @property
     def data(self) -> tuple[int, int]:
         return self._data
+
+    def reshape(self, shape: tuple[int, ...]):
+        if math.prod(shape) != self.size:
+            s = f"Expected shape with size {self.size}, got {shape}"
+            raise ValueError(s)
+
+        # To avoid circular imports
+        from .bits import _bits  # pylint: disable=import-outside-toplevel
+
+        return _bits(shape)._from_data(self._data[0], self._data[1])
 
     def not_(self) -> Vec:
         """Bitwise lifted NOT.

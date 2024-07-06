@@ -96,15 +96,6 @@ def _bits(shape: int | tuple[int, ...] | None) -> type[Bits] | type[Vec]:
     # Bits.flatten
     bits_shape.flatten = lambda self: vec_n(self._data[0], self._data[1])
 
-    # Bits.reshape
-    def _reshape(self, shape: tuple[int, ...]) -> Bits:
-        if math.prod(shape) != size:
-            s = f"Expected shape with size {size}, got {shape}"
-            raise ValueError(s)
-        return Bits[shape](self._data[0], self._data[1])
-
-    bits_shape.reshape = _reshape
-
     # Bits.flat
     def _flat(self) -> Generator[Vec[1], None, None]:
         yield from self.flatten()
