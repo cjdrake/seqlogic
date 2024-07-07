@@ -213,6 +213,7 @@ class Vec:
         self._check_size(other.size)
         return _xor(other, self)
 
+    # Note: Drop carry-out
     def __lshift__(self, n: int | Vec) -> Vec:
         y, _ = self.lsh(n)
         return y
@@ -223,6 +224,7 @@ class Vec:
         y, _ = other.lsh(self)
         return y
 
+    # Note: Drop carry-out
     def __rshift__(self, n: int | Vec) -> Vec:
         y, _ = self.rsh(n)
         return y
@@ -233,6 +235,7 @@ class Vec:
         y, _ = other.rsh(self)
         return y
 
+    # Note: Keep carry-out
     def __add__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
@@ -247,6 +250,7 @@ class Vec:
         s, co = _add(other, self, _Vec0)
         return cat(s, co)
 
+    # Note: Keep carry-out
     def __sub__(self, other: Vec | str) -> Vec:
         if isinstance(other, str):
             other = _lit2vec(other)
@@ -261,10 +265,10 @@ class Vec:
         s, co = _add(other, self.not_(), _Vec1)
         return cat(s, co)
 
-    # TODO(cjdrake): Should this append co?
+    # Note: Keep carry-out
     def __neg__(self) -> Vec:
-        s, _ = self.neg()
-        return s
+        s, co = self.neg()
+        return cat(s, co)
 
     @property
     def data(self) -> tuple[int, int]:

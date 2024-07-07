@@ -1121,14 +1121,14 @@ def test_vec_sub():
 
 
 def test_vec_neg():
-    assert -vec("3b000") == "3b000"
-    assert -vec("3b001") == "3b111"
-    assert -vec("3b111") == "3b001"
-    assert -vec("3b010") == "3b110"
-    assert -vec("3b110") == "3b010"
-    assert -vec("3b011") == "3b101"
-    assert -vec("3b101") == "3b011"
-    assert -vec("3b100") == "3b100"
+    assert -vec("3b000") == "4b1000"
+    assert -vec("3b001") == "4b0111"
+    assert -vec("3b111") == "4b0001"
+    assert -vec("3b010") == "4b0110"
+    assert -vec("3b110") == "4b0010"
+    assert -vec("3b011") == "4b0101"
+    assert -vec("3b101") == "4b0011"
+    assert -vec("3b100") == "4b0100"
 
 
 def test_count():
