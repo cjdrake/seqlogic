@@ -593,6 +593,17 @@ class Vec:
         d1 = self._data[1] | ext1 << self.size
         return Vec[self.size + n](d0, d1)
 
+    def _lsh(self, n: int, ci: Vec) -> tuple[Vec, Vec]:
+        co_size, (co0, co1) = self._get_items(self.size - n, self.size)
+        co = Vec[co_size](co0, co1)
+
+        _, (sh0, sh1) = self._get_items(0, self.size - n)
+        d0 = ci._data[0] | sh0 << n
+        d1 = ci._data[1] | sh1 << n
+        y = self._from_data(d0, d1)
+
+        return y, co
+
     def lsh(self, n: int | Vec, ci: Vec | None = None) -> tuple[Vec, Vec]:
         """Left shift by n bits.
 
@@ -623,13 +634,16 @@ class Vec:
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
 
-        _, (sh0, sh1) = self._get_items(0, self.size - n)
-        d0 = ci._data[0] | sh0 << n
-        d1 = ci._data[1] | sh1 << n
-        y = self._from_data(d0, d1)
+        return self._lsh(n, ci)
 
-        co_size, (co0, co1) = self._get_items(self.size - n, self.size)
+    def _rsh(self, n: int, ci: Vec) -> tuple[Vec, Vec]:
+        co_size, (co0, co1) = self._get_items(0, n)
         co = Vec[co_size](co0, co1)
+
+        sh_size, (sh0, sh1) = self._get_items(n, self.size)
+        d0 = sh0 | ci._data[0] << sh_size
+        d1 = sh1 | ci._data[1] << sh_size
+        y = self._from_data(d0, d1)
 
         return y, co
 
@@ -663,13 +677,19 @@ class Vec:
         elif len(ci) != n:
             raise ValueError(f"Expected ci to have len {n}")
 
-        sh_size, (sh0, sh1) = self._get_items(n, self.size)
-        d0 = sh0 | ci._data[0] << sh_size
-        d1 = sh1 | ci._data[1] << sh_size
-        y = self._from_data(d0, d1)
+        return self._rsh(n, ci)
 
+    def _srsh(self, n: int) -> tuple[Vec, Vec]:
         co_size, (co0, co1) = self._get_items(0, n)
         co = Vec[co_size](co0, co1)
+
+        sign0, sign1 = self._get_item(self.size - 1)
+        ci0, ci1 = _mask(n) * sign0, _mask(n) * sign1
+
+        sh_size, (sh0, sh1) = self._get_items(n, self.size)
+        d0 = sh0 | ci0 << sh_size
+        d1 = sh1 | ci1 << sh_size
+        y = self._from_data(d0, d1)
 
         return y, co
 
@@ -697,18 +717,103 @@ class Vec:
         if n == 0:
             return self, _VecE
 
-        sign0, sign1 = self._get_item(self.size - 1)
-        ci0, ci1 = _mask(n) * sign0, _mask(n) * sign1
+        return self._srsh(n)
 
+    def _lrot(self, n: int) -> Vec:
+        _, (co0, co1) = self._get_items(self.size - n, self.size)
+        _, (sh0, sh1) = self._get_items(0, self.size - n)
+        d0 = co0 | sh0 << n
+        d1 = co1 | sh1 << n
+        return self._from_data(d0, d1)
+
+    def lrot(self, n: int | Vec) -> Vec:
+        """Left rotate by n bits.
+
+        Args:
+            n: Non-negative number of bits.
+
+        Returns:
+            vec left-rotated by n bits.
+
+        Raises:
+            ValueError: If n is invalid/inconsistent.
+        """
+        if isinstance(n, Vec):
+            if n.has_x():
+                return self.xes()
+            if n.has_dc():
+                return self.dcs()
+            n = n.to_uint()
+
+        if not 0 <= n < self.size:
+            raise ValueError(f"Expected 0 ≤ n < {self.size}, got {n}")
+        if n == 0:
+            return self
+
+        return self._lrot(n)
+
+    def _rrot(self, n: int) -> Vec:
+        _, (co0, co1) = self._get_items(0, n)
         sh_size, (sh0, sh1) = self._get_items(n, self.size)
-        d0 = sh0 | ci0 << sh_size
-        d1 = sh1 | ci1 << sh_size
-        y = self._from_data(d0, d1)
+        d0 = sh0 | co0 << sh_size
+        d1 = sh1 | co1 << sh_size
+        return self._from_data(d0, d1)
 
-        co_size, (co0, co1) = self._get_items(0, n)
-        co = Vec[co_size](co0, co1)
+    def rrot(self, n: int | Vec) -> Vec:
+        """Right rotate by n bits.
 
-        return y, co
+        Args:
+            n: Non-negative number of bits.
+
+        Returns:
+            vec right-rotated by n bits.
+
+        Raises:
+            ValueError: If n is invalid/inconsistent.
+        """
+        if isinstance(n, Vec):
+            if n.has_x():
+                return self.xes()
+            if n.has_dc():
+                return self.dcs()
+            n = n.to_uint()
+
+        if not 0 <= n < self.size:
+            raise ValueError(f"Expected 0 ≤ n < {self.size}, got {n}")
+        if n == 0:
+            return self
+
+        return self._rrot(n)
+
+    def rot(self, n: int | Vec) -> Vec:
+        """Rotate by n bits.
+
+        Args:
+            n: Number of bits.
+
+        Returns:
+            vec rotated by n bits.
+
+        Raises:
+            ValueError: If n is invalid/inconsistent.
+        """
+        if isinstance(n, Vec):
+            if n.has_x():
+                return self.xes()
+            if n.has_dc():
+                return self.dcs()
+            n = n.to_uint()
+
+        if n == 0:
+            return self
+        # Positive defined as left rotate
+        if 0 < n < self.size:
+            return self._lrot(n)
+        # Negative defined as right rotate
+        if -self.size < n < 0:
+            return self._rrot(-n)
+
+        raise ValueError(f"Expected -{self.size} < n < {self.size}, got {n}")
 
     def neg(self) -> AddResult:
         """Twos complement negation.

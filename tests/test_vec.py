@@ -988,6 +988,46 @@ def test_vec_lsh():
     assert vec("2b01").lsh(vec("1b1")) == (vec("2b10"), F)
 
 
+def test_vec_lrot():
+    v = vec("4b-10X")
+    assert v.lrot(0) is v
+    assert str(v.lrot(1)) == "4b10X-"
+    assert str(v.lrot(2)) == "4b0X-1"
+    assert str(v.lrot(3)) == "4bX-10"
+
+    with pytest.raises(ValueError):
+        str(v.lrot(4))
+
+
+def test_vec_rrot():
+    v = vec("4b-10X")
+    assert v.rrot(0) is v
+    assert str(v.rrot(1)) == "4bX-10"
+    assert str(v.rrot(2)) == "4b0X-1"
+    assert str(v.rrot(3)) == "4b10X-"
+
+    with pytest.raises(ValueError):
+        str(v.rrot(4))
+
+
+def test_vec_rot():
+    v = vec("4b-10X")
+    assert v.rot(0) is v
+    assert str(v.rot(1)) == "4b10X-"
+    assert str(v.rot(2)) == "4b0X-1"
+    assert str(v.rot(3)) == "4bX-10"
+
+    with pytest.raises(ValueError):
+        str(v.rot(4))
+
+    assert str(v.rot(-1)) == "4bX-10"
+    assert str(v.rot(-2)) == "4b0X-1"
+    assert str(v.rot(-3)) == "4b10X-"
+
+    with pytest.raises(ValueError):
+        str(v.rot(-4))
+
+
 def test_vec_rsh():
     v = vec("4b1111")
     y, co = v.rsh(0)
