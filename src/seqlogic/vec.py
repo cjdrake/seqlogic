@@ -151,8 +151,12 @@ class Vec:
         d0, d1 = self._data
         return f"{name}(0b{d0:0{n}b}, 0b{d1:0{n}b})"
 
-    def to_vcd_val(self) -> str:
-        """Convert bit array to VCD value."""
+    def vcd_var(self) -> str:
+        """Return VCD variable type."""
+        return "reg"
+
+    def vcd_val(self) -> str:
+        """Return VCD variable value."""
         return "".join(to_vcd_char[self._get_item(i)] for i in range(self.size - 1, -1, -1))
 
     def __bool__(self) -> bool:
@@ -1532,6 +1536,10 @@ class _VecEnumMeta(type):
 
         # Create name property
         enum.name = property(fget=lambda self: self._name)
+
+        # Override VCD methods
+        enum.vcd_var = lambda _: "string"
+        enum.vcd_val = lambda self: self._name
 
         return enum
 

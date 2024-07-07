@@ -16,7 +16,7 @@ from vcd.writer import VCDWriter as VcdWriter
 
 from .hier import Branch, Leaf
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, Value, changed, get_loop, resume
-from .vec import Vec, VecEnum, _lit2vec, cat
+from .vec import Vec, _lit2vec, cat
 
 
 class DesignError(Exception):
@@ -373,36 +373,20 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
     def dump_vcd(self, vcdw, pattern: str):
         assert isinstance(self._parent, Module)
 
-        if issubclass(self._dtype, VecEnum):
-            if re.match(pattern, self.qualname):
-                var = vcdw.register_var(
-                    scope=self._parent.scope,
-                    name=self.name,
-                    var_type="string",
-                    init=self._value.name,
-                )
+        if re.match(pattern, self.qualname):
+            var = vcdw.register_var(
+                scope=self._parent.scope,
+                name=self.name,
+                var_type=self._value.vcd_var(),
+                size=self._value.size,
+                init=self._value.vcd_val(),
+            )
 
-                def f():
-                    value = self._next_value.name
-                    return vcdw.change(var, self._sim.time, value)
+            def change():
+                value = self._next_value.vcd_val()
+                return vcdw.change(var, self._sim.time, value)
 
-                self._vcd_change = f
-
-        elif issubclass(self._dtype, Vec):
-            if re.match(pattern, self.qualname):
-                var = vcdw.register_var(
-                    scope=self._parent.scope,
-                    name=self.name,
-                    var_type="reg",
-                    size=len(self._value),
-                    init=self._value.to_vcd_val(),
-                )
-
-                def f():
-                    value = self._next_value.to_vcd_val()
-                    return vcdw.change(var, self._sim.time, value)
-
-                self._vcd_change = f
+            self._vcd_change = change
 
     def is_neg(self) -> bool:
         """Return True when bit is stable 0 => 0."""
