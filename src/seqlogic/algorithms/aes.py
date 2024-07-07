@@ -150,7 +150,7 @@ def xtime(b: Byte, n: int) -> Byte:
     return b
 
 
-def _rowxcol(row: Bits[4, 4], col: Word) -> Bits:
+def rowxcol(row: Bits[4, 4], col: Word) -> Bits:
     """Multiply one row and one column."""
     y = "8h00"
     for i in range(4):
@@ -161,9 +161,9 @@ def _rowxcol(row: Bits[4, 4], col: Word) -> Bits:
     return y
 
 
-def _multiply(a: Matrix, col: Word) -> Bits:
+def matmul(a: Matrix, col: Word) -> Bits:
     """Multiply a matrix by one column."""
-    return stack(*[_rowxcol(a[c], col.reshape(Word.shape)) for c in range(NB)])
+    return stack(*[rowxcol(a[c], col) for c in range(NB)])
 
 
 def mix_columns(state: State) -> State:
@@ -172,7 +172,7 @@ def mix_columns(state: State) -> State:
     Transformation in the Cipher that takes all of the columns of the State and
     mixes their data (independently of one another) to produce new columns.
     """
-    return stack(*[_multiply(MTXA, state[c]) for c in range(NB)])
+    return stack(*[matmul(MTXA, state[c].reshape(Word.shape)) for c in range(NB)])
 
 
 def inv_mix_columns(state: State) -> State:
@@ -180,7 +180,7 @@ def inv_mix_columns(state: State) -> State:
 
     Transformation in the Inverse Cipher that is the inverse of MixColumns().
     """
-    return stack(*[_multiply(INV_MTXA, state[c]) for c in range(NB)])
+    return stack(*[matmul(INV_MTXA, state[c].reshape(Word.shape)) for c in range(NB)])
 
 
 def sub_bytes(state: State) -> State:
