@@ -11,10 +11,9 @@ See https://csrc.nist.gov/pubs/fips/197/final for details.
 # pyright: reportOperatorIssue=false
 # pyright: reportReturnType=false
 
-from collections import deque
 
-from ..bits import Bits, stack
-from ..vec import rep, uint2vec
+from ..bits import Bits, bits, stack
+from ..vec import rep
 
 NB = 4
 
@@ -22,97 +21,145 @@ Byte = Bits[8]
 Text = Bits[4 * 32]
 
 # Nk = {4, 6, 8}
-Key = Bits[4, 32] | Bits[6, 32] | Bits[8, 32]
+Key = Bits[4, 4, 8] | Bits[6, 4, 8] | Bits[8, 4, 8]
 # Nr = {10, 12, 14}
-RoundKeys = Bits[11, 4, 32] | Bits[13, 4, 32] | Bits[15, 4, 32]
+RoundKeys = Bits[11, 4, 4, 8] | Bits[13, 4, 4, 8] | Bits[15, 4, 4, 8]
 
 Word = Bits[4, 8]
-State = Bits[4, 32]
+State = Bits[4, 4, 8]
 Matrix = Bits[4, 4, 4]
+MatrixRow = Bits[4, 4]
 
 
 # fmt: off
-_SBOX = [
-    0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
-    0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
-    0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
-    0x04, 0xC7, 0x23, 0xC3, 0x18, 0x96, 0x05, 0x9A, 0x07, 0x12, 0x80, 0xE2, 0xEB, 0x27, 0xB2, 0x75,
-    0x09, 0x83, 0x2C, 0x1A, 0x1B, 0x6E, 0x5A, 0xA0, 0x52, 0x3B, 0xD6, 0xB3, 0x29, 0xE3, 0x2F, 0x84,
-    0x53, 0xD1, 0x00, 0xED, 0x20, 0xFC, 0xB1, 0x5B, 0x6A, 0xCB, 0xBE, 0x39, 0x4A, 0x4C, 0x58, 0xCF,
-    0xD0, 0xEF, 0xAA, 0xFB, 0x43, 0x4D, 0x33, 0x85, 0x45, 0xF9, 0x02, 0x7F, 0x50, 0x3C, 0x9F, 0xA8,
-    0x51, 0xA3, 0x40, 0x8F, 0x92, 0x9D, 0x38, 0xF5, 0xBC, 0xB6, 0xDA, 0x21, 0x10, 0xFF, 0xF3, 0xD2,
-    0xCD, 0x0C, 0x13, 0xEC, 0x5F, 0x97, 0x44, 0x17, 0xC4, 0xA7, 0x7E, 0x3D, 0x64, 0x5D, 0x19, 0x73,
-    0x60, 0x81, 0x4F, 0xDC, 0x22, 0x2A, 0x90, 0x88, 0x46, 0xEE, 0xB8, 0x14, 0xDE, 0x5E, 0x0B, 0xDB,
-    0xE0, 0x32, 0x3A, 0x0A, 0x49, 0x06, 0x24, 0x5C, 0xC2, 0xD3, 0xAC, 0x62, 0x91, 0x95, 0xE4, 0x79,
-    0xE7, 0xC8, 0x37, 0x6D, 0x8D, 0xD5, 0x4E, 0xA9, 0x6C, 0x56, 0xF4, 0xEA, 0x65, 0x7A, 0xAE, 0x08,
-    0xBA, 0x78, 0x25, 0x2E, 0x1C, 0xA6, 0xB4, 0xC6, 0xE8, 0xDD, 0x74, 0x1F, 0x4B, 0xBD, 0x8B, 0x8A,
-    0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
-    0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
-    0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16,
+SBOX = bits([
+    "8h63", "8h7C", "8h77", "8h7B", "8hF2", "8h6B", "8h6F", "8hC5",
+    "8h30", "8h01", "8h67", "8h2B", "8hFE", "8hD7", "8hAB", "8h76",
+    "8hCA", "8h82", "8hC9", "8h7D", "8hFA", "8h59", "8h47", "8hF0",
+    "8hAD", "8hD4", "8hA2", "8hAF", "8h9C", "8hA4", "8h72", "8hC0",
+    "8hB7", "8hFD", "8h93", "8h26", "8h36", "8h3F", "8hF7", "8hCC",
+    "8h34", "8hA5", "8hE5", "8hF1", "8h71", "8hD8", "8h31", "8h15",
+    "8h04", "8hC7", "8h23", "8hC3", "8h18", "8h96", "8h05", "8h9A",
+    "8h07", "8h12", "8h80", "8hE2", "8hEB", "8h27", "8hB2", "8h75",
+
+    "8h09", "8h83", "8h2C", "8h1A", "8h1B", "8h6E", "8h5A", "8hA0",
+    "8h52", "8h3B", "8hD6", "8hB3", "8h29", "8hE3", "8h2F", "8h84",
+    "8h53", "8hD1", "8h00", "8hED", "8h20", "8hFC", "8hB1", "8h5B",
+    "8h6A", "8hCB", "8hBE", "8h39", "8h4A", "8h4C", "8h58", "8hCF",
+    "8hD0", "8hEF", "8hAA", "8hFB", "8h43", "8h4D", "8h33", "8h85",
+    "8h45", "8hF9", "8h02", "8h7F", "8h50", "8h3C", "8h9F", "8hA8",
+    "8h51", "8hA3", "8h40", "8h8F", "8h92", "8h9D", "8h38", "8hF5",
+    "8hBC", "8hB6", "8hDA", "8h21", "8h10", "8hFF", "8hF3", "8hD2",
+
+    "8hCD", "8h0C", "8h13", "8hEC", "8h5F", "8h97", "8h44", "8h17",
+    "8hC4", "8hA7", "8h7E", "8h3D", "8h64", "8h5D", "8h19", "8h73",
+    "8h60", "8h81", "8h4F", "8hDC", "8h22", "8h2A", "8h90", "8h88",
+    "8h46", "8hEE", "8hB8", "8h14", "8hDE", "8h5E", "8h0B", "8hDB",
+    "8hE0", "8h32", "8h3A", "8h0A", "8h49", "8h06", "8h24", "8h5C",
+    "8hC2", "8hD3", "8hAC", "8h62", "8h91", "8h95", "8hE4", "8h79",
+    "8hE7", "8hC8", "8h37", "8h6D", "8h8D", "8hD5", "8h4E", "8hA9",
+    "8h6C", "8h56", "8hF4", "8hEA", "8h65", "8h7A", "8hAE", "8h08",
+
+    "8hBA", "8h78", "8h25", "8h2E", "8h1C", "8hA6", "8hB4", "8hC6",
+    "8hE8", "8hDD", "8h74", "8h1F", "8h4B", "8hBD", "8h8B", "8h8A",
+    "8h70", "8h3E", "8hB5", "8h66", "8h48", "8h03", "8hF6", "8h0E",
+    "8h61", "8h35", "8h57", "8hB9", "8h86", "8hC1", "8h1D", "8h9E",
+    "8hE1", "8hF8", "8h98", "8h11", "8h69", "8hD9", "8h8E", "8h94",
+    "8h9B", "8h1E", "8h87", "8hE9", "8hCE", "8h55", "8h28", "8hDF",
+    "8h8C", "8hA1", "8h89", "8h0D", "8hBF", "8hE6", "8h42", "8h68",
+    "8h41", "8h99", "8h2D", "8h0F", "8hB0", "8h54", "8hBB", "8h16",
+])
+
+INV_SBOX = [
+    "8h52", "8h09", "8h6A", "8hD5", "8h30", "8h36", "8hA5", "8h38",
+    "8hBF", "8h40", "8hA3", "8h9E", "8h81", "8hF3", "8hD7", "8hFB",
+    "8h7C", "8hE3", "8h39", "8h82", "8h9B", "8h2F", "8hFF", "8h87",
+    "8h34", "8h8E", "8h43", "8h44", "8hC4", "8hDE", "8hE9", "8hCB",
+    "8h54", "8h7B", "8h94", "8h32", "8hA6", "8hC2", "8h23", "8h3D",
+    "8hEE", "8h4C", "8h95", "8h0B", "8h42", "8hFA", "8hC3", "8h4E",
+    "8h08", "8h2E", "8hA1", "8h66", "8h28", "8hD9", "8h24", "8hB2",
+    "8h76", "8h5B", "8hA2", "8h49", "8h6D", "8h8B", "8hD1", "8h25",
+
+    "8h72", "8hF8", "8hF6", "8h64", "8h86", "8h68", "8h98", "8h16",
+    "8hD4", "8hA4", "8h5C", "8hCC", "8h5D", "8h65", "8hB6", "8h92",
+    "8h6C", "8h70", "8h48", "8h50", "8hFD", "8hED", "8hB9", "8hDA",
+    "8h5E", "8h15", "8h46", "8h57", "8hA7", "8h8D", "8h9D", "8h84",
+    "8h90", "8hD8", "8hAB", "8h00", "8h8C", "8hBC", "8hD3", "8h0A",
+    "8hF7", "8hE4", "8h58", "8h05", "8hB8", "8hB3", "8h45", "8h06",
+    "8hD0", "8h2C", "8h1E", "8h8F", "8hCA", "8h3F", "8h0F", "8h02",
+    "8hC1", "8hAF", "8hBD", "8h03", "8h01", "8h13", "8h8A", "8h6B",
+
+    "8h3A", "8h91", "8h11", "8h41", "8h4F", "8h67", "8hDC", "8hEA",
+    "8h97", "8hF2", "8hCF", "8hCE", "8hF0", "8hB4", "8hE6", "8h73",
+    "8h96", "8hAC", "8h74", "8h22", "8hE7", "8hAD", "8h35", "8h85",
+    "8hE2", "8hF9", "8h37", "8hE8", "8h1C", "8h75", "8hDF", "8h6E",
+    "8h47", "8hF1", "8h1A", "8h71", "8h1D", "8h29", "8hC5", "8h89",
+    "8h6F", "8hB7", "8h62", "8h0E", "8hAA", "8h18", "8hBE", "8h1B",
+    "8hFC", "8h56", "8h3E", "8h4B", "8hC6", "8hD2", "8h79", "8h20",
+    "8h9A", "8hDB", "8hC0", "8hFE", "8h78", "8hCD", "8h5A", "8hF4",
+
+    "8h1F", "8hDD", "8hA8", "8h33", "8h88", "8h07", "8hC7", "8h31",
+    "8hB1", "8h12", "8h10", "8h59", "8h27", "8h80", "8hEC", "8h5F",
+    "8h60", "8h51", "8h7F", "8hA9", "8h19", "8hB5", "8h4A", "8h0D",
+    "8h2D", "8hE5", "8h7A", "8h9F", "8h93", "8hC9", "8h9C", "8hEF",
+    "8hA0", "8hE0", "8h3B", "8h4D", "8hAE", "8h2A", "8hF5", "8hB0",
+    "8hC8", "8hEB", "8hBB", "8h3C", "8h83", "8h53", "8h99", "8h61",
+    "8h17", "8h2B", "8h04", "8h7E", "8hBA", "8h77", "8hD6", "8h26",
+    "8hE1", "8h69", "8h14", "8h63", "8h55", "8h21", "8h0C", "8h7D",
 ]
 
-_INV_SBOX = [
-    0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38, 0xBF, 0x40, 0xA3, 0x9E, 0x81, 0xF3, 0xD7, 0xFB,
-    0x7C, 0xE3, 0x39, 0x82, 0x9B, 0x2F, 0xFF, 0x87, 0x34, 0x8E, 0x43, 0x44, 0xC4, 0xDE, 0xE9, 0xCB,
-    0x54, 0x7B, 0x94, 0x32, 0xA6, 0xC2, 0x23, 0x3D, 0xEE, 0x4C, 0x95, 0x0B, 0x42, 0xFA, 0xC3, 0x4E,
-    0x08, 0x2E, 0xA1, 0x66, 0x28, 0xD9, 0x24, 0xB2, 0x76, 0x5B, 0xA2, 0x49, 0x6D, 0x8B, 0xD1, 0x25,
-    0x72, 0xF8, 0xF6, 0x64, 0x86, 0x68, 0x98, 0x16, 0xD4, 0xA4, 0x5C, 0xCC, 0x5D, 0x65, 0xB6, 0x92,
-    0x6C, 0x70, 0x48, 0x50, 0xFD, 0xED, 0xB9, 0xDA, 0x5E, 0x15, 0x46, 0x57, 0xA7, 0x8D, 0x9D, 0x84,
-    0x90, 0xD8, 0xAB, 0x00, 0x8C, 0xBC, 0xD3, 0x0A, 0xF7, 0xE4, 0x58, 0x05, 0xB8, 0xB3, 0x45, 0x06,
-    0xD0, 0x2C, 0x1E, 0x8F, 0xCA, 0x3F, 0x0F, 0x02, 0xC1, 0xAF, 0xBD, 0x03, 0x01, 0x13, 0x8A, 0x6B,
-    0x3A, 0x91, 0x11, 0x41, 0x4F, 0x67, 0xDC, 0xEA, 0x97, 0xF2, 0xCF, 0xCE, 0xF0, 0xB4, 0xE6, 0x73,
-    0x96, 0xAC, 0x74, 0x22, 0xE7, 0xAD, 0x35, 0x85, 0xE2, 0xF9, 0x37, 0xE8, 0x1C, 0x75, 0xDF, 0x6E,
-    0x47, 0xF1, 0x1A, 0x71, 0x1D, 0x29, 0xC5, 0x89, 0x6F, 0xB7, 0x62, 0x0E, 0xAA, 0x18, 0xBE, 0x1B,
-    0xFC, 0x56, 0x3E, 0x4B, 0xC6, 0xD2, 0x79, 0x20, 0x9A, 0xDB, 0xC0, 0xFE, 0x78, 0xCD, 0x5A, 0xF4,
-    0x1F, 0xDD, 0xA8, 0x33, 0x88, 0x07, 0xC7, 0x31, 0xB1, 0x12, 0x10, 0x59, 0x27, 0x80, 0xEC, 0x5F,
-    0x60, 0x51, 0x7F, 0xA9, 0x19, 0xB5, 0x4A, 0x0D, 0x2D, 0xE5, 0x7A, 0x9F, 0x93, 0xC9, 0x9C, 0xEF,
-    0xA0, 0xE0, 0x3B, 0x4D, 0xAE, 0x2A, 0xF5, 0xB0, 0xC8, 0xEB, 0xBB, 0x3C, 0x83, 0x53, 0x99, 0x61,
-    0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D,
-]
+RCON = bits([
+    "8h8D", "8h01", "8h02", "8h04", "8h08", "8h10", "8h20", "8h40",
+    "8h80", "8h1B", "8h36", "8h6C", "8hD8", "8hAB", "8h4D", "8h9A",
+    "8h2F", "8h5E", "8hBC", "8h63", "8hC6", "8h97", "8h35", "8h6A",
+    "8hD4", "8hB3", "8h7D", "8hFA", "8hEF", "8hC5", "8h91", "8h39",
+    "8h72", "8hE4", "8hD3", "8hBD", "8h61", "8hC2", "8h9F", "8h25",
+    "8h4A", "8h94", "8h33", "8h66", "8hCC", "8h83", "8h1D", "8h3A",
+    "8h74", "8hE8", "8hCB", "8h8D", "8h01", "8h02", "8h04", "8h08",
+    "8h10", "8h20", "8h40", "8h80", "8h1B", "8h36", "8h6C", "8hD8",
 
-_RCON = [
-    0x8D, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36, 0x6C, 0xD8, 0xAB, 0x4D, 0x9A,
-    0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A, 0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39,
-    0x72, 0xE4, 0xD3, 0xBD, 0x61, 0xC2, 0x9F, 0x25, 0x4A, 0x94, 0x33, 0x66, 0xCC, 0x83, 0x1D, 0x3A,
-    0x74, 0xE8, 0xCB, 0x8D, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36, 0x6C, 0xD8,
-    0xAB, 0x4D, 0x9A, 0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A, 0xD4, 0xB3, 0x7D, 0xFA, 0xEF,
-    0xC5, 0x91, 0x39, 0x72, 0xE4, 0xD3, 0xBD, 0x61, 0xC2, 0x9F, 0x25, 0x4A, 0x94, 0x33, 0x66, 0xCC,
-    0x83, 0x1D, 0x3A, 0x74, 0xE8, 0xCB, 0x8D, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B,
-    0x36, 0x6C, 0xD8, 0xAB, 0x4D, 0x9A, 0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A, 0xD4, 0xB3,
-    0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39, 0x72, 0xE4, 0xD3, 0xBD, 0x61, 0xC2, 0x9F, 0x25, 0x4A, 0x94,
-    0x33, 0x66, 0xCC, 0x83, 0x1D, 0x3A, 0x74, 0xE8, 0xCB, 0x8D, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20,
-    0x40, 0x80, 0x1B, 0x36, 0x6C, 0xD8, 0xAB, 0x4D, 0x9A, 0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35,
-    0x6A, 0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39, 0x72, 0xE4, 0xD3, 0xBD, 0x61, 0xC2, 0x9F,
-    0x25, 0x4A, 0x94, 0x33, 0x66, 0xCC, 0x83, 0x1D, 0x3A, 0x74, 0xE8, 0xCB, 0x8D, 0x01, 0x02, 0x04,
-    0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36, 0x6C, 0xD8, 0xAB, 0x4D, 0x9A, 0x2F, 0x5E, 0xBC, 0x63,
-    0xC6, 0x97, 0x35, 0x6A, 0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91, 0x39, 0x72, 0xE4, 0xD3, 0xBD,
-    0x61, 0xC2, 0x9F, 0x25, 0x4A, 0x94, 0x33, 0x66, 0xCC, 0x83, 0x1D, 0x3A, 0x74, 0xE8, 0xCB,
-]
+    "8hAB", "8h4D", "8h9A", "8h2F", "8h5E", "8hBC", "8h63", "8hC6",
+    "8h97", "8h35", "8h6A", "8hD4", "8hB3", "8h7D", "8hFA", "8hEF",
+    "8hC5", "8h91", "8h39", "8h72", "8hE4", "8hD3", "8hBD", "8h61",
+    "8hC2", "8h9F", "8h25", "8h4A", "8h94", "8h33", "8h66", "8hCC",
+    "8h83", "8h1D", "8h3A", "8h74", "8hE8", "8hCB", "8h8D", "8h01",
+    "8h02", "8h04", "8h08", "8h10", "8h20", "8h40", "8h80", "8h1B",
+    "8h36", "8h6C", "8hD8", "8hAB", "8h4D", "8h9A", "8h2F", "8h5E",
+    "8hBC", "8h63", "8hC6", "8h97", "8h35", "8h6A", "8hD4", "8hB3",
 
-_MTXA = [
-    0x2311,
-    0x1231,
-    0x1123,
-    0x3112,
-]
+    "8h7D", "8hFA", "8hEF", "8hC5", "8h91", "8h39", "8h72", "8hE4",
+    "8hD3", "8hBD", "8h61", "8hC2", "8h9F", "8h25", "8h4A", "8h94",
+    "8h33", "8h66", "8hCC", "8h83", "8h1D", "8h3A", "8h74", "8hE8",
+    "8hCB", "8h8D", "8h01", "8h02", "8h04", "8h08", "8h10", "8h20",
+    "8h40", "8h80", "8h1B", "8h36", "8h6C", "8hD8", "8hAB", "8h4D",
+    "8h9A", "8h2F", "8h5E", "8hBC", "8h63", "8hC6", "8h97", "8h35",
+    "8h6A", "8hD4", "8hB3", "8h7D", "8hFA", "8hEF", "8hC5", "8h91",
+    "8h39", "8h72", "8hE4", "8hD3", "8hBD", "8h61", "8hC2", "8h9F",
 
-_INV_MTXA = [
-    0xEBD9,
-    0x9EBD,
-    0xD9EB,
-    0xBD9E,
-]
+    "8h25", "8h4A", "8h94", "8h33", "8h66", "8hCC", "8h83", "8h1D",
+    "8h3A", "8h74", "8hE8", "8hCB", "8h8D", "8h01", "8h02", "8h04",
+    "8h08", "8h10", "8h20", "8h40", "8h80", "8h1B", "8h36", "8h6C",
+    "8hD8", "8hAB", "8h4D", "8h9A", "8h2F", "8h5E", "8hBC", "8h63",
+    "8hC6", "8h97", "8h35", "8h6A", "8hD4", "8hB3", "8h7D", "8hFA",
+    "8hEF", "8hC5", "8h91", "8h39", "8h72", "8hE4", "8hD3", "8hBD",
+    "8h61", "8hC2", "8h9F", "8h25", "8h4A", "8h94", "8h33", "8h66",
+    "8hCC", "8h83", "8h1D", "8h3A", "8h74", "8hE8", "8hCB",
+])
+
+MTXA = bits([
+    ["4h1", "4h1", "4h3", "4h2"],
+    ["4h1", "4h3", "4h2", "4h1"],
+    ["4h3", "4h2", "4h1", "4h1"],
+    ["4h2", "4h1", "4h1", "4h3"],
+])
+
+INV_MTXA = bits([
+    ["4h9", "4hD", "4hB", "4hE"],
+    ["4hD", "4hB", "4hE", "4h9"],
+    ["4hB", "4hE", "4h9", "4hD"],
+    ["4hE", "4h9", "4hD", "4hB"],
+])
 # fmt: on
-
-
-# Convert raw data to bits
-SBOX = stack(*[uint2vec(x, 8) for x in _SBOX])
-INV_SBOX = stack(*[uint2vec(x, 8) for x in _INV_SBOX])
-
-RCON = stack(*[uint2vec(x, 8) for x in _RCON])
-
-MTXA = stack(*[uint2vec(x, 16) for x in _MTXA]).reshape(Matrix.shape)
-INV_MTXA = stack(*[uint2vec(x, 16) for x in _INV_MTXA]).reshape(Matrix.shape)
 
 
 def sub_word(w: Word) -> Word:
@@ -138,9 +185,8 @@ def rot_word(w: Word) -> Word:
     Function used in the Key Expansion routine that takes a four-byte word and
     performs a cyclic permutation.
     """
-    bs = deque(w)
-    bs.rotate(-1)
-    return stack(*bs)
+    b0, b1, b2, b3 = w
+    return stack(b1, b2, b3, b0)
 
 
 def xtime(b: Byte, n: int) -> Byte:
@@ -150,18 +196,22 @@ def xtime(b: Byte, n: int) -> Byte:
     return b
 
 
-def rowxcol(row: Bits[4, 4], col: Word) -> Bits:
+def rowxcol(row: MatrixRow, col: Word) -> Word:
     """Multiply one row and one column."""
-    y = "8h00"
+    y = Byte.zeros()
     for i in range(4):
         for j in range(4):
-            # TODO(cjdrake): Fix ValueError
-            if row[i, j]:
-                y ^= xtime(col[3 - i], j)
+            match row[i, j]:
+                case "1b0":
+                    pass
+                case "1b1":
+                    y ^= xtime(col[3 - i], j)
+                case _:
+                    y = y.xprop(row[i, j])
     return y
 
 
-def matmul(a: Matrix, col: Word) -> Bits:
+def multiply(a: Matrix, col: Word) -> Word:
     """Multiply a matrix by one column."""
     return stack(*[rowxcol(a[c], col) for c in range(NB)])
 
@@ -172,7 +222,7 @@ def mix_columns(state: State) -> State:
     Transformation in the Cipher that takes all of the columns of the State and
     mixes their data (independently of one another) to produce new columns.
     """
-    return stack(*[matmul(MTXA, state[c].reshape(Word.shape)) for c in range(NB)])
+    return stack(*[multiply(MTXA, state[c]) for c in range(NB)])
 
 
 def inv_mix_columns(state: State) -> State:
@@ -180,7 +230,7 @@ def inv_mix_columns(state: State) -> State:
 
     Transformation in the Inverse Cipher that is the inverse of MixColumns().
     """
-    return stack(*[matmul(INV_MTXA, state[c].reshape(Word.shape)) for c in range(NB)])
+    return stack(*[multiply(INV_MTXA, state[c]) for c in range(NB)])
 
 
 def sub_bytes(state: State) -> State:
@@ -190,8 +240,7 @@ def sub_bytes(state: State) -> State:
     byte substitution table (S-box) that operates on each of the State bytes
     independently.
     """
-    ws = [sub_word(state[c].reshape(Word.shape)) for c in range(NB)]
-    return stack(*ws)
+    return stack(*[sub_word(state[c]) for c in range(NB)])
 
 
 def inv_sub_bytes(state: State) -> State:
@@ -199,8 +248,7 @@ def inv_sub_bytes(state: State) -> State:
 
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
     """
-    ws = [inv_sub_word(state[c].reshape(Word.shape)) for c in range(NB)]
-    return stack(*ws)
+    return stack(*[inv_sub_word(state[c]) for c in range(NB)])
 
 
 def shift_rows(state: State) -> State:
@@ -209,16 +257,14 @@ def shift_rows(state: State) -> State:
     Transformation in the Cipher that processes the State by cyclically shifting
     the last three rows of the State by different offsets.
     """
-    rows = state.reshape((NB, 4, 8))
-
-    bs = []
-    cs = deque(range(NB))
-    for _ in range(NB):
-        for r in range(4):
-            bs.append(rows[cs[r], r])
-        cs.rotate(-1)
-
-    return stack(*bs).reshape(State.shape)
+    return bits(
+        [
+            [state[0, 0], state[1, 1], state[2, 2], state[3, 3]],
+            [state[1, 0], state[2, 1], state[3, 2], state[0, 3]],
+            [state[2, 0], state[3, 1], state[0, 2], state[1, 3]],
+            [state[3, 0], state[0, 1], state[1, 2], state[2, 3]],
+        ]
+    )
 
 
 def inv_shift_rows(state: State) -> State:
@@ -226,16 +272,14 @@ def inv_shift_rows(state: State) -> State:
 
     Transformation in the Inverse Cipher that is the inverse of ShiftRows().
     """
-    rows = state.reshape((NB, 4, 8))
-
-    bs = []
-    cs = deque(reversed(range(NB)))
-    for _ in range(NB):
-        cs.rotate(1)
-        for r in range(4):
-            bs.append(rows[cs[r], r])
-
-    return stack(*bs).reshape(State.shape)
+    return bits(
+        [
+            [state[0, 0], state[3, 1], state[2, 2], state[1, 3]],
+            [state[1, 0], state[0, 1], state[3, 2], state[2, 3]],
+            [state[2, 0], state[1, 1], state[0, 2], state[3, 3]],
+            [state[3, 0], state[2, 1], state[1, 2], state[0, 3]],
+        ]
+    )
 
 
 def key_expansion(key: Key) -> RoundKeys:
@@ -256,7 +300,8 @@ def key_expansion(key: Key) -> RoundKeys:
             temp = sub_word(temp)
         ws.append(ws[i - nk] ^ temp)
 
-    return stack(*ws).reshape(((nr + 1), 4, 32))
+    # Convert {44, 52, 60} => {(10+1,4), (12+1,4), (14+1,4)}
+    return stack(*ws).reshape(((nr + 1), 4, 4, 8))
 
 
 def cipher(pt: Text, rkeys: RoundKeys) -> Text:
@@ -284,7 +329,8 @@ def cipher(pt: Text, rkeys: RoundKeys) -> Text:
     state = shift_rows(state)
     state ^= rkeys[nr]
 
-    return state.reshape(Text.shape)
+    ct = state.reshape(Text.shape)
+    return ct
 
 
 def inv_cipher(ct: Text, rkeys: RoundKeys) -> Text:
@@ -312,7 +358,8 @@ def inv_cipher(ct: Text, rkeys: RoundKeys) -> Text:
     state = inv_sub_bytes(state)
     state ^= rkeys[0]
 
-    return state.reshape(Text.shape)
+    pt = state.reshape(Text.shape)
+    return pt
 
 
 def encrypt(pt: Text, key: Key) -> Text:
