@@ -10,6 +10,7 @@
 # pyright: reportArgumentType=false
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportCallIssue=false
+# pyright: reportReturnType=false
 
 from __future__ import annotations
 
@@ -67,11 +68,11 @@ _VecN = {}
 
 def _vec_n(n: int) -> type[Vec]:
     """Return Vec[n] type."""
-    if n < 0:
-        raise ValueError(f"Expected n ≥ 0, got {n}")
-    if (cls := _VecN.get(n)) is None:
+    try:
+        return _VecN[n]
+    except KeyError:
         _VecN[n] = cls = type(f"Vec[{n}]", (Vec,), {"_size": n})
-    return cls
+        return cls
 
 
 class Vec:
@@ -87,7 +88,13 @@ class Vec:
     _size: int
 
     def __class_getitem__(cls, n: int) -> type[Vec]:
-        return _vec_n(n)
+        match n:
+            case int():
+                if n < 0:
+                    raise ValueError(f"Expected n ≥ 0, got {n}")
+                return _vec_n(n)
+            case _:
+                raise TypeError("Expected n to be an int")
 
     @classproperty
     def size(cls) -> int:  # pylint: disable=no-self-argument
@@ -1730,33 +1737,27 @@ class VecUnion(metaclass=_VecUnionMeta):
 _BitsShape = {}
 
 
-def _bits(shape: int | tuple[int, ...] | None) -> type[Bits] | type[Vec]:
-    if shape is None:
-        return Vec[0]
-    if isinstance(shape, tuple) and len(shape) == 0:
-        return Vec[1]
-    if isinstance(shape, tuple) and len(shape) == 1:
-        return Vec[shape[0]]
-    if isinstance(shape, int):
-        return Vec[shape]
+def _bits(shape: int | tuple[int, ...] | None) -> type[Bits]:
+    try:
+        return _BitsShape[shape]
+    except KeyError:
+        _BitsShape[shape] = cls = _bits_shape(shape)
+        return cls
 
-    for i, n in enumerate(shape):
-        if n < 2:
-            raise ValueError(f"Expected dim {i} len > 1, got {n}")
 
+def _bits_shape(shape: tuple[int, ...]) -> type[Bits]:
     name = f'Bits[{",".join(str(n) for n in shape)}]'
     size = math.prod(shape)
     ndim = len(shape)
     vec_n = Vec[size]
-    if (bits_shape := _BitsShape.get(shape)) is None:
-        _BitsShape[shape] = bits_shape = type(name, (vec_n,), {"_shape": shape})
+    cls = type(name, (vec_n,), {"_shape": shape})
 
     # Class properties
-    bits_shape.size = classproperty(lambda _: size)
-    bits_shape.shape = classproperty(lambda _: shape)
+    cls.size = classproperty(lambda _: size)
+    cls.shape = classproperty(lambda _: shape)
 
     # Override Vec.__len__ method
-    bits_shape.__len__ = lambda _: shape[0]
+    cls.__len__ = lambda _: shape[0]
 
     # Override Vec.__getitem__ method
     def _getitem(self, key: int | slice | tuple[int | slice, ...]) -> Vec | Bits:
@@ -1769,20 +1770,19 @@ def _bits(shape: int | tuple[int, ...] | None) -> type[Bits] | type[Vec]:
         s = "Expected key to be int, slice, or tuple[int | slice, ...]"
         raise TypeError(s)
 
-    bits_shape.__getitem__ = _getitem
+    cls.__getitem__ = _getitem
 
     # Override Vec.__iter__ method
     def _iter(self) -> Generator[Bits, None, None]:
         for i in range(shape[0]):
             yield self[i]
 
-    bits_shape.__iter__ = _iter
+    cls.__iter__ = _iter
 
     def _rstr(indent: str, b: Bits) -> str:
         # 1-D Vector
         if len(b.shape) == 1:
             return str(b)
-
         # 2-D Matrix
         if len(b.shape) == 2:
             sep = ", "
@@ -1792,7 +1792,6 @@ def _bits(shape: int | tuple[int, ...] | None) -> type[Bits] | type[Vec]:
         # N-D
         else:
             sep = ",\n\n" + indent
-
         f = partial(_rstr, indent + " ")
         return "[" + sep.join(map(f, b)) + "]"
 
@@ -1801,16 +1800,16 @@ def _bits(shape: int | tuple[int, ...] | None) -> type[Bits] | type[Vec]:
         indent = " " * len(prefix) + "  "
         return f"{prefix}({_rstr(indent, self)})"
 
-    bits_shape.__str__ = _str
+    cls.__str__ = _str
 
     # Bits.flatten
-    bits_shape.flatten = lambda self: vec_n(self._data[0], self._data[1])
+    cls.flatten = lambda self: vec_n(self._data[0], self._data[1])
 
     # Bits.flat
     def _flat(self) -> Generator[Vec[1], None, None]:
         yield from self.flatten()
 
-    bits_shape.flat = property(fget=_flat)
+    cls.flat = property(fget=_flat)
 
     # Protected methods
     def _norm_key(keys: list[int | slice]) -> tuple[tuple[int, int], ...]:
@@ -1835,12 +1834,29 @@ def _bits(shape: int | tuple[int, ...] | None) -> type[Bits] | type[Vec]:
         return tuple(f(n, key) for n, key in zip(shape, keys))
 
     # Return Bits type
-    return bits_shape
+    return cls
 
 
 class Bits:
-    def __class_getitem__(cls, shape: int | tuple[int, ...]) -> type[Bits] | type[Vec]:
-        return _bits(shape)
+    def __class_getitem__(cls, shape: None | int | tuple[int, ...]) -> type[Bits] | type[Vec]:
+        match shape:
+            case None:
+                return Vec[0]
+            case int() as n:
+                return Vec[n]
+            case []:
+                return Vec[1]
+            case [int() as n]:
+                return Vec[n]
+            case [int(), *_]:
+                for i, n in enumerate(shape):
+                    if not isinstance(n, int):
+                        raise TypeError("Expected n to be int")
+                    if n < 2:
+                        raise ValueError(f"Expected dim {i} n > 1, got {n}")
+                return _bits(shape)
+            case _:
+                raise TypeError("Expected valid shape")
 
 
 def _sel(b: Bits, key: tuple[tuple[int, int], ...]) -> Vec | Bits:
