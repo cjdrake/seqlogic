@@ -16,8 +16,7 @@ from ..vec import Bits, bits, rep, stack
 
 NB = 4
 
-Byte = Bits[8]
-Text = Bits[4 * 32]
+Text = Bits[4 * 4 * 8]
 
 # Nk = {4, 6, 8}
 Key4 = Bits[4, 4, 8]
@@ -28,6 +27,7 @@ Key = Key4 | Key6 | Key8
 # Nr = {10, 12, 14}
 RoundKeys = Bits[11, 4, 4, 8] | Bits[13, 4, 4, 8] | Bits[15, 4, 4, 8]
 
+Byte = Bits[8]
 Word = Bits[4, 8]
 State = Bits[4, 4, 8]
 Matrix = Bits[4, 4, 4]
