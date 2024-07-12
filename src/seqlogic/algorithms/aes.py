@@ -12,8 +12,7 @@ See https://csrc.nist.gov/pubs/fips/197/final for details.
 # pyright: reportReturnType=false
 
 
-from ..bits import Bits, bits, stack
-from ..vec import rep
+from ..vec import Bits, bits, rep, stack
 
 NB = 4
 

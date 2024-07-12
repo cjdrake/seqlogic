@@ -10,9 +10,8 @@
 
 import pytest
 
-from seqlogic.bits import Bits, bits, stack
 from seqlogic.lbconst import _W, _X, _0, _1
-from seqlogic.vec import Vec, add, and_, nand, nor, or_, sub, vec, xnor, xor
+from seqlogic.vec import Bits, Vec, add, and_, bits, nand, nor, or_, stack, sub, vec, xnor, xor
 
 E = Vec[0](*_X)
 
