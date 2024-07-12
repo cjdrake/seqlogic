@@ -171,7 +171,8 @@ class Vec:
 
     def __iter__(self) -> Generator[Vec[1], None, None]:
         for i in range(self.size):
-            yield self.__getitem__(i)
+            d0, d1 = self._get_item(i)
+            yield Vec[1](d0, d1)
 
     def __str__(self) -> str:
         if self.size == 0:
