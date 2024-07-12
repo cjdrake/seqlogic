@@ -20,7 +20,11 @@ Byte = Bits[8]
 Text = Bits[4 * 32]
 
 # Nk = {4, 6, 8}
-Key = Bits[4, 4, 8] | Bits[6, 4, 8] | Bits[8, 4, 8]
+Key4 = Bits[4, 4, 8]
+Key6 = Bits[6, 4, 8]
+Key8 = Bits[8, 4, 8]
+Key = Key4 | Key6 | Key8
+
 # Nr = {10, 12, 14}
 RoundKeys = Bits[11, 4, 4, 8] | Bits[13, 4, 4, 8] | Bits[15, 4, 4, 8]
 
@@ -292,7 +296,7 @@ def key_expansion(key: Key) -> RoundKeys:
 
     ws = list(key)
     for i in range(nk, NB * (nr + 1)):
-        temp = ws[i - 1].reshape(Word.shape)
+        temp = ws[i - 1]
         if i % nk == 0:
             temp = sub_word(rot_word(temp)) ^ RCON[i // nk].xt(8 * 3)
         elif nk > 6 and i % nk == 4:
