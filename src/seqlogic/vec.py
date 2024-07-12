@@ -1859,11 +1859,7 @@ class Bits:
 
 
 def _sel(b: Bits, key: tuple[tuple[int, int], ...]) -> Vec | Bits:
-    (start, stop), key_r = key[0], key[1:]
     shape_r: tuple[int, ...] = b.shape[1:]
-
-    assert 0 <= start <= stop <= b.shape[0]
-
     size: int = math.prod(shape_r)
     mask = (1 << size) - 1
 
@@ -1872,10 +1868,19 @@ def _sel(b: Bits, key: tuple[tuple[int, int], ...]) -> Vec | Bits:
         d1 = (b._data[1] >> (size * i)) & mask
         return Bits[shape_r](d0, d1)
 
-    chunks = [chunk(i) for i in range(start, stop)]
+    (start, stop), key_r = key[0], key[1:]
+    assert 0 <= start <= stop <= b.shape[0]
+
     if key_r:
-        chunks = [_sel(chunk, key_r) for chunk in chunks]
-    return stack(*chunks)
+        if start == 0 and stop == b.shape[0]:
+            chunks = list(b)
+        else:
+            chunks = [chunk(i) for i in range(start, stop)]
+        return stack(*[_sel(chunk, key_r) for chunk in chunks])
+
+    if start == 0 and stop == b.shape[0]:
+        return b
+    return stack(*[chunk(i) for i in range(start, stop)])
 
 
 def _rank2(fst: Vec, rst) -> Bits:
@@ -1972,5 +1977,7 @@ def stack(*objs: Vec | Bits | int | str) -> Vec | Bits:
         d1 |= v._data[1] << size
         size += v.size
 
+    if fst.shape is None:
+        return _VecE
     shape = (len(vs),) + fst.shape
     return Bits[shape](d0, d1)
