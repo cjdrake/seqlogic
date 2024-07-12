@@ -1281,7 +1281,7 @@ def _parse_lit(lit: str) -> tuple[int, tuple[int, int]]:
                 d1 |= x[1] << i
             return size, (d0, d1)
         # Decimal
-        elif base == "d":
+        if base == "d":
             d1 = int(digits, base=10)
             dmax = _mask(size)
             if d1 > dmax:
@@ -1289,17 +1289,15 @@ def _parse_lit(lit: str) -> tuple[int, tuple[int, int]]:
                 raise ValueError(s)
             return size, (d1 ^ dmax, d1)
         # Hexadecimal
-        elif base == "h":
+        if base == "h":
             d1 = int(digits, base=16)
             dmax = _mask(size)
             if d1 > dmax:
                 s = f"Expected digits in range [0, {dmax}], got {digits}"
                 raise ValueError(s)
             return size, (d1 ^ dmax, d1)
-        else:  # pragma: no cover
-            assert False
-    else:
-        raise ValueError(f"Invalid literal: {lit}")
+        assert False  # pragma: no cover
+    raise ValueError(f"Invalid literal: {lit}")
 
 
 def _lit2vec(lit: str) -> Vec:
