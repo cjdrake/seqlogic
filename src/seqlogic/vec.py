@@ -23,6 +23,45 @@ from functools import cache, partial
 from .lbconst import _W, _X, _0, _1, from_char, to_char, to_vcd_char
 from .util import classproperty, clog2
 
+AddResult = namedtuple("AddResult", ["s", "co"])
+
+
+@cache
+def _mask(n: int) -> int:
+    """Return n bit mask."""
+    return (1 << n) - 1
+
+
+def _norm_index(n: int, index: int) -> int:
+    lo, hi = -n, n
+    if not lo <= index < hi:
+        s = f"Expected index in [{lo}, {hi}), got {index}"
+        raise IndexError(s)
+    # Normalize negative start index
+    if index < 0:
+        return index + hi
+    return index
+
+
+def _norm_slice(n: int, sl: slice) -> tuple[int, int]:
+    lo, hi = -n, n
+    if sl.step is not None:
+        raise ValueError("Slice step is not supported")
+    # Normalize start index
+    start = sl.start
+    if start is None or start < lo:
+        start = lo
+    if start < 0:
+        start += hi
+    # Normalize stop index
+    stop = sl.stop
+    if stop is None or stop > hi:
+        stop = hi
+    if stop < 0:
+        stop += hi
+    return start, stop
+
+
 _VecN = {}
 
 
@@ -33,15 +72,6 @@ def _vec_n(n: int) -> type[Vec]:
     if (cls := _VecN.get(n)) is None:
         _VecN[n] = cls = type(f"Vec[{n}]", (Vec,), {"_size": n})
     return cls
-
-
-@cache
-def _mask(n: int) -> int:
-    """Return n bit mask."""
-    return (1 << n) - 1
-
-
-AddResult = namedtuple("AddResult", ["s", "co"])
 
 
 class Vec:
@@ -121,11 +151,11 @@ class Vec:
 
     def __getitem__(self, key: int | slice) -> Vec:
         if isinstance(key, int):
-            i = self._norm_index(key)
+            i = _norm_index(self.size, key)
             d0, d1 = self._get_item(i)
             return Vec[1](d0, d1)
         if isinstance(key, slice):
-            i, j = self._norm_slice(key)
+            i, j = _norm_slice(self.size, key)
             if i == 0 and j == self.size:
                 return self
             size, (d0, d1) = self._get_items(i, j)
@@ -873,34 +903,6 @@ class Vec:
     def has_unknown(self) -> bool:
         """Return True if vec contains at least one X/DC item."""
         return bool(self._data[0] ^ self._data[1] ^ self._dmax)
-
-    def _norm_index(self, index: int) -> int:
-        lo, hi = -self.size, self.size
-        if not lo <= index < hi:
-            s = f"Expected index in [{lo}, {hi}), got {index}"
-            raise IndexError(s)
-        # Normalize negative start index
-        if index < 0:
-            return index + hi
-        return index
-
-    def _norm_slice(self, sl: slice) -> tuple[int, int]:
-        if sl.step is not None:
-            raise ValueError("Slice step is not supported")
-        lo, hi = -self.size, self.size
-        # Normalize start index
-        start = sl.start
-        if start is None or start < lo:
-            start = lo
-        if start < 0:
-            start += hi
-        # Normalize stop index
-        stop = sl.stop
-        if stop is None or stop > hi:
-            stop = hi
-        if stop < 0:
-            stop += hi
-        return start, stop
 
     def _get_item(self, i: int) -> tuple[int, int]:
         return (self._data[0] >> i) & 1, (self._data[1] >> i) & 1
@@ -1811,55 +1813,26 @@ def _bits(shape: int | tuple[int, ...] | None) -> type[Bits] | type[Vec]:
     bits_shape.flat = property(fget=_flat)
 
     # Protected methods
-    def _norm_index(index: int, i: int) -> tuple[int, int]:
-        lo, hi = -shape[i], shape[i]
-        if not lo <= index < hi:
-            s = f"Expected index in [{lo}, {hi}), got {index}"
-            raise IndexError(s)
-        # Normalize negative start index
-        if index < 0:
-            index += hi
-        return (index, index + 1)
-
-    def _norm_slice(sl: slice, i: int) -> tuple[int, int]:
-        if sl.step is not None:
-            raise ValueError("Slice step is not supported")
-        lo, hi = -shape[i], shape[i]
-        # Normalize start index
-        start = sl.start
-        if start is None or start < lo:
-            start = lo
-        if start < 0:
-            start += hi
-        # Normalize stop index
-        stop = sl.stop
-        if stop is None or stop > hi:
-            stop = hi
-        if stop < 0:
-            stop += hi
-        return start, stop
-
-    def _norm_key(key: list[int | slice]) -> tuple[tuple[int, int], ...]:
-        klen = len(key)
+    def _norm_key(keys: list[int | slice]) -> tuple[tuple[int, int], ...]:
+        klen = len(keys)
         if klen > ndim:
             s = f"Expected ≤ {ndim} key items, got {klen}"
             raise ValueError(s)
 
         # Append ':' to the end
         for _ in range(ndim - klen):
-            key.append(slice(None))
+            keys.append(slice(None))
 
         # Normalize key dimensions
-        nkey = []
-        for i, key_i in enumerate(key):
-            if isinstance(key_i, int):
-                nkey.append(_norm_index(key_i, i))
-            elif isinstance(key_i, slice):
-                nkey.append(_norm_slice(key_i, i))
-            else:  # pragma: no cover
-                assert False
+        def f(n: int, key: int | slice) -> tuple[int, int]:
+            if isinstance(key, int):
+                i = _norm_index(n, key)
+                return (i, i + 1)
+            if isinstance(key, slice):
+                return _norm_slice(n, key)
+            assert False
 
-        return tuple(nkey)
+        return tuple(f(n, key) for n, key in zip(shape, keys))
 
     # Return Bits type
     return bits_shape
