@@ -99,7 +99,7 @@ class Aggregate(State):
         self._changed: set[Hashable] = set()
 
     def __getitem__(self, key: Hashable):
-        return _AggrItem(self, key)
+        return _AggrValue(self, key)
 
     def get_values(self):
         if self._sim.region == Region.REACTIVE:
@@ -125,8 +125,8 @@ class Aggregate(State):
         self._changed.clear()
 
 
-class _AggrItem(Value):
-    """Wrap Aggregate item getter/setter."""
+class _AggrValue(Value):
+    """Wrap Aggregate value getter/setter."""
 
     def __init__(self, aggr: Aggregate, key: Hashable):
         self._aggr = aggr

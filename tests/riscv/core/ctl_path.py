@@ -1,10 +1,7 @@
 """Control Path."""
 
-# pyright: reportArgumentType=false
-# pyright: reportAttributeAccessIssue=false
-
 from seqlogic import Module
-from seqlogic.vec import Vec
+from seqlogic import Vector as Vec
 
 from . import (
     AluOp,
@@ -281,11 +278,11 @@ class CtlPath(Module):
         next_pc_sel = self.output(name="next_pc_sel", dtype=CtlPc)
 
         # State
-        take_branch = self.bits(name="take_branch", dtype=Vec[1])
-        alu_op_type = self.bits(name="alu_op_type", dtype=CtlAlu)
-        default_func = self.bits(name="default_func", dtype=AluOp)
-        secondary_func = self.bits(name="secondary_func", dtype=AluOp)
-        branch_func = self.bits(name="branch_func", dtype=AluOp)
+        take_branch = self.logic(name="take_branch", dtype=Vec[1])
+        alu_op_type = self.logic(name="alu_op_type", dtype=CtlAlu)
+        default_func = self.logic(name="default_func", dtype=AluOp)
+        secondary_func = self.logic(name="secondary_func", dtype=AluOp)
+        branch_func = self.logic(name="branch_func", dtype=AluOp)
 
         # Combinational Logic
         self.combi(take_branch, f_take_branch, funct3, alu_result_eq_zero)

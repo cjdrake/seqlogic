@@ -9,14 +9,12 @@ We are not presently interested in the details of RISC-V.
 It merely serves as a non-trivial example design.
 """
 
-# pylint: disable = protected-access
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportCallIssue=false
+# This tracing method requires cross module references to _protected logic
+# pylint: disable=protected-access
 
 from collections import defaultdict
 
-from seqlogic import get_loop, simify
-from seqlogic.vec import uint2vec
+from seqlogic import get_loop, simify, uint2vec
 
 from .riscv.core import AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .riscv.core.top import Top

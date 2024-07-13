@@ -1,10 +1,10 @@
-"""Test seqlogic.vec module."""
+"""Test seqlogic.bits module."""
 
 import pytest
 
-from seqlogic.lbconst import _W, _X, _0, _1
-from seqlogic.vec import (
-    Vec,
+from seqlogic import (
+    Scalar,
+    Vector,
     add,
     and_,
     cat,
@@ -19,28 +19,29 @@ from seqlogic.vec import (
     xnor,
     xor,
 )
+from seqlogic.lbconst import _W, _X, _0, _1
 
-E = Vec[0](*_X)
-X = Vec[1](*_X)
-F = Vec[1](*_0)
-T = Vec[1](*_1)
-W = Vec[1](*_W)
+E = Vector[0](*_X)
+X = Vector[1](*_X)
+F = Vector[1](*_0)
+T = Vector[1](*_1)
+W = Vector[1](*_W)
 
 
 def test_vec_class_getitem():
     # Negative values are illegal
     with pytest.raises(ValueError):
-        _ = Vec[-1]
+        _ = Vector[-1]
 
-    vec_0 = Vec[0]
+    vec_0 = Vector[0]
     assert vec_0.size == 0
 
-    vec_4 = Vec[4]
+    vec_4 = Vector[4]
     assert vec_4.size == 4
 
     # Always return the same class instance
-    assert Vec[0] is vec_0
-    assert Vec[4] is vec_4
+    assert Vector[0] is vec_0
+    assert Vector[4] is vec_4
 
 
 def test_vec():
@@ -56,10 +57,10 @@ def test_vec():
     assert vec(1) == T
 
     # Sequence of bools
-    assert vec([False, True, 0, 1]) == Vec[4](0b0101, 0b1010)
+    assert vec([False, True, 0, 1]) == Vector[4](0b0101, 0b1010)
 
     # String
-    assert vec("4b-10X") == Vec[4](0b1010, 0b1100)
+    assert vec("4b-10X") == Vector[4](0b1010, 0b1100)
 
     # Invalid input type
     with pytest.raises(TypeError):
@@ -452,7 +453,7 @@ def test_vec_getitem():
         _ = v[0:4:1]
     # Invalid index type
     with pytest.raises(TypeError):
-        _ = v[1.0e42]  # pyright: ignore[reportArgumentType]
+        _ = v[1.0e42]
 
 
 def test_vec_iter():
@@ -461,8 +462,8 @@ def test_vec_iter():
 
 
 def test_vec_repr():
-    assert repr(vec()) == "Vec[0](0b0, 0b0)"
-    assert repr(vec("4b-10X")) == "Vec[4](0b1010, 0b1100)"
+    assert repr(vec()) == "Empty(0b0, 0b0)"
+    assert repr(vec("4b-10X")) == "Vector[4](0b1010, 0b1100)"
 
 
 def test_vec_bool():
@@ -522,7 +523,7 @@ def test_vec_nor():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    nor(v0, 1.0e42)  # pyright: ignore[reportArgumentType]
+    #    nor(v0, 1.0e42)
     with pytest.raises(TypeError):
         nor(v0, "1b0")
 
@@ -541,7 +542,7 @@ def test_vec_or():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    or_(v0, 1.0e42)  # pyright: ignore[reportArgumentType]
+    #    or_(v0, 1.0e42)
     with pytest.raises(TypeError):
         or_(v0, "1b0")
 
@@ -560,7 +561,7 @@ def test_vec_nand():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    nand(v0, 1.0e42)  # pyright: ignore[reportArgumentType]
+    #    nand(v0, 1.0e42)
     with pytest.raises(TypeError):
         nand(v0, "1b0")
 
@@ -579,7 +580,7 @@ def test_vec_and():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    and_(v0, 1.0e42)  # pyright: ignore[reportArgumentType]
+    #    and_(v0, 1.0e42)
     with pytest.raises(TypeError):
         and_(v0, "1b0")
 
@@ -598,7 +599,7 @@ def test_vec_xnor():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    xnor(v0, 1.0e42)  # pyright: ignore[reportArgumentType]
+    #    xnor(v0, 1.0e42)
     with pytest.raises(TypeError):
         xnor(v0, "1b0")
 
@@ -617,7 +618,7 @@ def test_vec_xor():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    xor(v0, 1.0e42)  # pyright: ignore[reportArgumentType]
+    #    xor(v0, 1.0e42)
     with pytest.raises(TypeError):
         xor(v0, "1b0")
 
@@ -644,7 +645,7 @@ UOR = {
 
 def test_vec_uor():
     for lit, (d0, d1) in UOR.items():
-        assert vec(lit).uor() == Vec[1](d0, d1)
+        assert vec(lit).uor() == Scalar(d0, d1)
 
 
 UAND = {
@@ -669,7 +670,7 @@ UAND = {
 
 def test_vec_uand():
     for lit, (d0, d1) in UAND.items():
-        assert vec(lit).uand() == Vec[1](d0, d1)
+        assert vec(lit).uand() == Scalar(d0, d1)
 
 
 UXNOR = {
@@ -694,7 +695,7 @@ UXNOR = {
 
 def test_vec_uxnor():
     for lit, (d0, d1) in UXNOR.items():
-        assert vec(lit).uxnor() == Vec[1](d0, d1)
+        assert vec(lit).uxnor() == Scalar(d0, d1)
 
 
 UXOR = {
@@ -719,7 +720,7 @@ UXOR = {
 
 def test_vec_uxor():
     for lit, (d0, d1) in UXOR.items():
-        assert vec(lit).uxor() == Vec[1](d0, d1)
+        assert vec(lit).uxor() == Scalar(d0, d1)
 
 
 EQ = [
@@ -744,7 +745,7 @@ def test_vec_eq():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").eq(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").eq(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").eq("2b00")
 
@@ -771,7 +772,7 @@ def test_vec_ne():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").ne(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").ne(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").ne("2b00")
 
@@ -792,7 +793,7 @@ def test_vec_lt():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").lt(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").lt(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").lt("2b00")
 
@@ -813,7 +814,7 @@ def test_vec_le():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").le(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").le(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").le("2b00")
 
@@ -834,7 +835,7 @@ def test_vec_slt():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").slt(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").slt(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").slt("2b00")
 
@@ -855,7 +856,7 @@ def test_vec_sle():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").sle(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").sle(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").sle("2b00")
 
@@ -870,13 +871,13 @@ GT = [
 ]
 
 
-def test_vec_ugt():
+def test_vec_gt():
     for a, b, y in GT:
         assert vec(a).gt(b) == y
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").gt(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").gt(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").gt("2b00")
 
@@ -891,13 +892,13 @@ GE = [
 ]
 
 
-def test_vec_uge():
+def test_vec_ge():
     for a, b, y in GE:
         assert vec(a).ge(b) == y
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").ge(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").ge(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").ge("2b00")
 
@@ -918,7 +919,7 @@ def test_vec_sgt():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").sgt(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").sgt(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").sgt("2b00")
 
@@ -939,7 +940,7 @@ def test_vec_sge():
 
     # Invalid rhs
     # with pytest.raises(TypeError):
-    #    vec("1b0").sge(1.0e42)  # pyright: ignore[reportArgumentType]
+    #    vec("1b0").sge(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").sge("2b00")
 
@@ -1053,7 +1054,7 @@ def test_vec_rsh():
     assert vec("2b01").rsh(vec("1b1")) == (vec("2b00"), T)
 
 
-def test_vec_arsh():
+def test_vec_srsh():
     v = vec("4b1111")
     assert v.srsh(0) == ("4b1111", E)
     assert v.srsh(1) == ("4b1111", "1b1")

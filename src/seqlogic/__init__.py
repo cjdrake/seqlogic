@@ -1,18 +1,69 @@
 """Sequential Logic."""
 
-from .design import Array, Bits, Module, simify
-from .sim import changed, get_loop, resume, sleep
+from .bits import (
+    AddResult,
+    Array,
+    Bits,
+    Empty,
+    Enum,
+    Scalar,
+    Struct,
+    Union,
+    Vector,
+    add,
+    and_,
+    bits,
+    cat,
+    int2vec,
+    nand,
+    nor,
+    or_,
+    rep,
+    stack,
+    sub,
+    uint2vec,
+    vec,
+    xnor,
+    xor,
+)
+from .design import Module, simify
+from .sim import active, changed, get_loop, reactive, resume, sleep
 from .util import clog2
 
 __all__ = [
-    # design
+    # bits
+    "AddResult",
     "Array",
     "Bits",
+    "Empty",
+    "Enum",
+    "Scalar",
+    "Struct",
+    "Union",
+    "Vector",
+    "add",
+    "and_",
+    "bits",
+    "cat",
+    "int2vec",
+    "nand",
+    "nor",
+    "or_",
+    "rep",
+    "stack",
+    "sub",
+    "uint2vec",
+    "vec",
+    "xnor",
+    "xor",
+    # design
     "Module",
     "simify",
     # sim
+    "active",
     "changed",
     "get_loop",
+    "reactive",
     "resume",
     "sleep",
     # util

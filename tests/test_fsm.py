@@ -3,22 +3,18 @@
 Demonstrate usage of an enum.
 """
 
-# pyright: reportArgumentType=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportReturnType=false
-
 from collections import defaultdict
 
-from seqlogic import Bits, Module, get_loop
+from seqlogic import Enum, Module, Vector, get_loop
+from seqlogic.design import PackedLogic
 from seqlogic.sim import Region
-from seqlogic.vec import Vec, VecEnum
 
 from .common import p_clk, p_dff, p_rst
 
 loop = get_loop()
 
 
-class SeqDetect(VecEnum):
+class SeqDetect(Enum):
     """Sequence Detector state."""
 
     A = "2b00"
@@ -27,11 +23,7 @@ class SeqDetect(VecEnum):
     D = "2b11"
 
 
-async def p_input(
-    x: Bits,
-    reset_n: Bits,
-    clock: Bits,
-):
+async def p_input(x, reset_n, clock):
     await reset_n.negedge()
     x.next = "1b0"
 
@@ -58,10 +50,10 @@ def test_fsm():
     loop.reset()
 
     top = Module(name="top")
-    clock = Bits(name="clock", parent=top, dtype=Vec[1])
-    reset_n = Bits(name="reset_n", parent=top, dtype=Vec[1])
-    ps = Bits(name="ps", parent=top, dtype=SeqDetect)
-    x = Bits(name="x", parent=top, dtype=Vec[1])
+    clock = PackedLogic(name="clock", parent=top, dtype=Vector[1])
+    reset_n = PackedLogic(name="reset_n", parent=top, dtype=Vector[1])
+    ps = PackedLogic(name="ps", parent=top, dtype=SeqDetect)
+    x = PackedLogic(name="x", parent=top, dtype=Vector[1])
 
     waves = defaultdict(dict)
     top.dump_waves(waves, r".*")
@@ -95,7 +87,7 @@ def test_fsm():
     loop.add_proc(Region.ACTIVE, p_input, x, reset_n, clock)
 
     # Schedule LFSR
-    loop.add_proc(Region.ACTIVE, p_dff, ps, ns, reset_n, SeqDetect.A, clock)
+    loop.add_proc(Region.ACTIVE, p_dff, ps, ns, clock, reset_n, SeqDetect.A)
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
@@ -107,9 +99,9 @@ def test_fsm():
     exp = {
         # Initialize everything to X'es
         -1: {
-            reset_n: Vec[1].xes(),
-            clock: Vec[1].xes(),
-            x: Vec[1].xes(),
+            reset_n: "1bX",
+            clock: "1bX",
+            x: "1bX",
             ps: SeqDetect.X,
         },
         0: {

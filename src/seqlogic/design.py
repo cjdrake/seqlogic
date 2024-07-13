@@ -14,9 +14,9 @@ from collections.abc import Callable
 
 from vcd.writer import VCDWriter as VcdWriter
 
+from .bits import Bits, _lit2vec, cat
 from .hier import Branch, Leaf
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, Value, changed, get_loop, resume
-from .vec import Vec, _lit2vec, cat
 
 
 class DesignError(Exception):
@@ -96,18 +96,18 @@ class Module(Branch, _ProcIf, _TraceIf):
             assert isinstance(child, _TraceIf)
             child.dump_vcd(vcdw, pattern)
 
-    def input(self, name: str, dtype: type) -> Bits:
+    def input(self, name: str, dtype: type) -> PackedLogic:
         self._check_name(name)
-        assert issubclass(dtype, Vec) and dtype.size > 0
-        node = Bits(name, parent=self, dtype=dtype)
+        assert issubclass(dtype, Bits) and dtype.size > 0
+        node = PackedLogic(name, parent=self, dtype=dtype)
         self._inputs[name] = False
         setattr(self, name, node)
         return node
 
-    def output(self, name: str, dtype: type) -> Bits:
+    def output(self, name: str, dtype: type) -> PackedLogic:
         self._check_name(name)
-        assert issubclass(dtype, Vec) and dtype.size > 0
-        node = Bits(name, parent=self, dtype=dtype)
+        assert issubclass(dtype, Bits) and dtype.size > 0
+        node = PackedLogic(name, parent=self, dtype=dtype)
         self._outputs[name] = False
         setattr(self, name, node)
         return node
@@ -115,7 +115,7 @@ class Module(Branch, _ProcIf, _TraceIf):
     def connect(self, **ports):
         for name, rhs in ports.items():
             lhs = getattr(self, name)
-            if isinstance(rhs, Bits):
+            if isinstance(rhs, PackedLogic):
                 if name in self._inputs:
                     if not self._inputs[name]:
                         self.assign(lhs, rhs)
@@ -152,15 +152,16 @@ class Module(Branch, _ProcIf, _TraceIf):
             else:
                 raise ValueError(f"Port {name} invalid connection")
 
-    def bits(self, name: str, dtype: type) -> Bits:
+    def logic(
+        self, name: str, dtype: type, shape: tuple[int, ...] | None = None
+    ) -> PackedLogic | UnpackedLogic:
         self._check_name(name)
-        node = Bits(name, parent=self, dtype=dtype)
-        setattr(self, f"_{name}", node)
-        return node
-
-    def array(self, name: str, dtype: type) -> Array:
-        self._check_name(name)
-        node = Array(name, parent=self, dtype=dtype)
+        if shape is None:
+            node = PackedLogic(name, parent=self, dtype=dtype)
+        else:
+            # TODO(cjdrake): Support > 1 unpacked dimensions
+            assert len(shape) == 1
+            node = UnpackedLogic(name, parent=self, dtype=dtype)
         setattr(self, f"_{name}", node)
         return node
 
@@ -170,7 +171,7 @@ class Module(Branch, _ProcIf, _TraceIf):
         setattr(self, f"_{name}", node)
         return node
 
-    def combi(self, ys: Value | tuple[Value, ...], f: Callable, *xs: Bits | Array):
+    def combi(self, ys: Value | tuple[Value, ...], f: Callable, *xs: PackedLogic | UnpackedLogic):
         """Combinational logic."""
 
         # Pack outputs
@@ -184,12 +185,13 @@ class Module(Branch, _ProcIf, _TraceIf):
                 # Get sim var values
                 vals = []
                 for x in xs:
-                    if isinstance(x, Bits):
+                    if isinstance(x, PackedLogic):
                         vals.append(x.value)
-                    elif isinstance(x, Array):
+                    elif isinstance(x, UnpackedLogic):
                         vals.append(x.values)
                     else:
-                        raise TypeError("Expected x to be Bits or Array")
+                        s = "Expected x to be Logic"
+                        raise TypeError(s)
 
                 # Apply f to inputs
                 vals = f(*vals)
@@ -204,10 +206,10 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
-    def assign(self, y: Value, x):
+    def assign(self, y: Value, x: Bits | str):
         """Assign input to output."""
         # fmt: off
-        if isinstance(x, Bits):
+        if isinstance(x, PackedLogic):
             async def proc1():
                 while True:
                     await changed(x)
@@ -219,7 +221,7 @@ class Module(Branch, _ProcIf, _TraceIf):
             self._procs.append((Region.ACTIVE, proc2, (), {}))
         # fmt: on
 
-    def dff(self, q: Bits, d: Bits, clk: Bits):
+    def dff(self, q: PackedLogic, d: PackedLogic, clk: PackedLogic):
         """D Flip Flop."""
 
         async def proc():
@@ -232,7 +234,9 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def dff_ar(self, q: Bits, d: Bits, clk: Bits, rst: Bits, rval):
+    def dff_ar(
+        self, q: PackedLogic, d: PackedLogic, clk: PackedLogic, rst: PackedLogic, rval: Bits | str
+    ):
         """D Flip Flop with async reset."""
 
         async def proc():
@@ -250,7 +254,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def dff_en(self, q: Bits, d: Bits, en: Bits, clk: Bits):
+    def dff_en(self, q: PackedLogic, d: PackedLogic, en: PackedLogic, clk: PackedLogic):
         """D Flip Flop with enable."""
 
         async def proc():
@@ -265,7 +269,15 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def dff_en_ar(self, q: Bits, d: Bits, en: Bits, clk: Bits, rst: Bits, rval):
+    def dff_en_ar(
+        self,
+        q: PackedLogic,
+        d: PackedLogic,
+        en: PackedLogic,
+        clk: PackedLogic,
+        rst: PackedLogic,
+        rval: Bits | str,
+    ):
         """D Flip Flop with enable, and async reset."""
 
         async def proc():
@@ -283,7 +295,14 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def mem_wr_en(self, mem: Array, addr: Bits, data: Bits, en: Bits, clk: Bits):
+    def mem_wr_en(
+        self,
+        mem: UnpackedLogic,
+        addr: PackedLogic,
+        data: PackedLogic,
+        en: PackedLogic,
+        clk: PackedLogic,
+    ):
         """Memory with write enable."""
 
         async def proc():
@@ -299,7 +318,16 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    def mem_wr_be(self, mem: Array, addr: Bits, data: Bits, en: Bits, be: Bits, clk: Bits):
+    # TODO(cjdrake): Require mem/data to have [*,8] shape
+    def mem_wr_be(
+        self,
+        mem: UnpackedLogic,
+        addr: PackedLogic,
+        data: PackedLogic,
+        en: PackedLogic,
+        be: PackedLogic,
+        clk: PackedLogic,
+    ):
         """Memory with write byte enable."""
 
         width = mem._dtype.size  # pylint: disable = protected-access
@@ -329,23 +357,27 @@ class Module(Branch, _ProcIf, _TraceIf):
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
 
-class Bits(Leaf, Singular, _ProcIf, _TraceIf):
+class Logic(Leaf, _ProcIf, _TraceIf):
+    def __init__(self, name: str, parent: Module):
+        Leaf.__init__(self, name, parent)
+        _ProcIf.__init__(self)
+
+
+class PackedLogic(Logic, Singular):
     """Leaf-level bitvector design component."""
 
-    def __init__(self, name: str, parent: Module, dtype: type[Vec]):
-        Leaf.__init__(self, name, parent)
+    def __init__(self, name: str, parent: Module, dtype: type[Bits]):
+        Logic.__init__(self, name, parent)
         Singular.__init__(self, dtype.xes())
-        _ProcIf.__init__(self)
         self._dtype = dtype
         self._waves_change = None
         self._vcd_change = None
 
     # Singular => State
-    def set_next(self, value):
+    def set_next(self, value: Bits | str):
         if isinstance(value, str):
             value = _lit2vec(value)
-        assert isinstance(value, self._dtype)
-        super().set_next(value)
+        super().set_next(self._dtype.cast(value))
 
     next = property(fset=set_next)
 
@@ -427,20 +459,19 @@ class Bits(Leaf, Singular, _ProcIf, _TraceIf):
         return state
 
 
-class Array(Leaf, Aggregate, _ProcIf, _TraceIf):
+class UnpackedLogic(Logic, Aggregate):
     """Leaf-level array of vec/enum/struct/union design components."""
 
-    def __init__(self, name: str, parent: Module, dtype: type[Vec]):
-        Leaf.__init__(self, name, parent)
+    def __init__(self, name: str, parent: Module, dtype: type[Bits]):
+        Logic.__init__(self, name, parent)
         Aggregate.__init__(self, dtype.xes())
-        _ProcIf.__init__(self)
         self._dtype = dtype
 
 
-def simify(d: Module | Bits | Array):
+def simify(m: Module | PackedLogic | UnpackedLogic):
     """Add design processes to the simulator."""
     loop = get_loop()
-    for node in d.iter_bfs():
+    for node in m.iter_bfs():
         assert isinstance(node, _ProcIf)
         for region, func, args, kwargs in node.procs:
             loop.add_proc(region, func, *args, **kwargs)

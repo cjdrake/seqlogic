@@ -1,11 +1,8 @@
 """Top Level Module."""
 
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportCallIssue=false
-
-from seqlogic import Module, sleep
-from seqlogic.sim import active
-from seqlogic.vec import Vec
+from seqlogic import Module
+from seqlogic import Vector as Vec
+from seqlogic import active, sleep
 
 from . import Addr, Inst, Opcode
 from .core import Core
@@ -33,11 +30,11 @@ class Top(Module):
         bus_rd_en = self.output(name="bus_rd_en", dtype=Vec[1])
         bus_rd_data = self.output(name="bus_rd_data", dtype=Vec[32])
 
-        pc = self.bits(name="pc", dtype=Vec[32])
-        inst = self.bits(name="inst", dtype=Inst)
+        pc = self.logic(name="pc", dtype=Vec[32])
+        inst = self.logic(name="inst", dtype=Inst)
 
-        clock = self.bits(name="clock", dtype=Vec[1])
-        reset = self.bits(name="reset", dtype=Vec[1])
+        clock = self.logic(name="clock", dtype=Vec[1])
+        reset = self.logic(name="reset", dtype=Vec[1])
 
         # Submodules:
         # 16K Instruction Memory

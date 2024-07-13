@@ -1,10 +1,12 @@
 """Example LFSR implementation."""
 
+# This tracing method requires cross module references to _protected logic
+# pylint: disable=protected-access
+
 from collections import defaultdict
 
-from seqlogic import Bits, Module, get_loop
+from seqlogic import Module, Vector, cat, get_loop
 from seqlogic.sim import Region
-from seqlogic.vec import Vec, cat
 
 from .common import p_clk, p_dff, p_rst
 
@@ -17,10 +19,10 @@ class Top(Module):
     def __init__(self):
         super().__init__(name="top", parent=None)
         # Control
-        self.reset_n = Bits(name="reset_n", parent=self, dtype=Vec[1])
-        self.clock = Bits(name="clock", parent=self, dtype=Vec[1])
+        self.input(name="reset_n", dtype=Vector[1])
+        self.input(name="clock", dtype=Vector[1])
         # State
-        self.q = Bits(name="q", parent=self, dtype=Vec[3])
+        self.logic(name="q", dtype=Vector[3])
 
 
 def test_lfsr():
@@ -31,15 +33,15 @@ def test_lfsr():
     waves = defaultdict(dict)
     top.dump_waves(waves, r".*")
 
-    assert top.q.name == "q"
-    assert top.q.qualname == "/top/q"
+    assert top._q.name == "q"
+    assert top._q.qualname == "/top/q"
 
     def d():
-        v = top.q.value
+        v = top._q.value
         return cat(v[0] ^ v[2], v[:2])
 
     # Schedule LFSR
-    loop.add_proc(Region.ACTIVE, p_dff, top.q, d, top.reset_n, "3b100", top.clock)
+    loop.add_proc(Region.ACTIVE, p_dff, top._q, d, top.clock, top.reset_n, "3b100")
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
@@ -53,7 +55,7 @@ def test_lfsr():
         -1: {
             top.reset_n: "1bX",
             top.clock: "1bX",
-            top.q: "3bXXX",
+            top._q: "3bXXX",
         },
         0: {
             top.reset_n: "1b1",
@@ -68,7 +70,7 @@ def test_lfsr():
         # q = reset_value
         6: {
             top.reset_n: "1b0",
-            top.q: "3b100",
+            top._q: "3b100",
         },
         10: {
             top.clock: "1b0",
@@ -88,42 +90,42 @@ def test_lfsr():
         # q = 001
         25: {
             top.clock: "1b1",
-            top.q: "3b001",
+            top._q: "3b001",
         },
         30: {
             top.clock: "1b0",
         },
         35: {
             top.clock: "1b1",
-            top.q: "3b011",
+            top._q: "3b011",
         },
         40: {
             top.clock: "1b0",
         },
         45: {
             top.clock: "1b1",
-            top.q: "3b111",
+            top._q: "3b111",
         },
         50: {
             top.clock: "1b0",
         },
         55: {
             top.clock: "1b1",
-            top.q: "3b110",
+            top._q: "3b110",
         },
         60: {
             top.clock: "1b0",
         },
         65: {
             top.clock: "1b1",
-            top.q: "3b101",
+            top._q: "3b101",
         },
         70: {
             top.clock: "1b0",
         },
         75: {
             top.clock: "1b1",
-            top.q: "3b010",
+            top._q: "3b010",
         },
         80: {
             top.clock: "1b0",
@@ -131,14 +133,14 @@ def test_lfsr():
         # Repeat cycle
         85: {
             top.clock: "1b1",
-            top.q: "3b100",
+            top._q: "3b100",
         },
         90: {
             top.clock: "1b0",
         },
         95: {
             top.clock: "1b1",
-            top.q: "3b001",
+            top._q: "3b001",
         },
     }
 

@@ -1,6 +1,7 @@
 """RiscV Constants and Types."""
 
-from seqlogic.vec import Vec, VecEnum, VecStruct, VecUnion
+from seqlogic import Enum, Struct, Union
+from seqlogic import Vector as Vec
 
 TEXT_BASE = 0x0040_0000
 TEXT_BITS = 4 + 10 + 2  # 16K
@@ -14,7 +15,7 @@ DATA_SIZE = 2**DATA_BITS
 Addr = Vec[32]
 
 
-class Opcode(VecEnum):
+class Opcode(Enum):
     """Instruction Opcodes"""
 
     LOAD = "7b000_0011"
@@ -33,7 +34,7 @@ class Opcode(VecEnum):
     SYSTEM = "7b111_0011"
 
 
-class CtlPc(VecEnum):
+class CtlPc(Enum):
     """Program Counter (PC) Select"""
 
     PC4 = "2b00"
@@ -42,7 +43,7 @@ class CtlPc(VecEnum):
     PC4_BR = "2b11"
 
 
-class CtlAlu(VecEnum):
+class CtlAlu(Enum):
     """ALU Op Types"""
 
     ADD = "2b00"
@@ -51,7 +52,7 @@ class CtlAlu(VecEnum):
     OP_IMM = "2b11"
 
 
-class AluOp(VecEnum):
+class AluOp(Enum):
     """ALU Operations"""
 
     ADD = "5b0_0001"
@@ -75,21 +76,21 @@ class AluOp(VecEnum):
     REMU = "5b1_0011"
 
 
-class CtlAluA(VecEnum):
+class CtlAluA(Enum):
     """ALU First Operand Source"""
 
     RS1 = "1b0"
     PC = "1b1"
 
 
-class CtlAluB(VecEnum):
+class CtlAluB(Enum):
     """ALU Second Operand Source"""
 
     RS2 = "1b0"
     IMM = "1b1"
 
 
-class Funct3AluLogic(VecEnum):
+class Funct3AluLogic(Enum):
     """Interpretations of the 'funct3' field."""
 
     ADD_SUB = "3b000"
@@ -102,7 +103,7 @@ class Funct3AluLogic(VecEnum):
     AND = "3b111"
 
 
-class Funct3Branch(VecEnum):
+class Funct3Branch(Enum):
     """Interpretations of the 'funct3' field for branches."""
 
     EQ = "3b000"
@@ -113,7 +114,7 @@ class Funct3Branch(VecEnum):
     GEU = "3b111"
 
 
-class Funct3AluMul(VecEnum):
+class Funct3AluMul(Enum):
     """Interpretations of the "funct3" field for extension M."""
 
     MUL = "3b000"
@@ -126,13 +127,13 @@ class Funct3AluMul(VecEnum):
     REMU = "3b111"
 
 
-class Funct3(VecUnion):
+class Funct3(Union):
     alu_logic: Funct3AluLogic
     branch: Funct3Branch
     alu_mul: Funct3AluMul
 
 
-class CtlWriteBack(VecEnum):
+class CtlWriteBack(Enum):
     """Register data sources."""
 
     ALU = "3b000"
@@ -141,7 +142,7 @@ class CtlWriteBack(VecEnum):
     IMM = "3b011"
 
 
-class Inst(VecStruct):
+class Inst(Struct):
     """Instruction"""
 
     opcode: Opcode

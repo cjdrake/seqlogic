@@ -6,13 +6,13 @@ It might be useful to add to seqlogic library.
 
 from collections import defaultdict
 
-from seqlogic import Bits, resume, sleep
+from seqlogic import resume, sleep
 
 # [Time][Var] = Val
 waves = defaultdict(dict)
 
 
-async def p_rst(reset: Bits, init, phase1: int = 1, phase2: int = 1):
+async def p_rst(reset, init, phase1: int = 1, phase2: int = 1):
     r"""
     Simulate a reset signal.
 
@@ -42,13 +42,7 @@ async def p_rst(reset: Bits, init, phase1: int = 1, phase2: int = 1):
     reset.next = ~reset.value
 
 
-async def p_clk(
-    clock: Bits,
-    init,
-    shift: int = 0,
-    phase1: int = 1,
-    phase2: int = 1,
-):
+async def p_clk(clock, init, shift: int = 0, phase1: int = 1, phase2: int = 1):
     r"""
     Simulate a clock signal.
 
@@ -87,18 +81,16 @@ async def p_clk(
         await sleep(phase2)
 
 
-async def p_dff(
-    q,
-    d,
-    reset_n: Bits,
-    reset_value,
-    clock: Bits,
-):
+async def p_dff(q, d, clock, reset_n, reset_value):
     """D Flop Flop with asynchronous, negedge-triggered reset."""
     while True:
-        var = await resume((reset_n, reset_n.is_negedge), (clock, clock.is_posedge))
-        assert var in {reset_n, clock}
-        if var is reset_n:
+        state = await resume(
+            (reset_n, reset_n.is_negedge),
+            (clock, lambda: clock.is_posedge() and reset_n.is_pos()),
+        )
+        if state is reset_n:
             q.next = reset_value
-        elif var is clock and reset_n.value == "1b1":
+        elif state is clock:
             q.next = d()
+        else:
+            assert False

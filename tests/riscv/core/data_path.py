@@ -1,10 +1,8 @@
 """Data Path."""
 
-# pyright: reportArgumentType=false
-# pyright: reportAttributeAccessIssue=false
-
 from seqlogic import Module
-from seqlogic.vec import Vec, add, cat, rep, uint2vec
+from seqlogic import Vector as Vec
+from seqlogic import add, cat, rep, uint2vec
 
 from . import TEXT_BASE, Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu
@@ -133,30 +131,30 @@ class DataPath(Module):
         reset = self.input(name="reset", dtype=Vec[1])
 
         # Immedate generate
-        immediate = self.bits(name="immediate", dtype=Vec[32])
+        immediate = self.logic(name="immediate", dtype=Vec[32])
 
         # PC + 4
-        pc_plus_4 = self.bits(name="pc_plus_4", dtype=Vec[32])
+        pc_plus_4 = self.logic(name="pc_plus_4", dtype=Vec[32])
 
         # PC + Immediate
-        pc_plus_immediate = self.bits(name="pc_plus_immediate", dtype=Vec[32])
+        pc_plus_immediate = self.logic(name="pc_plus_immediate", dtype=Vec[32])
 
         # Select ALU Ops
-        alu_op_a = self.bits(name="alu_op_a", dtype=Vec[32])
-        alu_op_b = self.bits(name="alu_op_b", dtype=Vec[32])
+        alu_op_a = self.logic(name="alu_op_a", dtype=Vec[32])
+        alu_op_b = self.logic(name="alu_op_b", dtype=Vec[32])
 
         # ALU Outputs
-        alu_result = self.bits(name="alu_result", dtype=Vec[32])
+        alu_result = self.logic(name="alu_result", dtype=Vec[32])
 
         # Next PC
-        pc_next = self.bits(name="pc_next", dtype=Vec[32])
+        pc_next = self.logic(name="pc_next", dtype=Vec[32])
 
         # Regfile Write
-        wr_data = self.bits(name="wr_data", dtype=Vec[32])
+        wr_data = self.logic(name="wr_data", dtype=Vec[32])
 
         # Regfile Read
-        rs1_data = self.bits(name="rs1_data", dtype=Vec[32])
-        rs2_data = self.bits(name="rs2_data", dtype=Vec[32])
+        rs1_data = self.logic(name="rs1_data", dtype=Vec[32])
+        rs2_data = self.logic(name="rs2_data", dtype=Vec[32])
 
         # Submodules
         self.submod(

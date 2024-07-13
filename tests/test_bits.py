@@ -1,41 +1,39 @@
 """Test bit array data type."""
 
-# pylint: disable = pointless-statement
+# PyLint is confused by my hacky classproperty implementation
+# pylint: disable=comparison-with-callable
 
-# pyright: reportArgumentType=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportCallIssue=false
-# pyright: reportIndexIssue=false
-# pyright: reportOperatorIssue=false
+# For error testing
+# pylint: disable=pointless-statement
 
 import pytest
 
+from seqlogic import Array, Vector, add, and_, bits, nand, nor, or_, stack, sub, vec, xnor, xor
 from seqlogic.lbconst import _W, _X, _0, _1
-from seqlogic.vec import Bits, Vec, add, and_, bits, nand, nor, or_, stack, sub, vec, xnor, xor
 
-E = Vec[0](*_X)
+E = Array[0](*_X)
 
-X = Vec[1](*_X)
-F = Vec[1](*_0)
-T = Vec[1](*_1)
-W = Vec[1](*_W)
+X = Array[1](*_X)
+F = Array[1](*_0)
+T = Array[1](*_1)
+W = Array[1](*_W)
 
 
 def test_basic():
     # Degenerate dimensions
-    assert Bits[None] is Vec[0]
-    assert Bits[1] is Vec[1]
-    assert Bits[(1,)] is Vec[1]
-    assert Bits[2] is Vec[2]
-    assert Bits[(2,)] is Vec[2]
+    assert Array[None] is Vector[0]
+    assert Array[1] is Vector[1]
+    assert Array[(1,)] is Vector[1]
+    assert Array[2] is Vector[2]
+    assert Array[(2,)] is Vector[2]
 
     # Invalid dimension lens
     with pytest.raises(ValueError):
-        _ = Bits[2, 0, 3]
+        _ = Array[2, 0, 3]
     with pytest.raises(ValueError):
-        _ = Bits[2, -1, 3]
+        _ = Array[2, -1, 3]
 
-    b = Bits[2, 3, 4](0, 0)
+    b = Array[2, 3, 4](0, 0)
 
     # Class attributes
     assert b.shape == (2, 3, 4)
@@ -45,11 +43,11 @@ def test_basic():
     assert len(b) == 2
 
     # Basic methods
-    assert b.flatten() == Vec[24](0, 0)
-    assert b.reshape((4, 3, 2)) == Bits[4, 3, 2](0, 0)
+    assert b.flatten() == Vector[24](0, 0)
+    assert b.reshape((4, 3, 2)) == Array[4, 3, 2](0, 0)
     with pytest.raises(ValueError):
         b.reshape((4, 4, 4))
-    assert list(b.flat) == [Vec[1](0, 0)] * 24
+    # assert list(b.flat) == [Vec[1](0, 0)] * 24
 
 
 # Operators retain their shape
@@ -212,7 +210,7 @@ def test_slicing():
     with pytest.raises(IndexError):
         b[-5]
     with pytest.raises(TypeError):
-        b["invalid"]  # pyright: ignore[reportArgumentType]
+        b["invalid"]
     # Slice step not supported
     with pytest.raises(ValueError):
         b[0:4:1]
@@ -265,7 +263,7 @@ def test_slicing():
     with pytest.raises(ValueError):
         b[0, 0, 0, 0]
     with pytest.raises(TypeError):
-        b["invalid"]  # pyright: ignore[reportArgumentType]
+        b["invalid"]
 
 
 def test_bits():

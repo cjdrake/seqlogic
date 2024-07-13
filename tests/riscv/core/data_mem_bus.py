@@ -1,11 +1,10 @@
 """Data Memory Bus."""
 
-# pyright: reportAttributeAccessIssue=false
-
 import operator
 
-from seqlogic import Module, clog2
-from seqlogic.vec import Vec, uint2vec
+from seqlogic import Module
+from seqlogic import Vector as Vec
+from seqlogic import clog2, uint2vec
 
 from . import DATA_BASE, DATA_SIZE, Addr
 from .data_mem import DataMem
@@ -41,8 +40,8 @@ class DataMemBus(Module):
         clock = self.input(name="clock", dtype=Vec[1])
 
         # State
-        is_data = self.bits(name="is_data", dtype=Vec[1])
-        data = self.bits(name="data", dtype=Vec[32])
+        is_data = self.logic(name="is_data", dtype=Vec[1])
+        data = self.logic(name="data", dtype=Vec[32])
 
         # Submodules
         m, n = 2, 2 + word_addr_bits

@@ -1,9 +1,8 @@
 """Text Memory Bus."""
 
-# pyright: reportAttributeAccessIssue=false
-
-from seqlogic import Module, clog2
-from seqlogic.vec import Vec, uint2vec
+from seqlogic import Module
+from seqlogic import Vector as Vec
+from seqlogic import clog2, uint2vec
 
 from . import TEXT_BASE, TEXT_SIZE, Addr
 from .text_mem import TextMem
@@ -33,8 +32,8 @@ class TextMemBus(Module):
         rd_data = self.output(name="rd_data", dtype=Vec[32])
 
         # State
-        is_text = self.bits(name="is_text", dtype=Vec[1])
-        text = self.bits(name="text", dtype=Vec[32])
+        is_text = self.logic(name="is_text", dtype=Vec[1])
+        text = self.logic(name="text", dtype=Vec[32])
 
         # Submodules
         m, n = 2, 2 + word_addr_bits

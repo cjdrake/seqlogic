@@ -1,11 +1,9 @@
 """Data Memory."""
 
-# pyright: reportArgumentType=false
-
 import operator
 
-from seqlogic import Module
-from seqlogic.vec import Vec
+from seqlogic import Array, Module
+from seqlogic import Vector as Vec
 
 
 class DataMem(Module):
@@ -23,7 +21,7 @@ class DataMem(Module):
         clock = self.input(name="clock", dtype=Vec[1])
 
         # State
-        mem = self.array(name="mem", dtype=Vec[32])
+        mem = self.logic(name="mem", dtype=Array[4, 8], shape=(1024,))
 
         # Write Port
         self.mem_wr_be(mem, addr, wr_data, wr_en, wr_be, clock)

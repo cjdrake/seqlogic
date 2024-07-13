@@ -3,7 +3,7 @@
 import operator
 
 from seqlogic import Module
-from seqlogic.vec import Vec
+from seqlogic import Vector as Vec
 
 
 class TextMem(Module):
@@ -22,7 +22,7 @@ class TextMem(Module):
         rd_data = self.output(name="rd_data", dtype=Vec[32])
 
         # State
-        mem = self.array(name="mem", dtype=Vec[32])
+        mem = self.logic(name="mem", dtype=Vec[32], shape=(1024,))
 
         # Read Port
         self.combi(rd_data, operator.getitem, mem, rd_addr)

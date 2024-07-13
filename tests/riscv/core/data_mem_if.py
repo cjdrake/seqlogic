@@ -1,7 +1,8 @@
 """Data Memory Interface."""
 
 from seqlogic import Module
-from seqlogic.vec import Vec, cat, rep
+from seqlogic import Vector as Vec
+from seqlogic import cat, rep
 
 from . import Addr
 
@@ -63,7 +64,7 @@ class DataMemIf(Module):
         bus_rd_en = self.output(name="bus_rd_en", dtype=Vec[1])
         bus_rd_data = self.input(name="bus_rd_data", dtype=Vec[32])
 
-        byte_addr = self.bits(name="byte_addr", dtype=Vec[2])
+        byte_addr = self.logic(name="byte_addr", dtype=Vec[2])
 
         self.assign(bus_addr, addr)
         self.assign(bus_wr_en, wr_en)

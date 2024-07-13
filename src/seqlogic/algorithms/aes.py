@@ -3,35 +3,26 @@
 See https://csrc.nist.gov/pubs/fips/197/final for details.
 """
 
-# PyLint/PyRight are confused by MetaClass behavior
-# pyright: reportArgumentType=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportGeneralTypeIssues=false
-# pyright: reportIndexIssue=false
-# pyright: reportOperatorIssue=false
-# pyright: reportReturnType=false
-
-
-from ..vec import Bits, bits, rep, stack
+from ..bits import Array, Vector, bits, rep, stack
 
 NB = 4
 
-Text = Bits[4 * 4 * 8]
+Text = Vector[4 * 4 * 8]
 
 # Nk = {4, 6, 8}
-Key4 = Bits[4, 4, 8]
-Key6 = Bits[6, 4, 8]
-Key8 = Bits[8, 4, 8]
+Key4 = Array[4, 4, 8]
+Key6 = Array[6, 4, 8]
+Key8 = Array[8, 4, 8]
 Key = Key4 | Key6 | Key8
 
 # Nr = {10, 12, 14}
-RoundKeys = Bits[11, 4, 4, 8] | Bits[13, 4, 4, 8] | Bits[15, 4, 4, 8]
+RoundKeys = Array[11, 4, 4, 8] | Array[13, 4, 4, 8] | Array[15, 4, 4, 8]
 
-Byte = Bits[8]
-Word = Bits[4, 8]
-State = Bits[4, 4, 8]
-Matrix = Bits[4, 4, 4]
-MatrixRow = Bits[4, 4]
+Byte = Vector[8]
+Word = Array[4, 8]
+State = Array[4, 4, 8]
+Matrix = Array[4, 4, 4]
+MatrixRow = Array[4, 4]
 
 
 # fmt: off

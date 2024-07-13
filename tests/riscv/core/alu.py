@@ -1,10 +1,8 @@
 """Arithmetic Logic Unit (ALU)."""
 
-# pyright: reportArgumentType=false
-# pyright: reportAttributeAccessIssue=false
-
 from seqlogic import Module
-from seqlogic.vec import Vec, add, sub
+from seqlogic import Vector as Vec
+from seqlogic import add, sub
 
 from . import AluOp
 

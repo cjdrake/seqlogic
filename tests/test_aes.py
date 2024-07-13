@@ -1,13 +1,10 @@
 """Test AES Algorithm."""
 
-# pyright: reportArgumentType=false
-# pyright: reportAttributeAccessIssue=false
-
+from seqlogic import Vector, uint2vec
 from seqlogic.algorithms.aes import Key4, Key6, Key8, Text, decrypt, encrypt, key_expansion
-from seqlogic.vec import Vec, uint2vec
 
 
-def _s2v(s: str) -> Vec:
+def _s2v(s: str) -> Vector:
     a = bytearray.fromhex(s)
     return uint2vec(int.from_bytes(a, byteorder="little"), 4 * len(s))
 

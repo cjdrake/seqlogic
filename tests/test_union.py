@@ -1,27 +1,24 @@
-"""Test seqlogic.vec.VecUnion class."""
+"""Test seqlogic.bits.Union class."""
 
-# pylint: disable = unused-variable
-
-# PyRight is confused by MetaClass behavior
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
+# For error testing
+# pylint: disable=unused-variable
 
 import pytest
 
-from seqlogic.vec import Vec, VecUnion
+from seqlogic import Union, Vector
 
 
 def test_empty():
     with pytest.raises(ValueError):
 
-        class EmptyUnion(VecUnion):
+        class EmptyUnion(Union):
             pass
 
 
-class Simple(VecUnion):
-    a: Vec[2]
-    b: Vec[3]
-    c: Vec[4]
+class Simple(Union):
+    a: Vector[2]
+    b: Vector[3]
+    c: Vector[4]
 
 
 def test_simple():
@@ -31,4 +28,5 @@ def test_simple():
     assert str(u.b) == "3b000"
     assert str(u.c) == "4bX000"
 
-    assert len(u) == 4
+    assert u.size == 4
+    assert u.shape is None
