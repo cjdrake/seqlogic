@@ -10,6 +10,7 @@
 # pyright: reportArgumentType=false
 # pyright: reportAttributeAccessIssue=false
 # pyright: reportCallIssue=false
+# pyright: reportGeneralTypeIssues=false
 # pyright: reportReturnType=false
 
 from __future__ import annotations
@@ -1859,28 +1860,28 @@ class Bits:
 
 
 def _sel(b: Bits, key: tuple[tuple[int, int], ...]) -> Vec | Bits:
-    shape_r: tuple[int, ...] = b.shape[1:]
-    size: int = math.prod(shape_r)
-    mask = (1 << size) - 1
-
-    def chunk(i: int) -> Bits:
-        d0 = (b._data[0] >> (size * i)) & mask
-        d1 = (b._data[1] >> (size * i)) & mask
-        return Bits[shape_r](d0, d1)
-
     (start, stop), key_r = key[0], key[1:]
     assert 0 <= start <= stop <= b.shape[0]
 
-    if key_r:
-        if start == 0 and stop == b.shape[0]:
-            chunks = list(b)
-        else:
-            chunks = [chunk(i) for i in range(start, stop)]
-        return stack(*[_sel(chunk, key_r) for chunk in chunks])
+    # Partial select a:b
+    if start != 0 or stop != b.shape[0]:
+        shape_r: tuple[int, ...] = b.shape[1:]
+        size: int = math.prod(shape_r)
+        mask = (1 << size) - 1
 
-    if start == 0 and stop == b.shape[0]:
-        return b
-    return stack(*[chunk(i) for i in range(start, stop)])
+        def f(i: int) -> Bits:
+            d0 = (b._data[0] >> (size * i)) & mask
+            d1 = (b._data[1] >> (size * i)) & mask
+            return Bits[shape_r](d0, d1)
+
+        if key_r:
+            return stack(*[_sel(f(i), key_r) for i in range(start, stop)])
+        return stack(*[f(i) for i in range(start, stop)])
+
+    # Full select 0:n
+    if key_r:
+        return stack(*[_sel(x, key_r) for x in b])
+    return b
 
 
 def _rank2(fst: Vec, rst) -> Bits:
