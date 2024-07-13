@@ -152,12 +152,10 @@ class Module(Branch, _ProcIf, _TraceIf):
             else:
                 raise ValueError(f"Port {name} invalid connection")
 
-    def bits(self, name: str, dtype: type, port: bool = False) -> Bits:
+    def bits(self, name: str, dtype: type) -> Bits:
         self._check_name(name)
         node = Bits(name, parent=self, dtype=dtype)
         setattr(self, f"_{name}", node)
-        if port:
-            setattr(self, name, node)
         return node
 
     def array(self, name: str, dtype: type) -> Array:
