@@ -593,9 +593,7 @@ class Bits:
 
         return y, co
 
-    def lsh(
-        self, n: int | Bits, ci: Empty | Scalar | Vector | None = None
-    ) -> tuple[Bits, Empty | Scalar | Vector]:
+    def lsh(self, n: int | Bits, ci: Bits | None = None) -> tuple[Bits, Empty | Scalar | Vector]:
         """Left shift by n bits.
 
         Args:
@@ -623,8 +621,8 @@ class Bits:
             return self, _Empty
         if ci is None:
             ci = _vec_size(n)(_mask(n), 0)
-        elif len(ci) != n:
-            raise ValueError(f"Expected ci to have len {n}")
+        elif ci.size != n:
+            raise ValueError(f"Expected ci to have size {n}")
 
         return self._lsh(n, ci)
 
@@ -640,9 +638,7 @@ class Bits:
 
         return y, co
 
-    def rsh(
-        self, n: int | Bits, ci: Empty | Scalar | Vector | None = None
-    ) -> tuple[Bits, Empty | Scalar | Vector]:
+    def rsh(self, n: int | Bits, ci: Bits | None = None) -> tuple[Bits, Empty | Scalar | Vector]:
         """Right shift by n bits.
 
         Args:
@@ -670,8 +666,8 @@ class Bits:
             return self, _Empty
         if ci is None:
             ci = _vec_size(n)(_mask(n), 0)
-        elif len(ci) != n:
-            raise ValueError(f"Expected ci to have len {n}")
+        elif ci.size != n:
+            raise ValueError(f"Expected ci to have size {n}")
 
         return self._rsh(n, ci)
 
