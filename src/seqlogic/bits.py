@@ -92,6 +92,14 @@ def _expect_size(arg, size: int) -> Bits:
     return b
 
 
+class _ShapeIf:
+    """Shaping interface."""
+
+    @classproperty
+    def shape(cls) -> tuple[int, ...]:
+        raise NotImplementedError()  # pragma: no cover
+
+
 class Bits:
     """Base class for Bits
 
@@ -120,10 +128,6 @@ class Bits:
 
     @classproperty
     def size(cls) -> int:
-        raise NotImplementedError()  # pragma: no cover
-
-    @classproperty
-    def shape(cls) -> None | tuple[()] | tuple[int, ...]:
         raise NotImplementedError()  # pragma: no cover
 
     @classmethod
@@ -865,7 +869,7 @@ class Bits:
         raise TypeError("Expected key to be int or slice")
 
 
-class Empty(Bits):
+class Empty(Bits, _ShapeIf):
     """Empty sequence of bits."""
 
     @classproperty
@@ -873,8 +877,8 @@ class Empty(Bits):
         return 0
 
     @classproperty
-    def shape(cls) -> None:
-        return None
+    def shape(cls) -> tuple[int, ...]:
+        return (0,)
 
     def __len__(self) -> int:
         return 0
@@ -889,7 +893,7 @@ _BitsShape[None] = Empty
 _Empty = Empty(*_X)
 
 
-class Scalar(Bits):
+class Scalar(Bits, _ShapeIf):
     """Zero dimensional (scalar) sequence of bits."""
 
     @classproperty
@@ -897,7 +901,7 @@ class Scalar(Bits):
         return 1
 
     @classproperty
-    def shape(cls) -> tuple[()]:
+    def shape(cls) -> tuple[int, ...]:
         return ()
 
     def __len__(self) -> int:
@@ -918,7 +922,7 @@ _Scalar1 = Scalar(*_1)
 _ScalarW = Scalar(*_W)
 
 
-class Vector(Bits):
+class Vector(Bits, _ShapeIf):
     """One dimensional (vector) sequence of bits."""
 
     _size: int
@@ -935,7 +939,7 @@ class Vector(Bits):
         return cls._size
 
     @classproperty
-    def shape(cls) -> tuple[int]:
+    def shape(cls) -> tuple[int, ...]:
         return (cls._size,)
 
     def __len__(self) -> int:
@@ -960,15 +964,15 @@ class Vector(Bits):
         return self
 
 
-class Array(Bits):
+class Array(Bits, _ShapeIf):
     """N dimensional (array) sequence of bits."""
 
+    _shape: tuple[int, ...]
+
     def __class_getitem__(
-        cls, shape: None | tuple[()] | tuple[int, ...]
+        cls, shape: tuple[int, ...]
     ) -> type[Empty] | type[Scalar] | type[Vector] | type[Array]:
         match shape:
-            case None:
-                return Empty
             case []:
                 return Scalar
             case int() as size:
@@ -979,8 +983,6 @@ class Array(Bits):
                 return _array_shape(shape)
             case _:
                 raise TypeError(f"Invalid shape parameter: {shape}")
-
-    _shape: tuple[int, ...]
 
     @classproperty
     def size(cls) -> int:
@@ -993,9 +995,7 @@ class Array(Bits):
     def __len__(self) -> int:
         return self._shape[0]
 
-    def __getitem__(
-        self, key: int | slice | tuple[int | slice, ...]
-    ) -> Empty | Scalar | Vector | Array:
+    def __getitem__(self, key: int | slice | tuple[int | slice, ...]) -> _ShapeIf:
         if isinstance(key, (int, slice)):
             nkey = self._norm_key([key])
             return _sel(self, nkey)
@@ -1005,7 +1005,7 @@ class Array(Bits):
         s = "Expected key to be int, slice, or tuple[int | slice, ...]"
         raise TypeError(s)
 
-    def __iter__(self) -> Generator[Empty | Scalar | Vector | Array, None, None]:
+    def __iter__(self) -> Generator[_ShapeIf, None, None]:
         for i in range(self._shape[0]):
             yield self[i]
 
@@ -1701,7 +1701,6 @@ class _StructMeta(type):
 
         # Class properties
         struct.size = classproperty(lambda _: size)
-        struct.shape = classproperty(lambda _: None)
 
         # Override Bits.__init__ method
         source = _struct_init_source(fields)
@@ -1797,7 +1796,6 @@ class _UnionMeta(type):
 
         # Class properties
         union.size = classproperty(lambda _: size)
-        union.shape = classproperty(lambda _: None)
 
         # Override Vec __init__ method
         def _init(self, arg: Bits | str):
@@ -1903,7 +1901,7 @@ def bits(obj=None) -> Bits:
             raise TypeError(f"Invalid input: {obj}")
 
 
-def stack(*objs: Bits | int | str) -> Bits:
+def stack(*objs: _ShapeIf | int | str) -> Bits:
     """Stack a sequence of Vec/Bits.
 
     Args:
@@ -1921,7 +1919,7 @@ def stack(*objs: Bits | int | str) -> Bits:
     # Convert inputs
     bs = []
     for obj in objs:
-        if isinstance(obj, Bits):
+        if isinstance(obj, _ShapeIf):
             bs.append(obj)
         elif obj in (0, 1):
             bs.append((_Scalar0, _Scalar1)[obj])
@@ -1946,7 +1944,7 @@ def stack(*objs: Bits | int | str) -> Bits:
         d1 |= b.data[1] << size
         size += b.size
 
-    if fst.shape is None:
+    if fst.shape == (0,):
         return _Empty
     shape = (len(bs),) + fst.shape
     return _array_shape(shape)(d0, d1)

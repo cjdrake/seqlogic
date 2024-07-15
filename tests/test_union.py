@@ -29,4 +29,3 @@ def test_simple():
     assert str(u.c) == "4bX000"
 
     assert u.size == 4
-    assert u.shape is None

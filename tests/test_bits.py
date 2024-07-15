@@ -21,7 +21,7 @@ W = Array[1](*_W)
 
 def test_basic():
     # Degenerate dimensions
-    assert Array[None] is Vector[0]
+    assert Array[0] is Vector[0]
     assert Array[1] is Vector[1]
     assert Array[(1,)] is Vector[1]
     assert Array[2] is Vector[2]
