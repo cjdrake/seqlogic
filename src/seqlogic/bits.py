@@ -1648,18 +1648,8 @@ def _struct_init_source(fields: list[tuple[str, type]]) -> str:
     lines = []
     s = ", ".join(f"{fn}=None" for fn, _ in fields)
     lines.append(f"def init(self, {s}):\n")
-    lines.append("    d0, d1 = 0, 0\n")
-    for fn, _ in fields:
-        s = f"Expected field {fn} to have {{exp}} bits, got {{got}}"
-        lines.append(f"    if {fn} is not None:\n")
-        lines.append(f"        if isinstance({fn}, str):\n")
-        lines.append(f"            {fn} = _lit2vec({fn})\n")
-        lines.append(f"        got, exp = {fn}.size, self._{fn}_size\n")
-        lines.append("        if got != exp:\n")
-        lines.append(f'            raise TypeError(f"{s}")\n')
-        lines.append(f"        d0 |= {fn}.data[0] << self._{fn}_base\n")
-        lines.append(f"        d1 |= {fn}.data[1] << self._{fn}_base\n")
-    lines.append("    self._data = (d0, d1)\n")
+    s = ", ".join(fn for fn, _ in fields)
+    lines.append(f"    _init_body(self, {s})\n")
     return "".join(lines)
 
 
@@ -1672,37 +1662,42 @@ class _StructMeta(type):
             return super().__new__(mcs, name, bases, attrs)
 
         # Scan attributes for field_name: field_type items
-        struct_attrs = {}
         fields = []
         for key, val in attrs.items():
             if key == "__annotations__":
                 for field_name, field_type in val.items():
                     fields.append((field_name, field_type))
-            # name: Type
-            else:
-                struct_attrs[key] = val
 
         if not fields:
             raise ValueError("Empty Struct is not supported")
 
         # Add struct member base/size attributes
-        base = 0
+        offset = 0
+        offsets = {}
         for field_name, field_type in fields:
-            struct_attrs[f"_{field_name}_base"] = base
-            struct_attrs[f"_{field_name}_size"] = field_type.size
-            base += field_type.size
+            offsets[field_name] = offset
+            offset += field_type.size
 
         # Create Struct class
         size = sum(field_type.size for _, field_type in fields)
-        struct = super().__new__(mcs, name, bases + (Bits,), struct_attrs)
+        struct = super().__new__(mcs, name, bases + (Bits,), {})
 
         # Class properties
         struct.size = classproperty(lambda _: size)
 
         # Override Bits.__init__ method
+        def _init_body(obj, *args):
+            d0, d1 = 0, 0
+            for arg, (fn, ft) in zip(args, fields):
+                if arg is not None:
+                    # TODO(cjdrake): Check input type?
+                    b = _expect_size(arg, ft.size)
+                    d0 |= b.data[0] << offsets[fn]
+                    d1 |= b.data[1] << offsets[fn]
+            Bits.__init__(obj, d0, d1)
+
         source = _struct_init_source(fields)
-        globals_ = {"_lit2vec": _lit2vec}
-        globals_.update({ft.__name__: ft for _, ft in fields})
+        globals_ = {"_init_body": _init_body}
         locals_ = {}
         exec(source, globals_, locals_)
         struct.__init__ = locals_["init"]
@@ -1744,11 +1739,9 @@ class _StructMeta(type):
 
         # Create Struct fields
         def _fget(fn: str, ft: type[Bits], self):
-            size = getattr(self, f"_{fn}_size")
-            offset = getattr(self, f"_{fn}_base")
-            mask = _mask(size)
-            d0 = (self._data[0] >> offset) & mask
-            d1 = (self._data[1] >> offset) & mask
+            mask = _mask(ft.size)
+            d0 = (self._data[0] >> offsets[fn]) & mask
+            d1 = (self._data[1] >> offsets[fn]) & mask
             return ft.cast_data(d0, d1)
 
         for fn, ft in fields:
