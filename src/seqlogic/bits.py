@@ -135,13 +135,13 @@ class Bits:
         if b.size != cls.size:
             raise TypeError(f"Expected size {cls.size}, got {b.size}")
         obj = object.__new__(cls)
-        obj._data = b.data
+        Bits.__init__(obj, b.data[0], b.data[1])
         return obj
 
     @classmethod
     def cast_data(cls, d0: int, d1: int) -> Bits:
         obj = object.__new__(cls)
-        obj._data = (d0, d1)
+        Bits.__init__(obj, d0, d1)
         return obj
 
     @classmethod
@@ -1588,9 +1588,9 @@ class _EnumMeta(type):
         enum = super().__new__(mcs, name, bases + (vec_n,), enum_attrs)
 
         # Instantiate members
-        for data, key in data2key.items():
+        for (d0, d1), key in data2key.items():
             obj = object.__new__(enum)
-            obj._data = data
+            Bits.__init__(obj, d0, d1)
             setattr(enum, key, obj)
 
         # Override Vector.cast method
@@ -1599,7 +1599,7 @@ class _EnumMeta(type):
                 obj = getattr(cls, data2key[b.data])
             except KeyError:
                 obj = object.__new__(cls)
-                obj._data = b.data
+                Bits.__init__(obj, b.data[0], b.data[1])
             return obj
 
         enum.cast = classmethod(_cast)
@@ -1610,7 +1610,7 @@ class _EnumMeta(type):
                 obj = getattr(cls, data2key[(d0, d1)])
             except KeyError:
                 obj = object.__new__(cls)
-                obj._data = (d0, d1)
+                Bits.__init__(obj, d0, d1)
             return obj
 
         # Override Vector.cast_data method
