@@ -969,9 +969,7 @@ class Array(Bits, _ShapeIf):
 
     _shape: tuple[int, ...]
 
-    def __class_getitem__(
-        cls, shape: tuple[int, ...]
-    ) -> type[Empty] | type[Scalar] | type[Vector] | type[Array]:
+    def __class_getitem__(cls, shape: tuple[int, ...]) -> type[_ShapeIf]:
         match shape:
             case []:
                 return Scalar
