@@ -1332,10 +1332,10 @@ def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> AddResu
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)
     if ci is None:
-        s, co = _add(a, b, _Scalar0)
+        ci = _Scalar0
     else:
         ci = _expect_type(ci, Scalar)
-        s, co = _add(a, b, ci)
+    s, co = _add(a, b, ci)
     return AddResult(s, co)
 
 
@@ -1495,7 +1495,9 @@ def int2vec(n: int, size: int | None = None) -> Scalar | Vector:
         raise ValueError(s)
 
     v = _vec_size(size)(d1 ^ _mask(size), d1)
-    return v.neg().s if neg else v
+    if neg:
+        return v.neg().s
+    return v
 
 
 def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
@@ -1521,7 +1523,8 @@ def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
         elif obj in (0, 1):
             bs.append((_Scalar0, _Scalar1)[obj])
         elif isinstance(obj, str):
-            bs.append(_lit2vec(obj))
+            v = _lit2vec(obj)
+            bs.append(v)
         else:
             raise TypeError(f"Invalid input: {obj}")
 
