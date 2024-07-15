@@ -67,15 +67,19 @@ def _get_array_shape(shape: tuple[int, ...]) -> type[Array]:
         return cls
 
 
-def _array_shape(shape: tuple[int, ...]) -> type[Array]:
+def _array_shape(shape: tuple[int, ...]) -> type[_ShapeIf]:
     """Array[shape] class factory."""
+    if len(shape) == 0:
+        return Scalar
+    if len(shape) == 1:
+        return _vec_size(shape[0])
     for i, n in enumerate(shape):
         if n < 2:
             raise ValueError(f"Expected shape[{i}] > 1, got {n}")
     return _get_array_shape(shape)
 
 
-def _expect_type(arg, t: type):
+def _expect_type(arg, t: type[Bits]):
     if isinstance(arg, str):
         b = _lit2vec(arg)
     else:
@@ -885,7 +889,6 @@ class Empty(Bits, _ShapeIf):
         yield from ()
 
 
-_BitsShape[None] = Empty
 _Empty = Empty(*_X)
 
 
@@ -911,7 +914,6 @@ class Scalar(Bits, _ShapeIf):
         yield self
 
 
-_BitsShape[()] = Scalar
 _ScalarX = Scalar(*_X)
 _Scalar0 = Scalar(*_0)
 _Scalar1 = Scalar(*_1)
@@ -950,11 +952,13 @@ class Vector(Bits, _ShapeIf):
             d0, d1 = self._get_index(i)
             yield _vec_size(1)(d0, d1)
 
-    def reshape(self, shape: tuple[int, ...]) -> Array:
+    def reshape(self, shape: tuple[int, ...]) -> Vector | Array:
+        if shape == self.shape:
+            return self
         if math.prod(shape) != self.size:
             s = f"Expected shape with size {self.size}, got {shape}"
             raise ValueError(s)
-        return _array_shape(shape)(self._data[0], self._data[1])
+        return Array[shape](self._data[0], self._data[1])
 
     def flatten(self) -> Vector:
         return self
@@ -973,7 +977,7 @@ class Array(Bits, _ShapeIf):
                 return _vec_size(size)
             case [int() as size]:
                 return _vec_size(size)
-            case [int(), *_]:
+            case [int(), *rst] if all(isinstance(n, int) for n in rst):
                 return _array_shape(shape)
             case _:
                 raise TypeError(f"Invalid shape parameter: {shape}")
@@ -1008,11 +1012,13 @@ class Array(Bits, _ShapeIf):
         indent = " " * len(prefix) + "  "
         return f"{prefix}({_rstr(indent, self)})"
 
-    def reshape(self, shape: tuple[int, ...]) -> Array:
+    def reshape(self, shape: tuple[int, ...]) -> Vector | Array:
+        if shape == self.shape:
+            return self
         if math.prod(shape) != self.size:
             s = f"Expected shape with size {self.size}, got {shape}"
             raise ValueError(s)
-        return _array_shape(shape)(self._data[0], self._data[1])
+        return Array[shape](self._data[0], self._data[1])
 
     def flatten(self) -> Vector:
         return _vec_size(self.size)(self._data[0], self._data[1])
@@ -1410,7 +1416,7 @@ def _parse_lit(lit: str) -> tuple[int, tuple[int, int]]:
     raise ValueError(f"Invalid lit: {lit}")
 
 
-def _lit2vec(lit: str) -> Empty | Scalar | Vector:
+def _lit2vec(lit: str) -> Scalar | Vector:
     """Convert a string literal to a vec.
 
     A string literal is in the form {width}{base}{characters},
@@ -1851,7 +1857,7 @@ def vec(obj=None) -> Empty | Scalar | Vector:
             raise TypeError(f"Invalid input: {obj}")
 
 
-def bits(obj=None) -> Bits:
+def bits(obj=None) -> _ShapeIf:
     """Create a Bits object using standard input formats.
 
     bits() or bits(None) will return the empty vec
@@ -1888,7 +1894,7 @@ def bits(obj=None) -> Bits:
             raise TypeError(f"Invalid input: {obj}")
 
 
-def stack(*objs: _ShapeIf | int | str) -> Bits:
+def stack(*objs: _ShapeIf | int | str) -> _ShapeIf:
     """Stack a sequence of Vec/Bits.
 
     Args:
@@ -1937,7 +1943,7 @@ def stack(*objs: _ShapeIf | int | str) -> Bits:
     return _array_shape(shape)(d0, d1)
 
 
-def _sel(b: Bits, key: tuple[tuple[int, int], ...]) -> Bits:
+def _sel(b: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:
     (start, stop), key_r = key[0], key[1:]
     assert 0 <= start <= stop <= b.shape[0]
 
@@ -1947,7 +1953,7 @@ def _sel(b: Bits, key: tuple[tuple[int, int], ...]) -> Bits:
         size: int = math.prod(shape_r)
         mask = (1 << size) - 1
 
-        def f(i: int) -> Bits:
+        def f(i: int) -> _ShapeIf:
             d0 = (b.data[0] >> (size * i)) & mask
             d1 = (b.data[1] >> (size * i)) & mask
             return _array_shape(shape_r)(d0, d1)
@@ -1962,7 +1968,7 @@ def _sel(b: Bits, key: tuple[tuple[int, int], ...]) -> Bits:
     return b
 
 
-def _rank2(fst: Empty | Scalar | Vector, *rst: Vector | str) -> Bits:
+def _rank2(fst: Scalar | Vector, *rst: Vector | str) -> Vector | Array:
     d0, d1 = fst.data
     for i, v in enumerate(rst, start=1):
         v = _expect_type(v, Vector[fst.size])
@@ -2002,7 +2008,7 @@ def _norm_slice(n: int, sl: slice) -> tuple[int, int]:
     return start, stop
 
 
-def _rstr(indent: str, b: Bits) -> str:
+def _rstr(indent: str, b: Vector | Array) -> str:
     # 1-D Vector
     if len(b.shape) == 1:
         return Bits.__str__(b)
