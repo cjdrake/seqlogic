@@ -1763,26 +1763,18 @@ class _UnionMeta(type):
             return super().__new__(mcs, name, bases, attrs)
 
         # Scan attributes for field_name: field_type items
-        union_attrs = {}
         fields = []
         for key, val in attrs.items():
             if key == "__annotations__":
                 for field_name, field_type in val.items():
                     fields.append((field_name, field_type))
-            # name: Type
-            else:
-                union_attrs[key] = val
 
         if not fields:
             raise ValueError("Empty Union is not supported")
 
-        # Add union member base/size attributes
-        for field_name, field_type in fields:
-            union_attrs[f"_{field_name}_size"] = field_type.size
-
         # Create Union class
         size = max(field_type.size for _, field_type in fields)
-        union = super().__new__(mcs, name, bases + (Bits,), union_attrs)
+        union = super().__new__(mcs, name, bases + (Bits,), {})
 
         # Class properties
         union.size = classproperty(lambda _: size)
@@ -1793,9 +1785,15 @@ class _UnionMeta(type):
                 b = _lit2vec(arg)
             else:
                 b = arg
-            if not isinstance(b, tuple(ft for _, ft in fields)):
-                raise TypeError("Invalid type")
-            self._data = b.data
+            ts = []
+            for _, ft in fields:
+                if ft not in ts:
+                    ts.append(ft)
+            if not isinstance(b, tuple(ts)):
+                s = ", ".join(t.__name__ for t in ts)
+                s = f"Expected arg to be {{{s}}}, or str literal"
+                raise TypeError(s)
+            Bits.__init__(self, b.data[0], b.data[1])
 
         union.__init__ = _init
 
@@ -1807,15 +1805,14 @@ class _UnionMeta(type):
         union.__getitem__ = _getitem
 
         # Create Union fields
-        def _fget(fn, ft: type[Bits], self):
-            size = getattr(self, f"_{fn}_size")
-            mask = _mask(size)
+        def _fget(ft: type[Bits], self):
+            mask = _mask(ft.size)
             d0 = self._data[0] & mask
             d1 = self._data[1] & mask
             return ft.cast_data(d0, d1)
 
         for fn, ft in fields:
-            setattr(union, fn, property(fget=partial(_fget, fn, ft)))
+            setattr(union, fn, property(fget=partial(_fget, ft)))
 
         return union
 
