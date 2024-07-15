@@ -33,22 +33,22 @@ class State(ABC):
         self._sim = _sim
 
     def changed(self) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     def update(self):
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
 
 class Value(ABC):
     """State value."""
 
     def get_value(self):
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     value = property(fget=get_value)
 
     def set_next(self, value):
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     next = property(fset=set_next)
 

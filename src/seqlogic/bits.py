@@ -120,11 +120,11 @@ class Bits:
 
     @classproperty
     def size(cls) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     @classproperty
     def shape(cls) -> None | tuple[()] | tuple[int, ...]:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     @classmethod
     def cast(cls, b: Bits) -> Bits:
@@ -780,36 +780,6 @@ class Bits:
 
         return self._rrot(n)
 
-    def rot(self, n: int | Bits) -> Bits:
-        """Rotate by n bits.
-
-        Args:
-            n: Number of bits.
-
-        Returns:
-            Bits rotated by n bits.
-
-        Raises:
-            ValueError: If n is invalid/inconsistent.
-        """
-        if isinstance(n, Bits):
-            if n.has_x():
-                return self.xes()
-            if n.has_dc():
-                return self.dcs()
-            n = n.to_uint()
-
-        if n == 0:
-            return self
-        # Positive defined as left rotate
-        if 0 < n < self.size:
-            return self._lrot(n)
-        # Negative defined as right rotate
-        if -self.size < n < 0:
-            return self._rrot(-n)
-
-        raise ValueError(f"Expected -{self.size} < n < {self.size}, got {n}")
-
     def neg(self) -> AddResult:
         """Twos complement negation.
 
@@ -1073,7 +1043,7 @@ class Array(Bits):
                 return (i, i + 1)
             if isinstance(key, slice):
                 return _norm_slice(n, key)
-            assert False
+            assert False  # pragma: no cover
 
         return tuple(f(n, key) for n, key in zip(cls._shape, keys))
 

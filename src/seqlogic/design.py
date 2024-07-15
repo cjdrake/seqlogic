@@ -230,7 +230,7 @@ class Module(Branch, _ProcIf, _TraceIf):
                 if state is clk:
                     q.next = d.value
                 else:
-                    assert False
+                    assert False  # pragma: no cover
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
@@ -250,7 +250,7 @@ class Module(Branch, _ProcIf, _TraceIf):
                 elif state is clk:
                     q.next = d.value
                 else:
-                    assert False
+                    assert False  # pragma: no cover
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
@@ -265,7 +265,7 @@ class Module(Branch, _ProcIf, _TraceIf):
                 if state is clk:
                     q.next = d.value
                 else:
-                    assert False
+                    assert False  # pragma: no cover
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
@@ -291,7 +291,7 @@ class Module(Branch, _ProcIf, _TraceIf):
                 elif state is clk:
                     q.next = d.value
                 else:
-                    assert False
+                    assert False  # pragma: no cover
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
@@ -314,7 +314,7 @@ class Module(Branch, _ProcIf, _TraceIf):
                 if state is clk:
                     mem[addr.value].next = data.value
                 else:
-                    assert False
+                    assert False  # pragma: no cover
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
@@ -352,7 +352,7 @@ class Module(Branch, _ProcIf, _TraceIf):
                             xs.append(mem[addr.value].value[m:n])
                     mem[addr.value].next = cat(*xs)
                 else:
-                    assert False
+                    assert False  # pragma: no cover
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
