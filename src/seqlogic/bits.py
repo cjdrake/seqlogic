@@ -75,7 +75,7 @@ def _array_shape(shape: tuple[int, ...]) -> type[Array]:
     return _get_array_shape(shape)
 
 
-def _expect_bits_or_lit(arg, t: type):
+def _expect_type(arg, t: type):
     if isinstance(arg, str):
         b = _lit2vec(arg)
     else:
@@ -85,8 +85,8 @@ def _expect_bits_or_lit(arg, t: type):
     return b
 
 
-def _expect_bits_or_lit_size(arg, t: type, size: int) -> Bits:
-    b = _expect_bits_or_lit(arg, t)
+def _expect_size(arg, size: int) -> Bits:
+    b = _expect_type(arg, Bits)
     if b.size != size:
         raise TypeError(f"Expected size {size}, got {b.size}")
     return b
@@ -217,27 +217,27 @@ class Bits:
         return self.not_()
 
     def __or__(self, other: Bits | str) -> Bits:
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         return _or_(self, other)
 
     def __ror__(self, other: Bits | str) -> Bits:
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         return _or_(other, self)
 
     def __and__(self, other: Bits | str) -> Bits:
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         return _and_(self, other)
 
     def __rand__(self, other: Bits | str) -> Bits:
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         return _and_(other, self)
 
     def __xor__(self, other: Bits | str) -> Bits:
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         return _xor(self, other)
 
     def __rxor__(self, other: Bits | str) -> Bits:
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         return _xor(other, self)
 
     # Note: Drop carry-out
@@ -246,7 +246,7 @@ class Bits:
         return y
 
     def __rlshift__(self, other: Bits | str) -> Bits:
-        other = _expect_bits_or_lit(other, Bits)
+        other = _expect_type(other, Bits)
         y, _ = other.lsh(self)
         return y
 
@@ -256,29 +256,29 @@ class Bits:
         return y
 
     def __rrshift__(self, other: Bits | str) -> Bits:
-        other = _expect_bits_or_lit(other, Bits)
+        other = _expect_type(other, Bits)
         y, _ = other.rsh(self)
         return y
 
     # Note: Keep carry-out
     def __add__(self, other: Bits | str) -> Scalar | Vector:
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         s, co = _add(self, other, _Scalar0)
         return cat(s, co)
 
     def __radd__(self, other: Bits | str) -> Scalar | Vector:
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         s, co = _add(other, self, _Scalar0)
         return cat(s, co)
 
     # Note: Keep carry-out
     def __sub__(self, other: Bits | str) -> Scalar | Vector:
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         s, co = _add(self, other.not_(), _Scalar1)
         return cat(s, co)
 
     def __rsub__(self, other: Bits | str) -> Scalar | Vector:
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         s, co = _add(other, self.not_(), _Scalar1)
         return cat(s, co)
 
@@ -393,7 +393,7 @@ class Bits:
         Returns:
             Scalar result of self == other
         """
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         return self._eq(other)
 
     def _ne(self, b: Bits) -> Scalar:
@@ -408,7 +408,7 @@ class Bits:
         Returns:
             Scalar result of self != other
         """
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         return self._ne(other)
 
     def lt(self, other: Bits | str) -> Scalar:
@@ -420,7 +420,7 @@ class Bits:
         Returns:
             Scalar result of unsigned(self) < unsigned(other)
         """
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         try:
             return (_Scalar0, _Scalar1)[self.to_uint() < other.to_uint()]
         except ValueError:
@@ -435,7 +435,7 @@ class Bits:
         Returns:
             Scalar result of signed(self) < signed(other)
         """
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         try:
             return (_Scalar0, _Scalar1)[self.to_int() < other.to_int()]
         except ValueError:
@@ -450,7 +450,7 @@ class Bits:
         Returns:
             Scalar result of unsigned(self) ≤ unsigned(other)
         """
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         try:
             return (_Scalar0, _Scalar1)[self.to_uint() <= other.to_uint()]
         except ValueError:
@@ -465,7 +465,7 @@ class Bits:
         Returns:
             Scalar result of signed(self) ≤ signed(other)
         """
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         try:
             return (_Scalar0, _Scalar1)[self.to_int() <= other.to_int()]
         except ValueError:
@@ -480,7 +480,7 @@ class Bits:
         Returns:
             Scalar result of unsigned(self) > unsigned(other)
         """
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         try:
             return (_Scalar0, _Scalar1)[self.to_uint() > other.to_uint()]
         except ValueError:
@@ -495,7 +495,7 @@ class Bits:
         Returns:
             Scalar result of signed(self) > signed(other)
         """
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         try:
             return (_Scalar0, _Scalar1)[self.to_int() > other.to_int()]
         except ValueError:
@@ -510,7 +510,7 @@ class Bits:
         Returns:
             Scalar result of unsigned(self) ≥ unsigned(other)
         """
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         try:
             return (_Scalar0, _Scalar1)[self.to_uint() >= other.to_uint()]
         except ValueError:
@@ -525,7 +525,7 @@ class Bits:
         Returns:
             Scalar result of signed(self) ≥ signed(other)
         """
-        other = _expect_bits_or_lit_size(other, Bits, self.size)
+        other = _expect_size(other, self.size)
         try:
             return (_Scalar0, _Scalar1)[self.to_int() >= other.to_int()]
         except ValueError:
@@ -1086,10 +1086,10 @@ def or_(b0: Bits | str, *bs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    b0 = _expect_bits_or_lit(b0, Bits)
+    b0 = _expect_type(b0, Bits)
     y = b0
     for b in bs:
-        b = _expect_bits_or_lit_size(b, Bits, b0.size)
+        b = _expect_size(b, b0.size)
         y = _or_(y, b)
     return y
 
@@ -1165,10 +1165,10 @@ def and_(b0: Bits | str, *bs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    b0 = _expect_bits_or_lit(b0, Bits)
+    b0 = _expect_type(b0, Bits)
     y = b0
     for b in bs:
-        b = _expect_bits_or_lit_size(b, Bits, b0.size)
+        b = _expect_size(b, b0.size)
         y = _and_(y, b)
     return y
 
@@ -1255,10 +1255,10 @@ def xor(b0: Bits | str, *bs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    b0 = _expect_bits_or_lit(b0, Bits)
+    b0 = _expect_type(b0, Bits)
     y = b0
     for b in bs:
-        b = _expect_bits_or_lit_size(b, Bits, b0.size)
+        b = _expect_size(b, b0.size)
         y = _xor(y, b)
     return y
 
@@ -1329,12 +1329,12 @@ def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> AddResu
     Raises:
         ValueError: Bits sizes are invalid/inconsistent.
     """
-    a = _expect_bits_or_lit(a, Bits)
-    b = _expect_bits_or_lit_size(b, Bits, a.size)
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
     if ci is None:
         s, co = _add(a, b, _Scalar0)
     else:
-        ci = _expect_bits_or_lit(ci, Scalar)
+        ci = _expect_type(ci, Scalar)
         s, co = _add(a, b, ci)
     return AddResult(s, co)
 
@@ -1352,8 +1352,8 @@ def sub(a: Bits | str, b: Bits | str) -> AddResult:
     Raises:
         ValueError: Bits sizes are invalid/inconsistent.
     """
-    a = _expect_bits_or_lit(a, Bits)
-    b = _expect_bits_or_lit_size(b, Bits, a.size)
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
     s, co = _add(a, b.not_(), ci=_Scalar1)
     return AddResult(s, co)
 
@@ -1618,7 +1618,7 @@ class _EnumMeta(type):
 
         # Override Vector.__new__ method
         def _new(cls, b: Bits | str):
-            b = _expect_bits_or_lit_size(b, Bits, cls.size)
+            b = _expect_size(b, cls.size)
             return cls.cast(b)
 
         enum.__new__ = _new
@@ -1980,7 +1980,7 @@ def _sel(b: Bits, key: tuple[tuple[int, int], ...]) -> Bits:
 def _rank2(fst: Empty | Scalar | Vector, *rst: Vector | str) -> Bits:
     d0, d1 = fst.data
     for i, v in enumerate(rst, start=1):
-        v = _expect_bits_or_lit(v, Vector[fst.size])
+        v = _expect_type(v, Vector[fst.size])
         d0 |= v.data[0] << (fst.size * i)
         d1 |= v.data[1] << (fst.size * i)
     shape = (len(rst) + 1,) + fst.shape
