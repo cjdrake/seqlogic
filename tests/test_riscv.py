@@ -16,7 +16,17 @@ from collections import defaultdict
 
 from seqlogic import get_loop, simify, uint2vec
 
-from .riscv.core import AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
+from .riscv.core import (
+    AluOp,
+    CtlAluA,
+    CtlAluB,
+    CtlPc,
+    CtlWriteBack,
+    Funct3AluLogic,
+    Funct3Branch,
+    Inst,
+    Opcode,
+)
 from .riscv.core.top import Top
 
 loop = get_loop()
@@ -120,7 +130,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00000",
                 funct7="7b0000000",
@@ -162,7 +172,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00010",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00000",
                 funct7="7b0000000",
@@ -178,7 +188,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00001",
                 rs2="5b00010",
                 funct7="7b0000000",
@@ -198,7 +208,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11101",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00000",
                 funct7="7b0000000",
@@ -218,7 +228,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11100",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00010",
                 funct7="7b0000000",
@@ -245,7 +255,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd="5b01100",
-                funct3="3b001",
+                funct3=Funct3Branch.NE,
                 rs1="5b00011",
                 rs2="5b11101",
                 funct7="7b0100110",
@@ -275,7 +285,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00001",
                 funct7="7b0000000",
@@ -300,7 +310,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00010",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00001",
                 funct7="7b0000000",
@@ -321,7 +331,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00001",
                 rs2="5b00010",
                 funct7="7b0000000",
@@ -351,7 +361,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11101",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00010",
                 funct7="7b0000000",
@@ -376,7 +386,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11100",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00011",
                 funct7="7b0000000",
@@ -405,7 +415,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd="5b10100",
-                funct3="3b001",
+                funct3=Funct3Branch.NE,
                 rs1="5b00011",
                 rs2="5b11101",
                 funct7="7b0100101",
@@ -438,7 +448,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00011",
                 funct7="7b0000000",
@@ -471,7 +481,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00010",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00111",
                 funct7="7b0000000",
@@ -500,7 +510,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00001",
                 rs2="5b00010",
                 funct7="7b0000000",
@@ -532,7 +542,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11101",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b01010",
                 funct7="7b0000000",
@@ -561,7 +571,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11100",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00100",
                 funct7="7b0000000",
@@ -588,7 +598,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd="5b11100",
-                funct3="3b001",
+                funct3=Funct3Branch.NE,
                 rs1="5b00011",
                 rs2="5b11101",
                 funct7="7b0100100",
@@ -623,7 +633,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00000",
                 rs2="5b00000",
                 funct7="7b0000000",
@@ -659,7 +669,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.LUI,
                 rd="5b00010",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b11111",
                 rs2="5b11111",
                 funct7="7b1111111",
@@ -694,7 +704,7 @@ def test_dump():
             top._inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
-                funct3="3b000",
+                funct3=Funct3AluLogic.ADD_SUB,
                 rs1="5b00001",
                 rs2="5b00010",
                 funct7="7b0000000",
