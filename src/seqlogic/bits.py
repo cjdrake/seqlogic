@@ -32,50 +32,62 @@ def _mask(n: int) -> int:
     return (1 << n) - 1
 
 
-_BitsShape = {}
+_VectorSize: dict[int, type[Vector]] = {}
 
 
 def _get_vec_size(size: int) -> type[Vector]:
-    """Return Vec[size] type."""
-    shape = (size,)
+    """Return Vector[size] type."""
+    assert isinstance(size, int) and size > 1
     try:
-        return _BitsShape[shape]
+        return _VectorSize[size]
     except KeyError:
         name = f"Vector[{size}]"
-        _BitsShape[shape] = cls = type(name, (Vector,), {"_size": size})
+        _VectorSize[size] = cls = type(name, (Vector,), {"_size": size})
         return cls
 
 
 def _vec_size(size: int) -> type[Empty] | type[Scalar] | type[Vector]:
     """Vector[size] class factory."""
+    # Check size value
     if size < 0:
         raise ValueError(f"Expected size ≥ 0, got {size}")
+    # Degenerate case: Null
     if size == 0:
         return Empty
+    # Degenerate case: 0-D
     if size == 1:
         return Scalar
+    # General case: 1-D
     return _get_vec_size(size)
 
 
+_ArrayShape: dict[tuple[int, ...], type[Array]] = {}
+
+
 def _get_array_shape(shape: tuple[int, ...]) -> type[Array]:
-    """Return Bits[shape] type."""
+    """Return Array[shape] type."""
+    assert isinstance(shape, tuple) and len(shape) > 1 and all(n > 1 for n in shape)
     try:
-        return _BitsShape[shape]
+        return _ArrayShape[shape]
     except KeyError:
         name = f'Array[{",".join(str(n) for n in shape)}]'
-        _BitsShape[shape] = cls = type(name, (Array,), {"_shape": shape})
+        _ArrayShape[shape] = cls = type(name, (Array,), {"_shape": shape})
         return cls
 
 
-def _array_shape(shape: tuple[int, ...]) -> type[_ShapeIf]:
+def _array_shape(shape: tuple[int, ...]) -> type[Scalar] | type[Vector] | type[Array]:
     """Array[shape] class factory."""
-    if len(shape) == 0:
-        return Scalar
-    if len(shape) == 1:
-        return _vec_size(shape[0])
+    # Check shape value
     for i, n in enumerate(shape):
         if n < 2:
             raise ValueError(f"Expected shape[{i}] > 1, got {n}")
+    # Degenerate case: 0-D
+    if len(shape) == 0:
+        return Scalar
+    # Degenerate case: 1-D
+    if len(shape) == 1:
+        return _vec_size(shape[0])
+    # General case: N-D
     return _get_array_shape(shape)
 
 
@@ -901,7 +913,7 @@ class Scalar(Bits, _ShapeIf):
 
     @classproperty
     def shape(cls) -> tuple[int, ...]:
-        return ()
+        return (1,)
 
     def __len__(self) -> int:
         return 1
@@ -1937,8 +1949,15 @@ def stack(*objs: _ShapeIf | int | str) -> _ShapeIf:
         d1 |= b.data[1] << size
         size += b.size
 
+    # {Empty, Empty, ...} => Empty
     if fst.shape == (0,):
         return _Empty
+    # {Scalar, Scalar, ...} => Vector[K]
+    if fst.shape == (1,):
+        size = len(bs)
+        return _vec_size(size)(d0, d1)
+    # {Vector[K], Vector[K], ...} => Array[J,K]
+    # {Array[J,K], Array[J,K], ...} => Array[I,J,K]
     shape = (len(bs),) + fst.shape
     return _array_shape(shape)(d0, d1)
 
