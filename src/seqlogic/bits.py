@@ -77,13 +77,13 @@ def _get_array_shape(shape: tuple[int, ...]) -> type[Array]:
 
 def _array_shape(shape: tuple[int, ...]) -> type[Scalar] | type[Vector] | type[Array]:
     """Array[shape] class factory."""
+    # Do not allow empty shape
+    assert shape
+
     # Check shape value
     for i, n in enumerate(shape):
         if n < 2:
             raise ValueError(f"Expected shape[{i}] > 1, got {n}")
-    # Degenerate case: 0-D
-    if len(shape) == 0:
-        return Scalar
     # Degenerate case: 1-D
     if len(shape) == 1:
         return _vec_size(shape[0])
@@ -1968,22 +1968,28 @@ def _sel(b: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:
 
     # Partial select a:b
     if start != 0 or stop != b.shape[0]:
-        shape_r: tuple[int, ...] = b.shape[1:]
-        size: int = math.prod(shape_r)
-        mask = (1 << size) - 1
-
-        def f(i: int) -> _ShapeIf:
-            d0 = (b.data[0] >> (size * i)) & mask
-            d1 = (b.data[1] >> (size * i)) & mask
-            return _array_shape(shape_r)(d0, d1)
 
         if key_r:
-            return stack(*[_sel(f(i), key_r) for i in range(start, stop)])
-        return stack(*[f(i) for i in range(start, stop)])
+            shape_r = b.shape[1:]
+            size = math.prod(shape_r)
+            mask = _mask(size)
+            xs = []
+            for i in range(start, stop):
+                d0 = (b.data[0] >> (size * i)) & mask
+                d1 = (b.data[1] >> (size * i)) & mask
+                xs.append(_array_shape(shape_r)(d0, d1))
+            return stack(*[_sel(x, key_r) for x in xs])
+
+        size = stop - start
+        mask = _mask(size)
+        d0 = (b.data[0] >> start) & mask
+        d1 = (b.data[1] >> start) & mask
+        return _vec_size(size)(d0, d1)
 
     # Full select 0:n
     if key_r:
         return stack(*[_sel(x, key_r) for x in b])
+
     return b
 
 
