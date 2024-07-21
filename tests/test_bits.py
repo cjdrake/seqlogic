@@ -28,9 +28,9 @@ def test_basic():
     assert Array[(2,)] is Vector[2]
 
     # Invalid dimension lens
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = Array[2, 0, 3]
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = Array[2, -1, 3]
 
     b = Array[2, 3, 4](0, 0)
@@ -188,6 +188,28 @@ def test_rank4_vec():
     assert str(b) == R4VEC
 
 
+def test_const():
+    a = Array[4, 4].xes()
+    a.shape == (4, 4)
+    assert a == "16bXXXX_XXXX_XXXX_XXXX"
+
+    a = Array[4, 4].zeros()
+    a.shape == (4, 4)
+    assert a == "16h0000"
+
+    a = Array[4, 4].ones()
+    a.shape == (4, 4)
+    assert a == "16hFFFF"
+
+    a = Array[4, 4].dcs()
+    assert a.shape == (4, 4)
+    assert a == "16b----_----_----_----"
+
+    a = Array[4, 4].rand()
+    assert a.shape == (4, 4)
+    assert 0 <= a.to_uint() < (1 << 16)
+
+
 def test_invalid_vec():
     """Test bits function invalid input."""
     with pytest.raises(TypeError):
@@ -270,6 +292,7 @@ def test_bits():
     assert bits() == E
     assert bits(False) == "1b0"
     assert bits([0, 1, 0, 1]) == "4b1010"
+    assert bits(["1b0", "1b1", "1b0", "1b1"]) == "4b1010"
     assert bits(["2b00", "2b01", "2b10", "2b11"]) == "8b11100100"
     assert bits([vec("2b00"), "2b01", "2b10", "2b11"]) == "8b11100100"
 

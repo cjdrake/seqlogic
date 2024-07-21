@@ -66,28 +66,13 @@ _ArrayShape: dict[tuple[int, ...], type[Array]] = {}
 
 def _get_array_shape(shape: tuple[int, ...]) -> type[Array]:
     """Return Array[shape] type."""
-    assert isinstance(shape, tuple) and len(shape) > 1 and all(n > 1 for n in shape)
+    assert len(shape) > 1 and all(isinstance(n, int) and n > 1 for n in shape)
     try:
         return _ArrayShape[shape]
     except KeyError:
         name = f'Array[{",".join(str(n) for n in shape)}]'
         _ArrayShape[shape] = cls = type(name, (Array,), {"_shape": shape})
         return cls
-
-
-def _array_shape(shape: tuple[int, ...]) -> type[Scalar] | type[Vector] | type[Array]:
-    """Array[shape] class factory."""
-    # Do not allow empty shape
-    assert shape
-    # Check shape value
-    for i, n in enumerate(shape):
-        if n < 2:
-            raise ValueError(f"Expected shape[{i}] > 1, got {n}")
-    # Degenerate case: 1-D
-    if len(shape) == 1:
-        return _vec_size(shape[0])
-    # General case: N-D
-    return _get_array_shape(shape)
 
 
 def _expect_type(arg, t: type[Bits]):
@@ -998,8 +983,8 @@ class Array(Bits, _ShapeIf):
                 return _vec_size(size)
             case [int() as size]:
                 return _vec_size(size)
-            case [int(), *rst] if all(isinstance(n, int) for n in rst):
-                return _array_shape(shape)
+            case [int(), *rst] if all(isinstance(n, int) and n > 1 for n in rst):
+                return _get_array_shape(shape)
             case _:
                 raise TypeError(f"Invalid shape parameter: {shape}")
 
@@ -1910,6 +1895,8 @@ def bits(obj=None) -> _ShapeIf:
         case [str() as lit, *rst]:
             v = _lit2vec(lit)
             return _rank2(v, *rst)
+        case [Scalar() as v, *rst]:
+            return _rank2(v, *rst)
         case [Vector() as v, *rst]:
             return _rank2(v, *rst)
         case [*objs]:
@@ -1971,32 +1958,43 @@ def stack(*objs: _ShapeIf | int | str) -> _ShapeIf:
     # {Vector[K], Vector[K], ...} => Array[J,K]
     # {Array[J,K], Array[J,K], ...} => Array[I,J,K]
     shape = (len(bs),) + fst.shape
-    return _array_shape(shape)(d0, d1)
+    return _get_array_shape(shape)(d0, d1)
+
+
+def _chunk(data: tuple[int, int], base: int, size: int) -> tuple[int, int]:
+    mask = _mask(size)
+    return (data[0] >> base) & mask, (data[1] >> base) & mask
 
 
 def _sel(b: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:
+    assert len(b.shape) == len(key)
+
     (start, stop), key_r = key[0], key[1:]
     assert 0 <= start <= stop <= b.shape[0]
 
-    # Partial select a:b
+    # Partial select m:n
     if start != 0 or stop != b.shape[0]:
 
-        if key_r:
-            shape_r = b.shape[1:]
-            size = math.prod(shape_r)
-            mask = _mask(size)
+        if len(key_r) == 0:
+            size = stop - start
+            d0, d1 = _chunk(b.data, start, size)
+            return _vec_size(size)(d0, d1)
+
+        if len(key_r) == 1:
+            size = b.shape[1]
             xs = []
             for i in range(start, stop):
-                d0 = (b.data[0] >> (size * i)) & mask
-                d1 = (b.data[1] >> (size * i)) & mask
-                xs.append(_array_shape(shape_r)(d0, d1))
+                d0, d1 = _chunk(b.data, size * i, size)
+                xs.append(_vec_size(size)(d0, d1))
             return stack(*[_sel(x, key_r) for x in xs])
 
-        size = stop - start
-        mask = _mask(size)
-        d0 = (b.data[0] >> start) & mask
-        d1 = (b.data[1] >> start) & mask
-        return _vec_size(size)(d0, d1)
+        shape_r = b.shape[1:]
+        size = math.prod(shape_r)
+        xs = []
+        for i in range(start, stop):
+            d0, d1 = _chunk(b.data, size * i, size)
+            xs.append(_get_array_shape(shape_r)(d0, d1))
+        return stack(*[_sel(x, key_r) for x in xs])
 
     # Full select 0:n
     if key_r:
@@ -2011,8 +2009,11 @@ def _rank2(fst: Scalar | Vector, *rst: Vector | str) -> Vector | Array:
         v = _expect_type(v, Vector[fst.size])
         d0 |= v.data[0] << (fst.size * i)
         d1 |= v.data[1] << (fst.size * i)
+    if fst.shape == (1,):
+        size = len(rst) + 1
+        return _get_vec_size(size)(d0, d1)
     shape = (len(rst) + 1,) + fst.shape
-    return _array_shape(shape)(d0, d1)
+    return _get_array_shape(shape)(d0, d1)
 
 
 def _norm_index(n: int, index: int) -> int:
