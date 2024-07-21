@@ -20,12 +20,21 @@ W = Array[1](*_W)
 
 
 def test_basic():
+    # empty len, getitem, iter
+    assert len(E) == 0
+    with pytest.raises(TypeError):
+        E[0]
+    assert not list(E)
+
+    # Scalar len, getitem, iter
+    assert len(F) == 1
+    assert F[0] == F
+    assert list(F) == [F]
+
     # Degenerate dimensions
     assert Array[0] is Vector[0]
     assert Array[1] is Vector[1]
-    assert Array[(1,)] is Vector[1]
     assert Array[2] is Vector[2]
-    assert Array[(2,)] is Vector[2]
 
     # Invalid dimension lens
     with pytest.raises(TypeError):

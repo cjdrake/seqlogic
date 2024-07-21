@@ -964,7 +964,7 @@ class Vector(Bits, _ShapeIf):
         if math.prod(shape) != self.size:
             s = f"Expected shape with size {self.size}, got {shape}"
             raise ValueError(s)
-        return Array[shape](self._data[0], self._data[1])
+        return _get_array_shape(shape)(self._data[0], self._data[1])
 
     def flatten(self) -> Vector:
         return self
@@ -975,13 +975,9 @@ class Array(Bits, _ShapeIf):
 
     _shape: tuple[int, ...]
 
-    def __class_getitem__(cls, shape: tuple[int, ...]) -> type[_ShapeIf]:
+    def __class_getitem__(cls, shape: int | tuple[int, ...]) -> type[_ShapeIf]:
         match shape:
-            case []:
-                return Scalar
             case int() as size:
-                return _vec_size(size)
-            case [int() as size]:
                 return _vec_size(size)
             case [int(), *rst] if all(isinstance(n, int) and n > 1 for n in rst):
                 return _get_array_shape(shape)
@@ -1024,7 +1020,9 @@ class Array(Bits, _ShapeIf):
         if math.prod(shape) != self.size:
             s = f"Expected shape with size {self.size}, got {shape}"
             raise ValueError(s)
-        return Array[shape](self._data[0], self._data[1])
+        if len(shape) == 1:
+            return _get_vec_size(shape[0])(self._data[0], self._data[1])
+        return _get_array_shape(shape)(self._data[0], self._data[1])
 
     def flatten(self) -> Vector:
         return _vec_size(self.size)(self._data[0], self._data[1])
