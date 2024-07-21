@@ -286,6 +286,14 @@ def inv_shift_rows(state: State) -> State:
     return stack(*cols)
 
 
+def key_expand(nk: int, k0: Word, k1: Word, i: int) -> Word:
+    if i % nk == 0:
+        return k0 ^ sub_word(rot_word(k1)) ^ RCON[i // nk].xt(8 * 3)
+    if nk > 6 and i % nk == 4:
+        return k0 ^ sub_word(k1)
+    return k0 ^ k1
+
+
 def key_expansion(key: Key) -> RoundKeys:
     """Expand the key into the round key.
 
@@ -297,12 +305,7 @@ def key_expansion(key: Key) -> RoundKeys:
 
     ws = list(key)
     for i in range(nk, NB * (nr + 1)):
-        temp = ws[i - 1]
-        if i % nk == 0:
-            temp = sub_word(rot_word(temp)) ^ RCON[i // nk].xt(8 * 3)
-        elif nk > 6 and i % nk == 4:
-            temp = sub_word(temp)
-        ws.append(ws[i - nk] ^ temp)
+        ws.append(key_expand(nk, ws[i - nk], ws[i - 1], i))
 
     # Convert {44, 52, 60} => {(10+1,4), (12+1,4), (14+1,4)}
     return stack(*ws).reshape(((nr + 1), 4, 4, 8))
