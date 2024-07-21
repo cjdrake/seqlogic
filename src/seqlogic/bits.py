@@ -1981,7 +1981,7 @@ def _sel(b: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:
             xs = []
             for i in range(start, stop):
                 d0, d1 = _chunk(b.data, size * i, size)
-                xs.append(_vec_size(size)(d0, d1))
+                xs.append(_get_vec_size(size)(d0, d1))
             return stack(*[_sel(x, key_r) for x in xs])
 
         shape_r = b.shape[1:]
