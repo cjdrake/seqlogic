@@ -79,7 +79,6 @@ def _array_shape(shape: tuple[int, ...]) -> type[Scalar] | type[Vector] | type[A
     """Array[shape] class factory."""
     # Do not allow empty shape
     assert shape
-
     # Check shape value
     for i, n in enumerate(shape):
         if n < 2:

@@ -21,11 +21,12 @@ RoundKeys = Array[11, 4, 4, 8] | Array[13, 4, 4, 8] | Array[15, 4, 4, 8]
 Byte = Vector[8]
 Word = Array[4, 8]
 State = Array[4, 4, 8]
-Matrix = Array[4, 4, 4]
-MatrixRow = Array[4, 4]
+Polynomial = Array[4, 4]
 
 
 # fmt: off
+
+# Substitution Box
 SBOX = bits([
     "8h63", "8h7C", "8h77", "8h7B", "8hF2", "8h6B", "8h6F", "8hC5",
     "8h30", "8h01", "8h67", "8h2B", "8hFE", "8hD7", "8hAB", "8h76",
@@ -64,6 +65,7 @@ SBOX = bits([
     "8h41", "8h99", "8h2D", "8h0F", "8hB0", "8h54", "8hBB", "8h16",
 ])
 
+# Inverse Substitution Box
 INV_SBOX = [
     "8h52", "8h09", "8h6A", "8hD5", "8h30", "8h36", "8hA5", "8h38",
     "8hBF", "8h40", "8hA3", "8h9E", "8h81", "8hF3", "8hD7", "8hFB",
@@ -102,6 +104,7 @@ INV_SBOX = [
     "8hE1", "8h69", "8h14", "8h63", "8h55", "8h21", "8h0C", "8h7D",
 ]
 
+# Round Constant
 RCON = bits([
     "8h8D", "8h01", "8h02", "8h04", "8h08", "8h10", "8h20", "8h40",
     "8h80", "8h1B", "8h36", "8h6C", "8hD8", "8hAB", "8h4D", "8h9A",
@@ -140,19 +143,12 @@ RCON = bits([
     "8hCC", "8h83", "8h1D", "8h3A", "8h74", "8hE8", "8hCB",
 ])
 
-MTXA = bits([
-    ["4h1", "4h1", "4h3", "4h2"],
-    ["4h1", "4h3", "4h2", "4h1"],
-    ["4h3", "4h2", "4h1", "4h1"],
-    ["4h2", "4h1", "4h1", "4h3"],
-])
+# a(x) = {03}x^3 + {01}x^2 + {01}x + {02}
+PA = bits(["4h2", "4h1", "4h1", "4h3"])
 
-INV_MTXA = bits([
-    ["4h9", "4hD", "4hB", "4hE"],
-    ["4hD", "4hB", "4hE", "4h9"],
-    ["4hB", "4hE", "4h9", "4hD"],
-    ["4hE", "4h9", "4hD", "4hB"],
-])
+# a^-1(x) = {0b}x^3 + {0d}x^2 + {09}x + {0e}
+INV_PA = bits(["4hE", "4h9", "4hD", "4hB"])
+
 # fmt: on
 
 
@@ -179,8 +175,7 @@ def rot_word(w: Word) -> Word:
     Function used in the Key Expansion routine that takes a four-byte word and
     performs a cyclic permutation.
     """
-    b0, b1, b2, b3 = w
-    return stack(b1, b2, b3, b0)
+    return stack(w[1], w[2], w[3], w[0])
 
 
 def xtime(b: Byte, n: int) -> Byte:
@@ -190,24 +185,39 @@ def xtime(b: Byte, n: int) -> Byte:
     return b
 
 
-def rowxcol(row: MatrixRow, col: Word) -> Word:
+def rowxcol(a: Polynomial, b: Word) -> Word:
     """Multiply one row and one column."""
     y = Byte.zeros()
-    for i in range(4):
-        for j in range(4):
-            match row[i, j]:
+    for i, a_i in enumerate(a):
+        for j, a_ij in enumerate(a_i):
+            match a_ij:
                 case "1b0":
                     pass
                 case "1b1":
-                    y ^= xtime(col[3 - i], j)
+                    y ^= xtime(b[3 - i], j)
                 case _:
-                    y = y.xprop(row[i, j])
+                    y = y.xprop(a_ij)
     return y
 
 
-def multiply(a: Matrix, col: Word) -> Word:
-    """Multiply a matrix by one column."""
-    return stack(*[rowxcol(a[c], col) for c in range(NB)])
+def multiply(a: Polynomial, b: Word) -> Word:
+    """Multiply two polynomials in GF(2^8).
+
+    [a0 a1 a2 a3] x [b0 b1 b2 b3] = [d0 d1 d2 d3]
+
+    [d0]   [a0 a3 a2 a1] [b0]
+    [d1] = [a1 a0 a3 a2] [b1]
+    [d2]   [a2 a1 a0 a3] [b2]
+    [d3]   [a3 a2 a1 a0] [b3]
+    """
+    a0, a1, a2, a3 = a
+    d = [
+        rowxcol(stack(a1, a2, a3, a0), b),
+        rowxcol(stack(a2, a3, a0, a1), b),
+        rowxcol(stack(a3, a0, a1, a2), b),
+        rowxcol(a, b),
+    ]
+    return stack(*d)
 
 
 def mix_columns(state: State) -> State:
@@ -216,7 +226,7 @@ def mix_columns(state: State) -> State:
     Transformation in the Cipher that takes all of the columns of the State and
     mixes their data (independently of one another) to produce new columns.
     """
-    return stack(*[multiply(MTXA, state[c]) for c in range(NB)])
+    return stack(*[multiply(PA, col) for col in state])
 
 
 def inv_mix_columns(state: State) -> State:
@@ -224,7 +234,7 @@ def inv_mix_columns(state: State) -> State:
 
     Transformation in the Inverse Cipher that is the inverse of MixColumns().
     """
-    return stack(*[multiply(INV_MTXA, state[c]) for c in range(NB)])
+    return stack(*[multiply(INV_PA, col) for col in state])
 
 
 def sub_bytes(state: State) -> State:
@@ -234,7 +244,7 @@ def sub_bytes(state: State) -> State:
     byte substitution table (S-box) that operates on each of the State bytes
     independently.
     """
-    return stack(*[sub_word(state[c]) for c in range(NB)])
+    return stack(*[sub_word(col) for col in state])
 
 
 def inv_sub_bytes(state: State) -> State:
@@ -242,7 +252,7 @@ def inv_sub_bytes(state: State) -> State:
 
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
     """
-    return stack(*[inv_sub_word(state[c]) for c in range(NB)])
+    return stack(*[inv_sub_word(col) for col in state])
 
 
 def shift_rows(state: State) -> State:
@@ -251,14 +261,14 @@ def shift_rows(state: State) -> State:
     Transformation in the Cipher that processes the State by cyclically shifting
     the last three rows of the State by different offsets.
     """
-    return bits(
-        [
-            [state[0, 0], state[1, 1], state[2, 2], state[3, 3]],
-            [state[1, 0], state[2, 1], state[3, 2], state[0, 3]],
-            [state[2, 0], state[3, 1], state[0, 2], state[1, 3]],
-            [state[3, 0], state[0, 1], state[1, 2], state[2, 3]],
-        ]
-    )
+    r0, r1, r2, r3 = (state[:, i] for i in range(4))
+    cols = [
+        stack(r0[0], r1[1], r2[2], r3[3]),
+        stack(r0[1], r1[2], r2[3], r3[0]),
+        stack(r0[2], r1[3], r2[0], r3[1]),
+        stack(r0[3], r1[0], r2[1], r3[2]),
+    ]
+    return stack(*cols)
 
 
 def inv_shift_rows(state: State) -> State:
@@ -266,14 +276,14 @@ def inv_shift_rows(state: State) -> State:
 
     Transformation in the Inverse Cipher that is the inverse of ShiftRows().
     """
-    return bits(
-        [
-            [state[0, 0], state[3, 1], state[2, 2], state[1, 3]],
-            [state[1, 0], state[0, 1], state[3, 2], state[2, 3]],
-            [state[2, 0], state[1, 1], state[0, 2], state[3, 3]],
-            [state[3, 0], state[2, 1], state[1, 2], state[0, 3]],
-        ]
-    )
+    r0, r1, r2, r3 = (state[:, i] for i in range(4))
+    cols = [
+        stack(r0[0], r1[3], r2[2], r3[1]),
+        stack(r0[1], r1[0], r2[3], r3[2]),
+        stack(r0[2], r1[1], r2[0], r3[3]),
+        stack(r0[3], r1[2], r2[1], r3[0]),
+    ]
+    return stack(*cols)
 
 
 def key_expansion(key: Key) -> RoundKeys:
