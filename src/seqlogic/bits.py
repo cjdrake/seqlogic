@@ -1023,7 +1023,7 @@ class Array(Bits, _ShapeIf):
         return _get_array_shape(shape)(self._data[0], self._data[1])
 
     def flatten(self) -> Vector:
-        return _vec_size(self.size)(self._data[0], self._data[1])
+        return _get_vec_size(self.size)(self._data[0], self._data[1])
 
     @classmethod
     def _norm_key(cls, keys: list[int | Bits | slice]) -> tuple[tuple[int, int], ...]:
