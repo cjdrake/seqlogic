@@ -66,7 +66,7 @@ SBOX = bits([
 ])
 
 # Inverse Substitution Box
-INV_SBOX = [
+INV_SBOX = bits([
     "8h52", "8h09", "8h6A", "8hD5", "8h30", "8h36", "8hA5", "8h38",
     "8hBF", "8h40", "8hA3", "8h9E", "8h81", "8hF3", "8hD7", "8hFB",
     "8h7C", "8hE3", "8h39", "8h82", "8h9B", "8h2F", "8hFF", "8h87",
@@ -102,7 +102,7 @@ INV_SBOX = [
     "8hC8", "8hEB", "8hBB", "8h3C", "8h83", "8h53", "8h99", "8h61",
     "8h17", "8h2B", "8h04", "8h7E", "8hBA", "8h77", "8hD6", "8h26",
     "8hE1", "8h69", "8h14", "8h63", "8h55", "8h21", "8h0C", "8h7D",
-]
+])
 
 # Round Constant
 RCON = bits([
