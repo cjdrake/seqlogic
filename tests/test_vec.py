@@ -30,7 +30,7 @@ W = Vector[1](*_W)
 
 def test_vec_class_getitem():
     # Negative values are illegal
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = Vector[-1]
 
     vec_0 = Vector[0]

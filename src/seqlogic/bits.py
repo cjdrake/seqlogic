@@ -48,9 +48,7 @@ def _get_vec_size(size: int) -> type[Vector]:
 
 def _vec_size(size: int) -> type[Empty] | type[Scalar] | type[Vector]:
     """Vector[size] class factory."""
-    # Check size value
-    if size < 0:
-        raise ValueError(f"Expected size ≥ 0, got {size}")
+    assert size >= 0
     # Degenerate case: Null
     if size == 0:
         return Empty
@@ -934,7 +932,7 @@ class Vector(Bits, _ShapeIf):
 
     def __class_getitem__(cls, size: int) -> type[Empty] | type[Scalar] | type[Vector]:
         match size:
-            case int():
+            case int() if size >= 0:
                 return _vec_size(size)
             case _:
                 raise TypeError(f"Invalid size parameter: {size}")
@@ -977,7 +975,7 @@ class Array(Bits, _ShapeIf):
 
     def __class_getitem__(cls, shape: int | tuple[int, ...]) -> type[_ShapeIf]:
         match shape:
-            case int() as size:
+            case int() as size if size >= 0:
                 return _vec_size(size)
             case [int(), *rst] if all(isinstance(n, int) and n > 1 for n in rst):
                 return _get_array_shape(shape)
