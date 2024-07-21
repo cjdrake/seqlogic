@@ -441,7 +441,7 @@ class Bits:
         """
         other = _expect_size(other, self.size)
         try:
-            return (_Scalar0, _Scalar1)[self.to_uint() < other.to_uint()]
+            return _bool2scalar[self.to_uint() < other.to_uint()]
         except ValueError:
             return _ScalarX
 
@@ -456,7 +456,7 @@ class Bits:
         """
         other = _expect_size(other, self.size)
         try:
-            return (_Scalar0, _Scalar1)[self.to_int() < other.to_int()]
+            return _bool2scalar[self.to_int() < other.to_int()]
         except ValueError:
             return _ScalarX
 
@@ -471,7 +471,7 @@ class Bits:
         """
         other = _expect_size(other, self.size)
         try:
-            return (_Scalar0, _Scalar1)[self.to_uint() <= other.to_uint()]
+            return _bool2scalar[self.to_uint() <= other.to_uint()]
         except ValueError:
             return _ScalarX
 
@@ -486,7 +486,7 @@ class Bits:
         """
         other = _expect_size(other, self.size)
         try:
-            return (_Scalar0, _Scalar1)[self.to_int() <= other.to_int()]
+            return _bool2scalar[self.to_int() <= other.to_int()]
         except ValueError:
             return _ScalarX
 
@@ -501,7 +501,7 @@ class Bits:
         """
         other = _expect_size(other, self.size)
         try:
-            return (_Scalar0, _Scalar1)[self.to_uint() > other.to_uint()]
+            return _bool2scalar[self.to_uint() > other.to_uint()]
         except ValueError:
             return _ScalarX
 
@@ -516,7 +516,7 @@ class Bits:
         """
         other = _expect_size(other, self.size)
         try:
-            return (_Scalar0, _Scalar1)[self.to_int() > other.to_int()]
+            return _bool2scalar[self.to_int() > other.to_int()]
         except ValueError:
             return _ScalarX
 
@@ -531,7 +531,7 @@ class Bits:
         """
         other = _expect_size(other, self.size)
         try:
-            return (_Scalar0, _Scalar1)[self.to_uint() >= other.to_uint()]
+            return _bool2scalar[self.to_uint() >= other.to_uint()]
         except ValueError:
             return _ScalarX
 
@@ -546,7 +546,7 @@ class Bits:
         """
         other = _expect_size(other, self.size)
         try:
-            return (_Scalar0, _Scalar1)[self.to_int() >= other.to_int()]
+            return _bool2scalar[self.to_int() >= other.to_int()]
         except ValueError:
             return _ScalarX
 
@@ -939,6 +939,7 @@ _scalars = {
     _1: _Scalar1,
     _W: _ScalarW,
 }
+_bool2scalar = (_Scalar0, _Scalar1)
 
 
 class Vector(Bits, _ShapeIf):
@@ -1331,7 +1332,7 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
 
     dmax = _mask(a.size)
     s = a.data[1] + b.data[1] + ci.data[1]
-    co = (_Scalar0, _Scalar1)[s > dmax]
+    co = _bool2scalar[s > dmax]
     s &= dmax
 
     cls = a.__class__
@@ -1544,7 +1545,7 @@ def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
         if isinstance(obj, Bits):
             bs.append(obj)
         elif obj in (0, 1):
-            bs.append((_Scalar0, _Scalar1)[obj])
+            bs.append(_bool2scalar[obj])
         elif isinstance(obj, str):
             v = _lit2vec(obj)
             bs.append(v)
@@ -1871,7 +1872,7 @@ def vec(obj=None) -> Empty | Scalar | Vector:
         case None | []:
             return _Empty
         case 0 | 1 as x:
-            return (_Scalar0, _Scalar1)[x]
+            return _bool2scalar[x]
         case [0 | 1 as x, *rst]:
             return _bools2vec([x, *rst])
         case str() as lit:
@@ -1901,7 +1902,7 @@ def bits(obj=None) -> _ShapeIf:
         case None | []:
             return _Empty
         case 0 | 1 as x:
-            return (_Scalar0, _Scalar1)[x]
+            return _bool2scalar[x]
         case [0 | 1 as x, *rst]:
             return _bools2vec([x, *rst])
         case str() as lit:
@@ -1938,7 +1939,7 @@ def stack(*objs: _ShapeIf | int | str) -> _ShapeIf:
         if isinstance(obj, _ShapeIf):
             bs.append(obj)
         elif obj in (0, 1):
-            bs.append((_Scalar0, _Scalar1)[obj])
+            bs.append(_bool2scalar[obj])
         elif isinstance(obj, str):
             v = _lit2vec(obj)
             bs.append(v)
