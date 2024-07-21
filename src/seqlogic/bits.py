@@ -933,6 +933,13 @@ _Scalar0 = Scalar(*_0)
 _Scalar1 = Scalar(*_1)
 _ScalarW = Scalar(*_W)
 
+_scalars = {
+    _X: _ScalarX,
+    _0: _Scalar0,
+    _1: _Scalar1,
+    _W: _ScalarW,
+}
+
 
 class Vector(Bits, _ShapeIf):
     """One dimensional (vector) sequence of bits."""
@@ -963,8 +970,7 @@ class Vector(Bits, _ShapeIf):
 
     def __iter__(self) -> Generator[Scalar, None, None]:
         for i in range(self._size):
-            d0, d1 = self._get_index(i)
-            yield _vec_size(1)(d0, d1)
+            yield _scalars[self._get_index(i)]
 
     def reshape(self, shape: tuple[int, ...]) -> Vector | Array:
         if shape == self.shape:
