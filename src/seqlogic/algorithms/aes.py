@@ -158,7 +158,7 @@ def sub_word(w: Word) -> Word:
     Function used in the Key Expansion routine that takes a four-byte input word
     and applies an S-box to each of the four bytes to produce an output word.
     """
-    return stack(*[SBOX[b.to_uint()] for b in w])
+    return stack(*[SBOX[b] for b in w])
 
 
 def inv_sub_word(w: Word) -> Word:
@@ -166,7 +166,7 @@ def inv_sub_word(w: Word) -> Word:
 
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
     """
-    return stack(*[INV_SBOX[b.to_uint()] for b in w])
+    return stack(*[INV_SBOX[b] for b in w])
 
 
 def rot_word(w: Word) -> Word:
