@@ -754,7 +754,7 @@ def run_riscv_test(name: str) -> int:
     data = get_mem(f"tests/riscv/tests/{name}.data")
     for i, d in enumerate(data):
         addr = uint2vec(i, 10)
-        data = uint2vec(d, 32)
+        data = uint2vec(d, 32).reshape((4, 8))
         top._data_mem_bus._data_mem._mem[addr].next = data
 
     # Run the simulation

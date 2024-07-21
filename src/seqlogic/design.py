@@ -14,7 +14,7 @@ from collections.abc import Callable
 
 from vcd.writer import VCDWriter as VcdWriter
 
-from .bits import Bits, _lit2vec, cat
+from .bits import Bits, _lit2vec, stack
 from .hier import Branch, Leaf
 from .sim import Aggregate, Region, SimAwaitable, Singular, State, Value, changed, get_loop, resume
 
@@ -318,7 +318,6 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
-    # TODO(cjdrake): Require mem/data to have [*,8] shape
     def mem_wr_be(
         self,
         mem: UnpackedLogic,
@@ -330,10 +329,9 @@ class Module(Branch, _ProcIf, _TraceIf):
     ):
         """Memory with write byte enable."""
 
-        width = mem._dtype.size  # pylint: disable = protected-access
-        if width % 8 != 0:
-            raise ValueError("Expected data width to be multiple of 8")
-        nbytes = width // 8
+        # Require mem/data to be Array[N,8]
+        assert len(mem.dtype.shape) == 2 and mem.dtype.shape[1] == 8
+        assert len(data.dtype.shape) == 2 and data.dtype.shape[1] == 8
 
         async def proc():
             while True:
@@ -344,13 +342,12 @@ class Module(Branch, _ProcIf, _TraceIf):
                 assert not be.value.has_unknown()
                 if state is clk:
                     xs = []
-                    for i in range(nbytes):
-                        m, n = 8 * i, 8 * (i + 1)
-                        if be.value[i]:
-                            xs.append(data.value[m:n])
+                    for i, data_en in enumerate(be.value):
+                        if data_en:
+                            xs.append(data.value[i])
                         else:
-                            xs.append(mem[addr.value].value[m:n])
-                    mem[addr.value].next = cat(*xs)
+                            xs.append(mem[addr.value].value[i])
+                    mem[addr.value].next = stack(*xs)
                 else:
                     assert False  # pragma: no cover
 
@@ -358,18 +355,22 @@ class Module(Branch, _ProcIf, _TraceIf):
 
 
 class Logic(Leaf, _ProcIf, _TraceIf):
-    def __init__(self, name: str, parent: Module):
+    def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Leaf.__init__(self, name, parent)
         _ProcIf.__init__(self)
+        self._dtype = dtype
+
+    @property
+    def dtype(self):
+        return self._dtype
 
 
 class PackedLogic(Logic, Singular):
     """Leaf-level bitvector design component."""
 
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
-        Logic.__init__(self, name, parent)
+        Logic.__init__(self, name, parent, dtype)
         Singular.__init__(self, dtype.xes())
-        self._dtype = dtype
         self._waves_change = None
         self._vcd_change = None
 
@@ -463,9 +464,8 @@ class UnpackedLogic(Logic, Aggregate):
     """Leaf-level array of vec/enum/struct/union design components."""
 
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
-        Logic.__init__(self, name, parent)
+        Logic.__init__(self, name, parent, dtype)
         Aggregate.__init__(self, dtype.xes())
-        self._dtype = dtype
 
 
 def simify(m: Module | PackedLogic | UnpackedLogic):

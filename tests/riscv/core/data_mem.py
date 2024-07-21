@@ -16,7 +16,7 @@ class DataMem(Module):
         addr = self.input(name="addr", dtype=Vec[word_addr_bits])
         wr_en = self.input(name="wr_en", dtype=Vec[1])
         wr_be = self.input(name="wr_be", dtype=Vec[4])
-        wr_data = self.input(name="wr_data", dtype=Vec[32])
+        wr_data = self.input(name="wr_data", dtype=Array[4, 8])
         rd_data = self.output(name="rd_data", dtype=Vec[32])
         clock = self.input(name="clock", dtype=Vec[1])
 
