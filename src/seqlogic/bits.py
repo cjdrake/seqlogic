@@ -1999,7 +1999,7 @@ def _sel(b: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:
     return b
 
 
-def _rank2(fst: Scalar | Vector, *rst: Vector | str) -> Vector | Array:
+def _rank2(fst: Scalar | Vector, *rst: Scalar | Vector | str) -> Vector | Array:
     d0, d1 = fst.data
     for i, v in enumerate(rst, start=1):
         v = _expect_type(v, Vector[fst.size])
