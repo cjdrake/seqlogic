@@ -1,0 +1,1 @@
+"""Test logical algorithms."""
