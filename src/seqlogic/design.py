@@ -206,19 +206,21 @@ class Module(Branch, _ProcIf, _TraceIf):
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
-    def assign(self, y: Value, x: Bits | str):
+    def assign(self, y: Value, x: Packed | str):
         """Assign input to output."""
         # fmt: off
-        if isinstance(x, Packed):
-            async def proc1():
+        if isinstance(x, str):
+            async def proc_0():
+                y.next = x
+            self._procs.append((Region.ACTIVE, proc_0, (), {}))
+        elif isinstance(x, Packed):
+            async def proc_1():
                 while True:
                     await changed(x)
                     y.next = x.value
-            self._procs.append((Region.REACTIVE, proc1, (), {}))
+            self._procs.append((Region.REACTIVE, proc_1, (), {}))
         else:
-            async def proc2():
-                y.next = x
-            self._procs.append((Region.ACTIVE, proc2, (), {}))
+            raise TypeError("Expected x to be Packed or str")
         # fmt: on
 
     def dff(self, q: Packed, d: Packed, clk: Packed):
