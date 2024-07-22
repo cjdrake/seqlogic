@@ -423,10 +423,14 @@ class Bits:
             Scalar result of unsigned(self) < unsigned(other)
         """
         other = _expect_size(other, self.size)
-        try:
-            return _bool2scalar[self.to_uint() < other.to_uint()]
-        except ValueError:
+
+        # X/DC propagation
+        if self.has_x() or other.has_x():
             return _ScalarX
+        if self.has_dc() or other.has_dc():
+            return _ScalarW
+
+        return _bool2scalar[self.to_uint() < other.to_uint()]
 
     def slt(self, other: Bits | str) -> Scalar:
         """Signed Less than operator.
@@ -438,10 +442,14 @@ class Bits:
             Scalar result of signed(self) < signed(other)
         """
         other = _expect_size(other, self.size)
-        try:
-            return _bool2scalar[self.to_int() < other.to_int()]
-        except ValueError:
+
+        # X/DC propagation
+        if self.has_x() or other.has_x():
             return _ScalarX
+        if self.has_dc() or other.has_dc():
+            return _ScalarW
+
+        return _bool2scalar[self.to_int() < other.to_int()]
 
     def le(self, other: Bits | str) -> Scalar:
         """Unsigned less than or equal operator.
@@ -453,10 +461,14 @@ class Bits:
             Scalar result of unsigned(self) ≤ unsigned(other)
         """
         other = _expect_size(other, self.size)
-        try:
-            return _bool2scalar[self.to_uint() <= other.to_uint()]
-        except ValueError:
+
+        # X/DC propagation
+        if self.has_x() or other.has_x():
             return _ScalarX
+        if self.has_dc() or other.has_dc():
+            return _ScalarW
+
+        return _bool2scalar[self.to_uint() <= other.to_uint()]
 
     def sle(self, other: Bits | str) -> Scalar:
         """Signed less than or equal operator.
@@ -468,10 +480,14 @@ class Bits:
             Scalar result of signed(self) ≤ signed(other)
         """
         other = _expect_size(other, self.size)
-        try:
-            return _bool2scalar[self.to_int() <= other.to_int()]
-        except ValueError:
+
+        # X/DC propagation
+        if self.has_x() or other.has_x():
             return _ScalarX
+        if self.has_dc() or other.has_dc():
+            return _ScalarW
+
+        return _bool2scalar[self.to_int() <= other.to_int()]
 
     def gt(self, other: Bits | str) -> Scalar:
         """Unsigned greater than operator.
@@ -483,10 +499,14 @@ class Bits:
             Scalar result of unsigned(self) > unsigned(other)
         """
         other = _expect_size(other, self.size)
-        try:
-            return _bool2scalar[self.to_uint() > other.to_uint()]
-        except ValueError:
+
+        # X/DC propagation
+        if self.has_x() or other.has_x():
             return _ScalarX
+        if self.has_dc() or other.has_dc():
+            return _ScalarW
+
+        return _bool2scalar[self.to_uint() > other.to_uint()]
 
     def sgt(self, other: Bits | str) -> Scalar:
         """Signed greater than operator.
@@ -498,10 +518,14 @@ class Bits:
             Scalar result of signed(self) > signed(other)
         """
         other = _expect_size(other, self.size)
-        try:
-            return _bool2scalar[self.to_int() > other.to_int()]
-        except ValueError:
+
+        # X/DC propagation
+        if self.has_x() or other.has_x():
             return _ScalarX
+        if self.has_dc() or other.has_dc():
+            return _ScalarW
+
+        return _bool2scalar[self.to_int() > other.to_int()]
 
     def ge(self, other: Bits | str) -> Scalar:
         """Unsigned greater than or equal operator.
@@ -513,10 +537,14 @@ class Bits:
             Scalar result of unsigned(self) ≥ unsigned(other)
         """
         other = _expect_size(other, self.size)
-        try:
-            return _bool2scalar[self.to_uint() >= other.to_uint()]
-        except ValueError:
+
+        # X/DC propagation
+        if self.has_x() or other.has_x():
             return _ScalarX
+        if self.has_dc() or other.has_dc():
+            return _ScalarW
+
+        return _bool2scalar[self.to_uint() >= other.to_uint()]
 
     def sge(self, other: Bits | str) -> Scalar:
         """Signed greater than or equal operator.
@@ -528,10 +556,14 @@ class Bits:
             Scalar result of signed(self) ≥ signed(other)
         """
         other = _expect_size(other, self.size)
-        try:
-            return _bool2scalar[self.to_int() >= other.to_int()]
-        except ValueError:
+
+        # X/DC propagation
+        if self.has_x() or other.has_x():
             return _ScalarX
+        if self.has_dc() or other.has_dc():
+            return _ScalarW
+
+        return _bool2scalar[self.to_int() >= other.to_int()]
 
     def xt(self, n: int) -> Bits:
         """Unsigned extend by n bits.

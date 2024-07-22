@@ -746,8 +746,6 @@ def test_vec_eq():
         assert vec(a).eq(b) == y
 
     # Invalid rhs
-    # with pytest.raises(TypeError):
-    #    vec("1b0").eq(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").eq("2b00")
 
@@ -773,8 +771,6 @@ def test_vec_ne():
         assert vec(a).ne(b) == y
 
     # Invalid rhs
-    # with pytest.raises(TypeError):
-    #    vec("1b0").ne(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").ne("2b00")
 
@@ -785,7 +781,7 @@ LT = [
     ("1b1", "1b0", F),
     ("1b1", "1b1", F),
     ("1b0", "1bX", X),
-    ("1b0", "1b-", X),
+    ("1b0", "1b-", W),
 ]
 
 
@@ -794,8 +790,6 @@ def test_vec_lt():
         assert vec(a).lt(b) == y
 
     # Invalid rhs
-    # with pytest.raises(TypeError):
-    #    vec("1b0").lt(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").lt("2b00")
 
@@ -806,7 +800,7 @@ LE = [
     ("1b1", "1b0", F),
     ("1b1", "1b1", T),
     ("1b0", "1bX", X),
-    ("1b0", "1b-", X),
+    ("1b0", "1b-", W),
 ]
 
 
@@ -815,8 +809,6 @@ def test_vec_le():
         assert vec(a).le(b) == y
 
     # Invalid rhs
-    # with pytest.raises(TypeError):
-    #    vec("1b0").le(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").le("2b00")
 
@@ -827,7 +819,7 @@ SLT = [
     ("1b1", "1b0", T),
     ("1b1", "1b1", F),
     ("1b0", "1bX", X),
-    ("1b0", "1b-", X),
+    ("1b0", "1b-", W),
 ]
 
 
@@ -836,8 +828,6 @@ def test_vec_slt():
         assert vec(a).slt(b) == y
 
     # Invalid rhs
-    # with pytest.raises(TypeError):
-    #    vec("1b0").slt(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").slt("2b00")
 
@@ -848,7 +838,7 @@ SLE = [
     ("1b1", "1b0", T),
     ("1b1", "1b1", T),
     ("1b0", "1bX", X),
-    ("1b0", "1b-", X),
+    ("1b0", "1b-", W),
 ]
 
 
@@ -857,8 +847,6 @@ def test_vec_sle():
         assert vec(a).sle(b) == y
 
     # Invalid rhs
-    # with pytest.raises(TypeError):
-    #    vec("1b0").sle(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").sle("2b00")
 
@@ -869,7 +857,7 @@ GT = [
     ("1b1", "1b0", T),
     ("1b1", "1b1", F),
     ("1b0", "1bX", X),
-    ("1b0", "1b-", X),
+    ("1b0", "1b-", W),
 ]
 
 
@@ -878,8 +866,6 @@ def test_vec_gt():
         assert vec(a).gt(b) == y
 
     # Invalid rhs
-    # with pytest.raises(TypeError):
-    #    vec("1b0").gt(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").gt("2b00")
 
@@ -890,7 +876,7 @@ GE = [
     ("1b1", "1b0", T),
     ("1b1", "1b1", T),
     ("1b0", "1bX", X),
-    ("1b0", "1b-", X),
+    ("1b0", "1b-", W),
 ]
 
 
@@ -899,8 +885,6 @@ def test_vec_ge():
         assert vec(a).ge(b) == y
 
     # Invalid rhs
-    # with pytest.raises(TypeError):
-    #    vec("1b0").ge(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").ge("2b00")
 
@@ -911,7 +895,7 @@ SGT = [
     ("1b1", "1b0", F),
     ("1b1", "1b1", F),
     ("1b0", "1bX", X),
-    ("1b0", "1b-", X),
+    ("1b0", "1b-", W),
 ]
 
 
@@ -920,8 +904,6 @@ def test_vec_sgt():
         assert vec(a).sgt(b) == y
 
     # Invalid rhs
-    # with pytest.raises(TypeError):
-    #    vec("1b0").sgt(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").sgt("2b00")
 
@@ -932,7 +914,7 @@ SGE = [
     ("1b1", "1b0", F),
     ("1b1", "1b1", T),
     ("1b0", "1bX", X),
-    ("1b0", "1b-", X),
+    ("1b0", "1b-", W),
 ]
 
 
@@ -941,8 +923,6 @@ def test_vec_sge():
         assert vec(a).sge(b) == y
 
     # Invalid rhs
-    # with pytest.raises(TypeError):
-    #    vec("1b0").sge(1.0e42)
     with pytest.raises(TypeError):
         vec("1b0").sge("2b00")
 
