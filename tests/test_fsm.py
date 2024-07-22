@@ -6,7 +6,7 @@ Demonstrate usage of an enum.
 from collections import defaultdict
 
 from seqlogic import Enum, Module, Vector, get_loop
-from seqlogic.design import PackedLogic
+from seqlogic.design import Packed
 from seqlogic.sim import Region
 
 from .common import p_clk, p_dff, p_rst
@@ -50,10 +50,10 @@ def test_fsm():
     loop.reset()
 
     top = Module(name="top")
-    clock = PackedLogic(name="clock", parent=top, dtype=Vector[1])
-    reset_n = PackedLogic(name="reset_n", parent=top, dtype=Vector[1])
-    ps = PackedLogic(name="ps", parent=top, dtype=SeqDetect)
-    x = PackedLogic(name="x", parent=top, dtype=Vector[1])
+    clock = Packed(name="clock", parent=top, dtype=Vector[1])
+    reset_n = Packed(name="reset_n", parent=top, dtype=Vector[1])
+    ps = Packed(name="ps", parent=top, dtype=SeqDetect)
+    x = Packed(name="x", parent=top, dtype=Vector[1])
 
     waves = defaultdict(dict)
     top.dump_waves(waves, r".*")
