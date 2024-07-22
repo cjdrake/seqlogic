@@ -5,6 +5,7 @@
 
 # For error testing
 # pylint: disable=pointless-statement
+# pylint: disable=unsubscriptable-object
 
 import pytest
 
