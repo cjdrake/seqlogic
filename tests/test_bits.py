@@ -42,6 +42,8 @@ def test_basic():
         _ = Array[2, 0, 3]
     with pytest.raises(TypeError):
         _ = Array[2, -1, 3]
+    with pytest.raises(TypeError):
+        _ = Array[0, 2, 2]
 
     b = Array[2, 3, 4](0, 0)
 

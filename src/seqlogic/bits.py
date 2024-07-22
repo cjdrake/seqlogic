@@ -931,11 +931,9 @@ class Vector(Bits, _ShapeIf):
     _size: int
 
     def __class_getitem__(cls, size: int) -> type[Empty] | type[Scalar] | type[Vector]:
-        match size:
-            case int() if size >= 0:
-                return _vec_size(size)
-            case _:
-                raise TypeError(f"Invalid size parameter: {size}")
+        if isinstance(size, int) and size >= 0:
+            return _vec_size(size)
+        raise TypeError(f"Invalid size parameter: {size}")
 
     @classproperty
     def size(cls) -> int:
@@ -974,13 +972,11 @@ class Array(Bits, _ShapeIf):
     _shape: tuple[int, ...]
 
     def __class_getitem__(cls, shape: int | tuple[int, ...]) -> type[_ShapeIf]:
-        match shape:
-            case int() as size if size >= 0:
-                return _vec_size(size)
-            case [int(), *rst] if all(isinstance(n, int) and n > 1 for n in rst):
-                return _get_array_shape(shape)
-            case _:
-                raise TypeError(f"Invalid shape parameter: {shape}")
+        if isinstance(shape, int):
+            return _vec_size(shape)
+        if isinstance(shape, tuple) and all(isinstance(n, int) and n > 1 for n in shape):
+            return _get_array_shape(shape)
+        raise TypeError(f"Invalid shape parameter: {shape}")
 
     @classproperty
     def size(cls) -> int:
