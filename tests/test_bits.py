@@ -312,6 +312,8 @@ def test_bits():
         bits(42)
     with pytest.raises(TypeError):
         stack(["2b00", "1b0"])
+    with pytest.raises(TypeError):
+        stack([0, 0, 0, 42])
 
 
 def test_stack():

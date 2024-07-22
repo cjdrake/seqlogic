@@ -65,6 +65,8 @@ def test_vec():
     # Invalid input type
     with pytest.raises(TypeError):
         vec(1.0e42)
+    with pytest.raises(TypeError):
+        vec([0, 0, 0, 42])
 
 
 BIN_LITS = {

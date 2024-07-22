@@ -17,7 +17,7 @@ import math
 import random
 import re
 from collections import namedtuple
-from collections.abc import Generator, Iterable
+from collections.abc import Generator
 from functools import cache, partial
 
 from .lbconst import _W, _X, _0, _1, from_char, to_char, to_vcd_char
@@ -1359,7 +1359,7 @@ def sub(a: Bits | str, b: Bits | str) -> AddResult:
     return AddResult(s, co)
 
 
-def _bools2vec(xs: Iterable[int]) -> Empty | Scalar | Vector:
+def _bools2vec(*xs: int) -> Empty | Scalar | Vector:
     """Convert an iterable of bools to a vec.
 
     This is a convenience function.
@@ -1850,8 +1850,8 @@ def vec(obj=None) -> Empty | Scalar | Vector:
             return _Empty
         case 0 | 1 as x:
             return _bool2scalar[x]
-        case [0 | 1 as x, *rst]:
-            return _bools2vec([x, *rst])
+        case [0 | 1 as fst, *rst] if all(x in (0, 1) for x in rst):
+            return _bools2vec(fst, *rst)
         case str() as lit:
             return _lit2vec(lit)
         case _:
@@ -1880,8 +1880,8 @@ def bits(obj=None) -> _ShapeIf:
             return _Empty
         case 0 | 1 as x:
             return _bool2scalar[x]
-        case [0 | 1 as x, *rst]:
-            return _bools2vec([x, *rst])
+        case [0 | 1 as fst, *rst] if all(x in (0, 1) for x in rst):
+            return _bools2vec(fst, *rst)
         case str() as lit:
             return _lit2vec(lit)
         case [str() as lit, *rst]:
