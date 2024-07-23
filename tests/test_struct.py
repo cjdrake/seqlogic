@@ -15,6 +15,21 @@ def test_empty():
             pass
 
 
+S1 = """\
+Simple(
+    a=2b00,
+    b=3b000,
+    c=4b0000,
+)"""
+
+R1 = """\
+Simple(
+    a=Vector[2](0b11, 0b00),
+    b=Vector[3](0b111, 0b000),
+    c=Vector[4](0b1111, 0b0000),
+)"""
+
+
 class Simple(Struct):
     a: Vector[2]
     b: Vector[3]
@@ -28,24 +43,19 @@ def test_simple():
     assert str(s.b) == "3b000"
     assert str(s.c) == "4b0000"
 
-    assert str(s) == "Simple(a=2b00, b=3b000, c=4b0000)"
-
-    assert repr(s) == (
-        "Simple(a=Vector[2](0b11, 0b00), b=Vector[3](0b111, 0b000), c=Vector[4](0b1111, 0b0000))"
-    )
-
-    # assert len(s) == 9
+    assert str(s) == S1
+    assert repr(s) == R1
 
 
 def test_init():
     s = Simple()
-    assert str(s) == "Simple(a=2bXX, b=3bXXX, c=4bXXXX)"
+    assert str(s) == "Simple(\n    a=2bXX,\n    b=3bXXX,\n    c=4bXXXX,\n)"
     s = Simple(a="2b11")
-    assert str(s) == "Simple(a=2b11, b=3bXXX, c=4bXXXX)"
+    assert str(s) == "Simple(\n    a=2b11,\n    b=3bXXX,\n    c=4bXXXX,\n)"
     s = Simple(b="3b111")
-    assert str(s) == "Simple(a=2bXX, b=3b111, c=4bXXXX)"
+    assert str(s) == "Simple(\n    a=2bXX,\n    b=3b111,\n    c=4bXXXX,\n)"
     s = Simple(c="4b1111")
-    assert str(s) == "Simple(a=2bXX, b=3bXXX, c=4b1111)"
+    assert str(s) == "Simple(\n    a=2bXX,\n    b=3bXXX,\n    c=4b1111,\n)"
 
-    assert str(Simple.xes()) == "Simple(a=2bXX, b=3bXXX, c=4bXXXX)"
-    assert str(Simple.dcs()) == "Simple(a=2b--, b=3b---, c=4b----)"
+    assert str(Simple.xes()) == "Simple(\n    a=2bXX,\n    b=3bXXX,\n    c=4bXXXX,\n)"
+    assert str(Simple.dcs()) == "Simple(\n    a=2b--,\n    b=3b---,\n    c=4b----,\n)"

@@ -1751,29 +1751,31 @@ class _StructMeta(type):
 
         # Override Bits.__str__ method
         def _str(self):
-            args = []
+            parts = [f"{name}("]
             for fn, ft in fields:
                 b = getattr(self, fn)
                 if issubclass(ft, Enum):
                     arg = f"{fn}={ft.__name__}.{b.name}"
                 else:
                     arg = f"{fn}={b!s}"
-                args.append(arg)
-            return f'{name}({", ".join(args)})'
+                parts.append(f"    {arg},")
+            parts.append(")")
+            return "\n".join(parts)
 
         struct.__str__ = _str
 
         # Override Bits.__repr__ method
         def _repr(self):
-            args = []
+            parts = [f"{name}("]
             for fn, ft in fields:
                 b = getattr(self, fn)
                 if issubclass(ft, Enum):
                     arg = f"{fn}={ft.__name__}.{b.name}"
                 else:
                     arg = f"{fn}={b!r}"
-                args.append(arg)
-            return f'{name}({", ".join(args)})'
+                parts.append(f"    {arg},")
+            parts.append(")")
+            return "\n".join(parts)
 
         struct.__repr__ = _repr
 
@@ -1843,6 +1845,36 @@ class _UnionMeta(type):
             return _vec_size(size)(d0, d1)
 
         union.__getitem__ = _getitem
+
+        # Override Bits.__str__ method
+        def _str(self):
+            parts = [f"{name}("]
+            for fn, ft in fields:
+                b = getattr(self, fn)
+                if issubclass(ft, Enum):
+                    arg = f"{fn}={ft.__name__}.{b.name}"
+                else:
+                    arg = f"{fn}={b!s}"
+                parts.append(f"    {arg},")
+            parts.append(")")
+            return "\n".join(parts)
+
+        union.__str__ = _str
+
+        # Override Bits.__repr__ method
+        def _repr(self):
+            parts = [f"{name}("]
+            for fn, ft in fields:
+                b = getattr(self, fn)
+                if issubclass(ft, Enum):
+                    arg = f"{fn}={ft.__name__}.{b.name}"
+                else:
+                    arg = f"{fn}={b!r}"
+                parts.append(f"    {arg},")
+            parts.append(")")
+            return "\n".join(parts)
+
+        union.__repr__ = _repr
 
         # Create Union fields
         def _fget(ft: type[Bits], self):
