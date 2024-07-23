@@ -840,7 +840,8 @@ class Bits:
 
     def count_dcs(self) -> int:
         """Return number of DC items."""
-        return (self._data[0] & self._data[1]).bit_count()
+        d: int = self._data[0] & self._data[1]
+        return d.bit_count()
 
     def count_unknown(self) -> int:
         """Return number of X/DC items."""
