@@ -1,8 +1,6 @@
 """Data Path."""
 
-from seqlogic import Module
-from seqlogic import Vector as Vec
-from seqlogic import add, cat, rep, uint2vec
+from seqlogic import Module, Vec, add, cat, rep, uint2vec
 
 from . import TEXT_BASE, Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu

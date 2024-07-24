@@ -1,7 +1,6 @@
 """RiscV Constants and Types."""
 
-from seqlogic import Enum, Struct, Union
-from seqlogic import Vector as Vec
+from seqlogic import Enum, Struct, Union, Vec
 
 TEXT_BASE = 0x0040_0000
 TEXT_BITS = 4 + 10 + 2  # 16K

@@ -1,10 +1,9 @@
 """Ripple Carry Addition (RCA)."""
 
-from ...bits import Vector as Vec
-from ...bits import cat
+from ...bits import Vector, cat
 
 
-def add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
+def add(a: Vector, b: Vector, ci: Vector[1]) -> tuple[Vector, Vector[1]]:
     """Ripple Carry Addition."""
     assert len(a) > 0 and len(a) == len(b)
 

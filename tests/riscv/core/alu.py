@@ -1,8 +1,6 @@
 """Arithmetic Logic Unit (ALU)."""
 
-from seqlogic import Module
-from seqlogic import Vector as Vec
-from seqlogic import add, sub
+from seqlogic import Module, Vec, add, sub
 
 from . import AluOp
 

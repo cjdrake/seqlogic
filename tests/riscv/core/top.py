@@ -1,8 +1,6 @@
 """Top Level Module."""
 
-from seqlogic import Module
-from seqlogic import Vector as Vec
-from seqlogic import active, sleep
+from seqlogic import Module, Vec, active, sleep
 
 from . import Addr, Inst, Opcode
 from .core import Core

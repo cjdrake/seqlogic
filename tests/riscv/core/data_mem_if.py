@@ -1,8 +1,6 @@
 """Data Memory Interface."""
 
-from seqlogic import Module
-from seqlogic import Vector as Vec
-from seqlogic import cat, rep
+from seqlogic import Module, Vec, cat, rep
 
 from . import Addr
 

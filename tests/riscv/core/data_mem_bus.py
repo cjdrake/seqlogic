@@ -2,9 +2,7 @@
 
 import operator
 
-from seqlogic import Module
-from seqlogic import Vector as Vec
-from seqlogic import clog2, uint2vec
+from seqlogic import Module, Vec, clog2, uint2vec
 
 from . import DATA_BASE, DATA_SIZE, Addr
 from .data_mem import DataMem

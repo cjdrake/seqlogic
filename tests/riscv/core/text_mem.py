@@ -2,8 +2,7 @@
 
 import operator
 
-from seqlogic import Module
-from seqlogic import Vector as Vec
+from seqlogic import Module, Vec
 
 
 class TextMem(Module):

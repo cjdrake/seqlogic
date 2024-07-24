@@ -2,8 +2,7 @@
 
 import operator
 
-from seqlogic import Array, Module
-from seqlogic import Vector as Vec
+from seqlogic import Array, Module, Vec
 
 
 class DataMem(Module):

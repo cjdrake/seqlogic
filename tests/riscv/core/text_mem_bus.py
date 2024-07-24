@@ -1,8 +1,6 @@
 """Text Memory Bus."""
 
-from seqlogic import Module
-from seqlogic import Vector as Vec
-from seqlogic import clog2, uint2vec
+from seqlogic import Module, Vec, clog2, uint2vec
 
 from . import TEXT_BASE, TEXT_SIZE, Addr
 from .text_mem import TextMem

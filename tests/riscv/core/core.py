@@ -1,7 +1,6 @@
 """RiscV Core."""
 
-from seqlogic import Module
-from seqlogic import Vector as Vec
+from seqlogic import Module, Vec
 
 from . import Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
 from .ctl_path import CtlPath
