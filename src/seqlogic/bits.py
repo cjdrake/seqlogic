@@ -1392,16 +1392,20 @@ def sub(a: Bits | str, b: Bits | str) -> AddResult:
     return AddResult(s, co)
 
 
-def _bools2vec(*xs: int) -> Empty | Scalar | Vector:
+def _bools2vec(x0: int, *xs: int) -> Empty | Scalar | Vector:
     """Convert an iterable of bools to a vec.
 
     This is a convenience function.
     For data in the form of [0, 1, 0, 1, ...],
     or [False, True, False, True, ...].
     """
-    size, d1 = 0, 0
+    size = 1
+    d1 = int(x0)
     for x in xs:
-        d1 |= x << size
+        if x in (0, 1):
+            d1 |= x << size
+        else:
+            raise TypeError(f"Expected x in {{0, 1}}, got {x}")
         size += 1
     return _vec_size(size)(d1 ^ _mask(size), d1)
 
@@ -1915,7 +1919,7 @@ def vec(obj=None) -> Empty | Scalar | Vector:
             return _Empty
         case 0 | 1 as x:
             return _bool2scalar[x]
-        case [0 | 1 as fst, *rst] if all(x in (0, 1) for x in rst):
+        case [0 | 1 as fst, *rst]:
             return _bools2vec(fst, *rst)
         case str() as lit:
             return _lit2vec(lit)
@@ -1945,7 +1949,7 @@ def bits(obj=None) -> _ShapeIf:
             return _Empty
         case 0 | 1 as x:
             return _bool2scalar[x]
-        case [0 | 1 as fst, *rst] if all(x in (0, 1) for x in rst):
+        case [0 | 1 as fst, *rst]:
             return _bools2vec(fst, *rst)
         case str() as lit:
             return _lit2vec(lit)
