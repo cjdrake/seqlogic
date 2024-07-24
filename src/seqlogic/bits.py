@@ -1821,7 +1821,7 @@ class _UnionMeta(type):
         # Class properties
         union.size = classproperty(lambda _: size)
 
-        # Override Vec __init__ method
+        # Override Bits.__init__ method
         def _init(self, arg: Bits | str):
             if isinstance(arg, str):
                 b = _lit2vec(arg)
