@@ -3,7 +3,7 @@
 See https://csrc.nist.gov/pubs/fips/197/final for details.
 """
 
-from ..bits import Array, Vector, bits, rep, stack
+from ...bits import Array, Vector, bits, rep, stack
 
 NB = 4
 
