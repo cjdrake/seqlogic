@@ -132,36 +132,34 @@ class Bits:
     def cast(cls, b: Bits) -> Bits:
         if b.size != cls.size:
             raise TypeError(f"Expected size {cls.size}, got {b.size}")
-        obj = object.__new__(cls)
-        Bits.__init__(obj, b.data[0], b.data[1])
-        return obj
+        return cls._cast_data(b.data[0], b.data[1])
 
     @classmethod
-    def cast_data(cls, d0: int, d1: int) -> Bits:
+    def _cast_data(cls, d0: int, d1: int) -> Bits:
         obj = object.__new__(cls)
-        Bits.__init__(obj, d0, d1)
+        obj._data = (d0, d1)
         return obj
 
     @classmethod
     def xes(cls) -> Bits:
-        return cls.cast_data(0, 0)
+        return cls._cast_data(0, 0)
 
     @classmethod
     def zeros(cls) -> Bits:
-        return cls.cast_data(cls._dmax, 0)
+        return cls._cast_data(cls._dmax, 0)
 
     @classmethod
     def ones(cls) -> Bits:
-        return cls.cast_data(0, cls._dmax)
+        return cls._cast_data(0, cls._dmax)
 
     @classmethod
     def dcs(cls) -> Bits:
-        return cls.cast_data(cls._dmax, cls._dmax)
+        return cls._cast_data(cls._dmax, cls._dmax)
 
     @classmethod
     def rand(cls) -> Bits:
         d1 = random.getrandbits(cls.size)
-        return cls.cast_data(cls._dmax ^ d1, d1)
+        return cls._cast_data(cls._dmax ^ d1, d1)
 
     @classmethod
     def xprop(cls, sel: Bits) -> Bits:
@@ -172,9 +170,6 @@ class Bits:
     @classproperty
     def _dmax(cls) -> int:
         return _mask(cls.size)
-
-    def __init__(self, d0: int, d1: int):
-        self._data = (d0, d1)
 
     @property
     def data(self) -> tuple[int, int]:
@@ -288,7 +283,7 @@ class Bits:
         x0, x1 = self._data
         y0, y1 = x1, x0
         cls = self.__class__
-        return cls.cast_data(y0, y1)
+        return cls._cast_data(y0, y1)
 
     def uor(self) -> Scalar:
         """Unary OR reduction.
@@ -603,7 +598,7 @@ class Bits:
         d0 = ci.data[0] | sh0 << n
         d1 = ci.data[1] | sh1 << n
         cls = self.__class__
-        y = cls.cast_data(d0, d1)
+        y = cls._cast_data(d0, d1)
 
         return y, co
 
@@ -648,7 +643,7 @@ class Bits:
         d0 = sh0 | ci.data[0] << sh_size
         d1 = sh1 | ci.data[1] << sh_size
         cls = self.__class__
-        y = cls.cast_data(d0, d1)
+        y = cls._cast_data(d0, d1)
 
         return y, co
 
@@ -696,7 +691,7 @@ class Bits:
         d0 = sh0 | ci0 << sh_size
         d1 = sh1 | ci1 << sh_size
         cls = self.__class__
-        y = cls.cast_data(d0, d1)
+        y = cls._cast_data(d0, d1)
 
         return y, co
 
@@ -732,7 +727,7 @@ class Bits:
         d0 = co0 | sh0 << n
         d1 = co1 | sh1 << n
         cls = self.__class__
-        return cls.cast_data(d0, d1)
+        return cls._cast_data(d0, d1)
 
     def lrot(self, n: int | Bits) -> Bits:
         """Left rotate by n bits.
@@ -766,7 +761,7 @@ class Bits:
         d0 = sh0 | co0 << sh_size
         d1 = sh1 | co1 << sh_size
         cls = self.__class__
-        return cls.cast_data(d0, d1)
+        return cls._cast_data(d0, d1)
 
     def rrot(self, n: int | Bits) -> Bits:
         """Right rotate by n bits.
@@ -803,7 +798,7 @@ class Bits:
             2-tuple of (sum, carry-out).
         """
         cls = self.__class__
-        zero = cls.cast_data(self._dmax, 0)
+        zero = cls._cast_data(self._dmax, 0)
         s, co = _add(zero, self.not_(), ci=_Scalar1)
         return AddResult(s, co)
 
@@ -886,6 +881,10 @@ class Bits:
 class Empty(Bits, _ShapeIf):
     """Empty sequence of bits."""
 
+    def __new__(cls, d0: int, d1: int):
+        assert d0 == d1 == 0
+        return _Empty
+
     @classproperty
     def size(cls) -> int:
         return 0
@@ -909,11 +908,14 @@ class Empty(Bits, _ShapeIf):
         yield from ()
 
 
-_Empty = Empty(*_X)
+_Empty = Empty._cast_data(0, 0)
 
 
 class Scalar(Bits, _ShapeIf):
     """Zero dimensional (scalar) sequence of bits."""
+
+    def __new__(cls, d0: int, d1: int):
+        return _scalars[(d0, d1)]
 
     @classproperty
     def size(cls) -> int:
@@ -940,10 +942,10 @@ class Scalar(Bits, _ShapeIf):
         yield self
 
 
-_ScalarX = Scalar(*_X)
-_Scalar0 = Scalar(*_0)
-_Scalar1 = Scalar(*_1)
-_ScalarW = Scalar(*_W)
+_ScalarX = Scalar._cast_data(*_X)
+_Scalar0 = Scalar._cast_data(*_0)
+_Scalar1 = Scalar._cast_data(*_1)
+_ScalarW = Scalar._cast_data(*_W)
 
 _scalars = {
     _X: _ScalarX,
@@ -963,6 +965,9 @@ class Vector(Bits, _ShapeIf):
         if isinstance(size, int) and size >= 0:
             return _vec_size(size)
         raise TypeError(f"Invalid size parameter: {size}")
+
+    def __new__(cls, d0: int, d1: int) -> Vector:
+        return cls._cast_data(d0, d1)
 
     @classproperty
     def size(cls) -> int:
@@ -1018,6 +1023,9 @@ class Array(Bits, _ShapeIf):
         if isinstance(shape, tuple) and all(isinstance(n, int) and n > 1 for n in shape):
             return _get_array_shape(shape)
         raise TypeError(f"Invalid shape parameter: {shape}")
+
+    def __new__(cls, d0: int, d1: int) -> Array:
+        return cls._cast_data(d0, d1)
 
     @classproperty
     def size(cls) -> int:
@@ -1099,7 +1107,7 @@ def _or_(b0: Bits, b1: Bits) -> Bits:
     y0 = x0[0] & x1[0]
     y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
     cls = b0.__class__
-    return cls.cast_data(y0, y1)
+    return cls._cast_data(y0, y1)
 
 
 def or_(b0: Bits | str, *bs: Bits | str) -> Bits:
@@ -1178,7 +1186,7 @@ def _and_(b0: Bits, b1: Bits) -> Bits:
     y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
     y1 = x0[1] & x1[1]
     cls = b0.__class__
-    return cls.cast_data(y0, y1)
+    return cls._cast_data(y0, y1)
 
 
 def and_(b0: Bits | str, *bs: Bits | str) -> Bits:
@@ -1257,7 +1265,7 @@ def _xnor(b0: Bits, b1: Bits) -> Bits:
     y0 = x0[0] & x1[1] | x0[1] & x1[0]
     y1 = x0[0] & x1[0] | x0[1] & x1[1]
     cls = b0.__class__
-    return cls.cast_data(y0, y1)
+    return cls._cast_data(y0, y1)
 
 
 def _xor(b0: Bits, b1: Bits) -> Bits:
@@ -1265,7 +1273,7 @@ def _xor(b0: Bits, b1: Bits) -> Bits:
     y0 = x0[0] & x1[0] | x0[1] & x1[1]
     y1 = x0[0] & x1[1] | x0[1] & x1[0]
     cls = b0.__class__
-    return cls.cast_data(y0, y1)
+    return cls._cast_data(y0, y1)
 
 
 def xor(b0: Bits | str, *bs: Bits | str) -> Bits:
@@ -1358,7 +1366,7 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     s &= dmax
 
     cls = a.__class__
-    return cls.cast_data(s ^ dmax, s), co
+    return cls._cast_data(s ^ dmax, s), co
 
 
 def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> AddResult:
@@ -1642,42 +1650,27 @@ class _EnumMeta(type):
 
         # Instantiate members
         for (d0, d1), key in data2key.items():
-            obj = object.__new__(enum)
-            Bits.__init__(obj, d0, d1)
-            setattr(enum, key, obj)
+            setattr(enum, key, enum._cast_data(d0, d1))
 
-        # Override Vector.cast method
-        def _cast(cls, b: Bits) -> Bits:
-            try:
-                obj = getattr(cls, data2key[b.data])
-            except KeyError:
-                obj = object.__new__(cls)
-                Bits.__init__(obj, b.data[0], b.data[1])
-            return obj
-
-        enum.cast = classmethod(_cast)
-
-        # Override Vector.cast_data method
+        # Override Vector._cast_data method
         def _cast_data(cls, d0: int, d1: int) -> Bits:
+            data = (d0, d1)
             try:
-                obj = getattr(cls, data2key[(d0, d1)])
+                obj = getattr(cls, data2key[data])
             except KeyError:
                 obj = object.__new__(cls)
-                Bits.__init__(obj, d0, d1)
+                obj._data = data
             return obj
 
-        # Override Vector.cast_data method
-        enum.cast_data = classmethod(_cast_data)
+        # Override Vector._cast_data method
+        enum._cast_data = classmethod(_cast_data)
 
         # Override Vector.__new__ method
-        def _new(cls, b: Bits | str):
-            b = _expect_size(b, cls.size)
+        def _new(cls, arg: Bits | str):
+            b = _expect_size(arg, cls.size)
             return cls.cast(b)
 
         enum.__new__ = _new
-
-        # Override Vector.__init__ method (to do nothing)
-        enum.__init__ = lambda self, b: None
 
         # Override Vector.__repr__ method
         def _repr(self):
@@ -1768,7 +1761,7 @@ class _StructMeta(type):
                     b = _expect_size(arg, ft.size)
                     d0 |= b.data[0] << offsets[fn]
                     d1 |= b.data[1] << offsets[fn]
-            Bits.__init__(obj, d0, d1)
+            obj._data = (d0, d1)
 
         source = _struct_init_source(fields)
         globals_ = {"_init_body": _init_body}
@@ -1810,7 +1803,7 @@ class _StructMeta(type):
             mask = _mask(ft.size)
             d0 = (self._data[0] >> offsets[fn]) & mask
             d1 = (self._data[1] >> offsets[fn]) & mask
-            return ft.cast_data(d0, d1)
+            return ft._cast_data(d0, d1)
 
         for fn, ft in fields:
             setattr(struct, fn, property(fget=partial(_fget, fn, ft)))
@@ -1861,7 +1854,7 @@ class _UnionMeta(type):
                 s = ", ".join(t.__name__ for t in ts)
                 s = f"Expected arg to be {{{s}}}, or str literal"
                 raise TypeError(s)
-            Bits.__init__(self, b.data[0], b.data[1])
+            self._data = b.data
 
         union.__init__ = _init
 
@@ -1899,7 +1892,7 @@ class _UnionMeta(type):
             mask = _mask(ft.size)
             d0 = self._data[0] & mask
             d1 = self._data[1] & mask
-            return ft.cast_data(d0, d1)
+            return ft._cast_data(d0, d1)
 
         for fn, ft in fields:
             setattr(union, fn, property(fget=partial(_fget, ft)))
