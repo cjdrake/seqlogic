@@ -924,7 +924,7 @@ class Scalar(Bits, _ShapeIf):
         return (1,)
 
     def __repr__(self) -> str:
-        return f'bits("1b{to_char[self._data]}")'
+        return f'bits("{self.__str__()}")'
 
     def __str__(self) -> str:
         return f"1b{to_char[self._data]}"
