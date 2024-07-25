@@ -248,7 +248,7 @@ def test_lit2vec_hex():
 
 
 UINT2VEC_VALS = {
-    0: "",
+    0: "[]",
     1: "1b1",
     2: "2b10",
     3: "2b11",
@@ -260,7 +260,7 @@ UINT2VEC_VALS = {
 }
 
 UINT2VEC_N_VALS = {
-    (0, 0): "",
+    (0, 0): "[]",
     (0, 1): "1b0",
     (0, 2): "2b00",
     (1, 1): "1b1",
@@ -464,8 +464,8 @@ def test_vec_iter():
 
 
 def test_vec_repr():
-    assert repr(bits()) == "Empty(0b0, 0b0)"
-    assert repr(bits("4b-10X")) == "Vector[4](0b1010, 0b1100)"
+    assert repr(bits()) == "bits([])"
+    assert repr(bits("4b-10X")) == 'bits("4b-10X")'
 
 
 def test_vec_bool():

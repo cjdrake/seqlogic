@@ -180,22 +180,6 @@ class Bits:
     def data(self) -> tuple[int, int]:
         return self._data
 
-    def __str__(self) -> str:
-        if self.size == 0:
-            return ""
-        prefix = f"{self.size}b"
-        chars = []
-        for i in range(self.size):
-            if i % 4 == 0 and i != 0:
-                chars.append("_")
-            chars.append(to_char[self._get_index(i)])
-        return prefix + "".join(reversed(chars))
-
-    def __repr__(self) -> str:
-        name = self.__class__.__name__
-        d0, d1 = self._data
-        return f"{name}(0b{d0:0{self.size}b}, 0b{d1:0{self.size}b})"
-
     def __bool__(self) -> bool:
         return self.to_uint() != 0
 
@@ -910,6 +894,12 @@ class Empty(Bits, _ShapeIf):
     def shape(cls) -> tuple[int, ...]:
         return (0,)
 
+    def __repr__(self) -> str:
+        return "bits([])"
+
+    def __str__(self) -> str:
+        return "[]"
+
     def __len__(self) -> int:
         return 0
 
@@ -932,6 +922,12 @@ class Scalar(Bits, _ShapeIf):
     @classproperty
     def shape(cls) -> tuple[int, ...]:
         return (1,)
+
+    def __repr__(self) -> str:
+        return f'bits("1b{to_char[self._data]}")'
+
+    def __str__(self) -> str:
+        return f"1b{to_char[self._data]}"
 
     def __len__(self) -> int:
         return 1
@@ -976,6 +972,18 @@ class Vector(Bits, _ShapeIf):
     def shape(cls) -> tuple[int, ...]:
         return (cls._size,)
 
+    def __repr__(self) -> str:
+        return f'bits("{self.__str__()}")'
+
+    def __str__(self) -> str:
+        prefix = f"{self.size}b"
+        chars = [to_char[self._get_index(0)]]
+        for i in range(1, self.size):
+            if i % 4 == 0:
+                chars.append("_")
+            chars.append(to_char[self._get_index(i)])
+        return prefix + "".join(reversed(chars))
+
     def __len__(self) -> int:
         return self._size
 
@@ -1019,6 +1027,15 @@ class Array(Bits, _ShapeIf):
     def shape(cls) -> tuple[int, ...]:
         return cls._shape
 
+    def __repr__(self) -> str:
+        prefix = "bits"
+        indent = " " * len(prefix) + "  "
+        return f"{prefix}({_array_repr(indent, self)})"
+
+    def __str__(self) -> str:
+        indent = " "
+        return f"{_array_str(indent, self)}"
+
     def __len__(self) -> int:
         return self._shape[0]
 
@@ -1035,11 +1052,6 @@ class Array(Bits, _ShapeIf):
     def __iter__(self) -> Generator[_ShapeIf, None, None]:
         for i in range(self._shape[0]):
             yield self[i]
-
-    def __str__(self) -> str:
-        prefix = "bits"
-        indent = " " * len(prefix) + "  "
-        return f"{prefix}({_rstr(indent, self)})"
 
     def reshape(self, shape: tuple[int, ...]) -> Vector | Array:
         if shape == self.shape:
@@ -1667,6 +1679,24 @@ class _EnumMeta(type):
         # Override Vector.__init__ method (to do nothing)
         enum.__init__ = lambda self, b: None
 
+        # Override Vector.__repr__ method
+        def _repr(self):
+            try:
+                return f"{name}.{data2key[self._data]}"
+            except KeyError:
+                return f'{name}("{vec_n.__str__(self)}")'
+
+        enum.__repr__ = _repr
+
+        # Override Vector.__str__ method
+        def _str(self):
+            try:
+                return f"{name}.{data2key[self._data]}"
+            except KeyError:
+                return f"{name}({vec_n.__str__(self)})"
+
+        enum.__str__ = _str
+
         # Create name property
         def _name(self):
             try:
@@ -1756,13 +1786,9 @@ class _StructMeta(type):
         # Override Bits.__str__ method
         def _str(self):
             parts = [f"{name}("]
-            for fn, ft in fields:
+            for fn, _ in fields:
                 b = getattr(self, fn)
-                if issubclass(ft, Enum):
-                    arg = f"{fn}={ft.__name__}.{b.name}"
-                else:
-                    arg = f"{fn}={b!s}"
-                parts.append(f"    {arg},")
+                parts.append(f"    {fn}={b!s},")
             parts.append(")")
             return "\n".join(parts)
 
@@ -1771,13 +1797,9 @@ class _StructMeta(type):
         # Override Bits.__repr__ method
         def _repr(self):
             parts = [f"{name}("]
-            for fn, ft in fields:
+            for fn, _ in fields:
                 b = getattr(self, fn)
-                if issubclass(ft, Enum):
-                    arg = f"{fn}={ft.__name__}.{b.name}"
-                else:
-                    arg = f"{fn}={b!r}"
-                parts.append(f"    {arg},")
+                parts.append(f"    {fn}={b!r},")
             parts.append(")")
             return "\n".join(parts)
 
@@ -1853,13 +1875,9 @@ class _UnionMeta(type):
         # Override Bits.__str__ method
         def _str(self):
             parts = [f"{name}("]
-            for fn, ft in fields:
+            for fn, _ in fields:
                 b = getattr(self, fn)
-                if issubclass(ft, Enum):
-                    arg = f"{fn}={ft.__name__}.{b.name}"
-                else:
-                    arg = f"{fn}={b!s}"
-                parts.append(f"    {arg},")
+                parts.append(f"    {fn}={b!s},")
             parts.append(")")
             return "\n".join(parts)
 
@@ -1868,13 +1886,9 @@ class _UnionMeta(type):
         # Override Bits.__repr__ method
         def _repr(self):
             parts = [f"{name}("]
-            for fn, ft in fields:
+            for fn, _ in fields:
                 b = getattr(self, fn)
-                if issubclass(ft, Enum):
-                    arg = f"{fn}={ft.__name__}.{b.name}"
-                else:
-                    arg = f"{fn}={b!r}"
-                parts.append(f"    {arg},")
+                parts.append(f"    {fn}={b!r},")
             parts.append(")")
             return "\n".join(parts)
 
@@ -2077,18 +2091,30 @@ def _norm_slice(n: int, sl: slice) -> tuple[int, int]:
     return start, stop
 
 
-def _rstr(indent: str, b: Vector | Array) -> str:
-    # 1-D Vector
-    if len(b.shape) == 1:
-        return Bits.__str__(b)
+def _get_sep(indent: str, b: Vector | Array) -> str:
     # 2-D Matrix
     if len(b.shape) == 2:
-        sep = ", "
+        return ", "
     # 3-D
-    elif len(b.shape) == 3:
-        sep = ",\n" + indent
+    if len(b.shape) == 3:
+        return ",\n" + indent
     # N-D
-    else:
-        sep = ",\n\n" + indent
-    f = partial(_rstr, indent + " ")
+    return ",\n\n" + indent
+
+
+def _array_repr(indent: str, b: Vector | Array) -> str:
+    # 1-D Vector
+    if len(b.shape) == 1:
+        return f'"{b}"'
+    sep = _get_sep(indent, b)
+    f = partial(_array_repr, indent + " ")
+    return "[" + sep.join(map(f, b)) + "]"
+
+
+def _array_str(indent: str, b: Vector | Array) -> str:
+    # 1-D Vector
+    if len(b.shape) == 1:
+        return f"{b}"
+    sep = _get_sep(indent, b)
+    f = partial(_array_str, indent + " ")
     return "[" + sep.join(map(f, b)) + "]"

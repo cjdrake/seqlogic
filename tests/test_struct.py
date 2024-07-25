@@ -24,9 +24,9 @@ Simple(
 
 R1 = """\
 Simple(
-    a=Vector[2](0b11, 0b00),
-    b=Vector[3](0b111, 0b000),
-    c=Vector[4](0b1111, 0b0000),
+    a=bits("2b00"),
+    b=bits("3b000"),
+    c=bits("4b0000"),
 )"""
 
 

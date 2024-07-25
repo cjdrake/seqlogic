@@ -31,7 +31,7 @@ def test_basic():
     assert len(Color.RED) == 2
     assert Color.RED.name == "RED"
     assert Color.RED.data[1] == 0b00
-    assert str(Color.RED) == "2b00"
+    assert str(Color.RED) == "Color.RED"
 
     assert Color("2b00") is Color.RED
     assert Color(Vector[2](0b11, 0b00)) is Color.RED
@@ -39,21 +39,21 @@ def test_basic():
     assert len(Color.GREEN) == 2
     assert Color.GREEN.name == "GREEN"
     assert Color.GREEN.data[1] == 0b01
-    assert str(Color.GREEN) == "2b01"
+    assert str(Color.GREEN) == "Color.GREEN"
     assert Color("2b01") is Color.GREEN
     assert Color(Vector[2](0b10, 0b01)) is Color.GREEN
 
     assert len(Color.BLUE) == 2
     assert Color.BLUE.name == "BLUE"
     assert Color.BLUE.data[1] == 0b10
-    assert str(Color.BLUE) == "2b10"
+    assert str(Color.BLUE) == "Color.BLUE"
     assert Color("2b10") is Color.BLUE
     assert Color(Vector[2](0b01, 0b10)) is Color.BLUE
 
     assert len(Color.X) == 2
     assert Color.X.name == "X"
     assert Color.X.data == (0, 0)
-    assert str(Color.X) == "2bXX"
+    assert str(Color.X) == "Color.X"
     assert Color("2bXX") is Color.X
     assert Color.xes() is Color.X
     assert Color(Vector[2](0, 0)) is Color.X
@@ -61,16 +61,13 @@ def test_basic():
     assert len(Color.DC) == 2
     assert Color.DC.name == "DC"
     assert Color.DC.data == (0b11, 0b11)
-    assert str(Color.DC) == "2b--"
+    assert str(Color.DC) == "Color.DC"
     assert Color("2b--") is Color.DC
     assert Color.dcs() is Color.DC
     assert Color(Vector[2](0b11, 0b11)) is Color.DC
 
     assert str(Color("2b11").name) == "Color(2b11)"
     assert str(Color(Vector[2](0b00, 0b11)).name) == "Color(2b11)"
-
-    # with pytest.raises(TypeError):
-    #    _ = Color(1.0e42)
 
 
 def test_typing():

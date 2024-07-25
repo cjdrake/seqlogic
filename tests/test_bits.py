@@ -65,55 +65,55 @@ def test_basic():
 # Operators retain their shape
 def test_not():
     b = bits(["4b----", "4b1111", "4b0000", "4bXXXX"])
-    assert str(~b) == "bits([4b----, 4b0000, 4b1111, 4bXXXX])"
+    assert str(~b) == "[4b----, 4b0000, 4b1111, 4bXXXX]"
 
 
 def test_nor():
     b0 = bits(["4b----", "4b1111", "4b0000", "4bXXXX"])
     b1 = bits(["4b-10X", "4b-10X", "4b-10X", "4b-10X"])
-    assert str(nor(b0, b1)) == "bits([4b-0-X, 4b000X, 4b-01X, 4bXXXX])"
+    assert str(nor(b0, b1)) == "[4b-0-X, 4b000X, 4b-01X, 4bXXXX]"
 
 
 def test_or():
     b0 = bits(["4b----", "4b1111", "4b0000", "4bXXXX"])
     b1 = bits(["4b-10X", "4b-10X", "4b-10X", "4b-10X"])
-    assert str(or_(b0, b1)) == "bits([4b-1-X, 4b111X, 4b-10X, 4bXXXX])"
+    assert str(or_(b0, b1)) == "[4b-1-X, 4b111X, 4b-10X, 4bXXXX]"
 
 
 def test_nand():
     b0 = bits(["4b----", "4b1111", "4b0000", "4bXXXX"])
     b1 = bits(["4b-10X", "4b-10X", "4b-10X", "4b-10X"])
-    assert str(nand(b0, b1)) == "bits([4b--1X, 4b-01X, 4b111X, 4bXXXX])"
+    assert str(nand(b0, b1)) == "[4b--1X, 4b-01X, 4b111X, 4bXXXX]"
 
 
 def test_and():
     b0 = bits(["4b----", "4b1111", "4b0000", "4bXXXX"])
     b1 = bits(["4b-10X", "4b-10X", "4b-10X", "4b-10X"])
-    assert str(and_(b0, b1)) == "bits([4b--0X, 4b-10X, 4b000X, 4bXXXX])"
+    assert str(and_(b0, b1)) == "[4b--0X, 4b-10X, 4b000X, 4bXXXX]"
 
 
 def test_xnor():
     b0 = bits(["4b----", "4b1111", "4b0000", "4bXXXX"])
     b1 = bits(["4b-10X", "4b-10X", "4b-10X", "4b-10X"])
-    assert str(xnor(b0, b1)) == "bits([4b---X, 4b-10X, 4b-01X, 4bXXXX])"
+    assert str(xnor(b0, b1)) == "[4b---X, 4b-10X, 4b-01X, 4bXXXX]"
 
 
 def test_xor():
     b0 = bits(["4b----", "4b1111", "4b0000", "4bXXXX"])
     b1 = bits(["4b-10X", "4b-10X", "4b-10X", "4b-10X"])
-    assert str(xor(b0, b1)) == "bits([4b---X, 4b-01X, 4b-10X, 4bXXXX])"
+    assert str(xor(b0, b1)) == "[4b---X, 4b-01X, 4b-10X, 4bXXXX]"
 
 
 def test_add():
     b0 = bits(["4b1010", "4b0101"])
     b1 = bits(["4b0101", "4b1010"])
-    assert str(add(b0, b1).s) == "bits([4b1111, 4b1111])"
+    assert str(add(b0, b1).s) == "[4b1111, 4b1111]"
 
 
 def test_sub():
     b0 = bits(["4b1111", "4b1111"])
     b1 = bits(["4b0101", "4b1010"])
-    assert str(sub(b0, b1).s) == "bits([4b1010, 4b0101])"
+    assert str(sub(b0, b1).s) == "[4b1010, 4b0101]"
 
 
 def test_xt():
@@ -131,22 +131,22 @@ def test_sxt():
 
 def test_lsh():
     b = bits(["4b1111", "4b0000"])
-    assert str(b << 2) == "bits([4b1100, 4b0011])"
+    assert str(b << 2) == "[4b1100, 4b0011]"
 
 
 def test_rsh():
     b = bits(["4b1111", "4b0000"])
-    assert str(b >> 2) == "bits([4b0011, 4b0000])"
+    assert str(b >> 2) == "[4b0011, 4b0000]"
 
 
 def test_srsh():
     b0 = bits(["4b1111", "4b0000"])
     y, _ = b0.srsh(2)
-    assert str(y) == "bits([4b0011, 4b0000])"
+    assert str(y) == "[4b0011, 4b0000]"
 
     b1 = bits(["4b0000", "4b1111"])
     y, _ = b1.srsh(2)
-    assert str(y) == "bits([4b1100, 4b1111])"
+    assert str(y) == "[4b1100, 4b1111]"
 
 
 def test_rank2_errors():
@@ -160,8 +160,8 @@ def test_rank2_errors():
 
 
 R3VEC = """\
-bits([[4b-10X, 4b-10X],
-      [4b-10X, 4b-10X]])"""
+[[4b-10X, 4b-10X],
+ [4b-10X, 4b-10X]]"""
 
 
 def test_rank3_vec():
@@ -180,11 +180,11 @@ def test_rank3_vec():
 
 
 R4VEC = """\
-bits([[[4b-10X, 4b-10X],
-       [4b-10X, 4b-10X]],
+[[[4b-10X, 4b-10X],
+  [4b-10X, 4b-10X]],
 
-      [[4b-10X, 4b-10X],
-       [4b-10X, 4b-10X]]])"""
+ [[4b-10X, 4b-10X],
+  [4b-10X, 4b-10X]]]"""
 
 
 def test_rank4_vec():
