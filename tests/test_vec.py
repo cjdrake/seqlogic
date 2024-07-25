@@ -7,6 +7,7 @@ from seqlogic import (
     Vector,
     add,
     and_,
+    bits,
     cat,
     int2vec,
     nand,
@@ -15,7 +16,6 @@ from seqlogic import (
     rep,
     sub,
     uint2vec,
-    vec,
     xnor,
     xor,
 )
@@ -46,27 +46,27 @@ def test_vec_class_getitem():
 
 def test_vec():
     # None/Empty
-    assert vec() == E
-    assert vec(None) == E
-    assert vec([]) == E
+    assert bits() == E
+    assert bits(None) == E
+    assert bits([]) == E
 
     # Single bool input
-    assert vec(False) == F
-    assert vec(0) == F
-    assert vec(True) == T
-    assert vec(1) == T
+    assert bits(False) == F
+    assert bits(0) == F
+    assert bits(True) == T
+    assert bits(1) == T
 
     # Sequence of bools
-    assert vec([False, True, 0, 1]) == Vector[4](0b0101, 0b1010)
+    assert bits([False, True, 0, 1]) == Vector[4](0b0101, 0b1010)
 
     # String
-    assert vec("4b-10X") == Vector[4](0b1010, 0b1100)
+    assert bits("4b-10X") == Vector[4](0b1010, 0b1100)
 
     # Invalid input type
     with pytest.raises(TypeError):
-        vec(1.0e42)
+        bits(1.0e42)
     with pytest.raises(TypeError):
-        vec([0, 0, 0, 42])
+        bits([0, 0, 0, 42])
 
 
 BIN_LITS = {
@@ -104,33 +104,33 @@ BIN_LITS = {
 def test_vec_lit_bin():
     # Valid inputs w/o X
     for lit, (n, d1) in BIN_LITS.items():
-        v = vec(lit)
+        v = bits(lit)
         assert len(v) == n and v.data[1] == d1
 
     # Valid inputs w/ X
-    v = vec("4b-1_0X")
+    v = bits("4b-1_0X")
     assert len(v) == 4 and v.data == (0b1010, 0b1100)
-    v = vec("4bX01-")
+    v = bits("4bX01-")
     assert len(v) == 4 and v.data == (0b0101, 0b0011)
 
     # Not a literal
     with pytest.raises(ValueError):
-        vec("invalid")
+        bits("invalid")
 
     # Size cannot be zero
     with pytest.raises(ValueError):
-        vec("0b0")
+        bits("0b0")
     # Contains illegal characters
     with pytest.raises(ValueError):
-        vec("4b1XW0")
+        bits("4b1XW0")
 
     # Size is too big
     with pytest.raises(ValueError):
-        vec("8b1010")
+        bits("8b1010")
 
     # Size is too small
     with pytest.raises(ValueError):
-        vec("4b1010_1010")
+        bits("4b1010_1010")
 
 
 DEC_LITS = {
@@ -168,23 +168,23 @@ DEC_LITS = {
 def test_lit2vec_dec():
     # Valid inputs
     for lit, (n, d1) in DEC_LITS.items():
-        v = vec(lit)
+        v = bits(lit)
         assert len(v) == n and v.data[1] == d1
 
     # Not a literal
     with pytest.raises(ValueError):
-        vec("invalid")
+        bits("invalid")
 
     # Size cannot be zero
     with pytest.raises(ValueError):
-        vec("0d0")
+        bits("0d0")
     # Contains illegal characters
     with pytest.raises(ValueError):
-        vec("8hd3@d_b33f")
+        bits("8hd3@d_b33f")
 
     # Size is too small
     with pytest.raises(ValueError):
-        vec("8d256")
+        bits("8d256")
 
 
 HEX_LITS = {
@@ -222,29 +222,29 @@ HEX_LITS = {
 def test_lit2vec_hex():
     # Valid inputs
     for lit, (n, d1) in HEX_LITS.items():
-        v = vec(lit)
+        v = bits(lit)
         assert len(v) == n and v.data[1] == d1
 
     # Not a literal
     with pytest.raises(ValueError):
-        vec("invalid")
+        bits("invalid")
 
     # Size cannot be zero
     with pytest.raises(ValueError):
-        vec("0h0")
+        bits("0h0")
     # Contains illegal characters
     with pytest.raises(ValueError):
-        vec("8hd3@d_b33f")
+        bits("8hd3@d_b33f")
 
     # Size is too small
     with pytest.raises(ValueError):
-        vec("8hdead")
+        bits("8hdead")
 
     # Invalid characters
     with pytest.raises(ValueError):
-        vec("3h8")  # Only 0..7 is legal
+        bits("3h8")  # Only 0..7 is legal
     with pytest.raises(ValueError):
-        vec("5h20")  # Only 0..1F is legal
+        bits("5h20")  # Only 0..1F is legal
 
 
 UINT2VEC_VALS = {
@@ -396,24 +396,24 @@ def test_int2vec():
 
 
 def test_cat():
-    v = vec("4b-10X")
-    assert cat() == vec()
+    v = bits("4b-10X")
+    assert cat() == bits()
     assert cat(v) == v
-    assert cat("2b0X", "2b-1") == vec("4b-10X")
-    assert cat(vec("2b0X"), vec("2b-1")) == vec("4b-10X")
-    assert cat(0, 1) == vec("2b10")
+    assert cat("2b0X", "2b-1") == bits("4b-10X")
+    assert cat(bits("2b0X"), bits("2b-1")) == bits("4b-10X")
+    assert cat(0, 1) == bits("2b10")
 
     with pytest.raises(TypeError):
         _ = cat(v, 42)
 
 
 def test_rep():
-    assert rep(vec(), 4) == vec()
-    assert rep(vec("4b-10X"), 2) == vec("8b-10X_-10X")
+    assert rep(bits(), 4) == bits()
+    assert rep(bits("4b-10X"), 2) == bits("8b-10X_-10X")
 
 
 def test_vec_getitem():
-    v = vec("4b-10X")
+    v = bits("4b-10X")
 
     assert v[3] == "1b-"
     assert v[2] == "1b1"
@@ -459,39 +459,39 @@ def test_vec_getitem():
 
 
 def test_vec_iter():
-    v = vec("4b-10X")
+    v = bits("4b-10X")
     assert list(v) == ["1bX", "1b0", "1b1", "1b-"]
 
 
 def test_vec_repr():
-    assert repr(vec()) == "Empty(0b0, 0b0)"
-    assert repr(vec("4b-10X")) == "Vector[4](0b1010, 0b1100)"
+    assert repr(bits()) == "Empty(0b0, 0b0)"
+    assert repr(bits("4b-10X")) == "Vector[4](0b1010, 0b1100)"
 
 
 def test_vec_bool():
-    assert bool(vec()) is False
-    assert bool(vec("1b0")) is False
-    assert bool(vec("1b1")) is True
-    assert bool(vec("4b0000")) is False
-    assert bool(vec("4b1010")) is True
-    assert bool(vec("4b0101")) is True
+    assert bool(bits()) is False
+    assert bool(bits("1b0")) is False
+    assert bool(bits("1b1")) is True
+    assert bool(bits("4b0000")) is False
+    assert bool(bits("4b1010")) is True
+    assert bool(bits("4b0101")) is True
     with pytest.raises(ValueError):
-        bool(vec("4b110X"))
+        bool(bits("4b110X"))
     with pytest.raises(ValueError):
-        bool(vec("4b-100"))
+        bool(bits("4b-100"))
 
 
 def test_vec_int():
-    assert int(vec()) == 0
-    assert int(vec("1b0")) == 0
-    assert int(vec("1b1")) == -1
-    assert int(vec("4b0000")) == 0
-    assert int(vec("4b1010")) == -6
-    assert int(vec("4b0101")) == 5
+    assert int(bits()) == 0
+    assert int(bits("1b0")) == 0
+    assert int(bits("1b1")) == -1
+    assert int(bits("4b0000")) == 0
+    assert int(bits("4b1010")) == -6
+    assert int(bits("4b0101")) == 5
     with pytest.raises(ValueError):
-        int(vec("4b110X"))
+        int(bits("4b110X"))
     with pytest.raises(ValueError):
-        int(vec("4b-100"))
+        int(bits("4b-100"))
 
 
 def test_vec_hash():
@@ -506,17 +506,17 @@ def test_vec_hash():
 
 
 def test_vec_not():
-    x = vec("4b-10X")
-    assert x.not_() == vec("4b-01X")
-    assert ~x == vec("4b-01X")
+    x = bits("4b-10X")
+    assert x.not_() == bits("4b-01X")
+    assert ~x == bits("4b-01X")
 
 
 def test_vec_nor():
     x0 = "16b----_1111_0000_XXXX"
     x1 = "16b-10X_-10X_-10X_-10X"
     yy = "16b-0-X_000X_-01X_XXXX"
-    v0 = vec(x0)
-    v1 = vec(x1)
+    v0 = bits(x0)
+    v1 = bits(x1)
 
     assert nor(v0, x1) == yy
     assert nor(v0, v1) == yy
@@ -534,8 +534,8 @@ def test_vec_or():
     x0 = "16b----_1111_0000_XXXX"
     x1 = "16b-10X_-10X_-10X_-10X"
     yy = "16b-1-X_111X_-10X_XXXX"
-    v0 = vec(x0)
-    v1 = vec(x1)
+    v0 = bits(x0)
+    v1 = bits(x1)
 
     assert or_(v0, x1) == yy
     assert or_(v0, v1) == yy
@@ -553,8 +553,8 @@ def test_vec_nand():
     x0 = "16b----_1111_0000_XXXX"
     x1 = "16b-10X_-10X_-10X_-10X"
     yy = "16b--1X_-01X_111X_XXXX"
-    v0 = vec(x0)
-    v1 = vec(x1)
+    v0 = bits(x0)
+    v1 = bits(x1)
 
     assert nand(v0, x1) == yy
     assert nand(v0, v1) == yy
@@ -572,8 +572,8 @@ def test_vec_and():
     x0 = "16b----_1111_0000_XXXX"
     x1 = "16b-10X_-10X_-10X_-10X"
     yy = "16b--0X_-10X_000X_XXXX"
-    v0 = vec(x0)
-    v1 = vec(x1)
+    v0 = bits(x0)
+    v1 = bits(x1)
 
     assert and_(v0, x1) == yy
     assert and_(v0, v1) == yy
@@ -591,8 +591,8 @@ def test_vec_xnor():
     x0 = "16b----_1111_0000_XXXX"
     x1 = "16b-10X_-10X_-10X_-10X"
     yy = "16b---X_-10X_-01X_XXXX"
-    v0 = vec(x0)
-    v1 = vec(x1)
+    v0 = bits(x0)
+    v1 = bits(x1)
 
     assert xnor(v0, x1) == yy
     assert xnor(v0, v1) == yy
@@ -610,8 +610,8 @@ def test_vec_xor():
     x0 = "16b----_1111_0000_XXXX"
     x1 = "16b-10X_-10X_-10X_-10X"
     yy = "16b---X_-01X_-10X_XXXX"
-    v0 = vec(x0)
-    v1 = vec(x1)
+    v0 = bits(x0)
+    v1 = bits(x1)
 
     assert xor(v0, x1) == yy
     assert xor(v0, v1) == yy
@@ -647,7 +647,7 @@ UOR = {
 
 def test_vec_uor():
     for lit, (d0, d1) in UOR.items():
-        assert vec(lit).uor() == Scalar(d0, d1)
+        assert bits(lit).uor() == Scalar(d0, d1)
 
 
 UAND = {
@@ -672,7 +672,7 @@ UAND = {
 
 def test_vec_uand():
     for lit, (d0, d1) in UAND.items():
-        assert vec(lit).uand() == Scalar(d0, d1)
+        assert bits(lit).uand() == Scalar(d0, d1)
 
 
 UXNOR = {
@@ -697,7 +697,7 @@ UXNOR = {
 
 def test_vec_uxnor():
     for lit, (d0, d1) in UXNOR.items():
-        assert vec(lit).uxnor() == Scalar(d0, d1)
+        assert bits(lit).uxnor() == Scalar(d0, d1)
 
 
 UXOR = {
@@ -722,7 +722,7 @@ UXOR = {
 
 def test_vec_uxor():
     for lit, (d0, d1) in UXOR.items():
-        assert vec(lit).uxor() == Scalar(d0, d1)
+        assert bits(lit).uxor() == Scalar(d0, d1)
 
 
 EQ = [
@@ -743,11 +743,11 @@ EQ = [
 
 def test_vec_eq():
     for a, b, y in EQ:
-        assert vec(a).eq(b) == y
+        assert bits(a).eq(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").eq("2b00")
+        bits("1b0").eq("2b00")
 
 
 NE = [
@@ -768,11 +768,11 @@ NE = [
 
 def test_vec_ne():
     for a, b, y in NE:
-        assert vec(a).ne(b) == y
+        assert bits(a).ne(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").ne("2b00")
+        bits("1b0").ne("2b00")
 
 
 LT = [
@@ -787,11 +787,11 @@ LT = [
 
 def test_vec_lt():
     for a, b, y in LT:
-        assert vec(a).lt(b) == y
+        assert bits(a).lt(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").lt("2b00")
+        bits("1b0").lt("2b00")
 
 
 LE = [
@@ -806,11 +806,11 @@ LE = [
 
 def test_vec_le():
     for a, b, y in LE:
-        assert vec(a).le(b) == y
+        assert bits(a).le(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").le("2b00")
+        bits("1b0").le("2b00")
 
 
 SLT = [
@@ -825,11 +825,11 @@ SLT = [
 
 def test_vec_slt():
     for a, b, y in SLT:
-        assert vec(a).slt(b) == y
+        assert bits(a).slt(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").slt("2b00")
+        bits("1b0").slt("2b00")
 
 
 SLE = [
@@ -844,11 +844,11 @@ SLE = [
 
 def test_vec_sle():
     for a, b, y in SLE:
-        assert vec(a).sle(b) == y
+        assert bits(a).sle(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").sle("2b00")
+        bits("1b0").sle("2b00")
 
 
 GT = [
@@ -863,11 +863,11 @@ GT = [
 
 def test_vec_gt():
     for a, b, y in GT:
-        assert vec(a).gt(b) == y
+        assert bits(a).gt(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").gt("2b00")
+        bits("1b0").gt("2b00")
 
 
 GE = [
@@ -882,11 +882,11 @@ GE = [
 
 def test_vec_ge():
     for a, b, y in GE:
-        assert vec(a).ge(b) == y
+        assert bits(a).ge(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").ge("2b00")
+        bits("1b0").ge("2b00")
 
 
 SGT = [
@@ -901,11 +901,11 @@ SGT = [
 
 def test_vec_sgt():
     for a, b, y in SGT:
-        assert vec(a).sgt(b) == y
+        assert bits(a).sgt(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").sgt("2b00")
+        bits("1b0").sgt("2b00")
 
 
 SGE = [
@@ -920,40 +920,40 @@ SGE = [
 
 def test_vec_sge():
     for a, b, y in SGE:
-        assert vec(a).sge(b) == y
+        assert bits(a).sge(b) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        vec("1b0").sge("2b00")
+        bits("1b0").sge("2b00")
 
 
 def test_vec_xt():
-    v = vec("4b1010")
+    v = bits("4b1010")
     with pytest.raises(ValueError):
         v.xt(-1)
     assert v.xt(0) is v
-    assert v.xt(4) == vec("8b0000_1010")
+    assert v.xt(4) == bits("8b0000_1010")
 
 
 def test_vec_sxt():
-    v1 = vec("4b1010")
-    v2 = vec("4b0101")
+    v1 = bits("4b1010")
+    v2 = bits("4b0101")
     with pytest.raises(ValueError):
         v1.sxt(-1)
     assert v1.sxt(0) is v1
-    assert v1.sxt(4) == vec("8b1111_1010")
+    assert v1.sxt(4) == bits("8b1111_1010")
     assert v2.sxt(0) is v2
-    assert v2.sxt(4) == vec("8b0000_0101")
+    assert v2.sxt(4) == bits("8b0000_0101")
 
 
 def test_vec_lsh():
-    v = vec("4b1111")
+    v = bits("4b1111")
     y, co = v.lsh(0)
     assert y is v and co == E
     assert v.lsh(1) == ("4b1110", "1b1")
     assert v.lsh(2) == ("4b1100", "2b11")
     assert v << 2 == "4b1100"
-    assert "4b1111" << vec("2b10") == "4b1100"
+    assert "4b1111" << bits("2b10") == "4b1100"
     assert v.lsh(3) == ("4b1000", "3b111")
     assert v.lsh(4) == ("4b0000", "4b1111")
 
@@ -962,23 +962,23 @@ def test_vec_lsh():
     with pytest.raises(ValueError):
         v.lsh(5)
 
-    assert v.lsh(2, ci=vec("2b01")) == ("4b1101", "2b11")
+    assert v.lsh(2, ci=bits("2b01")) == ("4b1101", "2b11")
     with pytest.raises(ValueError):
-        v.lsh(2, ci=vec("3b000"))
+        v.lsh(2, ci=bits("3b000"))
 
-    assert vec("2b01").lsh(vec("1bX")) == (vec("2bXX"), E)
-    assert vec("2b01").lsh(vec("1b-")) == (vec("2b--"), E)
-    assert vec("2b01").lsh(vec("1b1")) == (vec("2b10"), F)
+    assert bits("2b01").lsh(bits("1bX")) == (bits("2bXX"), E)
+    assert bits("2b01").lsh(bits("1b-")) == (bits("2b--"), E)
+    assert bits("2b01").lsh(bits("1b1")) == (bits("2b10"), F)
 
 
 def test_vec_lrot():
-    v = vec("4b-10X")
+    v = bits("4b-10X")
     assert v.lrot(0) is v
     assert str(v.lrot(1)) == "4b10X-"
     assert str(v.lrot(2)) == "4b0X-1"
-    assert str(v.lrot(vec("2b10"))) == "4b0X-1"
-    assert str(v.lrot(vec("2b1-"))) == "4b----"
-    assert str(v.lrot(vec("2b1X"))) == "4bXXXX"
+    assert str(v.lrot(bits("2b10"))) == "4b0X-1"
+    assert str(v.lrot(bits("2b1-"))) == "4b----"
+    assert str(v.lrot(bits("2b1X"))) == "4bXXXX"
     assert str(v.lrot(3)) == "4bX-10"
 
     with pytest.raises(ValueError):
@@ -986,13 +986,13 @@ def test_vec_lrot():
 
 
 def test_vec_rrot():
-    v = vec("4b-10X")
+    v = bits("4b-10X")
     assert v.rrot(0) is v
     assert str(v.rrot(1)) == "4bX-10"
     assert str(v.rrot(2)) == "4b0X-1"
-    assert str(v.rrot(vec("2b10"))) == "4b0X-1"
-    assert str(v.rrot(vec("2b1-"))) == "4b----"
-    assert str(v.rrot(vec("2b1X"))) == "4bXXXX"
+    assert str(v.rrot(bits("2b10"))) == "4b0X-1"
+    assert str(v.rrot(bits("2b1-"))) == "4b----"
+    assert str(v.rrot(bits("2b1X"))) == "4bXXXX"
     assert str(v.rrot(3)) == "4b10X-"
 
     with pytest.raises(ValueError):
@@ -1000,13 +1000,13 @@ def test_vec_rrot():
 
 
 def test_vec_rsh():
-    v = vec("4b1111")
+    v = bits("4b1111")
     y, co = v.rsh(0)
     assert y is v and co == E
     assert v.rsh(1) == ("4b0111", "1b1")
     assert v.rsh(2) == ("4b0011", "2b11")
     assert v >> 2 == "4b0011"
-    assert "4b1111" >> vec("2b10") == "4b0011"
+    assert "4b1111" >> bits("2b10") == "4b0011"
     assert v.rsh(3) == ("4b0001", "3b111")
     assert v.rsh(4) == ("4b0000", "4b1111")
 
@@ -1015,24 +1015,24 @@ def test_vec_rsh():
     with pytest.raises(ValueError):
         v.rsh(5)
 
-    assert v.rsh(2, ci=vec("2b10")) == ("4b1011", "2b11")
+    assert v.rsh(2, ci=bits("2b10")) == ("4b1011", "2b11")
     with pytest.raises(ValueError):
-        v.rsh(2, ci=vec("3b000"))
+        v.rsh(2, ci=bits("3b000"))
 
-    assert vec("2b01").rsh(vec("1bX")) == (vec("2bXX"), E)
-    assert vec("2b01").rsh(vec("1b-")) == (vec("2b--"), E)
-    assert vec("2b01").rsh(vec("1b1")) == (vec("2b00"), T)
+    assert bits("2b01").rsh(bits("1bX")) == (bits("2bXX"), E)
+    assert bits("2b01").rsh(bits("1b-")) == (bits("2b--"), E)
+    assert bits("2b01").rsh(bits("1b1")) == (bits("2b00"), T)
 
 
 def test_vec_srsh():
-    v = vec("4b1111")
+    v = bits("4b1111")
     assert v.srsh(0) == ("4b1111", E)
     assert v.srsh(1) == ("4b1111", "1b1")
     assert v.srsh(2) == ("4b1111", "2b11")
     assert v.srsh(3) == ("4b1111", "3b111")
     assert v.srsh(4) == ("4b1111", "4b1111")
 
-    v = vec("4b0111")
+    v = bits("4b0111")
     assert v.srsh(0) == ("4b0111", E)
     assert v.srsh(1) == ("4b0011", "1b1")
     assert v.srsh(2) == ("4b0001", "2b11")
@@ -1044,9 +1044,9 @@ def test_vec_srsh():
     with pytest.raises(ValueError):
         v.srsh(5)
 
-    assert vec("2b01").srsh(vec("1bX")) == (vec("2bXX"), E)
-    assert vec("2b01").srsh(vec("1b-")) == (vec("2b--"), E)
-    assert vec("2b01").srsh(vec("1b1")) == (vec("2b00"), T)
+    assert bits("2b01").srsh(bits("1bX")) == (bits("2bXX"), E)
+    assert bits("2b01").srsh(bits("1b-")) == (bits("2b--"), E)
+    assert bits("2b01").srsh(bits("1b1")) == (bits("2b00"), T)
 
 
 ADD_VALS = [
@@ -1096,8 +1096,8 @@ def test_vec_add():
     for a, b, ci, s, co in ADD_VALS:
         assert add(a, b, ci) == (s, co)
         if ci == F:
-            assert vec(a) + b == cat(s, co)
-            assert a + vec(b) == cat(s, co)
+            assert bits(a) + b == cat(s, co)
+            assert a + bits(b) == cat(s, co)
 
 
 SUB_VALS = [
@@ -1127,44 +1127,44 @@ SUB_VALS = [
 def test_vec_sub():
     for a, b, s, co in SUB_VALS:
         assert sub(a, b) == (s, co)
-        assert vec(a) - b == cat(s, co)
-        assert a - vec(b) == cat(s, co)
+        assert bits(a) - b == cat(s, co)
+        assert a - bits(b) == cat(s, co)
 
 
 def test_vec_neg():
-    assert -vec("3b000") == "4b1000"
-    assert -vec("3b001") == "4b0111"
-    assert -vec("3b111") == "4b0001"
-    assert -vec("3b010") == "4b0110"
-    assert -vec("3b110") == "4b0010"
-    assert -vec("3b011") == "4b0101"
-    assert -vec("3b101") == "4b0011"
-    assert -vec("3b100") == "4b0100"
+    assert -bits("3b000") == "4b1000"
+    assert -bits("3b001") == "4b0111"
+    assert -bits("3b111") == "4b0001"
+    assert -bits("3b010") == "4b0110"
+    assert -bits("3b110") == "4b0010"
+    assert -bits("3b011") == "4b0101"
+    assert -bits("3b101") == "4b0011"
+    assert -bits("3b100") == "4b0100"
 
 
 def test_count():
-    v = vec("8b-10X_-10X")
+    v = bits("8b-10X_-10X")
     assert v.count_xes() == 2
     assert v.count_zeros() == 2
     assert v.count_ones() == 2
     assert v.count_dcs() == 2
     assert v.count_unknown() == 4
 
-    assert not vec("4b0000").onehot()
-    assert vec("4b1000").onehot()
-    assert vec("4b0001").onehot()
-    assert not vec("4b1001").onehot()
-    assert not vec("4b1101").onehot()
+    assert not bits("4b0000").onehot()
+    assert bits("4b1000").onehot()
+    assert bits("4b0001").onehot()
+    assert not bits("4b1001").onehot()
+    assert not bits("4b1101").onehot()
 
-    assert vec("4b0000").onehot0()
-    assert vec("4b1000").onehot0()
-    assert not vec("4b1010").onehot0()
-    assert not vec("4b1011").onehot0()
+    assert bits("4b0000").onehot0()
+    assert bits("4b1000").onehot0()
+    assert not bits("4b1010").onehot0()
+    assert not bits("4b1011").onehot0()
 
-    assert not vec("4b0000").has_x()
-    assert vec("4b00X0").has_x()
-    assert not vec("4b0000").has_dc()
-    assert vec("4b00-0").has_dc()
-    assert not vec("4b0000").has_unknown()
-    assert vec("4b00X0").has_unknown()
-    assert vec("4b00-0").has_unknown()
+    assert not bits("4b0000").has_x()
+    assert bits("4b00X0").has_x()
+    assert not bits("4b0000").has_dc()
+    assert bits("4b00-0").has_dc()
+    assert not bits("4b0000").has_unknown()
+    assert bits("4b00X0").has_unknown()
+    assert bits("4b00-0").has_unknown()

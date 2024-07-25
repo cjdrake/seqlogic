@@ -1897,36 +1897,6 @@ class Union(metaclass=_UnionMeta):
     """Union Base Class: Create union."""
 
 
-def vec(obj=None) -> Empty | Scalar | Vector:
-    """Create a Vector using standard input formats.
-
-    vec() or vec(None) will return the empty vec
-    vec(False | True) will return a length 1 vec
-    vec([False | True, ...]) will return a length n vec
-    vec(str) will parse a string literal and return an arbitrary vec
-
-    Args:
-        obj: Object that can be converted to a Vector instance.
-
-    Returns:
-        A Vec instance.
-
-    Raises:
-        TypeError: If input obj is invalid.
-    """
-    match obj:
-        case None | []:
-            return _Empty
-        case 0 | 1 as x:
-            return _bool2scalar[x]
-        case [0 | 1 as fst, *rst]:
-            return _bools2vec(fst, *rst)
-        case str() as lit:
-            return _lit2vec(lit)
-        case _:
-            raise TypeError(f"Invalid input: {obj}")
-
-
 def bits(obj=None) -> _ShapeIf:
     """Create a Bits object using standard input formats.
 

@@ -22,7 +22,6 @@ from .bits import (
     stack,
     sub,
     uint2vec,
-    vec,
     xnor,
     xor,
 )
@@ -56,7 +55,6 @@ __all__ = [
     "stack",
     "sub",
     "uint2vec",
-    "vec",
     "xnor",
     "xor",
     # design

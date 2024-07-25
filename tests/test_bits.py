@@ -9,7 +9,7 @@
 
 import pytest
 
-from seqlogic import Array, Vector, add, and_, bits, nand, nor, or_, stack, sub, vec, xnor, xor
+from seqlogic import Array, Vector, add, and_, bits, nand, nor, or_, stack, sub, xnor, xor
 from seqlogic.lbconst import _W, _X, _0, _1
 
 E = Array[0](*_X)
@@ -306,7 +306,7 @@ def test_bits():
     assert bits([0, 1, 0, 1]) == "4b1010"
     assert bits(["1b0", "1b1", "1b0", "1b1"]) == "4b1010"
     assert bits(["2b00", "2b01", "2b10", "2b11"]) == "8b11100100"
-    assert bits([vec("2b00"), "2b01", "2b10", "2b11"]) == "8b11100100"
+    assert bits([bits("2b00"), "2b01", "2b10", "2b11"]) == "8b11100100"
 
     with pytest.raises(TypeError):
         bits(42)
@@ -321,7 +321,7 @@ def test_stack():
     assert stack(False) == "1b0"
     assert stack(0, 1, 0, 1) == "4b1010"
     assert stack("2b00", "2b01", "2b10", "2b11") == "8b11100100"
-    assert stack(vec("2b00"), "2b01", "2b10", "2b11") == "8b11100100"
+    assert stack(bits("2b00"), "2b01", "2b10", "2b11") == "8b11100100"
 
     with pytest.raises(TypeError):
         stack(42)
