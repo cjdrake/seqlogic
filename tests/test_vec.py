@@ -465,6 +465,7 @@ def test_vec_iter():
 
 def test_vec_repr():
     assert repr(bits()) == "bits([])"
+    assert repr(bits("1b0")) == 'bits("1b0")'
     assert repr(bits("4b-10X")) == 'bits("4b-10X")'
 
 
@@ -1168,3 +1169,12 @@ def test_count():
     assert not bits("4b0000").has_unknown()
     assert bits("4b00X0").has_unknown()
     assert bits("4b00-0").has_unknown()
+
+
+def test_reshape():
+    v = bits("4b1010")
+    assert v.reshape(v.shape) is v
+    assert v.flatten() is v
+    with pytest.raises(ValueError):
+        v.reshape((5,))
+    assert str(v.reshape((2, 2))) == "[2b10, 2b10]"
