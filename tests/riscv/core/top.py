@@ -7,11 +7,11 @@ from .core import Core
 from .data_mem_bus import DataMemBus
 from .text_mem_bus import TextMemBus
 
-_CLOCK_PHASE_SHIFT = 1
-_CLOCK_PHASE1 = 1
-_CLOCK_PHASE2 = 1
-_RESET_PHASE1 = 5
-_RESET_PHASE2 = 5
+CLOCK_PHASE_SHIFT = 1
+CLOCK_PHASE1 = 1
+CLOCK_PHASE2 = 1
+RESET_PHASE1 = 5
+RESET_PHASE2 = 5
 
 
 class Top(Module):
@@ -90,17 +90,17 @@ class Top(Module):
     @active
     async def drive_clock(self):
         self._clock.next = "1b0"
-        await sleep(_CLOCK_PHASE_SHIFT)
+        await sleep(CLOCK_PHASE_SHIFT)
         while True:
             self._clock.next = ~self._clock.value
-            await sleep(_CLOCK_PHASE1)
+            await sleep(CLOCK_PHASE1)
             self._clock.next = ~self._clock.value
-            await sleep(_CLOCK_PHASE2)
+            await sleep(CLOCK_PHASE2)
 
     @active
     async def drive_reset(self):
         self._reset.next = "1b0"
-        await sleep(_RESET_PHASE1)
+        await sleep(RESET_PHASE1)
         self._reset.next = ~self._reset.value
-        await sleep(_RESET_PHASE2)
+        await sleep(RESET_PHASE2)
         self._reset.next = ~self._reset.value
