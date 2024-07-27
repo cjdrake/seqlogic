@@ -29,6 +29,7 @@ from .design import Module, Packed, Unpacked, simify
 from .sim import active, changed, get_loop, reactive, resume, sleep
 from .util import clog2
 
+# Alias Vector to Vec for brevity
 Vec = Vector
 
 __all__ = [

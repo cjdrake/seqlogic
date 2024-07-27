@@ -41,7 +41,7 @@ def test_a1():
     rkeys = key_expansion(key)
     for i, rkey in enumerate(rkeys):
         for j, w in enumerate(rkey):
-            k = len(rkey) * i + j
+            k = rkey.shape[0] * i + j
             assert str(w.flatten()) == f"32b{A1_EXP[k]:039_b}"
 
 
@@ -71,7 +71,7 @@ def test_a2():
     rkeys = key_expansion(key)
     for i, rkey in enumerate(rkeys):
         for j, w in enumerate(rkey):
-            k = len(rkey) * i + j
+            k = rkey.shape[0] * i + j
             assert str(w.flatten()) == f"32b{A2_EXP[k]:039_b}"
 
 
@@ -103,7 +103,7 @@ def test_a3():
     rkeys = key_expansion(key)
     for i, rkey in enumerate(rkeys):
         for j, w in enumerate(rkey):
-            k = len(rkey) * i + j
+            k = rkey.shape[0] * i + j
             assert str(w.flatten()) == f"32b{A3_EXP[k]:039_b}"
 
 

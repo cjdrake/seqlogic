@@ -1044,9 +1044,6 @@ class Array(Bits, _ShapeIf):
         indent = " "
         return f"{_array_str(indent, self)}"
 
-    def __len__(self) -> int:
-        return self._shape[0]
-
     def __getitem__(self, key: int | Bits | slice | tuple[int | slice | Bits, ...]) -> _ShapeIf:
         if isinstance(key, (int, Bits, slice)):
             nkey = self._norm_key([key])

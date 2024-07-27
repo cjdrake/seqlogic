@@ -51,9 +51,6 @@ def test_basic():
     assert b.shape == (2, 3, 4)
     assert b.size == 24
 
-    # Instance attributes
-    assert len(b) == 2
-
     # Basic methods
     assert b.flatten() == Vector[24](0, 0)
     assert b.reshape((4, 3, 2)) == Array[4, 3, 2](0, 0)

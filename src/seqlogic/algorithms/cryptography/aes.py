@@ -299,7 +299,7 @@ def key_expansion(key: Key) -> RoundKeys:
 
     See NIST FIPS 197 Section 5.2.
     """
-    nk = len(key)
+    nk = key.shape[0]
     nr = nk + 6
     assert nk in (4, 6, 8)
 
@@ -316,7 +316,7 @@ def cipher(pt: Text, rkeys: RoundKeys) -> Text:
 
     See NIST FIPS 197 Section 5.1.
     """
-    nr = len(rkeys) - 1
+    nr = rkeys.shape[0] - 1
     nk = nr - 6
     assert nk in (4, 6, 8)
 
@@ -345,7 +345,7 @@ def inv_cipher(ct: Text, rkeys: RoundKeys) -> Text:
 
     SEE NIST FIPS 197 Section 5.3.
     """
-    nr = len(rkeys) - 1
+    nr = rkeys.shape[0] - 1
     nk = nr - 6
     assert nk in (4, 6, 8)
 
@@ -371,7 +371,7 @@ def inv_cipher(ct: Text, rkeys: RoundKeys) -> Text:
 
 def encrypt(pt: Text, key: Key) -> Text:
     """Encrypt a plain text block."""
-    nk = len(key)
+    nk = key.shape[0]
     assert nk in (4, 6, 8)
     rkeys = key_expansion(key)
     return cipher(pt, rkeys)
@@ -379,7 +379,7 @@ def encrypt(pt: Text, key: Key) -> Text:
 
 def decrypt(ct: Text, key: Key) -> Text:
     """Decrypt a plain text block."""
-    nk = len(key)
+    nk = key.shape[0]
     assert nk in (4, 6, 8)
     rkeys = key_expansion(key)
     return inv_cipher(ct, rkeys)
