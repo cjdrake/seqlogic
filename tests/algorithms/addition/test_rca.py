@@ -71,13 +71,10 @@ class RCA(Module):
         ss = [self.logic(name=f"s{i}", dtype=Vec[1]) for i in range(n)]
 
         # Carries
-        c = [ci] + [self.logic(name=f"c{i}", dtype=Vec[1]) for i in range(n)]
+        cs = [self.logic(name=f"c{i}", dtype=Vec[1]) for i in range(n)]
 
         # Pack sum bits
         self.combi(s, cat, *ss)
-
-        # Get carry out from highest carry bit
-        self.assign(co, c[-1])
 
         # Instantiate and connect N FullAdd submodules
         for i in range(n):
@@ -86,10 +83,10 @@ class RCA(Module):
                 mod=FullAdd,
             ).connect(
                 s=ss[i],
-                co=c[i + 1],
+                co=(co if i == (n - 1) else cs[i]),
                 a=a[i],
                 b=b[i],
-                ci=c[i],
+                ci=(ci if i == 0 else cs[i - 1]),
             )
 
 
