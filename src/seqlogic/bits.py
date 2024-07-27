@@ -1625,7 +1625,8 @@ class _EnumMeta(type):
                 else:
                     size_i, data = _parse_lit(val)
                     if size_i != size:
-                        raise ValueError(f"Expected lit len {size}, got {size_i}")
+                        s = f"Expected lit len {size}, got {size_i}"
+                        raise ValueError(s)
                 if key in ("X", "DC"):
                     raise ValueError(f"Cannot use reserved name = '{key}'")
                 dmax = _mask(size)
