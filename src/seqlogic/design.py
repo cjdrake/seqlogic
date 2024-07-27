@@ -117,36 +117,36 @@ class Module(Branch, _ProcIf, _TraceIf):
             lhs = getattr(self, name)
             if isinstance(rhs, Packed):
                 if name in self._inputs:
-                    if not self._inputs[name]:
-                        self.assign(lhs, rhs)
-                        self._inputs[name] = True
-                    else:
+                    if self._inputs[name]:
                         s = f"Input Port {name} already connected"
                         raise DesignError(s)
+                    # y=x: y <- x
+                    self.assign(lhs, rhs)
+                    self._inputs[name] = True
                 elif name in self._outputs:
-                    if not self._outputs[name]:
-                        self.assign(rhs, lhs)
-                        self._outputs[name] = True
-                    else:
+                    if self._outputs[name]:
                         s = f"Output Port {name} already connected"
                         raise DesignError(s)
+                    # x=y: x -> y
+                    self.assign(rhs, lhs)
+                    self._outputs[name] = True
                 else:
                     raise ValueError(f"Invalid port: {name}")
             elif isinstance(rhs, tuple):
                 if name in self._inputs:
-                    if not self._inputs[name]:
-                        self.combi(lhs, rhs[0], *rhs[1:])
-                        self._inputs[name] = True
-                    else:
+                    if self._inputs[name]:
                         s = f"Input Port {name} already connected"
                         raise DesignError(s)
+                    # y=(f, x0, x1, ...): y <- f(x0, x1, ...)
+                    self.combi(lhs, rhs[0], *rhs[1:])
+                    self._inputs[name] = True
                 elif name in self._outputs:
-                    if not self._outputs[name]:
-                        self.combi(rhs[1:], rhs[0], lhs)
-                        self._outputs[name] = True
-                    else:
+                    if self._outputs[name]:
                         s = f"Output Port {name} already connected"
                         raise DesignError(s)
+                    # x=(f, y0, y1, ...): f(x) -> (y0, y1, ...)
+                    self.combi(rhs[1:], rhs[0], lhs)
+                    self._outputs[name] = True
                 else:
                     raise ValueError(f"Invalid port: {name}")
             else:
