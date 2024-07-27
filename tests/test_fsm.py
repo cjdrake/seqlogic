@@ -48,7 +48,7 @@ def test_fsm():
     """Test a 3-bit LFSR."""
     loop.reset()
 
-    top = Module(name="top")
+    top = Module(name="top", parent=None)
     clock = Packed(name="clock", parent=top, dtype=Vector[1])
     reset_n = Packed(name="reset_n", parent=top, dtype=Vector[1])
     ps = Packed(name="ps", parent=top, dtype=SeqDetect)

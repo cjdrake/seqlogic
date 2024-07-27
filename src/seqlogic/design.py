@@ -70,7 +70,7 @@ class Module(Branch, _ProcIf, _TraceIf):
     * Local processes
     """
 
-    def __init__(self, name: str, parent: Module | None = None):
+    def __init__(self, name: str, parent: Module | None):
         Branch.__init__(self, name, parent)
         _ProcIf.__init__(self)
 
