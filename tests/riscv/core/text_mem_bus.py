@@ -40,7 +40,7 @@ class TextMemBus(Module):
             mod=TextMem,
             word_addr_bits=word_addr_bits,
         ).connect(
-            rd_addr=(lambda a: a[m:n], rd_addr),
+            rd_addr=rd_addr[m:n],
             rd_data=text,
         )
 

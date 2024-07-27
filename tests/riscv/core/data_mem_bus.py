@@ -1,7 +1,5 @@
 """Data Memory Bus."""
 
-import operator
-
 from seqlogic import Module, Vec, clog2, uint2vec
 
 from . import DATA_BASE, DATA_SIZE, Addr
@@ -48,8 +46,8 @@ class DataMemBus(Module):
             mod=DataMem,
             word_addr_bits=word_addr_bits,
         ).connect(
-            addr=(lambda a: a[m:n], addr),
-            wr_en=(operator.and_, wr_en, is_data),
+            addr=addr[m:n],
+            wr_en=(wr_en & is_data),
             wr_be=wr_be,
             wr_data=wr_data,
             rd_data=data,

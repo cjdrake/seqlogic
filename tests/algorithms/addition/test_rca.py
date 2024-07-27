@@ -47,8 +47,8 @@ class FullAdd(Module):
         ci = self.input(name="ci", dtype=Vec[1])
 
         # Combinational Logic
-        self.combi(s, lambda a, b, ci: a ^ b ^ ci, a, b, ci)
-        self.combi(co, lambda a, b, ci: a & b | ci & (a | b), a, b, ci)
+        self.expr(s, a ^ b ^ ci)
+        self.expr(co, a & b | ci & (a | b))
 
 
 class RCA(Module):

@@ -72,4 +72,4 @@ class DataMemIf(Module):
         self.combi(bus_wr_be, f_bus_wr_be, data_format, byte_addr)
         self.combi(bus_wr_data, f_bus_wr_data, wr_data, byte_addr)
         self.combi(rd_data, f_rd_data, data_format, bus_rd_data, byte_addr)
-        self.combi(byte_addr, lambda a: a[:2], addr)
+        self.expr(byte_addr, addr[:2])

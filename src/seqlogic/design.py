@@ -4,6 +4,8 @@ Combine hierarchy, bit vectors, and simulation semantics into a
 straightforward API for creating a digital design.
 """
 
+# pylint: disable=exec-used
+
 from __future__ import annotations
 
 import inspect
@@ -118,6 +120,19 @@ class Module(Branch, _ProcIf, _TraceIf):
         setattr(self, name, node)
         return node
 
+    def _expr(self, ex: Expr) -> tuple[Callable, list[Logic]]:
+        vs = {v.val for v in ex.iter_vars()}
+        xs = sorted(vs, key=lambda x: x.name)
+        args = ", ".join(x.name for x in xs)
+        lines = [
+            f"def f({args}):\n",
+            f"    return {ex}\n",
+        ]
+        source = "".join(lines)
+        locals_ = {}
+        exec(source, {}, locals_)
+        return locals_["f"], xs
+
     def _connect_input(self, name: str, rhs):
         y = getattr(self, name)
         if self._inputs[name]:
@@ -127,6 +142,9 @@ class Module(Branch, _ProcIf, _TraceIf):
             case Packed() as x:
                 self.assign(y, x)
             # y = (f, x0, x1, ...)
+            case Expr() as ex:
+                f, xs = self._expr(ex)
+                self.combi(y, f, *xs)
             case [Callable() as f, *xs]:
                 self.combi(y, f, *xs)
             case _:
@@ -210,16 +228,53 @@ class Module(Branch, _ProcIf, _TraceIf):
                         raise TypeError("Expected x to be Logic")
 
                 # Apply f to inputs
-                y_nxts = f(*vals)
+                y_nexts = f(*vals)
 
                 # Pack inputs
-                if not isinstance(y_nxts, (list, tuple)):
-                    y_nxts = (y_nxts,)
+                if not isinstance(y_nexts, (list, tuple)):
+                    y_nexts = (y_nexts,)
 
-                assert len(ys) == len(y_nxts)
+                assert len(ys) == len(y_nexts)
 
-                for y, y_nxt in zip(ys, y_nxts):
-                    y.next = y_nxt
+                for y, y_next in zip(ys, y_nexts):
+                    y.next = y_next
+
+        self._procs.append((Region.REACTIVE, proc, (), {}))
+
+    def expr(self, ys: Value | list[Value] | tuple[Value, ...], ex: Expr):
+        """Expression logic."""
+
+        # Pack outputs
+        if not isinstance(ys, (list, tuple)):
+            ys = (ys,)
+
+        f, xs = self._expr(ex)
+
+        async def proc():
+            while True:
+                await changed(*xs)
+
+                # Get sim var values
+                vals = []
+                for x in xs:
+                    if isinstance(x, Packed):
+                        vals.append(x.value)
+                    elif isinstance(x, Unpacked):
+                        vals.append(x.values)
+                    else:
+                        raise TypeError("Expected x to be Logic")
+
+                # Apply f to inputs
+                y_nexts = f(*vals)
+
+                # Pack inputs
+                if not isinstance(y_nexts, (list, tuple)):
+                    y_nexts = (y_nexts,)
+
+                assert len(ys) == len(y_nexts)
+
+                for y, y_next in zip(ys, y_nexts):
+                    y.next = y_next
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
@@ -391,9 +446,37 @@ class Packed(Logic, Singular):
         self._waves_change = None
         self._vcd_change = None
 
-    # TODO(cjdrake): Figure out the logic of this whole thing
-    def __getitem__(self, index: int):
-        return (lambda x: x[index], self)
+    def __getitem__(self, key: int | slice) -> GetItem:
+        v = Variable(self)
+        return GetItem(v, Key(key))
+
+    def __invert__(self) -> Not:
+        v = Variable(self)
+        return Not(v)
+
+    def __or__(self, other: Expr | Logic) -> Or:
+        v = Variable(self)
+        if isinstance(other, Expr):
+            return Or(v, other)
+        if isinstance(other, Logic):
+            return Or(v, Variable(other))
+        raise TypeError("Expected other to be Logic")
+
+    def __and__(self, other: Expr | Logic) -> And:
+        v = Variable(self)
+        if isinstance(other, Expr):
+            return And(v, other)
+        if isinstance(other, Logic):
+            return And(v, Variable(other))
+        raise TypeError("Expected other to be Logic")
+
+    def __xor__(self, other: Expr | Logic) -> Xor:
+        v = Variable(self)
+        if isinstance(other, Expr):
+            return Xor(v, other)
+        if isinstance(other, Logic):
+            return Xor(v, Variable(other))
+        raise TypeError("Expected other to be Logic")
 
     # Singular => State
     def _set_next(self, value: Bits | str):
@@ -496,3 +579,167 @@ def simify(m: Module | Packed | Unpacked):
         assert isinstance(node, _ProcIf)
         for region, func, args, kwargs in node.procs:
             loop.add_proc(region, func, *args, **kwargs)
+
+
+class Expr(ABC):
+    """Symbolic expression."""
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        raise NotImplementedError()
+
+    def __getitem__(self, k: Key) -> GetItem:
+        return GetItem(self, k)
+
+    def __invert__(self) -> Not:
+        return Not(self)
+
+    def __or__(self, other: Expr | Logic) -> Or:
+        if isinstance(other, Expr):
+            return Or(self, other)
+        if isinstance(other, Logic):
+            return Or(self, Variable(other))
+        raise TypeError("Expected other to be Logic")
+
+    def __and__(self, other: Expr | Logic) -> And:
+        if isinstance(other, Expr):
+            return And(self, other)
+        if isinstance(other, Logic):
+            return And(self, Variable(other))
+        raise TypeError("Expected other to be Logic")
+
+    def __xor__(self, other: Expr | Logic) -> Xor:
+        if isinstance(other, Expr):
+            return Xor(self, other)
+        if isinstance(other, Logic):
+            return Xor(self, Variable(other))
+        raise TypeError("Expected other to be Logic")
+
+    def iter_dfs(self):
+        raise NotImplementedError()
+
+    def iter_vars(self):
+        raise NotImplementedError()
+
+
+class Atom(Expr):
+    """Atomic expression (leaf) node."""
+
+    def iter_dfs(self):
+        yield self
+
+
+class Key(Atom):
+    """GetItem operator key node."""
+
+    def __init__(self, val: int | slice):
+        self._val = val
+
+    @property
+    def val(self) -> int | slice:
+        return self._val
+
+    def __str__(self) -> str:
+        return str(self._val)
+
+    def iter_vars(self):
+        yield from ()
+
+
+class Variable(Atom):
+    """Variable node."""
+
+    def __init__(self, val: Logic):
+        self._val = val
+
+    @property
+    def val(self) -> Logic:
+        return self._val
+
+    def __str__(self) -> str:
+        return f"{self._val.name}"
+
+    def iter_vars(self):
+        yield self
+
+
+class Operator(Expr):
+    """Variable node."""
+
+    def __init__(self, *xs: Expr):
+        self._xs = xs
+
+    def iter_dfs(self):
+        for x in self._xs:
+            yield from x.iter_dfs()
+        yield self
+
+    def iter_vars(self):
+        for x in self._xs:
+            yield from x.iter_vars()
+
+
+class GetItem(Operator):
+    """GetItem (a[i]) operator node."""
+
+    def __init__(self, x: Expr, k: Key):
+        super().__init__(x, k)
+
+    def __str__(self) -> str:
+        x, k = self._xs
+        if isinstance(k.val, int):
+            return f"{x}[{k.val}]"
+        if isinstance(k.val, slice):
+            assert not (k.val.start is None and k.val.stop is None)
+            if k.val.start is None:
+                return f"{x}[:{k.val.stop}]"
+            if k.val.stop is None:
+                return f"{x}[{k.val.start}:]"
+            return f"{x}[{k.val.start}:{k.val.stop}]"
+        assert False
+
+
+class Not(Operator):
+    """NOT operator node."""
+
+    def __init__(self, x: Expr):
+        super().__init__(x)
+
+    def __str__(self) -> str:
+        x = self._xs[0]
+        return f"~{x}"
+
+
+class Or(Operator):
+    """OR operator node."""
+
+    def __init__(self, x0: Expr, x1: Expr):
+        super().__init__(x0, x1)
+
+    def __str__(self) -> str:
+        x0, x1 = self._xs
+        return f"({x0} | {x1})"
+
+
+class And(Operator):
+    """AND operator node."""
+
+    def __init__(self, x0: Expr, x1: Expr):
+        super().__init__(x0, x1)
+
+    def __str__(self) -> str:
+        x0, x1 = self._xs
+        return f"({x0} & {x1})"
+
+
+class Xor(Operator):
+    """XOR operator node."""
+
+    def __init__(self, x0: Expr, x1: Expr):
+        super().__init__(x0, x1)
+
+    def __str__(self) -> str:
+        x0, x1 = self._xs
+        return f"({x0} ^ {x1})"
