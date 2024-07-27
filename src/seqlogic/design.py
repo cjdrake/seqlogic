@@ -374,6 +374,10 @@ class Packed(Logic, Singular):
         self._waves_change = None
         self._vcd_change = None
 
+    # TODO(cjdrake): Figure out the logic of this whole thing
+    def __getitem__(self, index: int):
+        return (lambda x: x[index], self)
+
     # Singular => State
     def set_next(self, value: Bits | str):
         if isinstance(value, str):
