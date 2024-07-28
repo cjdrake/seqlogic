@@ -42,8 +42,9 @@ def _get_vec_size(size: int) -> type[Vector]:
         return _VectorSize[size]
     except KeyError:
         name = f"Vector[{size}]"
-        _VectorSize[size] = cls = type(name, (Vector,), {"_size": size})
-        return cls
+        vec = type(name, (Vector,), {"_size": size})
+        _VectorSize[size] = vec
+        return vec
 
 
 def _vec_size(size: int) -> type[Empty] | type[Scalar] | type[Vector]:
@@ -69,8 +70,10 @@ def _get_array_shape(shape: tuple[int, ...]) -> type[Array]:
         return _ArrayShape[shape]
     except KeyError:
         name = f'Array[{",".join(str(n) for n in shape)}]'
-        _ArrayShape[shape] = cls = type(name, (Array,), {"_shape": shape})
-        return cls
+        size = math.prod(shape)
+        array = type(name, (Array,), {"_shape": shape, "_size": size})
+        _ArrayShape[shape] = array
+        return array
 
 
 def _expect_type(arg, t: type[Bits]):
@@ -101,15 +104,15 @@ class _ShapeIf:
 class Bits:
     """Base class for Bits
 
-    Bits
+    Bits[size]
     |
-    +-- Empty
+    +-- Empty[shape]
     |
-    +-- Scalar
+    +-- Scalar[shape]
     |
-    +-- Vector -- Enum
+    +-- Vector[shape] -- Enum
     |
-    +-- Array
+    +-- Array[shape]
     |
     +-- Struct
     |
@@ -1016,6 +1019,7 @@ class Array(Bits, _ShapeIf):
     """N dimensional (array) sequence of bits."""
 
     _shape: tuple[int, ...]
+    _size: int
 
     def __class_getitem__(cls, shape: int | tuple[int, ...]) -> type[_ShapeIf]:
         if isinstance(shape, int):
@@ -1029,7 +1033,7 @@ class Array(Bits, _ShapeIf):
 
     @classproperty
     def size(cls) -> int:
-        return math.prod(cls._shape)
+        return cls._size
 
     @classproperty
     def shape(cls) -> tuple[int, ...]:
@@ -1061,15 +1065,15 @@ class Array(Bits, _ShapeIf):
     def reshape(self, shape: tuple[int, ...]) -> Vector | Array:
         if shape == self.shape:
             return self
-        if math.prod(shape) != self.size:
-            s = f"Expected shape with size {self.size}, got {shape}"
+        if math.prod(shape) != self._size:
+            s = f"Expected shape with size {self._size}, got {shape}"
             raise ValueError(s)
         if len(shape) == 1:
             return _get_vec_size(shape[0])(self._data[0], self._data[1])
         return _get_array_shape(shape)(self._data[0], self._data[1])
 
     def flatten(self) -> Vector:
-        return _get_vec_size(self.size)(self._data[0], self._data[1])
+        return _get_vec_size(self._size)(self._data[0], self._data[1])
 
     @classmethod
     def _norm_key(cls, keys: list[int | Bits | slice]) -> tuple[tuple[int, int], ...]:
