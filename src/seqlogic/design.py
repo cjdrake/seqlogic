@@ -122,33 +122,38 @@ class Module(Branch, _ProcIf, _TraceIf):
 
     def connect(self, **ports):
         for name, rhs in ports.items():
-            lhs = getattr(self, name)
             # Input Port
             if name in self._inputs:
+                y = getattr(self, name)
                 if self._inputs[name]:
                     raise DesignError(f"Input Port {name} already connected")
-                if isinstance(rhs, Packed):
-                    # y=x: y <- x
-                    self.assign(lhs, rhs)
-                elif isinstance(rhs, tuple):
-                    # y=(f, x0, x1, ...): y <- f(x0, x1, ...)
-                    self.combi(lhs, rhs[0], *rhs[1:])
-                else:
-                    raise DesignError(f"Input Port {name} invalid connection")
+                match rhs:
+                    # y = x
+                    case Packed() as x:
+                        self.assign(y, x)
+                    # y = (f, x0, x1, ...)
+                    case [Callable() as f, *xs]:
+                        self.combi(y, f, *xs)
+                    case _:
+                        s = f"Input Port {name} invalid connection"
+                        raise DesignError(s)
                 # Mark port connected
                 self._inputs[name] = True
             # Output Port
             elif name in self._outputs:
+                x = getattr(self, name)
                 if self._outputs[name]:
                     raise DesignError(f"Output Port {name} already connected")
-                if isinstance(rhs, Packed):
-                    # x=y: x -> y
-                    self.assign(rhs, lhs)
-                elif isinstance(rhs, tuple):
-                    # x=(f, y0, y1, ...): f(x) -> (y0, y1, ...)
-                    self.combi(rhs[1:], rhs[0], lhs)
-                else:
-                    raise DesignError(f"Output Port {name} invalid connection")
+                match rhs:
+                    # x = y
+                    case Packed() as y:
+                        self.assign(y, x)
+                    # x = (f, y0, y1, ...)
+                    case [Callable() as f, *ys]:
+                        self.combi(ys, f, x)
+                    case _:
+                        s = f"Output Port {name} invalid connection"
+                        raise DesignError(s)
                 # Mark port connected
                 self._outputs[name] = True
             else:
@@ -173,11 +178,16 @@ class Module(Branch, _ProcIf, _TraceIf):
         setattr(self, f"_{name}", node)
         return node
 
-    def combi(self, ys: Value | tuple[Value, ...], f: Callable, *xs: Packed | Unpacked):
+    def combi(
+        self,
+        ys: Value | list[Value] | tuple[Value, ...],
+        f: Callable,
+        *xs: Packed | Unpacked,
+    ):
         """Combinational logic."""
 
         # Pack outputs
-        if not isinstance(ys, tuple):
+        if not isinstance(ys, (list, tuple)):
             ys = (ys,)
 
         async def proc():
@@ -199,7 +209,7 @@ class Module(Branch, _ProcIf, _TraceIf):
                 vals = f(*vals)
 
                 # Pack inputs
-                if not isinstance(vals, tuple):
+                if not isinstance(vals, (list, tuple)):
                     vals = (vals,)
 
                 assert len(ys) == len(vals)
