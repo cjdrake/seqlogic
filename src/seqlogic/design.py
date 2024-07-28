@@ -75,8 +75,8 @@ class Module(Branch, _ProcIf, _TraceIf):
         _ProcIf.__init__(self)
 
         # Ports: name => connected
-        self._inputs = {}
-        self._outputs = {}
+        self._inputs: dict[str, bool] = {}
+        self._outputs: dict[str, bool] = {}
 
     @property
     def scope(self) -> str:
@@ -97,60 +97,62 @@ class Module(Branch, _ProcIf, _TraceIf):
             child.dump_vcd(vcdw, pattern)
 
     def input(self, name: str, dtype: type) -> Packed:
+        # Require valid port name and type
         self._check_name(name)
         assert issubclass(dtype, Bits) and dtype.size > 0
+        # Create port
         node = Packed(name, parent=self, dtype=dtype)
+        # Mark port unconnected
         self._inputs[name] = False
+        # Save port in module namespace
         setattr(self, name, node)
         return node
 
     def output(self, name: str, dtype: type) -> Packed:
+        # Require valid port name and type
         self._check_name(name)
         assert issubclass(dtype, Bits) and dtype.size > 0
+        # Create port
         node = Packed(name, parent=self, dtype=dtype)
+        # Mark port unconnected
         self._outputs[name] = False
+        # Save port in module namespace
         setattr(self, name, node)
         return node
 
     def connect(self, **ports):
         for name, rhs in ports.items():
             lhs = getattr(self, name)
-            if isinstance(rhs, Packed):
-                if name in self._inputs:
-                    if self._inputs[name]:
-                        s = f"Input Port {name} already connected"
-                        raise DesignError(s)
+            # Input Port
+            if name in self._inputs:
+                if self._inputs[name]:
+                    raise DesignError(f"Input Port {name} already connected")
+                if isinstance(rhs, Packed):
                     # y=x: y <- x
                     self.assign(lhs, rhs)
-                    self._inputs[name] = True
-                elif name in self._outputs:
-                    if self._outputs[name]:
-                        s = f"Output Port {name} already connected"
-                        raise DesignError(s)
-                    # x=y: x -> y
-                    self.assign(rhs, lhs)
-                    self._outputs[name] = True
-                else:
-                    raise ValueError(f"Invalid port: {name}")
-            elif isinstance(rhs, tuple):
-                if name in self._inputs:
-                    if self._inputs[name]:
-                        s = f"Input Port {name} already connected"
-                        raise DesignError(s)
+                elif isinstance(rhs, tuple):
                     # y=(f, x0, x1, ...): y <- f(x0, x1, ...)
                     self.combi(lhs, rhs[0], *rhs[1:])
-                    self._inputs[name] = True
-                elif name in self._outputs:
-                    if self._outputs[name]:
-                        s = f"Output Port {name} already connected"
-                        raise DesignError(s)
+                else:
+                    raise DesignError(f"Input Port {name} invalid connection")
+                # Mark port connected
+                self._inputs[name] = True
+            # Output Port
+            elif name in self._outputs:
+                if self._outputs[name]:
+                    raise DesignError(f"Output Port {name} already connected")
+                if isinstance(rhs, Packed):
+                    # x=y: x -> y
+                    self.assign(rhs, lhs)
+                elif isinstance(rhs, tuple):
                     # x=(f, y0, y1, ...): f(x) -> (y0, y1, ...)
                     self.combi(rhs[1:], rhs[0], lhs)
-                    self._outputs[name] = True
                 else:
-                    raise ValueError(f"Invalid port: {name}")
+                    raise DesignError(f"Output Port {name} invalid connection")
+                # Mark port connected
+                self._outputs[name] = True
             else:
-                raise ValueError(f"Port {name} invalid connection")
+                raise DesignError(f"Invalid port: {name}")
 
     def logic(
         self, name: str, dtype: type, shape: tuple[int, ...] | None = None
