@@ -48,7 +48,7 @@ class FullAdd(Module):
 
         # Combinational Logic
         self.combi(s, lambda a, b, ci: a ^ b ^ ci, a, b, ci)
-        self.combi(co, lambda a, b, ci: a & b | a & ci | b & ci, a, b, ci)
+        self.combi(co, lambda a, b, ci: a & b | ci & (a | b), a, b, ci)
 
 
 class RCA(Module):

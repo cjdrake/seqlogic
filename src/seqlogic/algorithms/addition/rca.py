@@ -15,6 +15,6 @@ def add(a: Vector, b: Vector, ci: Vector[1]) -> tuple[Vector, Vector[1]]:
 
     for i, (a_i, b_i) in enumerate(gen, start=1):
         s.append(a_i ^ b_i ^ c[i - 1])
-        c.append(a_i & b_i | a_i & c[i - 1] | b_i & c[i - 1])
+        c.append(a_i & b_i | c[i - 1] & (a_i | b_i))
 
     return cat(*s), c[-1]
