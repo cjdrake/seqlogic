@@ -96,10 +96,9 @@ class Module(Branch, _ProcIf, _TraceIf):
             assert isinstance(child, _TraceIf)
             child.dump_vcd(vcdw, pattern)
 
-    def input(self, name: str, dtype: type) -> Packed:
+    def input(self, name: str, dtype: type[Bits]) -> Packed:
         # Require valid port name and type
         self._check_name(name)
-        assert issubclass(dtype, Bits) and dtype.size > 0
         # Create port
         node = Packed(name, parent=self, dtype=dtype)
         # Mark port unconnected
@@ -108,10 +107,9 @@ class Module(Branch, _ProcIf, _TraceIf):
         setattr(self, name, node)
         return node
 
-    def output(self, name: str, dtype: type) -> Packed:
+    def output(self, name: str, dtype: type[Bits]) -> Packed:
         # Require valid port name and type
         self._check_name(name)
-        assert issubclass(dtype, Bits) and dtype.size > 0
         # Create port
         node = Packed(name, parent=self, dtype=dtype)
         # Mark port unconnected
@@ -160,7 +158,10 @@ class Module(Branch, _ProcIf, _TraceIf):
                 raise DesignError(f"Invalid port: {name}")
 
     def logic(
-        self, name: str, dtype: type, shape: tuple[int, ...] | None = None
+        self,
+        name: str,
+        dtype: type[Bits],
+        shape: tuple[int, ...] | None = None,
     ) -> Packed | Unpacked:
         self._check_name(name)
         if shape is None:
