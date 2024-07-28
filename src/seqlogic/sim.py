@@ -42,15 +42,15 @@ class State(ABC):
 class Value(ABC):
     """State value."""
 
-    def get_value(self):
+    def _get_value(self):
         raise NotImplementedError()  # pragma: no cover
 
-    value = property(fget=get_value)
+    value = property(fget=_get_value)
 
-    def set_next(self, value):
+    def _set_next(self, value):
         raise NotImplementedError()  # pragma: no cover
 
-    next = property(fset=set_next)
+    next = property(fset=_set_next)
 
 
 class Singular(State, Value):
@@ -62,21 +62,21 @@ class Singular(State, Value):
         self._next_value = value
         self._changed = False
 
-    def get_value(self):
+    def _get_value(self):
         if self._sim.region == Region.REACTIVE:
             return self._next_value
         return self._value
 
-    value = property(fget=get_value)
+    value = property(fget=_get_value)
 
-    def set_next(self, value):
+    def _set_next(self, value):
         self._changed = value != self._next_value
         self._next_value = value
 
         # Notify the event loop
         _sim.touch(self)
 
-    next = property(fset=set_next)
+    next = property(fset=_set_next)
 
     def changed(self) -> bool:
         return self._changed
@@ -99,16 +99,22 @@ class Aggregate(State):
         self._changed: set[Hashable] = set()
 
     def __getitem__(self, key: Hashable):
-        return _AggrValue(self, key)
+        def fget():
+            return self._get_values()[key]
 
-    def get_values(self):
+        def fset(value):
+            self._set_next(key, value)
+
+        return _AggrValue(fget, fset)
+
+    def _get_values(self):
         if self._sim.region == Region.REACTIVE:
             return self._next_values.copy()
         return self._values.copy()
 
-    values = property(fget=get_values)
+    values = property(fget=_get_values)
 
-    def set_next(self, key: Hashable, value):
+    def _set_next(self, key: Hashable, value):
         if value != self._next_values[key]:
             self._changed.add(key)
         self._next_values[key] = value
@@ -128,19 +134,19 @@ class Aggregate(State):
 class _AggrValue(Value):
     """Wrap Aggregate value getter/setter."""
 
-    def __init__(self, aggr: Aggregate, key: Hashable):
-        self._aggr = aggr
-        self._key = key
+    def __init__(self, fget, fset):
+        self._fget = fget
+        self._fset = fset
 
-    def get_value(self):
-        return self._aggr.values[self._key]
+    def _get_value(self):
+        return self._fget()
 
-    value = property(fget=get_value)
+    value = property(fget=_get_value)
 
-    def set_next(self, value):
-        self._aggr.set_next(self._key, value)
+    def _set_next(self, value):
+        self._fset(value)
 
-    next = property(fset=set_next)
+    next = property(fset=_set_next)
 
 
 _SimQueueItem: TypeAlias = tuple[int, Region, Coroutine, State | None]

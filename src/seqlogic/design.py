@@ -391,12 +391,12 @@ class Packed(Logic, Singular):
         return (lambda x: x[index], self)
 
     # Singular => State
-    def set_next(self, value: Bits | str):
+    def _set_next(self, value: Bits | str):
         if isinstance(value, str):
             value = _lit2vec(value)
-        super().set_next(self._dtype.cast(value))
+        super()._set_next(self._dtype.cast(value))
 
-    next = property(fset=set_next)
+    next = property(fset=_set_next)
 
     def update(self):
         if self._waves_change and self.dirty():
