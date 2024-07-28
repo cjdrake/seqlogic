@@ -1647,8 +1647,8 @@ class _EnumMeta(type):
         data2key[(dmax, dmax)] = "DC"
 
         # Create Enum class
-        vec_n = _vec_size(size)
-        enum = super().__new__(mcs, name, bases + (vec_n,), enum_attrs)
+        vec = _vec_size(size)
+        enum = super().__new__(mcs, name, bases + (vec,), enum_attrs)
 
         # Instantiate members
         for (d0, d1), key in data2key.items():
@@ -1679,7 +1679,7 @@ class _EnumMeta(type):
             try:
                 return f"{name}.{data2key[self._data]}"
             except KeyError:
-                return f'{name}("{vec_n.__str__(self)}")'
+                return f'{name}("{vec.__str__(self)}")'
 
         enum.__repr__ = _repr
 
@@ -1688,7 +1688,7 @@ class _EnumMeta(type):
             try:
                 return f"{name}.{data2key[self._data]}"
             except KeyError:
-                return f"{name}({vec_n.__str__(self)})"
+                return f"{name}({vec.__str__(self)})"
 
         enum.__str__ = _str
 
@@ -1697,7 +1697,7 @@ class _EnumMeta(type):
             try:
                 return data2key[self._data]
             except KeyError:
-                return f"{name}({vec_n.__str__(self)})"
+                return f"{name}({vec.__str__(self)})"
 
         enum.name = property(fget=_name)
 
@@ -2021,19 +2021,18 @@ def _sel(b: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:
             return _vec_size(size)(d0, d1)
 
         if len(key_r) == 1:
-            size = b.shape[1]
+            vec = _get_vec_size(b.shape[1])
             xs = []
             for i in range(start, stop):
-                d0, d1 = _chunk(b.data, size * i, size)
-                xs.append(_get_vec_size(size)(d0, d1))
+                d0, d1 = _chunk(b.data, vec.size * i, vec.size)
+                xs.append(vec(d0, d1))
             return stack(*[_sel(x, key_r) for x in xs])
 
-        shape_r = b.shape[1:]
-        size = math.prod(shape_r)
+        array = _get_array_shape(b.shape[1:])
         xs = []
         for i in range(start, stop):
-            d0, d1 = _chunk(b.data, size * i, size)
-            xs.append(_get_array_shape(shape_r)(d0, d1))
+            d0, d1 = _chunk(b.data, array.size * i, array.size)
+            xs.append(array(d0, d1))
         return stack(*[_sel(x, key_r) for x in xs])
 
     # Full select 0:n
