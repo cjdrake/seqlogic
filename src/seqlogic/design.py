@@ -118,42 +118,46 @@ class Module(Branch, _ProcIf, _TraceIf):
         setattr(self, name, node)
         return node
 
+    def _connect_input(self, name: str, rhs):
+        y = getattr(self, name)
+        if self._inputs[name]:
+            raise DesignError(f"Input Port {name} already connected")
+        match rhs:
+            # y = x
+            case Packed() as x:
+                self.assign(y, x)
+            # y = (f, x0, x1, ...)
+            case [Callable() as f, *xs]:
+                self.combi(y, f, *xs)
+            case _:
+                raise DesignError(f"Input Port {name} invalid connection")
+        # Mark port connected
+        self._inputs[name] = True
+
+    def _connect_output(self, name: str, rhs):
+        x = getattr(self, name)
+        if self._outputs[name]:
+            raise DesignError(f"Output Port {name} already connected")
+        match rhs:
+            # x = y
+            case Packed() as y:
+                self.assign(y, x)
+            # x = (f, y0, y1, ...)
+            case [Callable() as f, *ys]:
+                self.combi(ys, f, x)
+            case _:
+                raise DesignError(f"Output Port {name} invalid connection")
+        # Mark port connected
+        self._outputs[name] = True
+
     def connect(self, **ports):
         for name, rhs in ports.items():
             # Input Port
             if name in self._inputs:
-                y = getattr(self, name)
-                if self._inputs[name]:
-                    raise DesignError(f"Input Port {name} already connected")
-                match rhs:
-                    # y = x
-                    case Packed() as x:
-                        self.assign(y, x)
-                    # y = (f, x0, x1, ...)
-                    case [Callable() as f, *xs]:
-                        self.combi(y, f, *xs)
-                    case _:
-                        s = f"Input Port {name} invalid connection"
-                        raise DesignError(s)
-                # Mark port connected
-                self._inputs[name] = True
+                self._connect_input(name, rhs)
             # Output Port
             elif name in self._outputs:
-                x = getattr(self, name)
-                if self._outputs[name]:
-                    raise DesignError(f"Output Port {name} already connected")
-                match rhs:
-                    # x = y
-                    case Packed() as y:
-                        self.assign(y, x)
-                    # x = (f, y0, y1, ...)
-                    case [Callable() as f, *ys]:
-                        self.combi(ys, f, x)
-                    case _:
-                        s = f"Output Port {name} invalid connection"
-                        raise DesignError(s)
-                # Mark port connected
-                self._outputs[name] = True
+                self._connect_output(name, rhs)
             else:
                 raise DesignError(f"Invalid port: {name}")
 
