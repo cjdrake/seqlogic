@@ -207,8 +207,7 @@ class Module(Branch, _ProcIf, _TraceIf):
                     elif isinstance(x, Unpacked):
                         vals.append(x.values)
                     else:
-                        s = "Expected x to be Logic"
-                        raise TypeError(s)
+                        raise TypeError("Expected x to be Logic")
 
                 # Apply f to inputs
                 vals = f(*vals)
