@@ -210,15 +210,16 @@ class Module(Branch, _ProcIf, _TraceIf):
                         raise TypeError("Expected x to be Logic")
 
                 # Apply f to inputs
-                vals = f(*vals)
+                y_nxts = f(*vals)
 
                 # Pack inputs
-                if not isinstance(vals, (list, tuple)):
-                    vals = (vals,)
+                if not isinstance(y_nxts, (list, tuple)):
+                    y_nxts = (y_nxts,)
 
-                assert len(ys) == len(vals)
-                for y, val in zip(ys, vals):
-                    y.next = val
+                assert len(ys) == len(y_nxts)
+
+                for y, y_nxt in zip(ys, y_nxts):
+                    y.next = y_nxt
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 
