@@ -439,6 +439,31 @@ def get_loop() -> Sim:
     return _sim
 
 
+def _is_proc(m) -> bool:
+    match m:
+        case [Region(), Callable() as f] if inspect.iscoroutinefunction(f):
+            return True
+        case _:
+            return False
+
+
+class ProcIf(ABC):
+    """Process interface.
+
+    Implemented by components that contain local simulator processes.
+    """
+
+    def __init__(self):
+        self._procs = []
+
+        for _, (region, func) in inspect.getmembers(self, _is_proc):
+            self._procs.append((region, func, (), {}))
+
+    @property
+    def procs(self):
+        return self._procs
+
+
 class _Schedule:
     """Add scheduling semantics to coroutine functions."""
 

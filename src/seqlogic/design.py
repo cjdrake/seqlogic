@@ -8,7 +8,6 @@ straightforward API for creating a digital design.
 
 from __future__ import annotations
 
-import inspect
 import re
 from abc import ABC
 from collections import defaultdict
@@ -18,7 +17,18 @@ from vcd.writer import VCDWriter as VcdWriter
 
 from .bits import Bits, _lit2vec, stack
 from .hier import Branch, Leaf
-from .sim import Aggregate, Region, SimAwaitable, Singular, State, Value, changed, get_loop, resume
+from .sim import (
+    Aggregate,
+    ProcIf,
+    Region,
+    SimAwaitable,
+    Singular,
+    State,
+    Value,
+    changed,
+    get_loop,
+    resume,
+)
 
 
 class DesignError(Exception):
@@ -38,31 +48,7 @@ class _TraceIf(ABC):
         """Dump design elements w/ names matching pattern to VCD file."""
 
 
-class _ProcIf(ABC):
-    """Process interface.
-
-    Implemented by components that contain local simulator processes.
-    """
-
-    def __init__(self):
-        self._procs = []
-
-        def is_proc(m) -> bool:
-            match m:
-                case [int(), Callable() as f] if inspect.iscoroutinefunction(f):
-                    return True
-                case _:
-                    return False
-
-        for _, (region, func) in inspect.getmembers(self, is_proc):
-            self._procs.append((region, func, (), {}))
-
-    @property
-    def procs(self):
-        return self._procs
-
-
-class Module(Branch, _ProcIf, _TraceIf):
+class Module(Branch, ProcIf, _TraceIf):
     """Hierarchical, branch-level design component.
 
     A module contains:
@@ -74,7 +60,7 @@ class Module(Branch, _ProcIf, _TraceIf):
 
     def __init__(self, name: str, parent: Module | None):
         Branch.__init__(self, name, parent)
-        _ProcIf.__init__(self)
+        ProcIf.__init__(self)
 
         # Ports: name => connected
         self._inputs: dict[str, bool] = {}
@@ -426,10 +412,10 @@ class Module(Branch, _ProcIf, _TraceIf):
         self._procs.append((Region.ACTIVE, proc, (), {}))
 
 
-class Logic(Leaf, _ProcIf, _TraceIf):
+class Logic(Leaf, ProcIf, _TraceIf):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Leaf.__init__(self, name, parent)
-        _ProcIf.__init__(self)
+        ProcIf.__init__(self)
         self._dtype = dtype
 
     @property
@@ -576,7 +562,7 @@ def simify(m: Module | Packed | Unpacked):
     """Add design processes to the simulator."""
     loop = get_loop()
     for node in m.iter_bfs():
-        assert isinstance(node, _ProcIf)
+        assert isinstance(node, ProcIf)
         for region, func, args, kwargs in node.procs:
             loop.add_proc(region, func, *args, **kwargs)
 
