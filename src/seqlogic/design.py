@@ -16,6 +16,7 @@ from collections.abc import Callable, Sequence
 from vcd.writer import VCDWriter as VcdWriter
 
 from .bits import Bits, _lit2vec, stack
+from .expr import Expr, Variable
 from .hier import Branch, Leaf
 from .sim import (
     Aggregate,
@@ -115,7 +116,7 @@ class Module(Branch, ProcIf, _TraceIf):
         return node
 
     def _expr(self, ex: Expr) -> tuple[Callable, list[Logic]]:
-        vs = {v.val for v in ex.iter_vars()}
+        vs = set(ex.iter_vars())
         xs = sorted(vs, key=lambda x: x.name)
         args = ", ".join(x.name for x in xs)
         lines = [
@@ -398,46 +399,15 @@ class Logic(Leaf, ProcIf, _TraceIf):
         return self._dtype
 
 
-class Packed(Logic, Singular):
+class Packed(Logic, Singular, Variable):
     """Leaf-level bitvector design component."""
 
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Logic.__init__(self, name, parent, dtype)
         Singular.__init__(self, dtype.xes())
+        Variable.__init__(self, name)
         self._waves_change = None
         self._vcd_change = None
-
-    def __getitem__(self, key: int | slice) -> GetItem:
-        v = Variable(self)
-        return GetItem(v, Key(key))
-
-    def __invert__(self) -> Not:
-        v = Variable(self)
-        return Not(v)
-
-    def __or__(self, other: Expr | Logic) -> Or:
-        v = Variable(self)
-        if isinstance(other, Expr):
-            return Or(v, other)
-        if isinstance(other, Logic):
-            return Or(v, Variable(other))
-        raise TypeError("Expected other to be Logic")
-
-    def __and__(self, other: Expr | Logic) -> And:
-        v = Variable(self)
-        if isinstance(other, Expr):
-            return And(v, other)
-        if isinstance(other, Logic):
-            return And(v, Variable(other))
-        raise TypeError("Expected other to be Logic")
-
-    def __xor__(self, other: Expr | Logic) -> Xor:
-        v = Variable(self)
-        if isinstance(other, Expr):
-            return Xor(v, other)
-        if isinstance(other, Logic):
-            return Xor(v, Variable(other))
-        raise TypeError("Expected other to be Logic")
 
     # Singular => State
     def _set_next(self, value: Bits | str):
@@ -531,167 +501,3 @@ class Unpacked(Logic, Aggregate):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Logic.__init__(self, name, parent, dtype)
         Aggregate.__init__(self, dtype.xes())
-
-
-class Expr(ABC):
-    """Symbolic expression."""
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def __str__(self) -> str:
-        raise NotImplementedError()
-
-    def __getitem__(self, k: Key) -> GetItem:
-        return GetItem(self, k)
-
-    def __invert__(self) -> Not:
-        return Not(self)
-
-    def __or__(self, other: Expr | Logic) -> Or:
-        if isinstance(other, Expr):
-            return Or(self, other)
-        if isinstance(other, Logic):
-            return Or(self, Variable(other))
-        raise TypeError("Expected other to be Logic")
-
-    def __and__(self, other: Expr | Logic) -> And:
-        if isinstance(other, Expr):
-            return And(self, other)
-        if isinstance(other, Logic):
-            return And(self, Variable(other))
-        raise TypeError("Expected other to be Logic")
-
-    def __xor__(self, other: Expr | Logic) -> Xor:
-        if isinstance(other, Expr):
-            return Xor(self, other)
-        if isinstance(other, Logic):
-            return Xor(self, Variable(other))
-        raise TypeError("Expected other to be Logic")
-
-    def iter_dfs(self):
-        raise NotImplementedError()
-
-    def iter_vars(self):
-        raise NotImplementedError()
-
-
-class Atom(Expr):
-    """Atomic expression (leaf) node."""
-
-    def iter_dfs(self):
-        yield self
-
-
-class Key(Atom):
-    """GetItem operator key node."""
-
-    def __init__(self, val: int | slice):
-        self._val = val
-
-    @property
-    def val(self) -> int | slice:
-        return self._val
-
-    def __str__(self) -> str:
-        return str(self._val)
-
-    def iter_vars(self):
-        yield from ()
-
-
-class Variable(Atom):
-    """Variable node."""
-
-    def __init__(self, val: Logic):
-        self._val = val
-
-    @property
-    def val(self) -> Logic:
-        return self._val
-
-    def __str__(self) -> str:
-        return self._val.name
-
-    def iter_vars(self):
-        yield self
-
-
-class Operator(Expr):
-    """Variable node."""
-
-    def __init__(self, *xs: Expr):
-        self._xs = xs
-
-    def iter_dfs(self):
-        for x in self._xs:
-            yield from x.iter_dfs()
-        yield self
-
-    def iter_vars(self):
-        for x in self._xs:
-            yield from x.iter_vars()
-
-
-class GetItem(Operator):
-    """GetItem (a[i]) operator node."""
-
-    def __init__(self, x: Expr, k: Key):
-        super().__init__(x, k)
-
-    def __str__(self) -> str:
-        x, k = self._xs
-        if isinstance(k.val, int):
-            return f"{x}[{k.val}]"
-        if isinstance(k.val, slice):
-            assert not (k.val.start is None and k.val.stop is None)
-            if k.val.start is None:
-                return f"{x}[:{k.val.stop}]"
-            if k.val.stop is None:
-                return f"{x}[{k.val.start}:]"
-            return f"{x}[{k.val.start}:{k.val.stop}]"
-        assert False
-
-
-class Not(Operator):
-    """NOT operator node."""
-
-    def __init__(self, x: Expr):
-        super().__init__(x)
-
-    def __str__(self) -> str:
-        x = self._xs[0]
-        return f"~{x}"
-
-
-class Or(Operator):
-    """OR operator node."""
-
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
-
-    def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"({x0} | {x1})"
-
-
-class And(Operator):
-    """AND operator node."""
-
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
-
-    def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"({x0} & {x1})"
-
-
-class Xor(Operator):
-    """XOR operator node."""
-
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
-
-    def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"({x0} ^ {x1})"
