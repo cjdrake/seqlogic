@@ -4,7 +4,7 @@ import os
 
 from vcd import VCDWriter
 
-from seqlogic import Module, Vec, active, cat, get_loop, simify, sleep, uint2vec
+from seqlogic import Module, Vec, active, cat, get_loop, sleep, uint2vec
 from seqlogic.algorithms.addition.rca import add
 
 DIR = os.path.dirname(__file__)
@@ -160,7 +160,7 @@ def test_structural():
             top.dump_vcd(vcdw, ".*")
 
             # Register design w/ event loop
-            simify(top)
+            top.elab()
 
             # Do the damn thing
             loop.run()

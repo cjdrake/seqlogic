@@ -66,6 +66,14 @@ class Module(Branch, ProcIf, _TraceIf):
         self._inputs: dict[str, bool] = {}
         self._outputs: dict[str, bool] = {}
 
+    def elab(self):
+        """Add design processes to the simulator."""
+        loop = get_loop()
+        for node in self.iter_bfs():
+            assert isinstance(node, ProcIf)
+            for region, func, args, kwargs in node.procs:
+                loop.add_proc(region, func, *args, **kwargs)
+
     @property
     def scope(self) -> str:
         """Return the branch's full name using dot separator syntax."""
@@ -556,15 +564,6 @@ class Unpacked(Logic, Aggregate):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Logic.__init__(self, name, parent, dtype)
         Aggregate.__init__(self, dtype.xes())
-
-
-def simify(m: Module | Packed | Unpacked):
-    """Add design processes to the simulator."""
-    loop = get_loop()
-    for node in m.iter_bfs():
-        assert isinstance(node, ProcIf)
-        for region, func, args, kwargs in node.procs:
-            loop.add_proc(region, func, *args, **kwargs)
 
 
 class Expr(ABC):
