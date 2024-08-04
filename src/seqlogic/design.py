@@ -195,6 +195,35 @@ class Module(Branch, ProcIf, _TraceIf):
         setattr(self, f"_{name}", node)
         return node
 
+    def _combi(self, ys, f, xs):
+        async def proc():
+            while True:
+                await changed(*xs)
+
+                # Get sim var values
+                vals = []
+                for x in xs:
+                    if isinstance(x, Packed):
+                        vals.append(x.value)
+                    elif isinstance(x, Unpacked):
+                        vals.append(x.values)
+                    else:
+                        raise TypeError("Expected x to be Logic")
+
+                # Apply f to inputs
+                y_nexts = f(*vals)
+
+                # Pack inputs
+                if not isinstance(y_nexts, (list, tuple)):
+                    y_nexts = (y_nexts,)
+
+                assert len(ys) == len(y_nexts)
+
+                for y, y_next in zip(ys, y_nexts):
+                    y.next = y_next
+
+        self._procs.append((Region.REACTIVE, proc, (), {}))
+
     def combi(
         self,
         ys: Value | list[Value] | tuple[Value, ...],
@@ -207,33 +236,7 @@ class Module(Branch, ProcIf, _TraceIf):
         if not isinstance(ys, (list, tuple)):
             ys = (ys,)
 
-        async def proc():
-            while True:
-                await changed(*xs)
-
-                # Get sim var values
-                vals = []
-                for x in xs:
-                    if isinstance(x, Packed):
-                        vals.append(x.value)
-                    elif isinstance(x, Unpacked):
-                        vals.append(x.values)
-                    else:
-                        raise TypeError("Expected x to be Logic")
-
-                # Apply f to inputs
-                y_nexts = f(*vals)
-
-                # Pack inputs
-                if not isinstance(y_nexts, (list, tuple)):
-                    y_nexts = (y_nexts,)
-
-                assert len(ys) == len(y_nexts)
-
-                for y, y_next in zip(ys, y_nexts):
-                    y.next = y_next
-
-        self._procs.append((Region.REACTIVE, proc, (), {}))
+        self._combi(ys, f, xs)
 
     def expr(self, ys: Value | list[Value] | tuple[Value, ...], ex: Expr):
         """Expression logic."""
@@ -244,33 +247,7 @@ class Module(Branch, ProcIf, _TraceIf):
 
         f, xs = self._expr(ex)
 
-        async def proc():
-            while True:
-                await changed(*xs)
-
-                # Get sim var values
-                vals = []
-                for x in xs:
-                    if isinstance(x, Packed):
-                        vals.append(x.value)
-                    elif isinstance(x, Unpacked):
-                        vals.append(x.values)
-                    else:
-                        raise TypeError("Expected x to be Logic")
-
-                # Apply f to inputs
-                y_nexts = f(*vals)
-
-                # Pack inputs
-                if not isinstance(y_nexts, (list, tuple)):
-                    y_nexts = (y_nexts,)
-
-                assert len(ys) == len(y_nexts)
-
-                for y, y_next in zip(ys, y_nexts):
-                    y.next = y_next
-
-        self._procs.append((Region.REACTIVE, proc, (), {}))
+        self._combi(ys, f, xs)
 
     def assign(self, y: Value, x: Packed | str):
         """Assign input to output."""
