@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from abc import ABC
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 
 from vcd.writer import VCDWriter as VcdWriter
 
@@ -195,32 +195,22 @@ class Module(Branch, ProcIf, _TraceIf):
         setattr(self, f"_{name}", node)
         return node
 
-    def _combi(self, ys, f, xs):
+    def _combi(self, ys: Sequence[Value], f: Callable, xs: Sequence[State]):
         async def proc():
             while True:
                 await changed(*xs)
 
-                # Get sim var values
-                vals = []
-                for x in xs:
-                    if isinstance(x, Packed):
-                        vals.append(x.value)
-                    elif isinstance(x, Unpacked):
-                        vals.append(x.values)
-                    else:
-                        raise TypeError("Expected x to be Logic")
-
                 # Apply f to inputs
-                y_nexts = f(*vals)
+                values = f(*[x.state for x in xs])
 
-                # Pack inputs
-                if not isinstance(y_nexts, (list, tuple)):
-                    y_nexts = (y_nexts,)
+                # Pack outputs
+                if not isinstance(values, (list, tuple)):
+                    values = (values,)
 
-                assert len(ys) == len(y_nexts)
+                assert len(ys) == len(values)
 
-                for y, y_next in zip(ys, y_nexts):
-                    y.next = y_next
+                for y, value in zip(ys, values):
+                    y.next = value
 
         self._procs.append((Region.REACTIVE, proc, (), {}))
 

@@ -32,6 +32,8 @@ class State(ABC):
         # Reference to the event loop
         self._sim = _sim
 
+    state = property(fget=NotImplemented)
+
     def changed(self) -> bool:
         raise NotImplementedError()  # pragma: no cover
 
@@ -68,6 +70,7 @@ class Singular(State, Value):
         return self._value
 
     value = property(fget=_get_value)
+    state = property(fget=_get_value)
 
     def _set_next(self, value):
         self._changed = value != self._next_value
@@ -113,6 +116,7 @@ class Aggregate(State):
         return self._values.copy()
 
     values = property(fget=_get_values)
+    state = property(fget=_get_values)
 
     def _set_next(self, key: Hashable, value):
         if value != self._next_values[key]:
