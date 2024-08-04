@@ -611,7 +611,7 @@ class Variable(Atom):
         return self._val
 
     def __str__(self) -> str:
-        return f"{self._val.name}"
+        return self._val.name
 
     def iter_vars(self):
         yield self
