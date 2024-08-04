@@ -1,6 +1,6 @@
 """Data Path."""
 
-from seqlogic import Module, Vec, add, cat, rep, uint2vec
+from seqlogic import Module, Vec, add, cat, rep, u2bv
 
 from . import TEXT_BASE, Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu
@@ -198,5 +198,5 @@ class DataPath(Module):
         self.combi(wr_data, f_wr_data, *xs)
 
         # Sequential Logic
-        pc_rval = uint2vec(TEXT_BASE, 32)
+        pc_rval = u2bv(TEXT_BASE, 32)
         self.dff_en_ar(pc, pc_next, pc_wr_en, clock, reset, pc_rval)

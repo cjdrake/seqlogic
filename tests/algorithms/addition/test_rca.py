@@ -4,7 +4,7 @@ import os
 
 from vcd import VCDWriter
 
-from seqlogic import Module, Vec, active, cat, get_loop, sleep, uint2vec
+from seqlogic import Module, Vec, active, cat, get_loop, sleep, u2bv
 from seqlogic.algorithms.addition.rca import add
 
 DIR = os.path.dirname(__file__)
@@ -19,9 +19,9 @@ def test_functional():
             for j in range(2**n):
                 for k in range(2**1):
                     # Inputs
-                    a = uint2vec(i, n)
-                    b = uint2vec(j, n)
-                    ci = uint2vec(k, 1)
+                    a = u2bv(i, n)
+                    b = u2bv(j, n)
+                    ci = u2bv(k, 1)
 
                     # Outputs
                     s, co = add(a, b, ci)
@@ -128,9 +128,9 @@ class Top(Module):
             for j in range(2**n):
                 for k in range(2**1):
                     # Inputs
-                    self.a.next = uint2vec(i, n)
-                    self.b.next = uint2vec(j, n)
-                    self.ci.next = uint2vec(k, 1)
+                    self.a.next = u2bv(i, n)
+                    self.b.next = u2bv(j, n)
+                    self.ci.next = u2bv(k, 1)
 
                     await sleep(1)
 

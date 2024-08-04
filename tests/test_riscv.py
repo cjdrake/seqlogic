@@ -14,7 +14,7 @@ It merely serves as a non-trivial example design.
 
 from collections import defaultdict
 
-from seqlogic import get_loop, uint2vec
+from seqlogic import get_loop, u2bv
 
 from .riscv.core import (
     AluOp,
@@ -81,8 +81,8 @@ def test_dump():
     # Initialize instruction memory
     text = get_mem("tests/riscv/tests/add.text")
     for i, d in enumerate(text):
-        addr = uint2vec(i, 10)
-        data = uint2vec(d, 32)
+        addr = u2bv(i, 10)
+        data = u2bv(d, 32)
         top._text_mem_bus._text_mem._mem[addr].next = data
 
     loop.run(until=50)
@@ -746,15 +746,15 @@ def run_riscv_test(name: str) -> int:
     # Initialize instruction memory
     text = get_mem(f"tests/riscv/tests/{name}.text")
     for i, d in enumerate(text):
-        addr = uint2vec(i, 10)
-        data = uint2vec(d, 32)
+        addr = u2bv(i, 10)
+        data = u2bv(d, 32)
         top._text_mem_bus._text_mem._mem[addr].next = data
 
     # Initialize data memory
     data = get_mem(f"tests/riscv/tests/{name}.data")
     for i, d in enumerate(data):
-        addr = uint2vec(i, 10)
-        data = uint2vec(d, 32).reshape((4, 8))
+        addr = u2bv(i, 10)
+        data = u2bv(d, 32).reshape((4, 8))
         top._data_mem_bus._data_mem._mem[addr].next = data
 
     # Run the simulation

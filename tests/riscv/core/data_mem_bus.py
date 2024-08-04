@@ -1,6 +1,6 @@
 """Data Memory Bus."""
 
-from seqlogic import Module, Vec, clog2, uint2vec
+from seqlogic import Module, Vec, clog2, u2bv
 
 from . import DATA_BASE, DATA_SIZE, Addr
 from .data_mem import DataMem
@@ -56,8 +56,8 @@ class DataMemBus(Module):
 
         # Combinational Logic
         def f_is_data(addr: Addr) -> Vec[1]:
-            start = uint2vec(data_start, 32)
-            stop = uint2vec(data_stop, 32)
+            start = u2bv(data_start, 32)
+            stop = u2bv(data_stop, 32)
             return start.le(addr) & addr.lt(stop)
 
         self.combi(is_data, f_is_data, addr)

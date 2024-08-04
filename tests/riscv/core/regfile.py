@@ -2,7 +2,7 @@
 
 import operator
 
-from seqlogic import Module, Vec, clog2, uint2vec
+from seqlogic import Module, Vec, clog2, u2bv
 
 N = 32
 Addr = Vec[clog2(N)]
@@ -32,7 +32,7 @@ class RegFile(Module):
         regs = self.logic(name="regs", dtype=Data, shape=(N,))
 
         # Assign r0 to zero
-        a0 = uint2vec(0, Addr.size)
+        a0 = u2bv(0, Addr.size)
         self.assign(regs[a0], "32h0000_0000")
 
         en = self.logic(name="en", dtype=Vec[1])

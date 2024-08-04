@@ -121,8 +121,7 @@ class Bits:
     Do NOT construct a bit array directly.
     Use one of the factory functions:
 
-        * vec
-        * uint2vec
+        * u2bv
         * int2vec
         * bits
     """
@@ -1498,7 +1497,7 @@ def _lit2vec(lit: str) -> Scalar | Vector:
     return _vec_size(size)(d0, d1)
 
 
-def uint2vec(n: int, size: int | None = None) -> Empty | Scalar | Vector:
+def u2bv(n: int, size: int | None = None) -> Empty | Scalar | Vector:
     """Convert nonnegative int to Vector.
 
     Args:

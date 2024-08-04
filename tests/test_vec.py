@@ -15,7 +15,7 @@ from seqlogic import (
     or_,
     rep,
     sub,
-    uint2vec,
+    u2bv,
     xnor,
     xor,
 )
@@ -247,7 +247,7 @@ def test_lit2vec_hex():
         bits("5h20")  # Only 0..1F is legal
 
 
-UINT2VEC_VALS = {
+U2BV_VALS = {
     0: "[]",
     1: "1b1",
     2: "2b10",
@@ -259,7 +259,7 @@ UINT2VEC_VALS = {
     8: "4b1000",
 }
 
-UINT2VEC_N_VALS = {
+U2BV_N_VALS = {
     (0, 0): "[]",
     (0, 1): "1b0",
     (0, 2): "2b00",
@@ -279,32 +279,32 @@ UINT2VEC_N_VALS = {
 }
 
 
-def test_uint2vec():
+def test_u2bv():
     # Negative inputs are invalid
     with pytest.raises(ValueError):
-        uint2vec(-1)
+        u2bv(-1)
 
-    for i, s in UINT2VEC_VALS.items():
-        v = uint2vec(i)
+    for i, s in U2BV_VALS.items():
+        v = u2bv(i)
         assert str(v) == s
         assert v.to_uint() == i
 
-    for (i, n), s in UINT2VEC_N_VALS.items():
-        v = uint2vec(i, n)
+    for (i, n), s in U2BV_N_VALS.items():
+        v = u2bv(i, n)
         assert str(v) == s
         assert v.to_uint() == i
 
     # Overflows
     with pytest.raises(ValueError):
-        uint2vec(1, 0)
+        u2bv(1, 0)
     with pytest.raises(ValueError):
-        uint2vec(2, 0)
+        u2bv(2, 0)
     with pytest.raises(ValueError):
-        uint2vec(2, 1)
+        u2bv(2, 1)
     with pytest.raises(ValueError):
-        uint2vec(3, 0)
+        u2bv(3, 0)
     with pytest.raises(ValueError):
-        uint2vec(3, 1)
+        u2bv(3, 1)
 
 
 INT2VEC_VALS = {
@@ -497,12 +497,12 @@ def test_vec_int():
 
 def test_vec_hash():
     s = set()
-    s.add(uint2vec(0))
-    s.add(uint2vec(1))
-    s.add(uint2vec(2))
-    s.add(uint2vec(3))
-    s.add(uint2vec(1))
-    s.add(uint2vec(2))
+    s.add(u2bv(0))
+    s.add(u2bv(1))
+    s.add(u2bv(2))
+    s.add(u2bv(3))
+    s.add(u2bv(1))
+    s.add(u2bv(2))
     assert len(s) == 4
 
 

@@ -1,6 +1,6 @@
 """Text Memory Bus."""
 
-from seqlogic import Module, Vec, clog2, uint2vec
+from seqlogic import Module, Vec, clog2, u2bv
 
 from . import TEXT_BASE, TEXT_SIZE, Addr
 from .text_mem import TextMem
@@ -46,8 +46,8 @@ class TextMemBus(Module):
 
         # Combinational Logic
         def f_is_text(addr: Addr) -> Vec[1]:
-            start = uint2vec(text_start, 32)
-            stop = uint2vec(text_stop, 32)
+            start = u2bv(text_start, 32)
+            stop = u2bv(text_stop, 32)
             return start.le(addr) & addr.lt(stop)
 
         self.combi(is_text, f_is_text, rd_addr)
