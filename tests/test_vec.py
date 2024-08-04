@@ -9,7 +9,7 @@ from seqlogic import (
     and_,
     bits,
     cat,
-    int2vec,
+    i2bv,
     nand,
     nor,
     or_,
@@ -307,7 +307,7 @@ def test_u2bv():
         u2bv(3, 1)
 
 
-INT2VEC_VALS = {
+I2BV_VALS = {
     -8: "4b1000",
     -7: "4b1001",
     -6: "4b1010",
@@ -327,7 +327,7 @@ INT2VEC_VALS = {
     8: "5b0_1000",
 }
 
-INT2VEC_N_VALS = {
+I2BV_N_VALS = {
     (-5, 4): "4b1011",
     (-5, 5): "5b1_1011",
     (-5, 6): "6b11_1011",
@@ -361,38 +361,38 @@ INT2VEC_N_VALS = {
 }
 
 
-def test_int2vec():
-    for i, s in INT2VEC_VALS.items():
-        v = int2vec(i)
+def test_i2bv():
+    for i, s in I2BV_VALS.items():
+        v = i2bv(i)
         assert str(v) == s
         assert v.to_int() == i
 
-    for (i, n), s in INT2VEC_N_VALS.items():
-        v = int2vec(i, n)
+    for (i, n), s in I2BV_N_VALS.items():
+        v = i2bv(i, n)
         assert str(v) == s
         assert v.to_int() == i
 
     # Overflows
     with pytest.raises(ValueError):
-        int2vec(-5, 3)
+        i2bv(-5, 3)
     with pytest.raises(ValueError):
-        int2vec(-4, 2)
+        i2bv(-4, 2)
     with pytest.raises(ValueError):
-        int2vec(-3, 2)
+        i2bv(-3, 2)
     with pytest.raises(ValueError):
-        int2vec(-2, 1)
+        i2bv(-2, 1)
     with pytest.raises(ValueError):
-        int2vec(-1, 0)
+        i2bv(-1, 0)
     with pytest.raises(ValueError):
-        int2vec(0, 0)
+        i2bv(0, 0)
     with pytest.raises(ValueError):
-        int2vec(1, 1)
+        i2bv(1, 1)
     with pytest.raises(ValueError):
-        int2vec(2, 2)
+        i2bv(2, 2)
     with pytest.raises(ValueError):
-        int2vec(3, 2)
+        i2bv(3, 2)
     with pytest.raises(ValueError):
-        int2vec(4, 3)
+        i2bv(4, 3)
 
 
 def test_cat():

@@ -122,7 +122,7 @@ class Bits:
     Use one of the factory functions:
 
         * u2bv
-        * int2vec
+        * i2bv
         * bits
     """
 
@@ -1524,7 +1524,7 @@ def u2bv(n: int, size: int | None = None) -> Empty | Scalar | Vector:
     return _vec_size(size)(n ^ _mask(size), n)
 
 
-def int2vec(n: int, size: int | None = None) -> Scalar | Vector:
+def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
     """Convert int to Vector.
 
     Args:
