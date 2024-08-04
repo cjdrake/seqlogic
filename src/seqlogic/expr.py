@@ -17,6 +17,9 @@ class Expr(ABC):
     def __getitem__(self, key: int | slice) -> GetItem:
         return GetItem(self, Key(key))
 
+    def __getattr__(self, name: str) -> GetAttr:
+        return GetAttr(self, Name(name))
+
     def __invert__(self) -> Not:
         return Not(self)
 
@@ -47,8 +50,19 @@ class Key(Atom):
     def x(self) -> int | slice:
         return self._x
 
-    def __str__(self) -> str:
-        return str(self._x)
+    def iter_vars(self):
+        yield from ()
+
+
+class Name(Atom):
+    """GetAttr operator name node."""
+
+    def __init__(self, name: str):
+        self._x = name
+
+    @property
+    def x(self) -> str:
+        return self._x
 
     def iter_vars(self):
         yield from ()
@@ -98,6 +112,17 @@ class GetItem(Operator):
                 return f"{x}[{sl.start}:{sl.stop}]"
             case _:
                 assert False
+
+
+class GetAttr(Operator):
+    """GetAttr operator node."""
+
+    def __init__(self, x: Expr, name: Name):
+        super().__init__(x, name)
+
+    def __str__(self) -> str:
+        x, name = self._xs
+        return f"{x}.{name.x}"
 
 
 class Not(Operator):

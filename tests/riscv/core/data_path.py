@@ -170,11 +170,11 @@ class DataPath(Module):
             mod=RegFile,
         ).connect(
             wr_en=reg_wr_en,
-            wr_addr=(lambda x: x.rd, inst),
+            wr_addr=inst.rd,
             wr_data=wr_data,
-            rs1_addr=(lambda x: x.rs1, inst),
+            rs1_addr=inst.rs1,
             rs1_data=rs1_data,
-            rs2_addr=(lambda x: x.rs2, inst),
+            rs2_addr=inst.rs2,
             rs2_data=rs2_data,
             clock=clock,
         )
