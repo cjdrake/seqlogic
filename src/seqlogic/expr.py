@@ -41,14 +41,14 @@ class Key(Atom):
     """GetItem operator key node."""
 
     def __init__(self, key: int | slice):
-        self._key = key
+        self._x = key
 
     @property
-    def key(self) -> int | slice:
-        return self._key
+    def x(self) -> int | slice:
+        return self._x
 
     def __str__(self) -> str:
-        return str(self._key)
+        return str(self._x)
 
     def iter_vars(self):
         yield from ()
@@ -81,12 +81,12 @@ class Operator(Expr):
 class GetItem(Operator):
     """GetItem operator node."""
 
-    def __init__(self, x: Expr, k: Key):
-        super().__init__(x, k)
+    def __init__(self, x: Expr, key: Key):
+        super().__init__(x, key)
 
     def __str__(self) -> str:
-        x, k = self._xs
-        match k.key:
+        x, key = self._xs
+        match key.x:
             case int() as i:
                 return f"{x}[{i}]"
             case slice() as sl:
