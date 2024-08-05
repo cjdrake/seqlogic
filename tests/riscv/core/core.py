@@ -49,9 +49,9 @@ class Core(Module):
             name="ctlpath",
             mod=CtlPath,
         ).connect(
-            opcode=(lambda x: x.opcode, inst),
-            funct3=(lambda x: x.funct3, inst),
-            funct7=(lambda x: x.funct7, inst),
+            opcode=inst.opcode,
+            funct3=inst.funct3,
+            funct7=inst.funct7,
             alu_result_eq_zero=alu_result_eq_zero,
             pc_wr_en=pc_wr_en,
             reg_wr_en=reg_wr_en,
@@ -89,7 +89,7 @@ class Core(Module):
             name="data_mem_if",
             mod=DataMemIf,
         ).connect(
-            data_format=(lambda x: x.funct3, inst),
+            data_format=inst.funct3,
             addr=addr,
             wr_en=wr_en,
             wr_data=wr_data,
