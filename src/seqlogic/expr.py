@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from abc import ABC
 
+from .bits import Bits
+
 
 class Expr(ABC):
     """Symbolic expression."""
@@ -32,6 +34,34 @@ class Expr(ABC):
     def __xor__(self, other: Expr) -> Xor:
         return Xor(self, other)
 
+    def __lt__(self, other: Expr | Bits) -> LessThan:
+        if isinstance(other, Bits):
+            return LessThan(self, Const(other))
+        if isinstance(other, Expr):
+            return LessThan(self, other)
+        assert False
+
+    def __le__(self, other: Expr | Bits) -> LessEqual:
+        if isinstance(other, Bits):
+            return LessEqual(self, Const(other))
+        if isinstance(other, Expr):
+            return LessEqual(self, other)
+        assert False
+
+    def __gt__(self, other: Expr | Bits) -> GreaterThan:
+        if isinstance(other, Bits):
+            return GreaterThan(self, Const(other))
+        if isinstance(other, Expr):
+            return GreaterThan(self, other)
+        assert False
+
+    def __ge__(self, other: Expr | Bits) -> GreaterEqual:
+        if isinstance(other, Bits):
+            return GreaterEqual(self, Const(other))
+        if isinstance(other, Expr):
+            return GreaterEqual(self, other)
+        assert False
+
     def iter_vars(self):
         raise NotImplementedError()
 
@@ -59,6 +89,23 @@ class Name(Atom):
 
     def __init__(self, name: str):
         self._x = name
+
+    @property
+    def x(self) -> str:
+        return self._x
+
+    def iter_vars(self):
+        yield from ()
+
+
+class Const(Atom):
+    """Const node."""
+
+    def __init__(self, b: Bits):
+        self._x = b
+
+    def __str__(self) -> str:
+        return f'"{self._x}"'
 
     @property
     def x(self) -> str:
@@ -167,3 +214,47 @@ class Xor(Operator):
     def __str__(self) -> str:
         x0, x1 = self._xs
         return f"({x0} ^ {x1})"
+
+
+class LessThan(Operator):
+    """LessThan (<) operator node."""
+
+    def __init__(self, x0: Expr, x1: Expr):
+        super().__init__(x0, x1)
+
+    def __str__(self) -> str:
+        x0, x1 = self._xs
+        return f"{x0}.lt({x1})"
+
+
+class LessEqual(Operator):
+    """Less Than Or Equal (≤) operator node."""
+
+    def __init__(self, x0: Expr, x1: Expr):
+        super().__init__(x0, x1)
+
+    def __str__(self) -> str:
+        x0, x1 = self._xs
+        return f"{x0}.lte({x1})"
+
+
+class GreaterThan(Operator):
+    """GreaterThan (>) operator node."""
+
+    def __init__(self, x0: Expr, x1: Expr):
+        super().__init__(x0, x1)
+
+    def __str__(self) -> str:
+        x0, x1 = self._xs
+        return f"{x0}.gt({x1})"
+
+
+class GreaterEqual(Operator):
+    """Greater Than Or Equal (≥) operator node."""
+
+    def __init__(self, x0: Expr, x1: Expr):
+        super().__init__(x0, x1)
+
+    def __str__(self) -> str:
+        x0, x1 = self._xs
+        return f"{x0}.ge({x1})"

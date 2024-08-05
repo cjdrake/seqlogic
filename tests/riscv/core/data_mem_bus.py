@@ -23,8 +23,8 @@ class DataMemBus(Module):
 
         # Parameters
         word_addr_bits = clog2(depth)
-        data_start = DATA_BASE
-        data_stop = DATA_BASE + DATA_SIZE
+        data_start = u2bv(DATA_BASE, 32)
+        data_stop = u2bv(DATA_BASE + DATA_SIZE, 32)
 
         # Ports
         addr = self.input(name="addr", dtype=Addr)
@@ -54,11 +54,5 @@ class DataMemBus(Module):
             clock=clock,
         )
 
-        # Combinational Logic
-        def f_is_data(addr: Addr) -> Vec[1]:
-            start = u2bv(data_start, 32)
-            stop = u2bv(data_stop, 32)
-            return start.le(addr) & addr.lt(stop)
-
-        self.combi(is_data, f_is_data, addr)
+        self.expr(is_data, (data_start <= addr) & (addr < data_stop))
         self.combi(rd_data, f_rd_data, rd_en, is_data, data)

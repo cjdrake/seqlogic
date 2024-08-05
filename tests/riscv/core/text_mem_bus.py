@@ -22,8 +22,8 @@ class TextMemBus(Module):
 
         # Parameters
         word_addr_bits = clog2(depth)
-        text_start = TEXT_BASE
-        text_stop = TEXT_BASE + TEXT_SIZE
+        text_start = u2bv(TEXT_BASE, 32)
+        text_stop = u2bv(TEXT_BASE + TEXT_SIZE, 32)
 
         # Ports
         rd_addr = self.input(name="rd_addr", dtype=Addr)
@@ -44,11 +44,5 @@ class TextMemBus(Module):
             rd_data=text,
         )
 
-        # Combinational Logic
-        def f_is_text(addr: Addr) -> Vec[1]:
-            start = u2bv(text_start, 32)
-            stop = u2bv(text_stop, 32)
-            return start.le(addr) & addr.lt(stop)
-
-        self.combi(is_text, f_is_text, rd_addr)
+        self.expr(is_text, (text_start <= rd_addr) & (rd_addr < text_stop))
         self.combi(rd_data, f_rd_data, is_text, text)
