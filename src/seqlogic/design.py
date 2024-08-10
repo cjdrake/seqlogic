@@ -410,7 +410,7 @@ class Packed(Logic, Singular, Variable):
         self._vcd_change = None
 
     # Singular => State
-    def _set_next(self, value: Bits | str):
+    def _set_next(self, value):
         if isinstance(value, str):
             value = _lit2vec(value)
         super()._set_next(self._dtype.cast(value))
@@ -436,7 +436,7 @@ class Packed(Logic, Singular, Variable):
 
             self._waves_change = change
 
-    def dump_vcd(self, vcdw, pattern: str):
+    def dump_vcd(self, vcdw: VcdWriter, pattern: str):
         assert isinstance(self._parent, Module)
 
         if re.match(pattern, self.qualname):
