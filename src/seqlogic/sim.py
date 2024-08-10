@@ -254,7 +254,6 @@ class Sim:
     def region(self) -> Region | None:
         return self._region
 
-    @property
     def task(self) -> Coroutine | None:
         return self._task
 
@@ -416,8 +415,9 @@ _sim = Sim()
 
 async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
-    assert _sim.task is not None
-    _sim.call_later(delay, _sim.task)
+    task = _sim.task()
+    assert task is not None
+    _sim.call_later(delay, task)
     await SimAwaitable()
 
 
