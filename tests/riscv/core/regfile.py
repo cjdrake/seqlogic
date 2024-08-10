@@ -36,7 +36,7 @@ class RegFile(Module):
         self.assign(regs[a0], "32h0000_0000")
 
         en = self.logic(name="en", dtype=Vec[1])
-        self.combi(en, lambda we, a: we & a.ne(a0), wr_en, wr_addr)
+        self.expr(en, wr_en & wr_addr.ne(a0))
 
         # Write Port
         self.mem_wr_en(regs, wr_addr, wr_data, en, clock)

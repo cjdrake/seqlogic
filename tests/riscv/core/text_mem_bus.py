@@ -44,5 +44,5 @@ class TextMemBus(Module):
             rd_data=text,
         )
 
-        self.expr(is_text, (text_start <= rd_addr) & (rd_addr < text_stop))
+        self.expr(is_text, rd_addr.ge(text_start) & rd_addr.lt(text_stop))
         self.combi(rd_data, f_rd_data, is_text, text)

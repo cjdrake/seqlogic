@@ -54,5 +54,5 @@ class DataMemBus(Module):
             clock=clock,
         )
 
-        self.expr(is_data, (data_start <= addr) & (addr < data_stop))
+        self.expr(is_data, addr.ge(data_start) & addr.lt(data_stop))
         self.combi(rd_data, f_rd_data, rd_en, is_data, data)

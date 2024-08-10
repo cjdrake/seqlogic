@@ -170,17 +170,17 @@ class DataPath(Module):
             mod=RegFile,
         ).connect(
             wr_en=reg_wr_en,
-            wr_addr=inst.rd,
+            wr_addr=inst.getattr("rd"),
             wr_data=wr_data,
-            rs1_addr=inst.rs1,
+            rs1_addr=inst.getattr("rs1"),
             rs1_data=rs1_data,
-            rs2_addr=inst.rs2,
+            rs2_addr=inst.getattr("rs2"),
             rs2_data=rs2_data,
             clock=clock,
         )
 
         # Combinational Logic
-        self.combi(alu_result_eq_zero, lambda x: x.eq("32h0000_0000"), alu_result)
+        self.expr(alu_result_eq_zero, alu_result.eq(u2bv(0, 32)))
 
         self.assign(data_mem_addr, alu_result)
         self.assign(data_mem_wr_data, rs2_data)

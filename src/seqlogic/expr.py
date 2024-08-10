@@ -19,7 +19,7 @@ class Expr(ABC):
     def __getitem__(self, key: int | slice) -> GetItem:
         return GetItem(self, Key(key))
 
-    def __getattr__(self, name: str) -> GetAttr:
+    def getattr(self, name: str) -> GetAttr:
         return GetAttr(self, Name(name))
 
     def __invert__(self) -> Not:
@@ -34,33 +34,47 @@ class Expr(ABC):
     def __xor__(self, other: Expr) -> Xor:
         return Xor(self, other)
 
-    def __lt__(self, other: Expr | Bits) -> LessThan:
+    def lt(self, other: Expr | Bits) -> LessThan:
         if isinstance(other, Bits):
             return LessThan(self, Const(other))
         if isinstance(other, Expr):
             return LessThan(self, other)
-        assert False
+        raise TypeError("Expected other to be Expr or Bits")
 
-    def __le__(self, other: Expr | Bits) -> LessEqual:
+    def le(self, other: Expr | Bits) -> LessEqual:
         if isinstance(other, Bits):
             return LessEqual(self, Const(other))
         if isinstance(other, Expr):
             return LessEqual(self, other)
-        assert False
+        raise TypeError("Expected other to be Expr or Bits")
 
-    def __gt__(self, other: Expr | Bits) -> GreaterThan:
+    def eq(self, other: Expr | Bits) -> Equal:
+        if isinstance(other, Bits):
+            return Equal(self, Const(other))
+        if isinstance(other, Expr):
+            return Equal(self, other)
+        raise TypeError("Expected other to be Expr or Bits")
+
+    def ne(self, other: Expr | Bits) -> NotEqual:
+        if isinstance(other, Bits):
+            return NotEqual(self, Const(other))
+        if isinstance(other, Expr):
+            return NotEqual(self, other)
+        raise TypeError("Expected other to be Expr or Bits")
+
+    def gt(self, other: Expr | Bits) -> GreaterThan:
         if isinstance(other, Bits):
             return GreaterThan(self, Const(other))
         if isinstance(other, Expr):
             return GreaterThan(self, other)
-        assert False
+        raise TypeError("Expected other to be Expr or Bits")
 
-    def __ge__(self, other: Expr | Bits) -> GreaterEqual:
+    def ge(self, other: Expr | Bits) -> GreaterEqual:
         if isinstance(other, Bits):
             return GreaterEqual(self, Const(other))
         if isinstance(other, Expr):
             return GreaterEqual(self, other)
-        assert False
+        raise TypeError("Expected other to be Expr or Bits")
 
     def iter_vars(self):
         raise NotImplementedError()
@@ -235,7 +249,29 @@ class LessEqual(Operator):
 
     def __str__(self) -> str:
         x0, x1 = self._xs
-        return f"{x0}.lte({x1})"
+        return f"{x0}.le({x1})"
+
+
+class Equal(Operator):
+    """Equal (==) operator node."""
+
+    def __init__(self, x0: Expr, x1: Expr):
+        super().__init__(x0, x1)
+
+    def __str__(self) -> str:
+        x0, x1 = self._xs
+        return f"{x0}.eq({x1})"
+
+
+class NotEqual(Operator):
+    """NotEqual (!=) operator node."""
+
+    def __init__(self, x0: Expr, x1: Expr):
+        super().__init__(x0, x1)
+
+    def __str__(self) -> str:
+        x0, x1 = self._xs
+        return f"{x0}.ne({x1})"
 
 
 class GreaterThan(Operator):
