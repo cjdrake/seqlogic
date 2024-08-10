@@ -5,7 +5,7 @@
 
 from collections import defaultdict
 
-from seqlogic import Module, Vector, cat, get_loop
+from seqlogic import Module, Vec, cat, get_loop
 from seqlogic.sim import Region
 
 from .common import p_clk, p_dff, p_rst
@@ -19,10 +19,10 @@ class Top(Module):
     def __init__(self):
         super().__init__(name="top", parent=None)
         # Control
-        self.input(name="reset_n", dtype=Vector[1])
-        self.input(name="clock", dtype=Vector[1])
+        self.input(name="reset_n", dtype=Vec[1])
+        self.input(name="clock", dtype=Vec[1])
         # State
-        self.logic(name="q", dtype=Vector[3])
+        self.logic(name="q", dtype=Vec[3])
 
 
 def test_lfsr():
