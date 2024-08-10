@@ -154,6 +154,7 @@ class _AggrValue(Value):
     next = property(fset=_set_next)
 
 
+type Task = Coroutine[None, None, None]
 type _SimQueueItem = tuple[int, Region, Coroutine, State | None]
 
 
@@ -161,7 +162,7 @@ class _SimQueue:
     """Priority queue for ordering task execution."""
 
     def __init__(self):
-        self._items = []
+        self._items: list[_SimQueueItem] = []
 
         # Monotonically increasing integer to break ties in the heapq
         self._index: int = 0
@@ -173,7 +174,7 @@ class _SimQueue:
         self._items.clear()
         self._index = 0
 
-    def push(self, time: int, region: Region, task: Coroutine, state: State | None = None):
+    def push(self, time: int, region: Region, task: Task, state: State | None = None):
         heapq.heappush(self._items, (time, region, self._index, task, state))
         self._index += 1
 
@@ -217,11 +218,11 @@ class Sim:
         # Task queue
         self._queue = _SimQueue()
         # Currently executing task
-        self._task: Coroutine | None = None
-        self._task_region: dict[Coroutine, Region] = {}
+        self._task: Task | None = None
+        self._task_region: dict[Task, Region] = {}
         # Dynamic event dependencies
-        self._waiting: dict[State, set[Coroutine]] = defaultdict(set)
-        self._triggers: dict[State, dict[Coroutine, Trigger]] = defaultdict(dict)
+        self._waiting: dict[State, set[Task]] = defaultdict(set)
+        self._triggers: dict[State, dict[Task, Trigger]] = defaultdict(dict)
         # Postponed actions
         self._touched: set[State] = set()
         # Processes
@@ -254,20 +255,20 @@ class Sim:
     def region(self) -> Region | None:
         return self._region
 
-    def task(self) -> Coroutine | None:
+    def task(self) -> Task | None:
         return self._task
 
-    def call_soon(self, task: Coroutine, state: State | None = None):
+    def call_soon(self, task: Task, state: State | None = None):
         """Schedule task in the current timeslot."""
         region = self._task_region[task]
         self._queue.push(self._time, region, task, state)
 
-    def call_later(self, delay: int, task: Coroutine):
+    def call_later(self, delay: int, task: Task):
         """Schedule task after a relative delay."""
         region = self._task_region[task]
         self._queue.push(self._time + delay, region, task)
 
-    def call_at(self, when: int, task: Coroutine):
+    def call_at(self, when: int, task: Task):
         """Schedule task for an absolute timeslot."""
         region = self._task_region[task]
         self._queue.push(when, region, task)
