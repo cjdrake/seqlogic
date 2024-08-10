@@ -65,7 +65,7 @@ class Singular(State, Value):
         self._changed = False
 
     def _get_value(self):
-        if self._sim.region == Region.REACTIVE:
+        if self._sim.region() == Region.REACTIVE:
             return self._next_value
         return self._value
 
@@ -111,7 +111,7 @@ class Aggregate(State):
         return _AggrValue(fget, fset)
 
     def _get_values(self):
-        if self._sim.region == Region.REACTIVE:
+        if self._sim.region() == Region.REACTIVE:
             return self._next_values.copy()
         return self._values.copy()
 
@@ -250,7 +250,6 @@ class Sim:
     def time(self) -> int:
         return self._time
 
-    @property
     def region(self) -> Region | None:
         return self._region
 
