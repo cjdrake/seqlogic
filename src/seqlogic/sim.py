@@ -247,7 +247,6 @@ class Sim:
         self._procs.clear()
         self._task_region.clear()
 
-    @property
     def time(self) -> int:
         return self._time
 

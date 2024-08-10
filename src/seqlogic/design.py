@@ -427,11 +427,11 @@ class Packed(Logic, Singular, Variable):
     # TraceIf
     def dump_waves(self, waves: defaultdict, pattern: str):
         if re.fullmatch(pattern, self.qualname):
-            t = self._sim.time
+            t = self._sim.time()
             waves[t][self] = self._value
 
             def change():
-                t = self._sim.time
+                t = self._sim.time()
                 waves[t][self] = self._next_value
 
             self._waves_change = change
@@ -450,7 +450,7 @@ class Packed(Logic, Singular, Variable):
 
             def change():
                 value = self._next_value.vcd_val()
-                return vcdw.change(var, self._sim.time, value)
+                return vcdw.change(var, self._sim.time(), value)
 
             self._vcd_change = change
 

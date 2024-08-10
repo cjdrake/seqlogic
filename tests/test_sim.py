@@ -20,11 +20,11 @@ class Bool(Singular):
 
     def __init__(self):
         super().__init__(value=False)
-        _waves_add(self._sim.time, self, self._value)
+        _waves_add(self._sim.time(), self, self._value)
 
     def update(self):
         if self.dirty():
-            _waves_add(self._sim.time, self, self._next_value)
+            _waves_add(self._sim.time(), self, self._next_value)
         super().update()
 
     def is_posedge(self) -> bool:
@@ -51,9 +51,9 @@ def test_hello(capsys):
 
     async def hello():
         await sleep(2)
-        print(f"[{loop.time}] Hello")
+        print(f"[{loop.time()}] Hello")
         await sleep(2)
-        print(f"[{loop.time}] World")
+        print(f"[{loop.time()}] World")
 
     loop.add_proc(Region.ACTIVE, hello)
 
