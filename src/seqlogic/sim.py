@@ -317,19 +317,7 @@ class Sim:
             self.call_at(_START_TIME, task)
         self._started = True
 
-    def run(self, ticks: int | None = None, until: int | None = None):
-        """Run the simulation.
-
-        Until:
-        1. We hit the runlimit, OR
-        2. There are no tasks left in the queue
-        """
-        limit = self._limit(ticks, until)
-
-        # Start the simulation
-        if not self._started:
-            self._start()
-
+    def _run_kernel(self, limit: int | None):
         while self._queue:
             # Peek at when next event is scheduled
             time, region, _, _ = self._queue.peek()
@@ -359,10 +347,8 @@ class Sim:
                 except StopIteration:
                     pass
 
-    def iter(
-        self, ticks: int | None = None, until: int | None = None
-    ) -> Generator[int, None, None]:
-        """Iterate the simulation.
+    def run(self, ticks: int | None = None, until: int | None = None):
+        """Run the simulation.
 
         Until:
         1. We hit the runlimit, OR
@@ -374,6 +360,9 @@ class Sim:
         if not self._started:
             self._start()
 
+        self._run_kernel(limit)
+
+    def _iter_kernel(self, limit: int | None) -> Generator[int, None, None]:
         while self._queue:
             # Peek at when next event is scheduled
             time, region, _, _ = self._queue.peek()
@@ -403,6 +392,23 @@ class Sim:
                     self._task.send(state)
                 except StopIteration:
                     pass
+
+    def iter(
+        self, ticks: int | None = None, until: int | None = None
+    ) -> Generator[int, None, None]:
+        """Iterate the simulation.
+
+        Until:
+        1. We hit the runlimit, OR
+        2. There are no tasks left in the queue
+        """
+        limit = self._limit(ticks, until)
+
+        # Start the simulation
+        if not self._started:
+            self._start()
+
+        yield from self._iter_kernel(limit)
 
     def _update_state(self):
         """Prepare state to enter the next time slot."""
