@@ -14,10 +14,11 @@ from collections import defaultdict
 from collections.abc import Awaitable, Callable, Coroutine, Generator, Hashable
 from enum import IntEnum, auto
 from functools import partial
-from typing import TypeAlias
 
 _INIT_TIME = -1
 _START_TIME = 0
+
+type Trigger = Callable[[], bool]
 
 
 class Region(IntEnum):
@@ -153,7 +154,7 @@ class _AggrValue(Value):
     next = property(fset=_set_next)
 
 
-_SimQueueItem: TypeAlias = tuple[int, Region, Coroutine, State | None]
+type _SimQueueItem = tuple[int, Region, Coroutine, State | None]
 
 
 class _SimQueue:
@@ -220,7 +221,7 @@ class Sim:
         self._task_region: dict[Coroutine, Region] = {}
         # Dynamic event dependencies
         self._waiting: dict[State, set[Coroutine]] = defaultdict(set)
-        self._triggers: dict[State, dict[Coroutine, Callable[[], bool]]] = defaultdict(dict)
+        self._triggers: dict[State, dict[Coroutine, Trigger]] = defaultdict(dict)
         # Postponed actions
         self._touched: set[State] = set()
         # Processes
@@ -276,11 +277,11 @@ class Sim:
         """Add a process to run at start of simulation."""
         self._procs.append((region, func, args, kwargs))
 
-    def add_event(self, state: State, cond: Callable[[], bool]):
+    def add_event(self, state: State, trigger: Trigger):
         """Add a conditional state => task dependency."""
         assert self._task is not None
         self._waiting[state].add(self._task)
-        self._triggers[state][self._task] = cond
+        self._triggers[state][self._task] = trigger
 
     def touch(self, state: State):
         """Notify dependent tasks about state change."""
@@ -428,10 +429,10 @@ async def changed(*states: State) -> State:
     return state
 
 
-async def resume(*events: tuple[State, Callable[[], bool]]) -> State:
+async def resume(*events: tuple[State, Trigger]) -> State:
     """Resume execution upon event."""
-    for state, cond in events:
-        _sim.add_event(state, cond)
+    for state, trigger in events:
+        _sim.add_event(state, trigger)
     state = await SimAwaitable()
     return state
 
