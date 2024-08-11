@@ -9,7 +9,7 @@ https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 
 import heapq
 from abc import ABC
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from collections.abc import Awaitable, Callable, Coroutine, Generator, Hashable
 from enum import IntEnum, auto
 
@@ -17,6 +17,8 @@ _INIT_TIME = -1
 _START_TIME = 0
 
 type Trigger = Callable[[], bool]
+
+Task = namedtuple("Task", ["region", "coro"])
 
 
 class Region(IntEnum):
@@ -64,7 +66,8 @@ class Singular(State, Value):
         self._changed = False
 
     def _get_value(self):
-        if self._sim.region() == Region.REACTIVE:
+        task = self._sim.task()
+        if task.region == Region.REACTIVE:
             return self._next_value
         return self._value
 
@@ -111,7 +114,8 @@ class Aggregate(State):
         return _AggrValue(fget, fset)
 
     def _get_values(self):
-        if self._sim.region() == Region.REACTIVE:
+        task = self._sim.task()
+        if task.region == Region.REACTIVE:
             return self._next_values.copy()
         return self._values.copy()
 
@@ -153,7 +157,6 @@ class _AggrValue(Value):
     next = property(fset=_set_next)
 
 
-type Task = Coroutine[None, None, None]
 type _SimQueueItem = tuple[int, Region, Coroutine, State | None]
 
 
@@ -173,26 +176,26 @@ class _SimQueue:
         self._items.clear()
         self._index = 0
 
-    def push(self, time: int, region: Region, task: Task, state: State | None = None):
-        heapq.heappush(self._items, (time, region, self._index, task, state))
+    def push(self, time: int, region: Region, coro: Coroutine, state: State | None = None):
+        heapq.heappush(self._items, (time, region, self._index, coro, state))
         self._index += 1
 
     def peek(self) -> _SimQueueItem:
-        time, region, _, task, state = self._items[0]
-        return (time, region, task, state)
+        time, region, _, coro, state = self._items[0]
+        return (time, region, coro, state)
 
     # def pop(self) -> _SimQueueItem:
-    #    time, region, _, task, state = heapq.heappop(self._items)
-    #    return (time, region, task, state)
+    #    time, region, _, coro, state = heapq.heappop(self._items)
+    #    return (time, region, coro, state)
 
     def pop_region(self) -> Generator[_SimQueueItem, None, None]:
-        time, region, _, task, state = heapq.heappop(self._items)
-        yield (time, region, task, state)
+        time, region, _, coro, state = heapq.heappop(self._items)
+        yield (time, region, coro, state)
         while self._items:
-            t, r, _, task, state = self._items[0]
+            t, r, _, coro, state = self._items[0]
             if t == time and r == region:
                 heapq.heappop(self._items)
-                yield (time, region, task, state)
+                yield (time, region, coro, state)
             else:
                 break
 
@@ -217,15 +220,14 @@ class Sim:
         # Task queue
         self._queue = _SimQueue()
         # Currently executing task
-        self._task: Task | None = None
-        self._task_region: dict[Task, Region] = {}
+        self._coro: Coroutine | None = None
         # Dynamic event dependencies
         self._waiting: dict[State, set[Task]] = defaultdict(set)
         self._triggers: dict[State, dict[Task, Trigger]] = defaultdict(dict)
         # Postponed actions
         self._touched: set[State] = set()
         # Processes
-        self._initial = []
+        self._initial: list[Task] = []
 
     @property
     def started(self) -> bool:
@@ -237,7 +239,7 @@ class Sim:
         self._time = _INIT_TIME
         self._region = None
         self._queue.clear()
-        self._task = None
+        self._coro = None
         self._waiting.clear()
         self._triggers.clear()
         self._touched.clear()
@@ -246,41 +248,38 @@ class Sim:
         """Reset simulation state."""
         self.restart()
         self._initial.clear()
-        self._task_region.clear()
 
     def time(self) -> int:
         return self._time
 
-    def region(self) -> Region | None:
-        return self._region
-
-    def task(self) -> Task | None:
-        return self._task
+    def task(self) -> Task:
+        return Task(self._region, self._coro)
 
     def call_soon(self, task: Task, state: State | None = None):
         """Schedule task in the current timeslot."""
-        region = self._task_region[task]
-        self._queue.push(self._time, region, task, state)
+        self._queue.push(self._time, task.region, task.coro, state)
 
     def call_later(self, delay: int, task: Task):
         """Schedule task after a relative delay."""
-        region = self._task_region[task]
-        self._queue.push(self._time + delay, region, task)
+        self._queue.push(self._time + delay, task.region, task.coro)
 
     def call_at(self, when: int, task: Task):
         """Schedule task for an absolute timeslot."""
-        region = self._task_region[task]
-        self._queue.push(when, region, task)
+        self._queue.push(when, task.region, task.coro)
 
-    def add_initial(self, region: Region, cf):
+    def add_initial(self, task: Task):
         """Add a task to run at start of simulation."""
-        self._initial.append((region, cf))
+        self._initial.append(task)
+
+    def add_active(self, coro: Coroutine):
+        """Add a coroutine in active region to run at start of simulation."""
+        self._initial.append(Task(Region.ACTIVE, coro))
 
     def add_event(self, state: State, trigger: Trigger):
         """Add a conditional state => task dependency."""
-        assert self._task is not None
-        self._waiting[state].add(self._task)
-        self._triggers[state][self._task] = trigger
+        task = self.task()
+        self._waiting[state].add(task)
+        self._triggers[state][task] = trigger
 
     def touch(self, state: State):
         """Notify dependent tasks about state change."""
@@ -310,8 +309,7 @@ class Sim:
                 raise TypeError(s)
 
     def _start(self):
-        for region, task in self._initial:
-            self._task_region[task] = region
+        for task in self._initial:
             self.call_at(_START_TIME, task)
         self._started = True
 
@@ -339,9 +337,9 @@ class Sim:
                 self._region = region
 
             # Resume execution
-            for _, _, self._task, state in self._queue.pop_region():
+            for _, _, self._coro, state in self._queue.pop_region():
                 try:
-                    self._task.send(state)
+                    self._coro.send(state)
                 except StopIteration:
                     pass
 
@@ -385,9 +383,9 @@ class Sim:
                 self._region = region
 
             # Resume execution
-            for _, _, self._task, state in self._queue.pop_region():
+            for _, _, self._coro, state in self._queue.pop_region():
                 try:
-                    self._task.send(state)
+                    self._coro.send(state)
                 except StopIteration:
                     pass
 
@@ -420,9 +418,7 @@ _sim = Sim()
 
 async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
-    task = _sim.task()
-    assert task is not None
-    _sim.call_later(delay, task)
+    _sim.call_later(delay, _sim.task())
     await SimAwaitable()
 
 
@@ -454,8 +450,8 @@ class ProcIf(ABC):
     """
 
     def __init__(self):
-        self._initial = []
+        self._initial: list[Task] = []
 
     def add_initial(self):
-        for region, task in self._initial:
-            _sim.add_initial(region, task)
+        for task in self._initial:
+            _sim.add_initial(task)

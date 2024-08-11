@@ -5,7 +5,7 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Enum, Module, Packed, Region, Vec, get_loop
+from seqlogic import Enum, Module, Packed, Vec, get_loop
 
 from .common import p_clk, p_dff, p_rst
 
@@ -82,15 +82,15 @@ def test_fsm():
                 return SeqDetect.X
 
     # Schedule input
-    loop.add_initial(Region.ACTIVE, p_input(x, reset_n, clock))
+    loop.add_active(p_input(x, reset_n, clock))
 
     # Schedule LFSR
-    loop.add_initial(Region.ACTIVE, p_dff(ps, ns, clock, reset_n, SeqDetect.A))
+    loop.add_active(p_dff(ps, ns, clock, reset_n, SeqDetect.A))
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_initial(Region.ACTIVE, p_rst(reset_n, init="1b1", phase1=6, phase2=10))
-    loop.add_initial(Region.ACTIVE, p_clk(clock, init="1b0", shift=5, phase1=5, phase2=5))
+    loop.add_active(p_rst(reset_n, init="1b1", phase1=6, phase2=10))
+    loop.add_active(p_clk(clock, init="1b0", shift=5, phase1=5, phase2=5))
 
     loop.run(until=100)
 

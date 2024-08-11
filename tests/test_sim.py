@@ -4,7 +4,7 @@ from collections import defaultdict
 
 import pytest
 
-from seqlogic import Region, get_loop, sleep
+from seqlogic import get_loop, sleep
 from seqlogic.sim import SimAwaitable, Singular, State
 
 loop = get_loop()
@@ -55,7 +55,7 @@ def test_hello(capsys):
         await sleep(2)
         print(f"[{loop.time()}] World")
 
-    loop.add_initial(Region.ACTIVE, hello())
+    loop.add_active(hello())
 
     # Invalid run limit
     with pytest.raises(TypeError):
@@ -99,9 +99,9 @@ def test_vars_run():
                 b.next = not b.value
             i += 1
 
-    loop.add_initial(Region.ACTIVE, p_clk())
-    loop.add_initial(Region.ACTIVE, p_a())
-    loop.add_initial(Region.ACTIVE, p_b())
+    loop.add_active(p_clk())
+    loop.add_active(p_a())
+    loop.add_active(p_b())
 
     # Expected sim output
     exp = {
@@ -162,9 +162,9 @@ def test_vars_iter():
                 b.next = not b.value
             i += 1
 
-    loop.add_initial(Region.ACTIVE, p_clk())
-    loop.add_initial(Region.ACTIVE, p_a())
-    loop.add_initial(Region.ACTIVE, p_b())
+    loop.add_active(p_clk())
+    loop.add_active(p_a())
+    loop.add_active(p_b())
 
     # Expected sim output
     exp = {
