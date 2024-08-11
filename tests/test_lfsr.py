@@ -41,12 +41,12 @@ def test_lfsr():
         return cat(v[0] ^ v[2], v[:2])
 
     # Schedule LFSR
-    loop.add_proc(Region.ACTIVE, p_dff, top._q, d, top.clock, top.reset_n, "3b100")
+    loop._initial.append((Region.ACTIVE, p_dff(top._q, d, top.clock, top.reset_n, "3b100")))
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_proc(Region.ACTIVE, p_rst, top.reset_n, init="1b1", phase1=6, phase2=10)
-    loop.add_proc(Region.ACTIVE, p_clk, top.clock, init="1b0", shift=5, phase1=5, phase2=5)
+    loop._initial.append((Region.ACTIVE, p_rst(top.reset_n, init="1b1", phase1=6, phase2=10)))
+    loop._initial.append((Region.ACTIVE, p_clk(top.clock, init="1b0", shift=5, phase1=5, phase2=5)))
 
     loop.run(until=100)
 

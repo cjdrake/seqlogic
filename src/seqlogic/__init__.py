@@ -26,7 +26,7 @@ from .bits import (
     xor,
 )
 from .design import Module, Packed, Unpacked
-from .sim import active, changed, get_loop, reactive, resume, sleep
+from .sim import Region, changed, get_loop, resume, sleep
 from .util import clog2
 
 # Alias Vector to Vec for brevity
@@ -63,10 +63,9 @@ __all__ = [
     "Packed",
     "Unpacked",
     # sim
-    "active",
+    "Region",
     "changed",
     "get_loop",
-    "reactive",
     "resume",
     "sleep",
     # util

@@ -1,6 +1,6 @@
 """Top Level Module."""
 
-from seqlogic import Module, Vec, active, sleep
+from seqlogic import Module, Vec, sleep
 
 from . import Addr, Inst, Opcode
 from .core import Core
@@ -87,7 +87,9 @@ class Top(Module):
             reset=reset,
         )
 
-    @active
+        self.initial(self.drive_clock)
+        self.initial(self.drive_reset)
+
     async def drive_clock(self):
         self._clock.next = "1b0"
         await sleep(CLOCK_PHASE_SHIFT)
@@ -97,7 +99,6 @@ class Top(Module):
             self._clock.next = ~self._clock.value
             await sleep(CLOCK_PHASE2)
 
-    @active
     async def drive_reset(self):
         self._reset.next = "1b0"
         await sleep(RESET_PHASE1)

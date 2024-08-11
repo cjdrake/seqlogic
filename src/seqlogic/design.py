@@ -22,12 +22,12 @@ from .sim import (
     Aggregate,
     ProcIf,
     Region,
+    Sim,
     SimAwaitable,
     Singular,
     State,
     Value,
     changed,
-    get_loop,
     resume,
 )
 
@@ -67,13 +67,11 @@ class Module(Branch, ProcIf, _TraceIf):
         self._inputs: dict[str, bool] = {}
         self._outputs: dict[str, bool] = {}
 
-    def elab(self):
+    def elab(self) -> Sim:
         """Add design processes to the simulator."""
-        loop = get_loop()
         for node in self.iter_bfs():
             assert isinstance(node, ProcIf)
-            for region, func, args, kwargs in node.procs:
-                loop.add_proc(region, func, *args, **kwargs)
+            node.add_initial()
 
     @property
     def scope(self) -> str:
@@ -196,8 +194,13 @@ class Module(Branch, ProcIf, _TraceIf):
         setattr(self, f"_{name}", node)
         return node
 
+    def initial(self, cf, *args, **kwargs):
+        task = cf(*args, **kwargs)
+        self._initial.append((Region.ACTIVE, task))
+
     def _combi(self, ys: Sequence[Value], f: Callable, xs: Sequence[State]):
-        async def proc():
+
+        async def cf():
             while True:
                 await changed(*xs)
 
@@ -213,7 +216,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 for y, value in zip(ys, values):
                     y.next = value
 
-        self._procs.append((Region.REACTIVE, proc, (), {}))
+        self._initial.append((Region.REACTIVE, cf()))
 
     def combi(
         self,
@@ -244,15 +247,15 @@ class Module(Branch, ProcIf, _TraceIf):
         """Assign input to output."""
         # fmt: off
         if isinstance(x, str):
-            async def proc_0():
+            async def cf0():
                 y.next = x
-            self._procs.append((Region.ACTIVE, proc_0, (), {}))
+            self._initial.append((Region.ACTIVE, cf0()))
         elif isinstance(x, Packed):
-            async def proc_1():
+            async def cf1():
                 while True:
                     await changed(x)
                     y.next = x.value
-            self._procs.append((Region.REACTIVE, proc_1, (), {}))
+            self._initial.append((Region.REACTIVE, cf1()))
         else:
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
@@ -260,7 +263,7 @@ class Module(Branch, ProcIf, _TraceIf):
     def dff(self, q: Packed, d: Packed, clk: Packed):
         """D Flip Flop."""
 
-        async def proc():
+        async def cf():
             while True:
                 state = await resume((clk, clk.is_posedge))
                 if state is clk:
@@ -268,12 +271,12 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._procs.append((Region.ACTIVE, proc, (), {}))
+        self._initial.append((Region.ACTIVE, cf()))
 
     def dff_ar(self, q: Packed, d: Packed, clk: Packed, rst: Packed, rval: Bits | str):
         """D Flip Flop with async reset."""
 
-        async def proc():
+        async def cf():
             while True:
                 state = await resume(
                     (rst, rst.is_posedge),
@@ -286,12 +289,12 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._procs.append((Region.ACTIVE, proc, (), {}))
+        self._initial.append((Region.ACTIVE, cf()))
 
     def dff_en(self, q: Packed, d: Packed, en: Packed, clk: Packed):
         """D Flip Flop with enable."""
 
-        async def proc():
+        async def cf():
             while True:
                 state = await resume(
                     (clk, lambda: clk.is_posedge() and en.value == "1b1"),
@@ -301,7 +304,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._procs.append((Region.ACTIVE, proc, (), {}))
+        self._initial.append((Region.ACTIVE, cf()))
 
     def dff_en_ar(
         self,
@@ -314,7 +317,7 @@ class Module(Branch, ProcIf, _TraceIf):
     ):
         """D Flip Flop with enable, and async reset."""
 
-        async def proc():
+        async def cf():
             while True:
                 state = await resume(
                     (rst, rst.is_posedge),
@@ -327,7 +330,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._procs.append((Region.ACTIVE, proc, (), {}))
+        self._initial.append((Region.ACTIVE, cf()))
 
     def mem_wr_en(
         self,
@@ -339,7 +342,7 @@ class Module(Branch, ProcIf, _TraceIf):
     ):
         """Memory with write enable."""
 
-        async def proc():
+        async def cf():
             while True:
                 state = await resume(
                     (clk, lambda: clk.is_posedge() and en.value == "1b1"),
@@ -350,7 +353,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._procs.append((Region.ACTIVE, proc, (), {}))
+        self._initial.append((Region.ACTIVE, cf()))
 
     def mem_wr_be(
         self,
@@ -367,7 +370,7 @@ class Module(Branch, ProcIf, _TraceIf):
         assert len(mem.dtype.shape) == 2 and mem.dtype.shape[1] == 8
         assert len(data.dtype.shape) == 2 and data.dtype.shape[1] == 8
 
-        async def proc():
+        async def cf():
             while True:
                 state = await resume(
                     (clk, lambda: clk.is_posedge() and en.value == "1b1"),
@@ -385,7 +388,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._procs.append((Region.ACTIVE, proc, (), {}))
+        self._initial.append((Region.ACTIVE, cf()))
 
 
 class Logic(Leaf, ProcIf, _TraceIf):

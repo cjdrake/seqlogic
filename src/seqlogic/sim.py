@@ -8,12 +8,10 @@ https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 """
 
 import heapq
-import inspect
 from abc import ABC
 from collections import defaultdict
 from collections.abc import Awaitable, Callable, Coroutine, Generator, Hashable
 from enum import IntEnum, auto
-from functools import partial
 
 _INIT_TIME = -1
 _START_TIME = 0
@@ -226,7 +224,7 @@ class Sim:
         # Postponed actions
         self._touched: set[State] = set()
         # Processes
-        self._procs = []
+        self._initial = []
 
     @property
     def started(self) -> bool:
@@ -246,7 +244,7 @@ class Sim:
     def reset(self):
         """Reset simulation state."""
         self.restart()
-        self._procs.clear()
+        self._initial.clear()
         self._task_region.clear()
 
     def time(self) -> int:
@@ -273,9 +271,9 @@ class Sim:
         region = self._task_region[task]
         self._queue.push(when, region, task)
 
-    def add_proc(self, region: Region, func, *args, **kwargs):
-        """Add a process to run at start of simulation."""
-        self._procs.append((region, func, args, kwargs))
+    def add_initial(self, region: Region, cf):
+        """Add a task to run at start of simulation."""
+        self._initial.append((region, cf))
 
     def add_event(self, state: State, trigger: Trigger):
         """Add a conditional state => task dependency."""
@@ -311,8 +309,7 @@ class Sim:
                 raise TypeError(s)
 
     def _start(self):
-        for region, func, args, kwargs in self._procs:
-            task = func(*args, **kwargs)
+        for region, task in self._initial:
             self._task_region[task] = region
             self.call_at(_START_TIME, task)
         self._started = True
@@ -449,14 +446,6 @@ def get_loop() -> Sim:
     return _sim
 
 
-def _is_proc(m) -> bool:
-    match m:
-        case [Region(), Callable() as f] if inspect.iscoroutinefunction(f):
-            return True
-        case _:
-            return False
-
-
 class ProcIf(ABC):
     """Process interface.
 
@@ -464,37 +453,8 @@ class ProcIf(ABC):
     """
 
     def __init__(self):
-        self._procs = []
+        self._initial = []
 
-        for _, (region, func) in inspect.getmembers(self, _is_proc):
-            self._procs.append((region, func, (), {}))
-
-    @property
-    def procs(self):
-        return self._procs
-
-
-class _Schedule:
-    """Add scheduling semantics to coroutine functions."""
-
-    def __init__(self, region: Region, func):
-        self._region = region
-        assert inspect.iscoroutinefunction(func)
-        self._func = func
-
-    def __get__(self, obj, cls=None):
-        return self._region, partial(self._func, obj)
-
-
-class active(_Schedule):
-    """Decorate a coroutine to run during active scheduling region."""
-
-    def __init__(self, func):
-        super().__init__(Region.ACTIVE, func)
-
-
-class reactive(_Schedule):
-    """Decorate a coroutine to run during reactive scheduling region."""
-
-    def __init__(self, func):
-        super().__init__(Region.REACTIVE, func)
+    def add_initial(self):
+        for region, task in self._initial:
+            _sim.add_initial(region, task)

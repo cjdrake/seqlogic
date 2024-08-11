@@ -4,7 +4,7 @@ import os
 
 from vcd import VCDWriter
 
-from seqlogic import Module, Vec, active, cat, get_loop, sleep, u2bv
+from seqlogic import Module, Vec, cat, get_loop, sleep, u2bv
 from seqlogic.algorithms.addition.rca import add
 
 DIR = os.path.dirname(__file__)
@@ -118,7 +118,8 @@ class Top(Module):
             co=co,
         )
 
-    @active
+        self.initial(self.drive)
+
     async def drive(self):
         await sleep(10)
 
