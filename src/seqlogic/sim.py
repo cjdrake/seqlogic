@@ -102,7 +102,8 @@ class Aggregate(State):
 
     def __getitem__(self, key: Hashable):
         def fget():
-            return self._get_values()[key]
+            values = self._get_values()
+            return values[key]
 
         def fset(value):
             self._set_next(key, value)
