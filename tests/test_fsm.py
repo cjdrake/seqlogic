@@ -5,8 +5,7 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Enum, Module, Packed, Vec, get_loop
-from seqlogic.sim import Region
+from seqlogic import Enum, Module, Packed, Region, Vec, get_loop
 
 from .common import p_clk, p_dff, p_rst
 

@@ -5,8 +5,7 @@
 
 from collections import defaultdict
 
-from seqlogic import Module, Vec, cat, get_loop
-from seqlogic.sim import Region
+from seqlogic import Module, Region, Vec, cat, get_loop
 
 from .common import p_clk, p_dff, p_rst
 

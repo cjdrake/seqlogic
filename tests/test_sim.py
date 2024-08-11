@@ -4,8 +4,8 @@ from collections import defaultdict
 
 import pytest
 
-from seqlogic import get_loop, sleep
-from seqlogic.sim import Region, SimAwaitable, Singular, State
+from seqlogic import Region, get_loop, sleep
+from seqlogic.sim import SimAwaitable, Singular, State
 
 loop = get_loop()
 waves = defaultdict(dict)
