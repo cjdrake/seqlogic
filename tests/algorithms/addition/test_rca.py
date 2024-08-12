@@ -4,8 +4,8 @@ import os
 
 from vcd import VCDWriter
 
-from seqlogic import Module, Vec, cat, get_loop, sleep, u2bv
-from seqlogic.algorithm.addition.rca import add
+from seqlogic import Module, Vec, get_loop, sleep, u2bv
+from seqlogic.algorithm.addition.rca import RCA, add
 
 DIR = os.path.dirname(__file__)
 
@@ -30,64 +30,6 @@ def test_functional():
                     q, r = divmod(i + j + k, 2**n)
                     assert s.to_uint() == r
                     assert co.to_uint() == q
-
-
-class FullAdd(Module):
-    """Full Adder."""
-
-    def __init__(self, name: str, parent: Module | None):
-        super().__init__(name, parent)
-
-        # Ports
-        s = self.output(name="s", dtype=Vec[1])
-        co = self.output(name="co", dtype=Vec[1])
-
-        a = self.input(name="a", dtype=Vec[1])
-        b = self.input(name="b", dtype=Vec[1])
-        ci = self.input(name="ci", dtype=Vec[1])
-
-        # Combinational Logic
-        self.expr(s, a ^ b ^ ci)
-        self.expr(co, a & b | ci & (a | b))
-
-
-class RCA(Module):
-    """Ripple Carry Adder."""
-
-    def __init__(self, name: str, parent: Module | None, n: int):
-        assert n > 0
-
-        super().__init__(name, parent)
-
-        # Ports
-        s = self.output(name="s", dtype=Vec[n])
-        co = self.output(name="co", dtype=Vec[1])
-
-        a = self.input(name="a", dtype=Vec[n])
-        b = self.input(name="b", dtype=Vec[n])
-        ci = self.input(name="ci", dtype=Vec[1])
-
-        # Unpacked sum bits
-        ss = [self.logic(name=f"s{i}", dtype=Vec[1]) for i in range(n)]
-
-        # Carries
-        cs = [self.logic(name=f"c{i}", dtype=Vec[1]) for i in range(n)]
-
-        # Pack sum bits
-        self.combi(s, cat, *ss)
-
-        # Instantiate and connect N FullAdd submodules
-        for i in range(n):
-            self.submod(
-                name=f"fa_{i}",
-                mod=FullAdd,
-            ).connect(
-                s=ss[i],
-                co=(co if i == (n - 1) else cs[i]),
-                a=a[i],
-                b=b[i],
-                ci=(ci if i == 0 else cs[i - 1]),
-            )
 
 
 class Top(Module):
