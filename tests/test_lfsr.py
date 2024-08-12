@@ -20,9 +20,10 @@ class Top(Module):
 
     def __init__(self):
         super().__init__(name="top", parent=None)
+
         # Control
-        reset_n = self.input(name="reset_n", dtype=Vec[1])
         clock = self.input(name="clock", dtype=Vec[1])
+        reset_n = self.input(name="reset_n", dtype=Vec[1])
 
         # State
         q = self.logic(name="q", dtype=Vec[3])
