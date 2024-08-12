@@ -5,7 +5,7 @@ import os
 from vcd import VCDWriter
 
 from seqlogic import Module, Vec, cat, get_loop, sleep, u2bv
-from seqlogic.algorithms.addition.rca import add
+from seqlogic.algorithm.addition.rca import add
 
 DIR = os.path.dirname(__file__)
 

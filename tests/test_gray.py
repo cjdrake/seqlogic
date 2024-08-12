@@ -1,7 +1,7 @@
 """Test Gray Code Algorithm."""
 
 from seqlogic import u2bv
-from seqlogic.algorithms.gray import bin2gray, gray2bin
+from seqlogic.algorithm.gray import bin2gray, gray2bin
 
 B2G_EXP = [
     0b0000,
