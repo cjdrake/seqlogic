@@ -8,19 +8,16 @@ from .fa import FullAdd
 
 def add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
     """Ripple Carry Addition."""
-    assert len(a) > 0 and len(a) == len(b)
+    n = len(a)
+    assert n > 0 and n == len(b)
 
-    gen = zip(a, b)
+    # Carries
+    c = [ci]
+    for i, (a_i, b_i) in enumerate(zip(a, b)):
+        c.append(a_i & b_i | c[i] & (a_i | b_i))
+    c, co = cat(*c[:n]), c[n]
 
-    a_0, b_0 = next(gen)
-    s = [a_0 ^ b_0 ^ ci]
-    c = [a_0 & b_0 | ci & (a_0 | b_0)]
-
-    for i, (a_i, b_i) in enumerate(gen, start=1):
-        s.append(a_i ^ b_i ^ c[i - 1])
-        c.append(a_i & b_i | c[i - 1] & (a_i | b_i))
-
-    return cat(*s), c[-1]
+    return a ^ b ^ c, co
 
 
 class RCA(Module):
