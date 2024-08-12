@@ -1,17 +1,12 @@
 """Top Level Module."""
 
-from seqlogic import Module, Vec, sleep
+from seqlogic import Module, Vec
+from seqlogic.control.globals import drive_clock, drive_reset
 
 from . import Addr, Inst, Opcode
 from .core import Core
 from .data_mem_bus import DataMemBus
 from .text_mem_bus import TextMemBus
-
-CLOCK_PHASE_SHIFT = 1
-CLOCK_PHASE1 = 1
-CLOCK_PHASE2 = 1
-RESET_PHASE1 = 5
-RESET_PHASE2 = 5
 
 
 class Top(Module):
@@ -87,21 +82,5 @@ class Top(Module):
             reset=reset,
         )
 
-        self.initial(self.drive_clock)
-        self.initial(self.drive_reset)
-
-    async def drive_clock(self):
-        self._clock.next = "1b0"
-        await sleep(CLOCK_PHASE_SHIFT)
-        while True:
-            self._clock.next = ~self._clock.value
-            await sleep(CLOCK_PHASE1)
-            self._clock.next = ~self._clock.value
-            await sleep(CLOCK_PHASE2)
-
-    async def drive_reset(self):
-        self._reset.next = "1b0"
-        await sleep(RESET_PHASE1)
-        self._reset.next = ~self._reset.value
-        await sleep(RESET_PHASE2)
-        self._reset.next = ~self._reset.value
+        self.initial(drive_clock, clock, shiftticks=1)
+        self.initial(drive_reset, reset, pos=True, offticks=5, onticks=5)
