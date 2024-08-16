@@ -34,7 +34,10 @@ class Bool(Singular):
         return self._value and not self._next_value
 
     async def edge(self) -> State:
-        self._sim.add_event(self, lambda: self.is_posedge() or self.is_negedge())
+        def trigger():
+            return self.is_posedge() or self.is_negedge()
+
+        self._sim.set_trigger(self, trigger)
         state = await SimAwaitable()
         return state
 

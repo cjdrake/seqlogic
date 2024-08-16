@@ -9,7 +9,7 @@ https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 
 import heapq
 from abc import ABC
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from collections.abc import Awaitable, Callable, Coroutine, Generator, Hashable
 from enum import IntEnum, auto
 
@@ -17,8 +17,6 @@ _INIT_TIME = -1
 _START_TIME = 0
 
 type Trigger = Callable[[], bool]
-
-Task = namedtuple("Task", ["region", "coro"])
 
 
 class Region(IntEnum):
@@ -66,8 +64,7 @@ class Singular(State, Value):
         self._changed = False
 
     def _get_value(self):
-        task = self._sim.task()
-        if task.region == Region.REACTIVE:
+        if self._sim.region() == Region.REACTIVE:
             return self._next_value
         return self._value
 
@@ -114,8 +111,7 @@ class Aggregate(State):
         return _AggrValue(fget, fset)
 
     def _get_values(self):
-        task = self._sim.task()
-        if task.region == Region.REACTIVE:
+        if self._sim.region() == Region.REACTIVE:
             return self._next_values.copy()
         return self._values.copy()
 
@@ -224,12 +220,12 @@ class Sim:
         # Currently executing task
         self._coro: Coroutine | None = None
         # Dynamic event dependencies
-        self._waiting: dict[State, set[Task]] = defaultdict(set)
-        self._triggers: dict[State, dict[Task, Trigger]] = defaultdict(dict)
+        self._waiting: dict[State, set[tuple[Region, Coroutine]]] = defaultdict(set)
+        self._triggers: dict[State, dict[Coroutine, Trigger]] = defaultdict(dict)
         # Postponed actions
         self._touched: set[State] = set()
         # Processes
-        self._initial: list[Task] = []
+        self._initial: list[tuple[Region, Coroutine]] = []
 
     @property
     def started(self) -> bool:
@@ -254,51 +250,49 @@ class Sim:
     def time(self) -> int:
         return self._time
 
-    def task(self) -> Task:
-        return Task(self._region, self._coro)
+    def region(self) -> Region:
+        return self._region
 
-    def call_soon(self, task: Task):
-        """Schedule task in the current timeslot."""
-        self._queue.push(self._time, task.region, task.coro)
+    def coro(self) -> Coroutine:
+        return self._coro
 
-    def call_later(self, delay: int, task: Task):
-        """Schedule task after a relative delay."""
-        self._queue.push(self._time + delay, task.region, task.coro)
-
-    def call_at(self, when: int, task: Task):
-        """Schedule task for an absolute timeslot."""
-        self._queue.push(when, task.region, task.coro)
-
-    def add_initial(self, task: Task):
+    def add_initial(self, region: Region, coro: Coroutine):
         """Add a task to run at start of simulation."""
-        self._initial.append(task)
+        self._initial.append((region, coro))
 
     def add_active(self, coro: Coroutine):
         """Add a coroutine in active region to run at start of simulation."""
-        self._initial.append(Task(Region.ACTIVE, coro))
+        self._initial.append((Region.ACTIVE, coro))
 
-    def add_event(self, state: State, trigger: Trigger):
-        """Add a conditional state => task dependency."""
-        task = self.task()
-        self._waiting[state].add(task)
-        self._triggers[state][task] = trigger
+    def set_timer(self, delay: int):
+        """Schedule current coroutine after delay."""
+        self._queue.push(self._time + delay, self._region, self._coro)
+
+    def set_trigger(self, state: State, trigger: Trigger):
+        """Schedule current coroutine after a state update trigger."""
+        self._waiting[state].add((self._region, self._coro))
+        self._triggers[state][self._coro] = trigger
 
     def touch(self, state: State):
-        """Notify dependent tasks about state change."""
-        tasks = [task for task in self._waiting[state] if self._triggers[state][task]()]
-        for task in tasks:
-            self._queue.push(self._time, task.region, task.coro, state)
-            self._waiting[state].remove(task)
-            del self._triggers[state][task]
-
+        """Schedule coroutines triggered by touching model state."""
+        waiting = self._waiting[state]
+        triggers = self._triggers[state]
+        pending = [(r, c) for (r, c) in waiting if triggers[c]()]
+        for region, coro in pending:
+            self._queue.push(self._time, region, coro, state)
+            self._waiting[state].remove((region, coro))
+            del self._triggers[state][coro]
         # Add state to update set
         self._touched.add(state)
 
-    def _update_state(self):
-        """Prepare state to enter the next time slot."""
+    def _update(self):
         while self._touched:
             state = self._touched.pop()
             state.update()
+
+    def _advance(self, time: int, region: Region):
+        self._time = time
+        self._region = region
 
     def _limit(self, ticks: int | None, until: int | None) -> int | None:
         """Determine the run limit."""
@@ -317,8 +311,8 @@ class Sim:
                 raise TypeError(s)
 
     def _start(self):
-        for task in self._initial:
-            self.call_at(_START_TIME, task)
+        for region, coro in self._initial:
+            self._queue.push(_START_TIME, region, coro)
         self._started = True
 
     def _run_kernel(self, limit: int | None):
@@ -334,15 +328,14 @@ class Sim:
                 self._region = region
             # Next task scheduled: future time slot
             elif time > self._time:
-                # Update all simulation state
-                self._update_state()
+                # Update simulation state
+                self._update()
 
                 # Exit if we hit the run limit
                 if limit is not None and time >= limit:
                     break
-                # Otherwise, advance
-                self._time = time
-                self._region = region
+                # Otherwise, advance to new timeslot
+                self._advance(time, region)
 
             # Resume execution
             for _, _, self._coro, state in self._queue.pop_region():
@@ -379,16 +372,15 @@ class Sim:
                 self._region = region
             # Next task scheduled: future time slot
             elif time > self._time:
-                # Update all simulation state
-                self._update_state()
+                # Update simulation state
+                self._update()
                 yield self._time
 
                 # Exit if we hit the run limit
                 if limit is not None and time >= limit:
                     return
-                # Otherwise, advance
-                self._time = time
-                self._region = region
+                # Otherwise, advance to new timeslot
+                self._advance(time, region)
 
             # Resume execution
             for _, _, self._coro, state in self._queue.pop_region():
@@ -420,14 +412,14 @@ _sim = Sim()
 
 async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
-    _sim.call_later(delay, _sim.task())
+    _sim.set_timer(delay)
     await SimAwaitable()
 
 
 async def changed(*states: State) -> State:
     """Resume execution upon state change."""
     for state in states:
-        _sim.add_event(state, state.changed)
+        _sim.set_trigger(state, state.changed)
     state = await SimAwaitable()
     return state
 
@@ -435,7 +427,7 @@ async def changed(*states: State) -> State:
 async def resume(*events: tuple[State, Trigger]) -> State:
     """Resume execution upon event."""
     for state, trigger in events:
-        _sim.add_event(state, trigger)
+        _sim.set_trigger(state, trigger)
     state = await SimAwaitable()
     return state
 
@@ -452,8 +444,8 @@ class ProcIf(ABC):
     """
 
     def __init__(self):
-        self._initial: list[Task] = []
+        self._initial: list[tuple[Region, Coroutine]] = []
 
     def add_initial(self):
-        for task in self._initial:
-            _sim.add_initial(task)
+        for region, coro in self._initial:
+            _sim.add_initial(region, coro)
