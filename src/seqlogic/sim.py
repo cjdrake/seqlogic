@@ -204,7 +204,9 @@ class SimAwaitable(Awaitable):
     """Suspend execution of the current task."""
 
     def __await__(self):
+        # Suspend
         state = yield
+        # Resume
         return state
 
 
@@ -291,6 +293,12 @@ class Sim:
 
         # Add state to update set
         self._touched.add(state)
+
+    def _update_state(self):
+        """Prepare state to enter the next time slot."""
+        while self._touched:
+            state = self._touched.pop()
+            state.update()
 
     def _limit(self, ticks: int | None, until: int | None) -> int | None:
         """Determine the run limit."""
@@ -405,12 +413,6 @@ class Sim:
             self._start()
 
         yield from self._iter_kernel(limit)
-
-    def _update_state(self):
-        """Prepare state to enter the next time slot."""
-        while self._touched:
-            state = self._touched.pop()
-            state.update()
 
 
 _sim = Sim()
