@@ -255,9 +255,9 @@ class Sim:
     def task(self) -> Task:
         return Task(self._region, self._coro)
 
-    def call_soon(self, task: Task, state: State | None = None):
+    def call_soon(self, task: Task):
         """Schedule task in the current timeslot."""
-        self._queue.push(self._time, task.region, task.coro, state)
+        self._queue.push(self._time, task.region, task.coro)
 
     def call_later(self, delay: int, task: Task):
         """Schedule task after a relative delay."""
@@ -285,7 +285,7 @@ class Sim:
         """Notify dependent tasks about state change."""
         tasks = [task for task in self._waiting[state] if self._triggers[state][task]()]
         for task in tasks:
-            self.call_soon(task, state)
+            self._queue.push(self._time, task.region, task.coro, state)
             self._waiting[state].remove(task)
             del self._triggers[state][task]
 
