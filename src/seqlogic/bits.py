@@ -47,7 +47,7 @@ def _get_vec_size(size: int) -> type[Vector]:
         return vec
 
 
-def _vec_size(size: int) -> type[Empty] | type[Scalar] | type[Vector]:
+def _vec_size(size: int) -> type[Empty | Scalar | Vector]:
     """Vector[size] class factory."""
     assert size >= 0
     # Degenerate case: Null
@@ -963,7 +963,7 @@ class Vector(Bits, _ShapeIf):
 
     _size: int
 
-    def __class_getitem__(cls, size: int) -> type[Empty] | type[Scalar] | type[Vector]:
+    def __class_getitem__(cls, size: int) -> type[Empty | Scalar | Vector]:
         if isinstance(size, int) and size >= 0:
             return _vec_size(size)
         raise TypeError(f"Invalid size parameter: {size}")
