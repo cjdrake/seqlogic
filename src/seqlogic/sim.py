@@ -180,9 +180,9 @@ class _SimQueue:
         time, region, _, coro, state = self._items[0]
         return (time, region, coro, state)
 
-    # def pop(self) -> _SimQueueItem:
-    #    time, region, _, coro, state = heapq.heappop(self._items)
-    #    return (time, region, coro, state)
+    def pop(self) -> _SimQueueItem:
+        time, region, _, coro, state = heapq.heappop(self._items)
+        return (time, region, coro, state)
 
     def pop_region(self) -> Generator[_SimQueueItem, None, None]:
         time, region, _, coro, state = heapq.heappop(self._items)
