@@ -224,7 +224,7 @@ class Sim:
         self._triggers: dict[State, dict[Coroutine, Trigger]] = defaultdict(dict)
         # Postponed actions
         self._touched: set[State] = set()
-        # Processes
+        # Initial coroutines
         self._initial: list[tuple[Region, Coroutine]] = []
 
     @property
