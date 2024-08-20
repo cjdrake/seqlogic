@@ -18,7 +18,7 @@ from vcd.writer import VCDWriter as VcdWriter
 from .bits import Bits, _lit2vec, stack
 from .expr import Expr, Variable
 from .hier import Branch, Leaf
-from .sim import Aggregate, ProcIf, Region, Sim, Singular, State, Value, changed, resume
+from .sim import Aggregate, ProcIf, Region, Sim, Singular, State, Task, Value, changed, resume
 
 
 class DesignError(Exception):
@@ -184,7 +184,7 @@ class Module(Branch, ProcIf, _TraceIf):
         return node
 
     def initial(self, cf, *args, **kwargs):
-        self._initial.append((Region.ACTIVE, cf(*args, **kwargs)))
+        self._initial.append(Task(Region.ACTIVE, cf(*args, **kwargs)))
 
     def _combi(self, ys: Sequence[Value], f: Callable, xs: Sequence[State]):
 
@@ -204,7 +204,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 for y, value in zip(ys, values):
                     y.next = value
 
-        self._initial.append((Region.REACTIVE, cf()))
+        self._initial.append(Task(Region.REACTIVE, cf()))
 
     def combi(
         self,
@@ -237,13 +237,13 @@ class Module(Branch, ProcIf, _TraceIf):
         if isinstance(x, str):
             async def cf0():
                 y.next = x
-            self._initial.append((Region.ACTIVE, cf0()))
+            self._initial.append(Task(Region.ACTIVE, cf0()))
         elif isinstance(x, Packed):
             async def cf1():
                 while True:
                     await changed(x)
                     y.next = x.value
-            self._initial.append((Region.REACTIVE, cf1()))
+            self._initial.append(Task(Region.REACTIVE, cf1()))
         else:
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
@@ -259,7 +259,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append((Region.ACTIVE, cf()))
+        self._initial.append(Task(Region.ACTIVE, cf()))
 
     def dff_ar(self, q: Packed, d: Packed, clk: Packed, rst: Packed, rval: Bits | str):
         """D Flip Flop with async reset."""
@@ -277,7 +277,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append((Region.ACTIVE, cf()))
+        self._initial.append(Task(Region.ACTIVE, cf()))
 
     def dff_en(self, q: Packed, d: Packed, en: Packed, clk: Packed):
         """D Flip Flop with enable."""
@@ -292,7 +292,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append((Region.ACTIVE, cf()))
+        self._initial.append(Task(Region.ACTIVE, cf()))
 
     def dff_en_ar(
         self,
@@ -318,7 +318,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append((Region.ACTIVE, cf()))
+        self._initial.append(Task(Region.ACTIVE, cf()))
 
     def mem_wr_en(
         self,
@@ -341,7 +341,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append((Region.ACTIVE, cf()))
+        self._initial.append(Task(Region.ACTIVE, cf()))
 
     def mem_wr_be(
         self,
@@ -376,7 +376,7 @@ class Module(Branch, ProcIf, _TraceIf):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append((Region.ACTIVE, cf()))
+        self._initial.append(Task(Region.ACTIVE, cf()))
 
 
 class Logic(Leaf, ProcIf, _TraceIf):
