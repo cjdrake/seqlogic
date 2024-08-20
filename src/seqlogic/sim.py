@@ -160,7 +160,8 @@ class _SimQueue:
     """Priority queue for ordering task execution."""
 
     def __init__(self):
-        self._items: list[_SimQueueItem] = []
+        # time, region, index, coro, state
+        self._items: list[tuple[int, Region, int, Coroutine, State | None]] = []
 
         # Monotonically increasing integer to break ties in the heapq
         self._index: int = 0
