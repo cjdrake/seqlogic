@@ -195,7 +195,7 @@ class _SimQueue:
     """Priority queue for ordering task execution."""
 
     def __init__(self):
-        # time, region, index, coro, state
+        # time, region, index, task, state
         self._items: list[tuple[int, Region, int, Task, State | None]] = []
 
         # Monotonically increasing integer to break ties in the heapq
