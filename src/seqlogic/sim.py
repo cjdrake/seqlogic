@@ -280,7 +280,7 @@ class Sim:
         task = Task(Region.ACTIVE, coro)
         self._initial.append(task)
 
-    def set_timer(self, delay: int):
+    def set_timeout(self, delay: int):
         """Schedule current coroutine after delay."""
         self._queue.push(self._time + delay, self._task)
 
@@ -418,7 +418,7 @@ _sim = Sim()
 
 async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
-    _sim.set_timer(delay)
+    _sim.set_timeout(delay)
     await SimAwaitable()
 
 
