@@ -155,21 +155,12 @@ class _AggrValue(Value):
     next = property(fset=_set_next)
 
 
-class TaskState(IntEnum):
-    INIT = auto()
-    PEND = auto()
-    WAIT = auto()
-    RUN = auto()
-    DONE = auto()
-
-
 class Task:
     """Coroutine wrapper."""
 
     def __init__(self, region: Region, coro: Coroutine):
         self._region = region
         self._coro = coro
-        self._state = TaskState.INIT
 
     @property
     def region(self):
@@ -178,14 +169,6 @@ class Task:
     @property
     def coro(self):
         return self._coro
-
-    def _get_state(self) -> TaskState:
-        return self._state
-
-    def _set_state(self, state: TaskState):
-        self._state = state
-
-    state = property(fget=_get_state, fset=_set_state)
 
 
 type _SimQueueItem = tuple[int, Task, State | None]
@@ -299,12 +282,10 @@ class Sim:
 
     def set_timer(self, delay: int):
         """Schedule current coroutine after delay."""
-        self._task.state = TaskState.PEND
         self._queue.push(self._time + delay, self._task)
 
     def set_trigger(self, state: State, trigger: Trigger):
         """Schedule current coroutine after a state update trigger."""
-        self._task.state = TaskState.WAIT
         self._waiting[state].add(self._task)
         self._triggers[state][self._task] = trigger
 
@@ -314,7 +295,6 @@ class Sim:
         triggers = self._triggers[state]
         pending = [task for task in waiting if triggers[task]()]
         for task in pending:
-            task.state = TaskState.PEND
             self._queue.push(self._time, task, state)
             self._waiting[state].remove(task)
             del self._triggers[state][task]
@@ -344,7 +324,6 @@ class Sim:
 
     def _start(self):
         for task in self._initial:
-            task.state = TaskState.PEND
             self._queue.push(_START_TIME, task)
         self._started = True
 
@@ -370,10 +349,9 @@ class Sim:
             # Resume execution
             for _, self._task, state in self._queue.pop_region():
                 try:
-                    self._task.state = TaskState.RUN
                     self._task.coro.send(state)
                 except StopIteration:
-                    self._task.state = TaskState.DONE
+                    pass
 
     def run(self, ticks: int | None = None, until: int | None = None):
         """Run the simulation.
@@ -413,10 +391,9 @@ class Sim:
             # Resume execution
             for _, self._task, state in self._queue.pop_region():
                 try:
-                    self._task.state = TaskState.RUN
                     self._task.coro.send(state)
                 except StopIteration:
-                    self._task.state = TaskState.DONE
+                    pass
 
     def iter(
         self, ticks: int | None = None, until: int | None = None
