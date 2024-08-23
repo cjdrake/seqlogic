@@ -9,7 +9,7 @@ https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 
 import heapq
 from abc import ABC
-from collections import defaultdict
+from collections import defaultdict, deque
 from collections.abc import Awaitable, Callable, Coroutine, Generator, Hashable
 from enum import IntEnum, auto
 
@@ -169,6 +169,36 @@ class Task:
     @property
     def coro(self):
         return self._coro
+
+
+class Lock:
+    """Mutex lock to synchronize tasks."""
+
+    def __init__(self):
+        self._tasks = deque()
+
+    async def __aenter__(self):
+        await self.acquire()
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        self.release()
+
+    async def acquire(self):
+        self._tasks.append(_sim.task())
+        if len(self._tasks) > 1:
+            await SimAwaitable()
+
+    def release(self):
+        try:
+            self._tasks.popleft()
+        except IndexError as e:
+            raise RuntimeError("Cannot release lock") from e
+        if self._tasks:
+            # pylint: disable = protected-access
+            _sim._queue.push(_sim.time(), self._tasks[0])
+
+    def locked(self) -> bool:
+        return bool(self._tasks)
 
 
 type _SimQueueItem = tuple[int, Task, State | None]
