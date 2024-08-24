@@ -201,6 +201,31 @@ class Lock:
         return bool(self._tasks)
 
 
+class Event:
+    """Notify multiple tasks that some event has happened."""
+
+    def __init__(self):
+        self._flag = False
+        self._tasks = deque()
+
+    async def wait(self):
+        self._tasks.append(_sim.task())
+        if not self._flag:
+            await SimAwaitable()
+
+    def set(self):
+        self._flag = True
+        while self._tasks:
+            # pylint: disable = protected-access
+            _sim._queue.push(_sim.time(), self._tasks.popleft())
+
+    def clear(self):
+        self._flag = False
+
+    def is_set(self) -> bool:
+        return self._flag
+
+
 type _SimQueueItem = tuple[int, Task, State | None]
 
 
