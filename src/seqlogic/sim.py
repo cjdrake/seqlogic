@@ -166,13 +166,13 @@ class Task(Awaitable):
         self._done = False
         self._tasks: deque[Task] = deque()
 
-    def __await__(self):
+    def __await__(self) -> Generator[None, None, None]:
         if not self._done:
             self._tasks.append(_sim.task())
             # Suspend
             yield
-            # Resume
-            return
+        # Resume
+        return
 
     @property
     def region(self):
@@ -336,7 +336,17 @@ class _SimQueue:
 class SimAwaitable(Awaitable):
     """Suspend execution of the current task."""
 
-    def __await__(self):
+    def __await__(self) -> Generator[None, None, None]:
+        # Suspend
+        yield
+        # Resume
+        return
+
+
+class StateAwaitable(Awaitable):
+    """Suspend execution of the current task."""
+
+    def __await__(self) -> Generator[None, State, State]:
         # Suspend
         state = yield
         # Resume
@@ -543,7 +553,7 @@ async def changed(*states: State) -> State:
     """Resume execution upon state change."""
     for state in states:
         _sim.set_trigger(state, state.changed)
-    state = await SimAwaitable()
+    state = await StateAwaitable()
     return state
 
 
@@ -551,7 +561,7 @@ async def resume(*triggers: tuple[State, Predicate]) -> State:
     """Resume execution upon event."""
     for state, predicate in triggers:
         _sim.set_trigger(state, predicate)
-    state = await SimAwaitable()
+    state = await StateAwaitable()
     return state
 
 
