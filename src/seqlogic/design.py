@@ -18,7 +18,7 @@ from vcd.writer import VCDWriter as VcdWriter
 from .bits import Bits, _lit2vec, stack
 from .expr import Expr, Variable
 from .hier import Branch, Leaf
-from .sim import Aggregate, ProcIf, Region, Sim, Singular, State, Task, Value, changed, resume
+from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
 
 
 class DesignError(Exception):
@@ -56,7 +56,7 @@ class Module(Branch, ProcIf, _TraceIf):
         self._inputs: dict[str, bool] = {}
         self._outputs: dict[str, bool] = {}
 
-    def elab(self) -> Sim:
+    def elab(self):
         """Add design processes to the simulator."""
         for node in self.iter_bfs():
             assert isinstance(node, ProcIf)
