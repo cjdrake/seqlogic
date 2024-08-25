@@ -7,6 +7,8 @@ Credit to David Beazley's "Build Your Own Async" tutorial for inspiration:
 https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 """
 
+# pylint: disable = protected-access
+
 import heapq
 from abc import ABC
 from collections import defaultdict, deque
@@ -155,12 +157,22 @@ class _AggrValue(Value):
     next = property(fset=_set_next)
 
 
-class Task:
+class Task(Awaitable):
     """Coroutine wrapper."""
 
     def __init__(self, region: Region, coro: Coroutine):
         self._region = region
         self._coro = coro
+        self._done = False
+        self._tasks: deque[Task] = deque()
+
+    def __await__(self):
+        if not self._done:
+            self._tasks.append(_sim.task())
+            # Suspend
+            yield
+            # Resume
+            return
 
     @property
     def region(self):
@@ -169,6 +181,23 @@ class Task:
     @property
     def coro(self):
         return self._coro
+
+    def _set_done(self):
+        self._done = True
+        while self._tasks:
+            _sim._queue.push(_sim.time(), self._tasks.popleft())
+
+    def done(self) -> bool:
+        return self._done
+
+
+def create_task(coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
+    time = _sim.time()
+    # Cannot call create_task before the simulation starts
+    assert time >= 0
+    task = Task(region, coro)
+    _sim._queue.push(time, task)
+    return task
 
 
 class Lock:
@@ -194,7 +223,6 @@ class Lock:
         except IndexError as e:
             raise RuntimeError("Cannot release lock") from e
         if self._tasks:
-            # pylint: disable = protected-access
             _sim._queue.push(_sim.time(), self._tasks[0])
 
     def locked(self) -> bool:
@@ -216,7 +244,6 @@ class Event:
     def set(self):
         self._flag = True
         while self._tasks:
-            # pylint: disable = protected-access
             _sim._queue.push(_sim.time(), self._tasks.popleft())
 
     def clear(self):
@@ -251,7 +278,6 @@ class Semaphore:
 
     def release(self):
         if self._tasks:
-            # pylint: disable = protected-access
             _sim._queue.push(_sim.time(), self._tasks.popleft())
         else:
             if self._cnt == self._value:
@@ -442,7 +468,7 @@ class Sim:
                 try:
                     self._task.coro.send(state)
                 except StopIteration:
-                    pass
+                    self._task._set_done()
 
     def run(self, ticks: int | None = None, until: int | None = None):
         """Run the simulation.
@@ -484,7 +510,7 @@ class Sim:
                 try:
                     self._task.coro.send(state)
                 except StopIteration:
-                    pass
+                    self._task._set_done()
 
     def iter(
         self, ticks: int | None = None, until: int | None = None
