@@ -163,12 +163,12 @@ class Task(Awaitable):
     def __init__(self, region: Region, coro: Coroutine):
         self._region = region
         self._coro = coro
+        self._waiting: deque[Task] = deque()
         self._done = False
-        self._tasks: deque[Task] = deque()
 
     def __await__(self) -> Generator[None, None, None]:
         if not self._done:
-            self._tasks.append(_sim.task())
+            self._waiting.append(_sim.task())
             # Suspend
             yield
         # Resume
@@ -184,8 +184,8 @@ class Task(Awaitable):
 
     def _set_done(self):
         self._done = True
-        while self._tasks:
-            _sim._queue.push(_sim.time(), self._tasks.popleft())
+        while self._waiting:
+            _sim._queue.push(_sim.time(), self._waiting.popleft())
 
     def done(self) -> bool:
         return self._done
@@ -200,51 +200,22 @@ def create_task(coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
     return task
 
 
-class Lock:
-    """Mutex lock to synchronize tasks."""
-
-    def __init__(self):
-        self._tasks: deque[Task] = deque()
-
-    async def __aenter__(self):
-        await self.acquire()
-
-    async def __aexit__(self, exc_type, exc_value, traceback):
-        self.release()
-
-    async def acquire(self):
-        self._tasks.append(_sim.task())
-        if len(self._tasks) > 1:
-            await SimAwaitable()
-
-    def release(self):
-        try:
-            self._tasks.popleft()
-        except IndexError as e:
-            raise RuntimeError("Cannot release lock") from e
-        if self._tasks:
-            _sim._queue.push(_sim.time(), self._tasks[0])
-
-    def locked(self) -> bool:
-        return bool(self._tasks)
-
-
 class Event:
     """Notify multiple tasks that some event has happened."""
 
     def __init__(self):
         self._flag = False
-        self._tasks: deque[Task] = deque()
+        self._waiting: deque[Task] = deque()
 
     async def wait(self):
         if not self._flag:
-            self._tasks.append(_sim.task())
+            self._waiting.append(_sim.task())
             await SimAwaitable()
 
     def set(self):
         self._flag = True
-        while self._tasks:
-            _sim._queue.push(_sim.time(), self._tasks.popleft())
+        while self._waiting:
+            _sim._queue.push(_sim.time(), self._waiting.popleft())
 
     def clear(self):
         self._flag = False
@@ -261,31 +232,40 @@ class Semaphore:
             raise ValueError(f"Expected value >= 1, got {value}")
         self._value = value
         self._cnt = value
-        self._tasks: deque[Task] = deque()
+        self._waiting: deque[Task] = deque()
 
     async def __aenter__(self):
         await self.acquire()
 
-    async def __aexit__(self, exc_type, exc_value, traceback):
+    async def __aexit__(self, exc_type, exc_value, exc_tb):
         self.release()
 
     async def acquire(self):
-        if self._cnt > 0:
-            self._cnt -= 1
-        else:
-            self._tasks.append(_sim.task())
+        assert self._cnt >= 0
+        if self._cnt == 0:
+            self._waiting.append(_sim.task())
             await SimAwaitable()
+        else:
+            self._cnt -= 1
 
     def release(self):
-        if self._tasks:
-            _sim._queue.push(_sim.time(), self._tasks.popleft())
+        assert self._cnt >= 0
+        if self._waiting:
+            _sim._queue.push(_sim.time(), self._waiting.popleft())
         else:
             if self._cnt == self._value:
-                raise RuntimeError("Cannot release semaphore")
+                raise RuntimeError("Cannot release")
             self._cnt += 1
 
     def locked(self) -> bool:
         return self._cnt == 0
+
+
+class Lock(Semaphore):
+    """Mutex lock to synchronize tasks."""
+
+    def __init__(self):
+        super().__init__(value=1)
 
 
 type _SimQueueItem = tuple[int, Task, State | None]
