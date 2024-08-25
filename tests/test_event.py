@@ -10,41 +10,23 @@ def log(s: str):
     print(f"{loop.time():04} {s}")
 
 
-async def foo(event: Event):
-    log("FOO enter")
+async def primary(event: Event, name: str):
+    log(f"{name} enter")
     await sleep(10)
-    log("FOO set")
+    log(f"{name} set")
     event.set()
     assert event.is_set()
     await sleep(10)
-    log("FOO exit")
+    log(f"{name} exit")
 
 
-async def bar(event: Event):
-    log("BAR enter")
-    log("BAR waiting")
+async def secondary(event: Event, name: str):
+    log(f"{name} enter")
+    log(f"{name} waiting")
     await event.wait()
-    log("BAR running")
+    log(f"{name} running")
     await sleep(10)
-    log("BAR exit")
-
-
-async def fiz(event: Event):
-    log("FIZ enter")
-    log("FIZ waiting")
-    await event.wait()
-    log("FIZ running")
-    await sleep(10)
-    log("FIZ exit")
-
-
-async def buz(event: Event):
-    log("BUZ enter")
-    log("BUZ waiting")
-    await event.wait()
-    log("BUZ running")
-    await sleep(10)
-    log("BUZ exit")
+    log(f"{name} exit")
 
 
 EXP1 = """\
@@ -70,10 +52,10 @@ def test_acquire_release(capsys):
     loop.reset()
 
     event = Event()
-    loop.add_active(foo(event))
-    loop.add_active(bar(event))
-    loop.add_active(fiz(event))
-    loop.add_active(buz(event))
+    loop.add_active(primary(event, "FOO"))
+    loop.add_active(secondary(event, "BAR"))
+    loop.add_active(secondary(event, "FIZ"))
+    loop.add_active(secondary(event, "BUZ"))
     loop.run()
 
     assert capsys.readouterr().out == EXP1
