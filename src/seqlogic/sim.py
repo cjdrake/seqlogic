@@ -175,7 +175,7 @@ class Lock:
     """Mutex lock to synchronize tasks."""
 
     def __init__(self):
-        self._tasks = deque()
+        self._tasks: deque[Task] = deque()
 
     async def __aenter__(self):
         await self.acquire()
@@ -206,11 +206,11 @@ class Event:
 
     def __init__(self):
         self._flag = False
-        self._tasks = deque()
+        self._tasks: deque[Task] = deque()
 
     async def wait(self):
-        self._tasks.append(_sim.task())
         if not self._flag:
+            self._tasks.append(_sim.task())
             await SimAwaitable()
 
     def set(self):
@@ -234,7 +234,7 @@ class Semaphore:
             raise ValueError(f"Expected value >= 1, got {value}")
         self._value = value
         self._cnt = value
-        self._tasks = deque()
+        self._tasks: deque[Task] = deque()
 
     async def __aenter__(self):
         await self.acquire()
