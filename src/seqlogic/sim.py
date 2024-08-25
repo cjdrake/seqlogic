@@ -16,7 +16,7 @@ from enum import IntEnum, auto
 _INIT_TIME = -1
 _START_TIME = 0
 
-type Trigger = Callable[[], bool]
+type Predicate = Callable[[], bool]
 
 
 class Region(IntEnum):
@@ -331,7 +331,7 @@ class Sim:
         self._task: Task | None = None
         # Dynamic event dependencies
         self._waiting: dict[State, set[Task]] = defaultdict(set)
-        self._triggers: dict[State, dict[Task, Trigger]] = defaultdict(dict)
+        self._predicates: dict[State, dict[Task, Predicate]] = defaultdict(dict)
         # Postponed actions
         self._touched: set[State] = set()
         # Initial coroutines
@@ -348,7 +348,7 @@ class Sim:
         self._queue.clear()
         self._task = None
         self._waiting.clear()
-        self._triggers.clear()
+        self._predicates.clear()
         self._touched.clear()
 
     def reset(self):
@@ -375,20 +375,20 @@ class Sim:
         """Schedule current coroutine after delay."""
         self._queue.push(self._time + delay, self._task)
 
-    def set_trigger(self, state: State, trigger: Trigger):
+    def set_trigger(self, state: State, predicate: Predicate):
         """Schedule current coroutine after a state update trigger."""
         self._waiting[state].add(self._task)
-        self._triggers[state][self._task] = trigger
+        self._predicates[state][self._task] = predicate
 
     def touch(self, state: State):
         """Schedule coroutines triggered by touching model state."""
         waiting = self._waiting[state]
-        triggers = self._triggers[state]
-        pending = [task for task in waiting if triggers[task]()]
+        predicates = self._predicates[state]
+        pending = [task for task in waiting if predicates[task]()]
         for task in pending:
             self._queue.push(self._time, task, state)
             self._waiting[state].remove(task)
-            del self._triggers[state][task]
+            del self._predicates[state][task]
         # Add state to update set
         self._touched.add(state)
 
@@ -521,10 +521,10 @@ async def changed(*states: State) -> State:
     return state
 
 
-async def resume(*events: tuple[State, Trigger]) -> State:
+async def resume(*triggers: tuple[State, Predicate]) -> State:
     """Resume execution upon event."""
-    for state, trigger in events:
-        _sim.set_trigger(state, trigger)
+    for state, predicate in triggers:
+        _sim.set_trigger(state, predicate)
     state = await SimAwaitable()
     return state
 
