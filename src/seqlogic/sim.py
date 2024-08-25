@@ -226,6 +226,42 @@ class Event:
         return self._flag
 
 
+class Semaphore:
+    """Semaphore to synchronize tasks."""
+
+    def __init__(self, value: int = 1):
+        if value < 1:
+            raise ValueError(f"Expected value >= 1, got {value}")
+        self._value = value
+        self._cnt = value
+        self._tasks = deque()
+
+    async def __aenter__(self):
+        await self.acquire()
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        self.release()
+
+    async def acquire(self):
+        if self._cnt > 0:
+            self._cnt -= 1
+        else:
+            self._tasks.append(_sim.task())
+            await SimAwaitable()
+
+    def release(self):
+        if self._tasks:
+            # pylint: disable = protected-access
+            _sim._queue.push(_sim.time(), self._tasks.popleft())
+        else:
+            if self._cnt == self._value:
+                raise RuntimeError("Cannot release semaphore")
+            self._cnt += 1
+
+    def locked(self) -> bool:
+        return self._cnt == 0
+
+
 type _SimQueueItem = tuple[int, Task, State | None]
 
 

@@ -1,4 +1,4 @@
-"""Test seqlogic.sim.Lock class."""
+"""Test seqlogic.sim.Event class."""
 
 from seqlogic import get_loop, sleep
 from seqlogic.sim import Event
