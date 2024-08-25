@@ -26,6 +26,7 @@ from .bits import (
     xor,
 )
 from .design import Module, Packed, Unpacked
+from .expr import Op
 from .sim import Region, changed, get_loop, resume, sleep
 from .util import clog2
 
@@ -62,6 +63,8 @@ __all__ = [
     "Module",
     "Packed",
     "Unpacked",
+    # expr
+    "Op",
     # sim
     "Region",
     "changed",

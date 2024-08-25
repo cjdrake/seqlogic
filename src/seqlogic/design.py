@@ -16,7 +16,7 @@ from collections.abc import Callable, Sequence
 from vcd.writer import VCDWriter as VcdWriter
 
 from .bits import Bits, _lit2vec, stack
-from .expr import Expr, Variable
+from .expr import Expr, Op, Variable, parse
 from .hier import Branch, Leaf
 from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
 
@@ -127,6 +127,9 @@ class Module(Branch, ProcIf, _TraceIf):
             case Expr() as ex:
                 f, xs = self._expr(ex)
                 self.combi(y, f, *xs)
+            case [Op(), *xs]:
+                f, xs = self._expr(parse(*rhs))
+                self.combi(y, f, *xs)
             case [Callable() as f, *xs]:
                 self.combi(y, f, *xs)
             case _:
@@ -220,14 +223,19 @@ class Module(Branch, ProcIf, _TraceIf):
 
         self._combi(ys, f, xs)
 
-    def expr(self, ys: Value | list[Value] | tuple[Value, ...], ex: Expr):
+    def expr(self, ys: Value | list[Value] | tuple[Value, ...], x: tuple | Expr):
         """Expression logic."""
 
         # Pack outputs
         if not isinstance(ys, (list, tuple)):
             ys = (ys,)
 
-        f, xs = self._expr(ex)
+        if isinstance(x, tuple):
+            f, xs = self._expr(parse(*x))
+        elif isinstance(x, Expr):
+            f, xs = self._expr(x)
+        else:
+            raise TypeError("Expected x to be tuple or Expr")
 
         self._combi(ys, f, xs)
 

@@ -3,8 +3,31 @@
 from __future__ import annotations
 
 from abc import ABC
+from enum import Enum, auto
 
 from .bits import Bits
+
+
+class Op(Enum):
+    """Expression opcode."""
+
+    # Bitwise
+    NOT = auto()
+    OR = auto()
+    AND = auto()
+    XOR = auto()
+
+    # Word
+    GETITEM = auto()
+    GETATTR = auto()
+
+    # Comparison
+    LT = auto()
+    LE = auto()
+    EQ = auto()
+    NE = auto()
+    GT = auto()
+    GE = auto()
 
 
 class Expr(ABC):
@@ -19,9 +42,6 @@ class Expr(ABC):
     def __getitem__(self, key: int | slice) -> GetItem:
         return GetItem(self, Constant(key))
 
-    def getattr(self, name: str) -> GetAttr:
-        return GetAttr(self, Constant(name))
-
     def __invert__(self) -> Not:
         return Not(self)
 
@@ -33,48 +53,6 @@ class Expr(ABC):
 
     def __xor__(self, other: Expr) -> Xor:
         return Xor(self, other)
-
-    def lt(self, other: Expr | Bits) -> LessThan:
-        if isinstance(other, Bits):
-            return LessThan(self, BitsConst(other))
-        if isinstance(other, Expr):
-            return LessThan(self, other)
-        raise TypeError("Expected other to be Expr or Bits")
-
-    def le(self, other: Expr | Bits) -> LessEqual:
-        if isinstance(other, Bits):
-            return LessEqual(self, BitsConst(other))
-        if isinstance(other, Expr):
-            return LessEqual(self, other)
-        raise TypeError("Expected other to be Expr or Bits")
-
-    def eq(self, other: Expr | Bits) -> Equal:
-        if isinstance(other, Bits):
-            return Equal(self, BitsConst(other))
-        if isinstance(other, Expr):
-            return Equal(self, other)
-        raise TypeError("Expected other to be Expr or Bits")
-
-    def ne(self, other: Expr | Bits) -> NotEqual:
-        if isinstance(other, Bits):
-            return NotEqual(self, BitsConst(other))
-        if isinstance(other, Expr):
-            return NotEqual(self, other)
-        raise TypeError("Expected other to be Expr or Bits")
-
-    def gt(self, other: Expr | Bits) -> GreaterThan:
-        if isinstance(other, Bits):
-            return GreaterThan(self, BitsConst(other))
-        if isinstance(other, Expr):
-            return GreaterThan(self, other)
-        raise TypeError("Expected other to be Expr or Bits")
-
-    def ge(self, other: Expr | Bits) -> GreaterEqual:
-        if isinstance(other, Bits):
-            return GreaterEqual(self, BitsConst(other))
-        if isinstance(other, Expr):
-            return GreaterEqual(self, other)
-        raise TypeError("Expected other to be Expr or Bits")
 
     def iter_vars(self):
         raise NotImplementedError()
@@ -261,3 +239,46 @@ class GreaterEqual(Operator):
     def __str__(self) -> str:
         x0, x1 = self._xs
         return f"{x0}.ge({x1})"
+
+
+def f(arg):
+    match arg:
+        case tuple() as args:
+            return parse(*args)
+        case Bits() as b:
+            return BitsConst(b)
+        case Expr() as x:
+            return x
+        case _:
+            raise ValueError("Invalid argument")
+
+
+def parse(*args):
+    """Return a symbolic expression."""
+    match args:
+        case [Op.NOT, x]:
+            return Not(f(x))
+        case [Op.OR, *xs]:
+            return Or(*[f(x) for x in xs])
+        case [Op.AND, *xs]:
+            return And(*[f(x) for x in xs])
+        case [Op.XOR, *xs]:
+            return Xor(*[f(x) for x in xs])
+        case [Op.GETITEM, Variable() as v, (int() | slice()) as key]:
+            return GetItem(v, Constant(key))
+        case [Op.GETATTR, Variable() as v, str() as name]:
+            return GetAttr(v, Constant(name))
+        case [Op.LT, x0, x1]:
+            return LessThan(f(x0), f(x1))
+        case [Op.LE, *xs] if len(xs) == 2:
+            return LessEqual(f(xs[0]), f(xs[1]))
+        case [Op.EQ, *xs] if len(xs) == 2:
+            return Equal(f(xs[0]), f(xs[1]))
+        case [Op.NE, *xs] if len(xs) == 2:
+            return NotEqual(f(xs[0]), f(xs[1]))
+        case [Op.GT, *xs] if len(xs) == 2:
+            return GreaterThan(f(xs[0]), f(xs[1]))
+        case [Op.GE, *xs] if len(xs) == 2:
+            return GreaterEqual(f(xs[0]), f(xs[1]))
+        case _:
+            raise ValueError("Invalid expression")
