@@ -270,15 +270,15 @@ def parse(*args):
             return GetAttr(v, Constant(name))
         case [Op.LT, x0, x1]:
             return LessThan(f(x0), f(x1))
-        case [Op.LE, *xs] if len(xs) == 2:
-            return LessEqual(f(xs[0]), f(xs[1]))
-        case [Op.EQ, *xs] if len(xs) == 2:
-            return Equal(f(xs[0]), f(xs[1]))
-        case [Op.NE, *xs] if len(xs) == 2:
-            return NotEqual(f(xs[0]), f(xs[1]))
-        case [Op.GT, *xs] if len(xs) == 2:
-            return GreaterThan(f(xs[0]), f(xs[1]))
-        case [Op.GE, *xs] if len(xs) == 2:
-            return GreaterEqual(f(xs[0]), f(xs[1]))
+        case [Op.LE, x0, x1]:
+            return LessEqual(f(x0), f(x1))
+        case [Op.EQ, x0, x1]:
+            return Equal(f(x0), f(x1))
+        case [Op.NE, x0, x1]:
+            return NotEqual(f(x0), f(x1))
+        case [Op.GT, x0, x1]:
+            return GreaterThan(f(x0), f(x1))
+        case [Op.GE, x0, x1]:
+            return GreaterEqual(f(x0), f(x1))
         case _:
             raise ValueError("Invalid expression")
