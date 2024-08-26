@@ -17,10 +17,10 @@ class Expr(ABC):
         raise NotImplementedError()
 
     def __getitem__(self, key: int | slice) -> GetItem:
-        return GetItem(self, Key(key))
+        return GetItem(self, Constant(key))
 
     def getattr(self, name: str) -> GetAttr:
-        return GetAttr(self, Name(name))
+        return GetAttr(self, Constant(name))
 
     def __invert__(self) -> Not:
         return Not(self)
@@ -36,42 +36,42 @@ class Expr(ABC):
 
     def lt(self, other: Expr | Bits) -> LessThan:
         if isinstance(other, Bits):
-            return LessThan(self, Const(other))
+            return LessThan(self, BitsConst(other))
         if isinstance(other, Expr):
             return LessThan(self, other)
         raise TypeError("Expected other to be Expr or Bits")
 
     def le(self, other: Expr | Bits) -> LessEqual:
         if isinstance(other, Bits):
-            return LessEqual(self, Const(other))
+            return LessEqual(self, BitsConst(other))
         if isinstance(other, Expr):
             return LessEqual(self, other)
         raise TypeError("Expected other to be Expr or Bits")
 
     def eq(self, other: Expr | Bits) -> Equal:
         if isinstance(other, Bits):
-            return Equal(self, Const(other))
+            return Equal(self, BitsConst(other))
         if isinstance(other, Expr):
             return Equal(self, other)
         raise TypeError("Expected other to be Expr or Bits")
 
     def ne(self, other: Expr | Bits) -> NotEqual:
         if isinstance(other, Bits):
-            return NotEqual(self, Const(other))
+            return NotEqual(self, BitsConst(other))
         if isinstance(other, Expr):
             return NotEqual(self, other)
         raise TypeError("Expected other to be Expr or Bits")
 
     def gt(self, other: Expr | Bits) -> GreaterThan:
         if isinstance(other, Bits):
-            return GreaterThan(self, Const(other))
+            return GreaterThan(self, BitsConst(other))
         if isinstance(other, Expr):
             return GreaterThan(self, other)
         raise TypeError("Expected other to be Expr or Bits")
 
     def ge(self, other: Expr | Bits) -> GreaterEqual:
         if isinstance(other, Bits):
-            return GreaterEqual(self, Const(other))
+            return GreaterEqual(self, BitsConst(other))
         if isinstance(other, Expr):
             return GreaterEqual(self, other)
         raise TypeError("Expected other to be Expr or Bits")
@@ -84,49 +84,25 @@ class Atom(Expr):
     """Atomic expression (leaf) node."""
 
 
-class Key(Atom):
-    """GetItem operator key node."""
+class Constant(Expr):
+    """Constant node."""
 
-    def __init__(self, key: int | slice):
-        self._x = key
+    def __init__(self, value):
+        self._value = value
 
     @property
-    def x(self) -> int | slice:
-        return self._x
+    def value(self):
+        return self._value
 
     def iter_vars(self):
         yield from ()
 
 
-class Name(Atom):
-    """GetAttr operator name node."""
-
-    def __init__(self, name: str):
-        self._x = name
-
-    @property
-    def x(self) -> str:
-        return self._x
-
-    def iter_vars(self):
-        yield from ()
-
-
-class Const(Atom):
+class BitsConst(Constant):
     """Const node."""
 
-    def __init__(self, b: Bits):
-        self._x = b
-
     def __str__(self) -> str:
-        return f'"{self._x}"'
-
-    @property
-    def x(self) -> str:
-        return self._x
-
-    def iter_vars(self):
-        yield from ()
+        return f'"{self._value}"'
 
 
 class Variable(Atom):
@@ -156,12 +132,12 @@ class Operator(Expr):
 class GetItem(Operator):
     """GetItem operator node."""
 
-    def __init__(self, x: Expr, key: Key):
+    def __init__(self, x: Expr, key: Constant):
         super().__init__(x, key)
 
     def __str__(self) -> str:
         x, key = self._xs
-        match key.x:
+        match key.value:
             case int() as i:
                 return f"{x}[{i}]"
             case slice() as sl:
@@ -178,12 +154,12 @@ class GetItem(Operator):
 class GetAttr(Operator):
     """GetAttr operator node."""
 
-    def __init__(self, x: Expr, name: Name):
+    def __init__(self, x: Expr, name: Constant):
         super().__init__(x, name)
 
     def __str__(self) -> str:
         x, name = self._xs
-        return f"{x}.{name.x}"
+        return f"{x}.{name.value}"
 
 
 class Not(Operator):
