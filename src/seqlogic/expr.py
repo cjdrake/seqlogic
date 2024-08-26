@@ -176,34 +176,25 @@ class Not(Operator):
 class Or(Operator):
     """OR operator node."""
 
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
-
     def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"({x0} | {x1})"
+        s = " | ".join(str(x) for x in self._xs)
+        return f"({s})"
 
 
 class And(Operator):
     """AND operator node."""
 
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
-
     def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"({x0} & {x1})"
+        s = " & ".join(str(x) for x in self._xs)
+        return f"({s})"
 
 
 class Xor(Operator):
     """XOR operator node."""
 
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
-
     def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"({x0} ^ {x1})"
+        s = " ^ ".join(str(x) for x in self._xs)
+        return f"({s})"
 
 
 class LessThan(Operator):
