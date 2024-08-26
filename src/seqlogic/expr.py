@@ -155,24 +155,24 @@ class Or(Operator):
     """OR operator node."""
 
     def __str__(self) -> str:
-        s = " | ".join(str(x) for x in self._xs)
-        return f"({s})"
+        s = ", ".join(str(x) for x in self._xs)
+        return f"or_({s})"
 
 
 class And(Operator):
     """AND operator node."""
 
     def __str__(self) -> str:
-        s = " & ".join(str(x) for x in self._xs)
-        return f"({s})"
+        s = ", ".join(str(x) for x in self._xs)
+        return f"and_({s})"
 
 
 class Xor(Operator):
     """XOR operator node."""
 
     def __str__(self) -> str:
-        s = " ^ ".join(str(x) for x in self._xs)
-        return f"({s})"
+        s = ", ".join(str(x) for x in self._xs)
+        return f"xor({s})"
 
 
 class LessThan(Operator):

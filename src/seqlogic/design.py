@@ -15,7 +15,7 @@ from collections.abc import Callable, Sequence
 
 from vcd.writer import VCDWriter as VcdWriter
 
-from .bits import Bits, _lit2vec, stack
+from .bits import Bits, _lit2vec, and_, or_, stack, xor
 from .expr import Expr, Op, Variable, parse
 from .hier import Branch, Leaf
 from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
@@ -111,8 +111,9 @@ class Module(Branch, ProcIf, _TraceIf):
             f"    return {ex}\n",
         ]
         source = "".join(lines)
+        globals_ = {"or_": or_, "and_": and_, "xor": xor}
         locals_ = {}
-        exec(source, {}, locals_)
+        exec(source, globals_, locals_)
         return locals_["f"], xs
 
     def _connect_input(self, name: str, rhs):
