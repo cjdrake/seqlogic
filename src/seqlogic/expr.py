@@ -132,21 +132,21 @@ class Operator(Expr):
 class GetItem(Operator):
     """GetItem operator node."""
 
-    def __init__(self, x: Expr, key: Constant):
-        super().__init__(x, key)
+    def __init__(self, v: Variable, key: Constant):
+        super().__init__(v, key)
 
     def __str__(self) -> str:
-        x, key = self._xs
+        v, key = self._xs
         match key.value:
             case int() as i:
-                return f"{x}[{i}]"
+                return f"{v}[{i}]"
             case slice() as sl:
                 assert not (sl.start is None and sl.stop is None)
                 if sl.start is None:
-                    return f"{x}[:{sl.stop}]"
+                    return f"{v}[:{sl.stop}]"
                 if sl.stop is None:
-                    return f"{x}[{sl.start}:]"
-                return f"{x}[{sl.start}:{sl.stop}]"
+                    return f"{v}[{sl.start}:]"
+                return f"{v}[{sl.start}:{sl.stop}]"
             case _:
                 assert False
 
@@ -154,12 +154,12 @@ class GetItem(Operator):
 class GetAttr(Operator):
     """GetAttr operator node."""
 
-    def __init__(self, x: Expr, name: Constant):
-        super().__init__(x, name)
+    def __init__(self, v: Variable, name: Constant):
+        super().__init__(v, name)
 
     def __str__(self) -> str:
-        x, name = self._xs
-        return f"{x}.{name.value}"
+        v, name = self._xs
+        return f"{v}.{name.value}"
 
 
 class Not(Operator):
