@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import math
+import operator
 import random
 import re
 from collections import namedtuple
@@ -282,10 +283,7 @@ class Bits:
         Returns:
             Bits of equal size w/ inverted data.
         """
-        x0, x1 = self._data
-        y0, y1 = x1, x0
-        cls = self.__class__
-        return cls._cast_data(y0, y1)
+        return _not_(self)
 
     def uor(self) -> Scalar:
         """Unary OR reduction.
@@ -364,9 +362,6 @@ class Bits:
             return -(self.not_().to_uint() + 1)
         return self.to_uint()
 
-    def _eq(self, b: Bits) -> Scalar:
-        return _xnor(self, b).uand()
-
     def eq(self, other: Bits | str) -> Scalar:
         """Equal operator.
 
@@ -377,10 +372,7 @@ class Bits:
             Scalar result of self == other
         """
         other = _expect_size(other, self.size)
-        return self._eq(other)
-
-    def _ne(self, b: Bits) -> Scalar:
-        return _xor(self, b).uor()
+        return _eq(self, other)
 
     def ne(self, other: Bits | str) -> Scalar:
         """Not Equal operator.
@@ -392,7 +384,7 @@ class Bits:
             Scalar result of self != other
         """
         other = _expect_size(other, self.size)
-        return self._ne(other)
+        return _ne(self, other)
 
     def lt(self, other: Bits | str) -> Scalar:
         """Unsigned less than operator.
@@ -404,14 +396,7 @@ class Bits:
             Scalar result of unsigned(self) < unsigned(other)
         """
         other = _expect_size(other, self.size)
-
-        # X/DC propagation
-        if self.has_x() or other.has_x():
-            return _ScalarX
-        if self.has_dc() or other.has_dc():
-            return _ScalarW
-
-        return _bool2scalar[self.to_uint() < other.to_uint()]
+        return _cmp(operator.lt, self, other)
 
     def slt(self, other: Bits | str) -> Scalar:
         """Signed Less than operator.
@@ -442,14 +427,7 @@ class Bits:
             Scalar result of unsigned(self) ≤ unsigned(other)
         """
         other = _expect_size(other, self.size)
-
-        # X/DC propagation
-        if self.has_x() or other.has_x():
-            return _ScalarX
-        if self.has_dc() or other.has_dc():
-            return _ScalarW
-
-        return _bool2scalar[self.to_uint() <= other.to_uint()]
+        return _cmp(operator.le, self, other)
 
     def sle(self, other: Bits | str) -> Scalar:
         """Signed less than or equal operator.
@@ -480,14 +458,7 @@ class Bits:
             Scalar result of unsigned(self) > unsigned(other)
         """
         other = _expect_size(other, self.size)
-
-        # X/DC propagation
-        if self.has_x() or other.has_x():
-            return _ScalarX
-        if self.has_dc() or other.has_dc():
-            return _ScalarW
-
-        return _bool2scalar[self.to_uint() > other.to_uint()]
+        return _cmp(operator.gt, self, other)
 
     def sgt(self, other: Bits | str) -> Scalar:
         """Signed greater than operator.
@@ -518,14 +489,7 @@ class Bits:
             Scalar result of unsigned(self) ≥ unsigned(other)
         """
         other = _expect_size(other, self.size)
-
-        # X/DC propagation
-        if self.has_x() or other.has_x():
-            return _ScalarX
-        if self.has_dc() or other.has_dc():
-            return _ScalarW
-
-        return _bool2scalar[self.to_uint() >= other.to_uint()]
+        return _cmp(operator.ge, self, other)
 
     def sge(self, other: Bits | str) -> Scalar:
         """Signed greater than or equal operator.
@@ -1102,6 +1066,29 @@ class Array(Bits, _ShapeIf):
         return tuple(f(n, key) for n, key in zip(cls._shape, keys))
 
 
+def _not_(b: Bits) -> Bits:
+    x0, x1 = b.data
+    y0, y1 = x1, x0
+    cls = b.__class__
+    return cls._cast_data(y0, y1)
+
+
+def not_(b: Bits | str) -> Bits:
+    """Bitwise NOT.
+
+    f(x) -> y:
+        X => X | 00 => 00
+        0 => 1 | 01 => 10
+        1 => 0 | 10 => 01
+        - => - | 11 => 11
+
+    Returns:
+        Bits of equal size w/ inverted data.
+    """
+    b = _expect_type(b, Bits)
+    return _not_(b)
+
+
 def _or_(b0: Bits, b1: Bits) -> Bits:
     x0, x1 = b0.data, b1.data
     y0 = x0[0] & x1[0]
@@ -1410,6 +1397,113 @@ def sub(a: Bits | str, b: Bits | str) -> AddResult:
     b = _expect_size(b, a.size)
     s, co = _add(a, b.not_(), ci=_Scalar1)
     return AddResult(s, co)
+
+
+def _eq(a: Bits, b: Bits) -> Scalar:
+    return _xnor(a, b).uand()
+
+
+def eq(a: Bits | str, b: Bits | str) -> Scalar:
+    """Equal operator.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        Scalar result of self == other
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _eq(a, b)
+
+
+def _ne(a: Bits, b: Bits) -> Scalar:
+    return _xor(a, b).uor()
+
+
+def ne(a: Bits | str, b: Bits | str) -> Scalar:
+    """Not Equal operator.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        Scalar result of self != other
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _ne(a, b)
+
+
+def _cmp(op, a: Bits, b: Bits) -> Scalar:
+    # X/DC propagation
+    if a.has_x() or b.has_x():
+        return _ScalarX
+    if a.has_dc() or b.has_dc():
+        return _ScalarW
+    return _bool2scalar[op(a.to_uint(), b.to_uint())]
+
+
+def lt(a: Bits | str, b: Bits | str) -> Scalar:
+    """Unsigned less than operator.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        Scalar result of unsigned(a) < unsigned(b)
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _cmp(operator.lt, a, b)
+
+
+def le(a: Bits | str, b: Bits | str) -> Scalar:
+    """Unsigned less than or equal operator.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        Scalar result of unsigned(a) ≤ unsigned(b)
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _cmp(operator.le, a, b)
+
+
+def gt(a: Bits | str, b: Bits | str) -> Scalar:
+    """Unsigned greater than operator.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        Scalar result of unsigned(a) > unsigned(b)
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _cmp(operator.gt, a, b)
+
+
+def ge(a: Bits | str, b: Bits | str) -> Scalar:
+    """Unsigned greater than or equal operator.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        Scalar result of unsigned(a) ≥ unsigned(b)
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _cmp(operator.ge, a, b)
 
 
 def _bools2vec(x0: int, *xs: int) -> Empty | Scalar | Vector:

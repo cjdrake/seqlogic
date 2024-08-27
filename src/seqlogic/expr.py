@@ -148,7 +148,7 @@ class Not(Operator):
 
     def __str__(self) -> str:
         x = self._xs[0]
-        return f"~{x}"
+        return f"not_({x})"
 
 
 class Or(Operator):
@@ -183,7 +183,7 @@ class LessThan(Operator):
 
     def __str__(self) -> str:
         x0, x1 = self._xs
-        return f"{x0}.lt({x1})"
+        return f"lt({x0}, {x1})"
 
 
 class LessEqual(Operator):
@@ -194,7 +194,7 @@ class LessEqual(Operator):
 
     def __str__(self) -> str:
         x0, x1 = self._xs
-        return f"{x0}.le({x1})"
+        return f"le({x0}, {x1})"
 
 
 class Equal(Operator):
@@ -205,7 +205,7 @@ class Equal(Operator):
 
     def __str__(self) -> str:
         x0, x1 = self._xs
-        return f"{x0}.eq({x1})"
+        return f"eq({x0}, {x1})"
 
 
 class NotEqual(Operator):
@@ -216,7 +216,7 @@ class NotEqual(Operator):
 
     def __str__(self) -> str:
         x0, x1 = self._xs
-        return f"{x0}.ne({x1})"
+        return f"ne({x0}, {x1})"
 
 
 class GreaterThan(Operator):
@@ -227,7 +227,7 @@ class GreaterThan(Operator):
 
     def __str__(self) -> str:
         x0, x1 = self._xs
-        return f"{x0}.gt({x1})"
+        return f"gt({x0}, {x1})"
 
 
 class GreaterEqual(Operator):
@@ -238,7 +238,7 @@ class GreaterEqual(Operator):
 
     def __str__(self) -> str:
         x0, x1 = self._xs
-        return f"{x0}.ge({x1})"
+        return f"ge({x0}, {x1})"
 
 
 def f(arg):
