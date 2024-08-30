@@ -268,7 +268,7 @@ class Bits:
 
     # Note: Keep carry-out
     def __neg__(self) -> Bits:
-        s, co = self.neg()
+        s, co = _neg(self)
         return cat(s, co)
 
     def not_(self) -> Bits:
@@ -754,19 +754,6 @@ class Bits:
             return self
 
         return self._rrot(n)
-
-    def neg(self) -> AddResult:
-        """Twos complement negation.
-
-        Computed using 0 - self.
-
-        Returns:
-            2-tuple of (sum, carry-out).
-        """
-        cls = self.__class__
-        zero = cls._cast_data(self._dmax, 0)
-        s, co = _add(zero, _not_(self), ci=_Scalar1)
-        return AddResult(s, co)
 
     def count_xes(self) -> int:
         """Return number of X items."""
@@ -1403,6 +1390,25 @@ def sub(a: Bits | str, b: Bits | str) -> AddResult:
     return _sub(a, b)
 
 
+def _neg(b: Bits) -> AddResult:
+    cls = b.__class__
+    zero = cls._cast_data(b._dmax, 0)
+    s, co = _add(zero, _not_(b), ci=_Scalar1)
+    return AddResult(s, co)
+
+
+def neg(b: Bits | str) -> AddResult:
+    """Twos complement negation.
+
+    Computed using 0 - b.
+
+    Returns:
+        2-tuple of (sum, carry-out).
+    """
+    b = _expect_type(b, Bits)
+    return _neg(b)
+
+
 def _eq(a: Bits, b: Bits) -> Scalar:
     return _xnor(a, b).uand()
 
@@ -1635,10 +1641,10 @@ def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
     Raises:
         ValueError: If n overflows the output length.
     """
-    neg = n < 0
+    negative = n < 0
 
     # Compute required number of bits
-    if neg:
+    if negative:
         d1 = -n
         min_size = clog2(d1) + 1
     else:
@@ -1651,8 +1657,8 @@ def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
         raise ValueError(s)
 
     v = _vec_size(size)(d1 ^ _mask(size), d1)
-    if neg:
-        return v.neg().s
+    if negative:
+        return _neg(v).s
     return v
 
 
