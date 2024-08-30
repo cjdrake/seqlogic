@@ -18,7 +18,7 @@ import operator
 import random
 import re
 from collections import namedtuple
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from functools import cache, partial
 
 from .lbconst import _W, _X, _0, _1, from_char, to_char, to_vcd_char
@@ -1437,7 +1437,7 @@ def ne(a: Bits | str, b: Bits | str) -> Scalar:
     return _ne(a, b)
 
 
-def _cmp(op, a: Bits, b: Bits) -> Scalar:
+def _cmp(op: Callable, a: Bits, b: Bits) -> Scalar:
     # X/DC propagation
     if a.has_x() or b.has_x():
         return _ScalarX
