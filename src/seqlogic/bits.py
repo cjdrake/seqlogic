@@ -258,12 +258,12 @@ class Bits:
     # Note: Keep carry-out
     def __sub__(self, other: Bits | str) -> Scalar | Vector:
         other = _expect_size(other, self.size)
-        s, co = _add(self, _not_(other), _Scalar1)
+        s, co = _sub(self, other)
         return cat(s, co)
 
     def __rsub__(self, other: Bits | str) -> Scalar | Vector:
         other = _expect_size(other, self.size)
-        s, co = _add(other, _not_(self), _Scalar1)
+        s, co = _sub(other, self)
         return cat(s, co)
 
     # Note: Keep carry-out
