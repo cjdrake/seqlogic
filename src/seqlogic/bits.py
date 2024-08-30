@@ -79,19 +79,19 @@ def _get_array_shape(shape: tuple[int, ...]) -> type[Array]:
 
 def _expect_type(arg, t: type[Bits]):
     if isinstance(arg, str):
-        b = _lit2vec(arg)
+        x = _lit2vec(arg)
     else:
-        b = arg
-    if not isinstance(b, t):
+        x = arg
+    if not isinstance(x, t):
         raise TypeError(f"Expected arg to be {t.__name__} or str literal")
-    return b
+    return x
 
 
 def _expect_size(arg, size: int) -> Bits:
-    b = _expect_type(arg, Bits)
-    if b.size != size:
-        raise TypeError(f"Expected size {size}, got {b.size}")
-    return b
+    x = _expect_type(arg, Bits)
+    if x.size != size:
+        raise TypeError(f"Expected size {size}, got {x.size}")
+    return x
 
 
 class _ShapeIf:
@@ -132,10 +132,10 @@ class Bits:
         raise NotImplementedError()  # pragma: no cover
 
     @classmethod
-    def cast(cls, b: Bits) -> Bits:
-        if b.size != cls.size:
-            raise TypeError(f"Expected size {cls.size}, got {b.size}")
-        return cls._cast_data(b.data[0], b.data[1])
+    def cast(cls, x: Bits) -> Bits:
+        if x.size != cls.size:
+            raise TypeError(f"Expected size {cls.size}, got {x.size}")
+        return cls._cast_data(x.data[0], x.data[1])
 
     @classmethod
     def _cast_data(cls, d0: int, d1: int) -> Bits:
@@ -293,8 +293,8 @@ class Bits:
         """
         y0, y1 = _0
         for i in range(self.size):
-            x0, x1 = self._get_index(i)
-            y0, y1 = (y0 & x0, y0 & x1 | y1 & x0 | y1 & x1)
+            d0, d1 = self._get_index(i)
+            y0, y1 = (y0 & d0, y0 & d1 | y1 & d0 | y1 & d1)
         return Scalar(y0, y1)
 
     def uand(self) -> Scalar:
@@ -305,8 +305,8 @@ class Bits:
         """
         y0, y1 = _1
         for i in range(self.size):
-            x0, x1 = self._get_index(i)
-            y0, y1 = (y0 & x0 | y0 & x1 | y1 & x0, y1 & x1)
+            d0, d1 = self._get_index(i)
+            y0, y1 = (y0 & d0 | y0 & d1 | y1 & d0, y1 & d1)
         return Scalar(y0, y1)
 
     def uxnor(self) -> Scalar:
@@ -317,8 +317,8 @@ class Bits:
         """
         y0, y1 = _1
         for i in range(self.size):
-            x0, x1 = self._get_index(i)
-            y0, y1 = (y0 & x1 | y1 & x0, y0 & x0 | y1 & x1)
+            d0, d1 = self._get_index(i)
+            y0, y1 = (y0 & d1 | y1 & d0, y0 & d0 | y1 & d1)
         return Scalar(y0, y1)
 
     def uxor(self) -> Scalar:
@@ -329,8 +329,8 @@ class Bits:
         """
         y0, y1 = _0
         for i in range(self.size):
-            x0, x1 = self._get_index(i)
-            y0, y1 = (y0 & x0 | y1 & x1, y0 & x1 | y1 & x0)
+            d0, d1 = self._get_index(i)
+            y0, y1 = (y0 & d0 | y1 & d1, y0 & d1 | y1 & d0)
         return Scalar(y0, y1)
 
     def to_uint(self) -> int:
@@ -1025,14 +1025,12 @@ class Array(Bits, _ShapeIf):
         return tuple(f(n, key) for n, key in zip(cls._shape, keys))
 
 
-def _not_(b: Bits) -> Bits:
-    x0, x1 = b.data
-    y0, y1 = x1, x0
-    cls = b.__class__
-    return cls._cast_data(y0, y1)
+def _not_(x: Bits) -> Bits:
+    d0, d1 = x.data
+    return x.__class__._cast_data(d1, d0)
 
 
-def not_(b: Bits | str) -> Bits:
+def not_(x: Bits | str) -> Bits:
     """Bitwise NOT.
 
     f(x) -> y:
@@ -1044,19 +1042,19 @@ def not_(b: Bits | str) -> Bits:
     Returns:
         Bits of equal size w/ inverted data.
     """
-    b = _expect_type(b, Bits)
-    return _not_(b)
+    x = _expect_type(x, Bits)
+    return _not_(x)
 
 
-def _or_(b0: Bits, b1: Bits) -> Bits:
-    x0, x1 = b0.data, b1.data
-    y0 = x0[0] & x1[0]
-    y1 = x0[0] & x1[1] | x0[1] & x1[0] | x0[1] & x1[1]
-    cls = b0.__class__
-    return cls._cast_data(y0, y1)
+def _or_(x0: Bits, x1: Bits) -> Bits:
+    d0, d1 = x0.data, x1.data
+    return x0.__class__._cast_data(
+        d0[0] & d1[0],
+        d0[0] & d1[1] | d0[1] & d1[0] | d0[1] & d1[1],
+    )
 
 
-def or_(b0: Bits | str, *bs: Bits | str) -> Bits:
+def or_(x0: Bits | str, *xs: Bits | str) -> Bits:
     """Bitwise OR.
 
     f(x0, x1) -> y:
@@ -1078,7 +1076,8 @@ def or_(b0: Bits | str, *bs: Bits | str) -> Bits:
           +--+--+--+--+
 
     Args:
-        other: Bits of equal size.
+        x0: Bits
+        x1: Bits of equal size.
 
     Returns:
         Bits of equal size, w/ OR result.
@@ -1086,15 +1085,15 @@ def or_(b0: Bits | str, *bs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    b0 = _expect_type(b0, Bits)
-    y = b0
-    for b in bs:
-        b = _expect_size(b, b0.size)
-        y = _or_(y, b)
+    x0 = _expect_type(x0, Bits)
+    y = x0
+    for x in xs:
+        x = _expect_size(x, x0.size)
+        y = _or_(y, x)
     return y
 
 
-def nor(b0: Bits | str, *bs: Bits | str) -> Bits:
+def nor(x0: Bits | str, *xs: Bits | str) -> Bits:
     """Bitwise NOR.
 
     f(x0, x1) -> y:
@@ -1116,7 +1115,8 @@ def nor(b0: Bits | str, *bs: Bits | str) -> Bits:
           +--+--+--+--+
 
     Args:
-        other: Bits of equal size.
+        x0: Bits
+        x1: Bits of equal size.
 
     Returns:
         Bits of equal size, w/ NOR result.
@@ -1124,18 +1124,18 @@ def nor(b0: Bits | str, *bs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    return ~or_(b0, *bs)
+    return ~or_(x0, *xs)
 
 
-def _and_(b0: Bits, b1: Bits) -> Bits:
-    x0, x1 = b0.data, b1.data
-    y0 = x0[0] & x1[0] | x0[0] & x1[1] | x0[1] & x1[0]
-    y1 = x0[1] & x1[1]
-    cls = b0.__class__
-    return cls._cast_data(y0, y1)
+def _and_(x0: Bits, x1: Bits) -> Bits:
+    d0, d1 = x0.data, x1.data
+    return x0.__class__._cast_data(
+        d0[0] & d1[0] | d0[0] & d1[1] | d0[1] & d1[0],
+        d0[1] & d1[1],
+    )
 
 
-def and_(b0: Bits | str, *bs: Bits | str) -> Bits:
+def and_(x0: Bits | str, *xs: Bits | str) -> Bits:
     """Bitwise AND.
 
     f(x0, x1) -> y:
@@ -1157,7 +1157,8 @@ def and_(b0: Bits | str, *bs: Bits | str) -> Bits:
           +--+--+--+--+
 
     Args:
-        other: Bits of equal size.
+        x0: Bits
+        x1: Bits of equal size.
 
     Returns:
         Bits of equal size, w/ AND result.
@@ -1165,15 +1166,15 @@ def and_(b0: Bits | str, *bs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    b0 = _expect_type(b0, Bits)
-    y = b0
-    for b in bs:
-        b = _expect_size(b, b0.size)
-        y = _and_(y, b)
+    x0 = _expect_type(x0, Bits)
+    y = x0
+    for x in xs:
+        x = _expect_size(x, x0.size)
+        y = _and_(y, x)
     return y
 
 
-def nand(b0: Bits | str, *bs: Bits | str) -> Bits:
+def nand(x0: Bits | str, *xs: Bits | str) -> Bits:
     """Bitwise NAND.
 
     f(x0, x1) -> y:
@@ -1195,7 +1196,8 @@ def nand(b0: Bits | str, *bs: Bits | str) -> Bits:
           +--+--+--+--+
 
     Args:
-        other: Bits of equal size.
+        x0: Bits
+        x1: Bits of equal size.
 
     Returns:
         Bits of equal size, w/ NAND result.
@@ -1203,26 +1205,26 @@ def nand(b0: Bits | str, *bs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    return ~and_(b0, *bs)
+    return ~and_(x0, *xs)
 
 
-def _xnor(b0: Bits, b1: Bits) -> Bits:
-    x0, x1 = b0.data, b1.data
-    y0 = x0[0] & x1[1] | x0[1] & x1[0]
-    y1 = x0[0] & x1[0] | x0[1] & x1[1]
-    cls = b0.__class__
-    return cls._cast_data(y0, y1)
+def _xnor(x0: Bits, x1: Bits) -> Bits:
+    d0, d1 = x0.data, x1.data
+    return x0.__class__._cast_data(
+        d0[0] & d1[1] | d0[1] & d1[0],
+        d0[0] & d1[0] | d0[1] & d1[1],
+    )
 
 
-def _xor(b0: Bits, b1: Bits) -> Bits:
-    x0, x1 = b0.data, b1.data
-    y0 = x0[0] & x1[0] | x0[1] & x1[1]
-    y1 = x0[0] & x1[1] | x0[1] & x1[0]
-    cls = b0.__class__
-    return cls._cast_data(y0, y1)
+def _xor(x0: Bits, x1: Bits) -> Bits:
+    d0, d1 = x0.data, x1.data
+    return x0.__class__._cast_data(
+        d0[0] & d1[0] | d0[1] & d1[1],
+        d0[0] & d1[1] | d0[1] & d1[0],
+    )
 
 
-def xor(b0: Bits | str, *bs: Bits | str) -> Bits:
+def xor(x0: Bits | str, *xs: Bits | str) -> Bits:
     """Bitwise XOR.
 
     f(x0, x1) -> y:
@@ -1247,7 +1249,8 @@ def xor(b0: Bits | str, *bs: Bits | str) -> Bits:
           +--+--+--+--+
 
     Args:
-        other: Bits of equal size.
+        x0: Bits
+        x1: Bits of equal size.
 
     Returns:
         Bits of equal size, w/ XOR result.
@@ -1255,15 +1258,15 @@ def xor(b0: Bits | str, *bs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    b0 = _expect_type(b0, Bits)
-    y = b0
-    for b in bs:
-        b = _expect_size(b, b0.size)
-        y = _xor(y, b)
+    x0 = _expect_type(x0, Bits)
+    y = x0
+    for x in xs:
+        x = _expect_size(x, x0.size)
+        y = _xor(y, x)
     return y
 
 
-def xnor(b0: Bits | str, *bs: Bits | str) -> Bits:
+def xnor(x0: Bits | str, *xs: Bits | str) -> Bits:
     """Bitwise XNOR.
 
     f(x0, x1) -> y:
@@ -1288,7 +1291,8 @@ def xnor(b0: Bits | str, *bs: Bits | str) -> Bits:
           +--+--+--+--+
 
     Args:
-        other: Bits of equal size.
+        x0: Bits
+        x1: Bits of equal size.
 
     Returns:
         Bits of equal size, w/ XNOR result.
@@ -1296,7 +1300,7 @@ def xnor(b0: Bits | str, *bs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    return ~xor(b0, *bs)
+    return ~xor(x0, *xs)
 
 
 def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
@@ -1362,199 +1366,198 @@ def sub(a: Bits | str, b: Bits | str) -> AddResult:
     return _sub(a, b)
 
 
-def _neg(b: Bits) -> AddResult:
-    cls = b.__class__
-    zero = cls._cast_data(b._dmax, 0)
-    s, co = _add(zero, _not_(b), ci=_Scalar1)
+def _neg(x: Bits) -> AddResult:
+    zero = x.__class__.zeros()
+    s, co = _add(zero, _not_(x), ci=_Scalar1)
     return AddResult(s, co)
 
 
-def neg(b: Bits | str) -> AddResult:
+def neg(x: Bits | str) -> AddResult:
     """Twos complement negation.
 
-    Computed using 0 - b.
+    Computed using 0 - x.
 
     Returns:
         2-tuple of (sum, carry-out).
     """
-    b = _expect_type(b, Bits)
-    return _neg(b)
+    x = _expect_type(x, Bits)
+    return _neg(x)
 
 
-def _eq(a: Bits, b: Bits) -> Scalar:
-    return _xnor(a, b).uand()
+def _eq(x0: Bits, x1: Bits) -> Scalar:
+    return _xnor(x0, x1).uand()
 
 
-def eq(a: Bits | str, b: Bits | str) -> Scalar:
+def eq(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Equal operator.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        x1: Bits
+        x1: Bits of equal length.
 
     Returns:
         Scalar result of self == other
     """
-    a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
-    return _eq(a, b)
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _eq(x0, x1)
 
 
-def _ne(a: Bits, b: Bits) -> Scalar:
-    return _xor(a, b).uor()
+def _ne(x0: Bits, x1: Bits) -> Scalar:
+    return _xor(x0, x1).uor()
 
 
-def ne(a: Bits | str, b: Bits | str) -> Scalar:
+def ne(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Not Equal operator.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        x0: Bits
+        x1: Bits of equal length.
 
     Returns:
         Scalar result of self != other
     """
-    a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
-    return _ne(a, b)
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _ne(x0, x1)
 
 
-def _cmp(op: Callable, a: Bits, b: Bits) -> Scalar:
+def _cmp(op: Callable, x0: Bits, x1: Bits) -> Scalar:
     # X/DC propagation
-    if a.has_x() or b.has_x():
+    if x0.has_x() or x1.has_x():
         return _ScalarX
-    if a.has_dc() or b.has_dc():
+    if x0.has_dc() or x1.has_dc():
         return _ScalarW
-    return _bool2scalar[op(a.to_uint(), b.to_uint())]
+    return _bool2scalar[op(x0.to_uint(), x1.to_uint())]
 
 
-def lt(a: Bits | str, b: Bits | str) -> Scalar:
+def lt(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Unsigned less than operator.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        x0: Bits
+        x1: Bits of equal length.
 
     Returns:
-        Scalar result of unsigned(a) < unsigned(b)
+        Scalar result of unsigned(x0) < unsigned(x1)
     """
-    a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
-    return _cmp(operator.lt, a, b)
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _cmp(operator.lt, x0, x1)
 
 
-def le(a: Bits | str, b: Bits | str) -> Scalar:
+def le(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Unsigned less than or equal operator.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        x0: Bits
+        x1: Bits of equal length.
 
     Returns:
-        Scalar result of unsigned(a) ≤ unsigned(b)
+        Scalar result of unsigned(x0) ≤ unsigned(x1)
     """
-    a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
-    return _cmp(operator.le, a, b)
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _cmp(operator.le, x0, x1)
 
 
-def gt(a: Bits | str, b: Bits | str) -> Scalar:
+def gt(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Unsigned greater than operator.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        x0: Bits
+        x1: Bits of equal length.
 
     Returns:
-        Scalar result of unsigned(a) > unsigned(b)
+        Scalar result of unsigned(x0) > unsigned(x1)
     """
-    a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
-    return _cmp(operator.gt, a, b)
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _cmp(operator.gt, x0, x1)
 
 
-def ge(a: Bits | str, b: Bits | str) -> Scalar:
+def ge(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Unsigned greater than or equal operator.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        x0: Bits
+        x1: Bits of equal length.
 
     Returns:
-        Scalar result of unsigned(a) ≥ unsigned(b)
+        Scalar result of unsigned(x0) ≥ unsigned(x1)
     """
-    a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
-    return _cmp(operator.ge, a, b)
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _cmp(operator.ge, x0, x1)
 
 
-def _scmp(op: Callable, a: Bits, b: Bits) -> Scalar:
+def _scmp(op: Callable, x0: Bits, x1: Bits) -> Scalar:
     # X/DC propagation
-    if a.has_x() or b.has_x():
+    if x0.has_x() or x1.has_x():
         return _ScalarX
-    if a.has_dc() or b.has_dc():
+    if x0.has_dc() or x1.has_dc():
         return _ScalarW
-    return _bool2scalar[op(a.to_int(), b.to_int())]
+    return _bool2scalar[op(x0.to_int(), x1.to_int())]
 
 
-def slt(a: Bits | str, b: Bits | str) -> Scalar:
+def slt(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Signed less than operator.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        x0: Bits
+        x1: Bits of equal length.
 
     Returns:
-        Scalar result of signed(a) < signed(b)
+        Scalar result of signed(x0) < signed(x1)
     """
-    a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
-    return _scmp(operator.lt, a, b)
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _scmp(operator.lt, x0, x1)
 
 
-def sle(a: Bits | str, b: Bits | str) -> Scalar:
+def sle(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Signed less than or equal operator.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        x0: Bits
+        x1: Bits of equal length.
 
     Returns:
-        Scalar result of signed(a) ≤ signed(b)
+        Scalar result of signed(x0) ≤ signed(x1)
     """
-    a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
-    return _scmp(operator.le, a, b)
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _scmp(operator.le, x0, x1)
 
 
-def sgt(a: Bits | str, b: Bits | str) -> Scalar:
+def sgt(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Signed greater than operator.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        x0: Bits
+        x1: Bits of equal length.
 
     Returns:
-        Scalar result of signed(a) > signed(b)
+        Scalar result of signed(x0) > signed(x1)
     """
-    a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
-    return _scmp(operator.gt, a, b)
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _scmp(operator.gt, x0, x1)
 
 
-def sge(a: Bits | str, b: Bits | str) -> Scalar:
+def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Signed greater than or equal operator.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        x0: Bits
+        x1: Bits of equal length.
 
     Returns:
-        Scalar result of signed(a) ≥ signed(b)
+        Scalar result of signed(x0) ≥ signed(x1)
     """
-    a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
-    return _scmp(operator.ge, a, b)
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _scmp(operator.ge, x0, x1)
 
 
 def _bools2vec(x0: int, *xs: int) -> Empty | Scalar | Vector:
@@ -1697,10 +1700,10 @@ def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
         s = f"Overflow: n = {n} required size ≥ {min_size}, got {size}"
         raise ValueError(s)
 
-    v = _vec_size(size)(d1 ^ _mask(size), d1)
+    x = _vec_size(size)(d1 ^ _mask(size), d1)
     if negative:
-        return _neg(v).s
-    return v
+        return _neg(x).s
+    return x
 
 
 def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
@@ -1719,27 +1722,27 @@ def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
         return _Empty
 
     # Convert inputs
-    bs = []
+    xs = []
     for obj in objs:
         if isinstance(obj, Bits):
-            bs.append(obj)
+            xs.append(obj)
         elif obj in (0, 1):
-            bs.append(_bool2scalar[obj])
+            xs.append(_bool2scalar[obj])
         elif isinstance(obj, str):
-            v = _lit2vec(obj)
-            bs.append(v)
+            x = _lit2vec(obj)
+            xs.append(x)
         else:
             raise TypeError(f"Invalid input: {obj}")
 
-    if len(bs) == 1:
-        return bs[0]
+    if len(xs) == 1:
+        return xs[0]
 
     size = 0
     d0, d1 = 0, 0
-    for b in bs:
-        d0 |= b.data[0] << size
-        d1 |= b.data[1] << size
-        size += b.size
+    for x in xs:
+        d0 |= x.data[0] << size
+        d1 |= x.data[1] << size
+        size += x.size
     return _vec_size(size)(d0, d1)
 
 
@@ -1813,8 +1816,8 @@ class _EnumMeta(type):
 
         # Override Vector.__new__ method
         def _new(cls, arg: Bits | str):
-            b = _expect_size(arg, cls.size)
-            return cls.cast(b)
+            x = _expect_size(arg, cls.size)
+            return cls.cast(x)
 
         enum.__new__ = _new
 
@@ -1904,9 +1907,9 @@ class _StructMeta(type):
             for arg, (fn, ft) in zip(args, fields):
                 if arg is not None:
                     # TODO(cjdrake): Check input type?
-                    b = _expect_size(arg, ft.size)
-                    d0 |= b.data[0] << offsets[fn]
-                    d1 |= b.data[1] << offsets[fn]
+                    x = _expect_size(arg, ft.size)
+                    d0 |= x.data[0] << offsets[fn]
+                    d1 |= x.data[1] << offsets[fn]
             obj._data = (d0, d1)
 
         source = _struct_init_source(fields)
@@ -1926,8 +1929,8 @@ class _StructMeta(type):
         def _str(self):
             parts = [f"{name}("]
             for fn, _ in fields:
-                b = getattr(self, fn)
-                parts.append(f"    {fn}={b!s},")
+                x = getattr(self, fn)
+                parts.append(f"    {fn}={x!s},")
             parts.append(")")
             return "\n".join(parts)
 
@@ -1937,8 +1940,8 @@ class _StructMeta(type):
         def _repr(self):
             parts = [f"{name}("]
             for fn, _ in fields:
-                b = getattr(self, fn)
-                parts.append(f"    {fn}={b!r},")
+                x = getattr(self, fn)
+                parts.append(f"    {fn}={x!r},")
             parts.append(")")
             return "\n".join(parts)
 
@@ -1989,18 +1992,18 @@ class _UnionMeta(type):
         # Override Bits.__init__ method
         def _init(self, arg: Bits | str):
             if isinstance(arg, str):
-                b = _lit2vec(arg)
+                x = _lit2vec(arg)
             else:
-                b = arg
+                x = arg
             ts = []
             for _, ft in fields:
                 if ft not in ts:
                     ts.append(ft)
-            if not isinstance(b, tuple(ts)):
+            if not isinstance(x, tuple(ts)):
                 s = ", ".join(t.__name__ for t in ts)
                 s = f"Expected arg to be {{{s}}}, or str literal"
                 raise TypeError(s)
-            self._data = b.data
+            self._data = x.data
 
         union.__init__ = _init
 
@@ -2015,8 +2018,8 @@ class _UnionMeta(type):
         def _str(self):
             parts = [f"{name}("]
             for fn, _ in fields:
-                b = getattr(self, fn)
-                parts.append(f"    {fn}={b!s},")
+                x = getattr(self, fn)
+                parts.append(f"    {fn}={x!s},")
             parts.append(")")
             return "\n".join(parts)
 
@@ -2026,8 +2029,8 @@ class _UnionMeta(type):
         def _repr(self):
             parts = [f"{name}("]
             for fn, _ in fields:
-                b = getattr(self, fn)
-                parts.append(f"    {fn}={b!r},")
+                x = getattr(self, fn)
+                parts.append(f"    {fn}={x!r},")
             parts.append(")")
             return "\n".join(parts)
 
@@ -2077,12 +2080,12 @@ def bits(obj=None) -> _ShapeIf:
         case str() as lit:
             return _lit2vec(lit)
         case [str() as lit, *rst]:
-            v = _lit2vec(lit)
-            return _rank2(v, *rst)
-        case [Scalar() as v, *rst]:
-            return _rank2(v, *rst)
-        case [Vector() as v, *rst]:
-            return _rank2(v, *rst)
+            x = _lit2vec(lit)
+            return _rank2(x, *rst)
+        case [Scalar() as x, *rst]:
+            return _rank2(x, *rst)
+        case [Vector() as x, *rst]:
+            return _rank2(x, *rst)
         case [*objs]:
             return stack(*[bits(obj) for obj in objs])
         case _:
@@ -2105,43 +2108,43 @@ def stack(*objs: _ShapeIf | int | str) -> _ShapeIf:
         return _Empty
 
     # Convert inputs
-    bs = []
+    xs = []
     for obj in objs:
         if isinstance(obj, _ShapeIf):
-            bs.append(obj)
+            xs.append(obj)
         elif obj in (0, 1):
-            bs.append(_bool2scalar[obj])
+            xs.append(_bool2scalar[obj])
         elif isinstance(obj, str):
-            v = _lit2vec(obj)
-            bs.append(v)
+            x = _lit2vec(obj)
+            xs.append(x)
         else:
             raise TypeError(f"Invalid input: {obj}")
 
-    if len(bs) == 1:
-        return bs[0]
+    if len(xs) == 1:
+        return xs[0]
 
-    fst, rst = bs[0], bs[1:]
+    fst, rst = xs[0], xs[1:]
 
     size = fst.size
     d0, d1 = fst.data
-    for b in rst:
-        if b.shape != fst.shape:
-            s = f"Expected shape {fst.shape}, got {b.shape}"
+    for x in rst:
+        if x.shape != fst.shape:
+            s = f"Expected shape {fst.shape}, got {x.shape}"
             raise TypeError(s)
-        d0 |= b.data[0] << size
-        d1 |= b.data[1] << size
-        size += b.size
+        d0 |= x.data[0] << size
+        d1 |= x.data[1] << size
+        size += x.size
 
     # {Empty, Empty, ...} => Empty
     if fst.shape == (0,):
         return _Empty
     # {Scalar, Scalar, ...} => Vector[K]
     if fst.shape == (1,):
-        size = len(bs)
+        size = len(xs)
         return _vec_size(size)(d0, d1)
     # {Vector[K], Vector[K], ...} => Array[J,K]
     # {Array[J,K], Array[J,K], ...} => Array[I,J,K]
-    shape = (len(bs),) + fst.shape
+    shape = (len(xs),) + fst.shape
     return _get_array_shape(shape)(d0, d1)
 
 
@@ -2150,48 +2153,48 @@ def _chunk(data: tuple[int, int], base: int, size: int) -> tuple[int, int]:
     return (data[0] >> base) & mask, (data[1] >> base) & mask
 
 
-def _sel(b: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:
-    assert len(b.shape) == len(key)
+def _sel(x: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:
+    assert len(x.shape) == len(key)
 
     (start, stop), key_r = key[0], key[1:]
-    assert 0 <= start <= stop <= b.shape[0]
+    assert 0 <= start <= stop <= x.shape[0]
 
     # Partial select m:n
-    if start != 0 or stop != b.shape[0]:
+    if start != 0 or stop != x.shape[0]:
 
         if len(key_r) == 0:
             size = stop - start
-            d0, d1 = _chunk(b.data, start, size)
+            d0, d1 = _chunk(x.data, start, size)
             return _vec_size(size)(d0, d1)
 
         if len(key_r) == 1:
-            vec = _get_vec_size(b.shape[1])
+            vec = _get_vec_size(x.shape[1])
             xs = []
             for i in range(start, stop):
-                d0, d1 = _chunk(b.data, vec.size * i, vec.size)
+                d0, d1 = _chunk(x.data, vec.size * i, vec.size)
                 xs.append(vec(d0, d1))
             return stack(*[_sel(x, key_r) for x in xs])
 
-        array = _get_array_shape(b.shape[1:])
+        array = _get_array_shape(x.shape[1:])
         xs = []
         for i in range(start, stop):
-            d0, d1 = _chunk(b.data, array.size * i, array.size)
+            d0, d1 = _chunk(x.data, array.size * i, array.size)
             xs.append(array(d0, d1))
         return stack(*[_sel(x, key_r) for x in xs])
 
     # Full select 0:n
     if key_r:
-        return stack(*[_sel(x, key_r) for x in b])
+        return stack(*[_sel(xx, key_r) for xx in x])
 
-    return b
+    return x
 
 
 def _rank2(fst: Scalar | Vector, *rst: Scalar | Vector | str) -> Vector | Array:
     d0, d1 = fst.data
-    for i, v in enumerate(rst, start=1):
-        v = _expect_type(v, Vector[fst.size])
-        d0 |= v.data[0] << (fst.size * i)
-        d1 |= v.data[1] << (fst.size * i)
+    for i, x in enumerate(rst, start=1):
+        x = _expect_type(x, Vector[fst.size])
+        d0 |= x.data[0] << (fst.size * i)
+        d1 |= x.data[1] << (fst.size * i)
     if fst.shape == (1,):
         size = len(rst) + 1
         return _get_vec_size(size)(d0, d1)
@@ -2229,30 +2232,30 @@ def _norm_slice(n: int, sl: slice) -> tuple[int, int]:
     return start, stop
 
 
-def _get_sep(indent: str, b: Vector | Array) -> str:
+def _get_sep(indent: str, x: Vector | Array) -> str:
     # 2-D Matrix
-    if len(b.shape) == 2:
+    if len(x.shape) == 2:
         return ", "
     # 3-D
-    if len(b.shape) == 3:
+    if len(x.shape) == 3:
         return ",\n" + indent
     # N-D
     return ",\n\n" + indent
 
 
-def _array_repr(indent: str, b: Vector | Array) -> str:
+def _array_repr(indent: str, x: Vector | Array) -> str:
     # 1-D Vector
-    if len(b.shape) == 1:
-        return f'"{b}"'
-    sep = _get_sep(indent, b)
+    if len(x.shape) == 1:
+        return f'"{x}"'
+    sep = _get_sep(indent, x)
     f = partial(_array_repr, indent + " ")
-    return "[" + sep.join(map(f, b)) + "]"
+    return "[" + sep.join(map(f, x)) + "]"
 
 
-def _array_str(indent: str, b: Vector | Array) -> str:
+def _array_str(indent: str, x: Vector | Array) -> str:
     # 1-D Vector
-    if len(b.shape) == 1:
-        return f"{b}"
-    sep = _get_sep(indent, b)
+    if len(x.shape) == 1:
+        return f"{x}"
+    sep = _get_sep(indent, x)
     f = partial(_array_str, indent + " ")
-    return "[" + sep.join(map(f, b)) + "]"
+    return "[" + sep.join(map(f, x)) + "]"
