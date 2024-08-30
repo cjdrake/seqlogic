@@ -218,11 +218,11 @@ class Bits:
 
     def __xor__(self, other: Bits | str) -> Bits:
         other = _expect_size(other, self.size)
-        return _xor(self, other)
+        return _xor_(self, other)
 
     def __rxor__(self, other: Bits | str) -> Bits:
         other = _expect_size(other, self.size)
-        return _xor(other, self)
+        return _xor_(other, self)
 
     # Note: Drop carry-out
     def __lshift__(self, n: int | Bits) -> Bits:
@@ -924,6 +924,26 @@ def _not_(x: Bits) -> Bits:
     return x.__class__._cast_data(d0, d1)
 
 
+def _or_(x0: Bits, x1: Bits) -> Bits:
+    d0, d1 = _lor(x0.data, x1.data)
+    return x0.__class__._cast_data(d0, d1)
+
+
+def _and_(x0: Bits, x1: Bits) -> Bits:
+    d0, d1 = _land(x0.data, x1.data)
+    return x0.__class__._cast_data(d0, d1)
+
+
+def _xnor_(x0: Bits, x1: Bits) -> Bits:
+    d0, d1 = _lxnor(x0.data, x1.data)
+    return x0.__class__._cast_data(d0, d1)
+
+
+def _xor_(x0: Bits, x1: Bits) -> Bits:
+    d0, d1 = _lxor(x0.data, x1.data)
+    return x0.__class__._cast_data(d0, d1)
+
+
 def not_(x: Bits | str) -> Bits:
     """Bitwise NOT.
 
@@ -938,11 +958,6 @@ def not_(x: Bits | str) -> Bits:
     """
     x = _expect_type(x, Bits)
     return _not_(x)
-
-
-def _or_(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = _lor(x0.data, x1.data)
-    return x0.__class__._cast_data(d0, d1)
 
 
 def or_(x0: Bits | str, *xs: Bits | str) -> Bits:
@@ -1018,11 +1033,6 @@ def nor(x0: Bits | str, *xs: Bits | str) -> Bits:
     return _not_(or_(x0, *xs))
 
 
-def _and_(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = _land(x0.data, x1.data)
-    return x0.__class__._cast_data(d0, d1)
-
-
 def and_(x0: Bits | str, *xs: Bits | str) -> Bits:
     """Bitwise AND.
 
@@ -1096,16 +1106,6 @@ def nand(x0: Bits | str, *xs: Bits | str) -> Bits:
     return _not_(and_(x0, *xs))
 
 
-def _xnor(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = _lxnor(x0.data, x1.data)
-    return x0.__class__._cast_data(d0, d1)
-
-
-def _xor(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = _lxor(x0.data, x1.data)
-    return x0.__class__._cast_data(d0, d1)
-
-
 def xor(x0: Bits | str, *xs: Bits | str) -> Bits:
     """Bitwise XOR.
 
@@ -1144,7 +1144,7 @@ def xor(x0: Bits | str, *xs: Bits | str) -> Bits:
     y = x0
     for x in xs:
         x = _expect_size(x, x0.size)
-        y = _xor(y, x)
+        y = _xor_(y, x)
     return y
 
 
@@ -1267,7 +1267,7 @@ def neg(x: Bits | str) -> AddResult:
 
 
 def _eq(x0: Bits, x1: Bits) -> Scalar:
-    return _xnor(x0, x1).uand()
+    return _xnor_(x0, x1).uand()
 
 
 def eq(x0: Bits | str, x1: Bits | str) -> Scalar:
@@ -1286,7 +1286,7 @@ def eq(x0: Bits | str, x1: Bits | str) -> Scalar:
 
 
 def _ne(x0: Bits, x1: Bits) -> Scalar:
-    return _xor(x0, x1).uor()
+    return _xor_(x0, x1).uor()
 
 
 def ne(x0: Bits | str, x1: Bits | str) -> Scalar:
