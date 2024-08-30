@@ -291,11 +291,10 @@ class Bits:
         Returns:
             Scalar w/ OR reduction.
         """
-        y0, y1 = _0
+        y = _0
         for i in range(self.size):
-            d0, d1 = self._get_index(i)
-            y0, y1 = (y0 & d0, y0 & d1 | y1 & d0 | y1 & d1)
-        return Scalar(y0, y1)
+            y = _lor(y, self._get_index(i))
+        return Scalar(y[0], y[1])
 
     def uand(self) -> Scalar:
         """Unary AND reduction.
@@ -303,11 +302,10 @@ class Bits:
         Returns:
             Scalar w/ AND reduction.
         """
-        y0, y1 = _1
+        y = _1
         for i in range(self.size):
-            d0, d1 = self._get_index(i)
-            y0, y1 = (y0 & d0 | y0 & d1 | y1 & d0, y1 & d1)
-        return Scalar(y0, y1)
+            y = _land(y, self._get_index(i))
+        return Scalar(y[0], y[1])
 
     def uxnor(self) -> Scalar:
         """Unary XNOR reduction.
@@ -315,11 +313,10 @@ class Bits:
         Returns:
             Scalar w/ XNOR reduction.
         """
-        y0, y1 = _1
+        y = _1
         for i in range(self.size):
-            d0, d1 = self._get_index(i)
-            y0, y1 = (y0 & d1 | y1 & d0, y0 & d0 | y1 & d1)
-        return Scalar(y0, y1)
+            y = _lxnor(y, self._get_index(i))
+        return Scalar(y[0], y[1])
 
     def uxor(self) -> Scalar:
         """Unary XOR reduction.
@@ -327,11 +324,10 @@ class Bits:
         Returns:
             Scalar w/ XOR reduction.
         """
-        y0, y1 = _0
+        y = _0
         for i in range(self.size):
-            d0, d1 = self._get_index(i)
-            y0, y1 = (y0 & d0 | y1 & d1, y0 & d1 | y1 & d0)
-        return Scalar(y0, y1)
+            y = _lxor(y, self._get_index(i))
+        return Scalar(y[0], y[1])
 
     def to_uint(self) -> int:
         """Convert to unsigned integer.
@@ -1025,9 +1021,41 @@ class Array(Bits, _ShapeIf):
         return tuple(f(n, key) for n, key in zip(cls._shape, keys))
 
 
+def _lnot(d: tuple[int, int]) -> tuple[int, int]:
+    return d[1], d[0]
+
+
+def _lor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
+    return (
+        d0[0] & d1[0],
+        d0[0] & d1[1] | d0[1] & d1[0] | d0[1] & d1[1],
+    )
+
+
+def _land(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
+    return (
+        d0[0] & d1[0] | d0[0] & d1[1] | d0[1] & d1[0],
+        d0[1] & d1[1],
+    )
+
+
+def _lxnor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
+    return (
+        d0[0] & d1[1] | d0[1] & d1[0],
+        d0[0] & d1[0] | d0[1] & d1[1],
+    )
+
+
+def _lxor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
+    return (
+        d0[0] & d1[0] | d0[1] & d1[1],
+        d0[0] & d1[1] | d0[1] & d1[0],
+    )
+
+
 def _not_(x: Bits) -> Bits:
-    d0, d1 = x.data
-    return x.__class__._cast_data(d1, d0)
+    d0, d1 = _lnot(x.data)
+    return x.__class__._cast_data(d0, d1)
 
 
 def not_(x: Bits | str) -> Bits:
@@ -1047,11 +1075,8 @@ def not_(x: Bits | str) -> Bits:
 
 
 def _or_(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = x0.data, x1.data
-    return x0.__class__._cast_data(
-        d0[0] & d1[0],
-        d0[0] & d1[1] | d0[1] & d1[0] | d0[1] & d1[1],
-    )
+    d0, d1 = _lor(x0.data, x1.data)
+    return x0.__class__._cast_data(d0, d1)
 
 
 def or_(x0: Bits | str, *xs: Bits | str) -> Bits:
@@ -1124,15 +1149,12 @@ def nor(x0: Bits | str, *xs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    return ~or_(x0, *xs)
+    return _not_(or_(x0, *xs))
 
 
 def _and_(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = x0.data, x1.data
-    return x0.__class__._cast_data(
-        d0[0] & d1[0] | d0[0] & d1[1] | d0[1] & d1[0],
-        d0[1] & d1[1],
-    )
+    d0, d1 = _land(x0.data, x1.data)
+    return x0.__class__._cast_data(d0, d1)
 
 
 def and_(x0: Bits | str, *xs: Bits | str) -> Bits:
@@ -1205,23 +1227,17 @@ def nand(x0: Bits | str, *xs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    return ~and_(x0, *xs)
+    return _not_(and_(x0, *xs))
 
 
 def _xnor(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = x0.data, x1.data
-    return x0.__class__._cast_data(
-        d0[0] & d1[1] | d0[1] & d1[0],
-        d0[0] & d1[0] | d0[1] & d1[1],
-    )
+    d0, d1 = _lxnor(x0.data, x1.data)
+    return x0.__class__._cast_data(d0, d1)
 
 
 def _xor(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = x0.data, x1.data
-    return x0.__class__._cast_data(
-        d0[0] & d1[0] | d0[1] & d1[1],
-        d0[0] & d1[1] | d0[1] & d1[0],
-    )
+    d0, d1 = _lxor(x0.data, x1.data)
+    return x0.__class__._cast_data(d0, d1)
 
 
 def xor(x0: Bits | str, *xs: Bits | str) -> Bits:
@@ -1300,7 +1316,7 @@ def xnor(x0: Bits | str, *xs: Bits | str) -> Bits:
     Raises:
         ValueError: Bits sizes do not match.
     """
-    return ~xor(x0, *xs)
+    return _not_(xor(x0, *xs))
 
 
 def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
