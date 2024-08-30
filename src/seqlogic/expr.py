@@ -57,6 +57,10 @@ class Expr(ABC):
     def iter_vars(self):
         raise NotImplementedError()
 
+    @property
+    def support(self) -> set[Variable]:
+        return set(self.iter_vars())
+
 
 class Atom(Expr):
     """Atomic expression (leaf) node."""
@@ -86,10 +90,15 @@ class BitsConst(Constant):
 class Variable(Atom):
     """Variable node."""
 
+    # TODO(cjdrake): Disambiguate from Hierarchy._name
     def __init__(self, name: str):
         self._name = name
 
     def __str__(self) -> str:
+        return self._name
+
+    @property
+    def name(self):
         return self._name
 
     def iter_vars(self):

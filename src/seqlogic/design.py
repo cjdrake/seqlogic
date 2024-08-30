@@ -20,6 +20,19 @@ from .expr import Expr, Op, Variable, parse
 from .hier import Branch, Leaf
 from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
 
+expr_globals = {
+    "not_": not_,
+    "or_": or_,
+    "and_": and_,
+    "xor": xor,
+    "lt": lt,
+    "le": le,
+    "eq": eq,
+    "ne": ne,
+    "gt": gt,
+    "ge": ge,
+}
+
 
 class DesignError(Exception):
     """Design Error."""
@@ -102,30 +115,13 @@ class Module(Branch, ProcIf, _TraceIf):
         setattr(self, name, node)
         return node
 
-    def _expr(self, ex: Expr) -> tuple[Callable, list[Logic]]:
-        vs = set(ex.iter_vars())
-        xs = sorted(vs, key=lambda x: x.name)
-        args = ", ".join(x.name for x in xs)
-        lines = [
-            f"def f({args}):\n",
-            f"    return {ex}\n",
-        ]
-        source = "".join(lines)
-        globals_ = {
-            "not_": not_,
-            "or_": or_,
-            "and_": and_,
-            "xor": xor,
-            "lt": lt,
-            "le": le,
-            "eq": eq,
-            "ne": ne,
-            "gt": gt,
-            "ge": ge,
-        }
+    def _expr(self, ex: Expr) -> tuple[Callable, list[Variable]]:
+        vs = sorted(ex.support, key=lambda v: v.name)
+        args = ", ".join(v.name for v in vs)
+        source = f"def f({args}):\n    return {ex}\n"
         locals_ = {}
-        exec(source, globals_, locals_)
-        return locals_["f"], xs
+        exec(source, expr_globals, locals_)
+        return locals_["f"], vs
 
     def _connect_input(self, name: str, rhs):
         y = getattr(self, name)
