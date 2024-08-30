@@ -408,14 +408,7 @@ class Bits:
             Scalar result of signed(self) < signed(other)
         """
         other = _expect_size(other, self.size)
-
-        # X/DC propagation
-        if self.has_x() or other.has_x():
-            return _ScalarX
-        if self.has_dc() or other.has_dc():
-            return _ScalarW
-
-        return _bool2scalar[self.to_int() < other.to_int()]
+        return _scmp(operator.lt, self, other)
 
     def le(self, other: Bits | str) -> Scalar:
         """Unsigned less than or equal operator.
@@ -439,14 +432,7 @@ class Bits:
             Scalar result of signed(self) ≤ signed(other)
         """
         other = _expect_size(other, self.size)
-
-        # X/DC propagation
-        if self.has_x() or other.has_x():
-            return _ScalarX
-        if self.has_dc() or other.has_dc():
-            return _ScalarW
-
-        return _bool2scalar[self.to_int() <= other.to_int()]
+        return _scmp(operator.le, self, other)
 
     def gt(self, other: Bits | str) -> Scalar:
         """Unsigned greater than operator.
@@ -470,14 +456,7 @@ class Bits:
             Scalar result of signed(self) > signed(other)
         """
         other = _expect_size(other, self.size)
-
-        # X/DC propagation
-        if self.has_x() or other.has_x():
-            return _ScalarX
-        if self.has_dc() or other.has_dc():
-            return _ScalarW
-
-        return _bool2scalar[self.to_int() > other.to_int()]
+        return _scmp(operator.gt, self, other)
 
     def ge(self, other: Bits | str) -> Scalar:
         """Unsigned greater than or equal operator.
@@ -501,14 +480,7 @@ class Bits:
             Scalar result of signed(self) ≥ signed(other)
         """
         other = _expect_size(other, self.size)
-
-        # X/DC propagation
-        if self.has_x() or other.has_x():
-            return _ScalarX
-        if self.has_dc() or other.has_dc():
-            return _ScalarW
-
-        return _bool2scalar[self.to_int() >= other.to_int()]
+        return _scmp(operator.ge, self, other)
 
     def xt(self, n: int) -> Bits:
         """Unsigned extend by n bits.
