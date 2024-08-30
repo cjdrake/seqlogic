@@ -110,8 +110,8 @@ class Operator(Expr):
 class GetItem(Operator):
     """GetItem operator node."""
 
-    def __init__(self, v: Variable, key: Constant):
-        super().__init__(v, key)
+    def __init__(self, x: Expr, key: Constant):
+        super().__init__(x, key)
 
     def __str__(self) -> str:
         v, key = self._xs
@@ -264,8 +264,8 @@ def parse(*args):
             return And(*[f(x) for x in xs])
         case [Op.XOR, *xs]:
             return Xor(*[f(x) for x in xs])
-        case [Op.GETITEM, Variable() as v, (int() | slice()) as key]:
-            return GetItem(v, Constant(key))
+        case [Op.GETITEM, Expr() as x, (int() | slice()) as key]:
+            return GetItem(x, Constant(key))
         case [Op.GETATTR, Variable() as v, str() as name]:
             return GetAttr(v, Constant(name))
         case [Op.LT, x0, x1]:
