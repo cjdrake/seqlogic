@@ -107,6 +107,16 @@ class Operator(Expr):
             yield from x.iter_vars()
 
 
+class PrefixOp(Operator):
+    """Prefix operator: f(x[0], x[1], ..., x[n-1])"""
+
+    name = NotImplemented
+
+    def __str__(self) -> str:
+        s = ", ".join(str(x) for x in self._xs)
+        return f"{self.name}({s})"
+
+
 class GetItem(Operator):
     """GetItem operator node."""
 
@@ -114,17 +124,18 @@ class GetItem(Operator):
         super().__init__(x, key)
 
     def __str__(self) -> str:
-        v, key = self._xs
-        match key.value:
+        x = self._xs[0]
+        key = self._xs[1].value
+        match key:
             case int() as i:
-                return f"{v}[{i}]"
+                return f"{x}[{i}]"
             case slice() as sl:
                 assert not (sl.start is None and sl.stop is None)
                 if sl.start is None:
-                    return f"{v}[:{sl.stop}]"
+                    return f"{x}[:{sl.stop}]"
                 if sl.stop is None:
-                    return f"{v}[{sl.start}:]"
-                return f"{v}[{sl.start}:{sl.stop}]"
+                    return f"{x}[{sl.start}:]"
+                return f"{x}[{sl.start}:{sl.stop}]"
             case _:
                 assert False
 
@@ -136,109 +147,90 @@ class GetAttr(Operator):
         super().__init__(v, name)
 
     def __str__(self) -> str:
-        v, name = self._xs
-        return f"{v}.{name.value}"
+        v = self._xs[0]
+        name = self._xs[1].value
+        return f"{v}.{name}"
 
 
-class Not(Operator):
+class Not(PrefixOp):
     """NOT operator node."""
+
+    name = "not_"
 
     def __init__(self, x: Expr):
         super().__init__(x)
 
-    def __str__(self) -> str:
-        x = self._xs[0]
-        return f"not_({x})"
 
-
-class Or(Operator):
+class Or(PrefixOp):
     """OR operator node."""
 
-    def __str__(self) -> str:
-        s = ", ".join(str(x) for x in self._xs)
-        return f"or_({s})"
+    name = "or_"
 
 
-class And(Operator):
+class And(PrefixOp):
     """AND operator node."""
 
-    def __str__(self) -> str:
-        s = ", ".join(str(x) for x in self._xs)
-        return f"and_({s})"
+    name = "and_"
 
 
-class Xor(Operator):
+class Xor(PrefixOp):
     """XOR operator node."""
 
-    def __str__(self) -> str:
-        s = ", ".join(str(x) for x in self._xs)
-        return f"xor({s})"
+    name = "xor"
 
 
-class LessThan(Operator):
+class LessThan(PrefixOp):
     """LessThan (<) operator node."""
 
+    name = "lt"
+
     def __init__(self, x0: Expr, x1: Expr):
         super().__init__(x0, x1)
 
-    def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"lt({x0}, {x1})"
 
-
-class LessEqual(Operator):
+class LessEqual(PrefixOp):
     """Less Than Or Equal (≤) operator node."""
 
+    name = "le"
+
     def __init__(self, x0: Expr, x1: Expr):
         super().__init__(x0, x1)
 
-    def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"le({x0}, {x1})"
 
-
-class Equal(Operator):
+class Equal(PrefixOp):
     """Equal (==) operator node."""
 
+    name = "eq"
+
     def __init__(self, x0: Expr, x1: Expr):
         super().__init__(x0, x1)
 
-    def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"eq({x0}, {x1})"
 
-
-class NotEqual(Operator):
+class NotEqual(PrefixOp):
     """NotEqual (!=) operator node."""
 
+    name = "ne"
+
     def __init__(self, x0: Expr, x1: Expr):
         super().__init__(x0, x1)
 
-    def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"ne({x0}, {x1})"
 
-
-class GreaterThan(Operator):
+class GreaterThan(PrefixOp):
     """GreaterThan (>) operator node."""
 
+    name = "gt"
+
     def __init__(self, x0: Expr, x1: Expr):
         super().__init__(x0, x1)
 
-    def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"gt({x0}, {x1})"
 
-
-class GreaterEqual(Operator):
+class GreaterEqual(PrefixOp):
     """Greater Than Or Equal (≥) operator node."""
 
+    name = "ge"
+
     def __init__(self, x0: Expr, x1: Expr):
         super().__init__(x0, x1)
-
-    def __str__(self) -> str:
-        x0, x1 = self._xs
-        return f"ge({x0}, {x1})"
 
 
 def f(arg):
