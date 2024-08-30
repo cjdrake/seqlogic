@@ -1516,6 +1516,75 @@ def ge(a: Bits | str, b: Bits | str) -> Scalar:
     return _cmp(operator.ge, a, b)
 
 
+def _scmp(op: Callable, a: Bits, b: Bits) -> Scalar:
+    # X/DC propagation
+    if a.has_x() or b.has_x():
+        return _ScalarX
+    if a.has_dc() or b.has_dc():
+        return _ScalarW
+    return _bool2scalar[op(a.to_int(), b.to_int())]
+
+
+def slt(a: Bits | str, b: Bits | str) -> Scalar:
+    """Signed less than operator.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        Scalar result of signed(a) < signed(b)
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _scmp(operator.lt, a, b)
+
+
+def sle(a: Bits | str, b: Bits | str) -> Scalar:
+    """Signed less than or equal operator.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        Scalar result of signed(a) ≤ signed(b)
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _scmp(operator.le, a, b)
+
+
+def sgt(a: Bits | str, b: Bits | str) -> Scalar:
+    """Signed greater than operator.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        Scalar result of signed(a) > signed(b)
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _scmp(operator.gt, a, b)
+
+
+def sge(a: Bits | str, b: Bits | str) -> Scalar:
+    """Signed greater than or equal operator.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        Scalar result of signed(a) ≥ signed(b)
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _scmp(operator.ge, a, b)
+
+
 def _bools2vec(x0: int, *xs: int) -> Empty | Scalar | Vector:
     """Convert an iterable of bools to a vec.
 
