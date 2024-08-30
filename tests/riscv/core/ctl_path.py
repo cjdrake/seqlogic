@@ -1,6 +1,6 @@
 """Control Path."""
 
-from seqlogic import Module, Vec
+from seqlogic import Module, Vec, eq
 
 from . import (
     AluOp,
@@ -99,8 +99,8 @@ def f_alu_op(
                     return AluOp.xprop(funct7[5])
         case CtlAlu.OP_IMM:
             a = funct7[5]
-            b = funct3.alu_logic.eq(Funct3AluLogic.SLL)
-            c = funct3.alu_logic.eq(Funct3AluLogic.SHIFTR)
+            b = eq(funct3.alu_logic, Funct3AluLogic.SLL)
+            c = eq(funct3.alu_logic, Funct3AluLogic.SHIFTR)
             sel = a & (b | c)
             match sel:
                 case "1b0":

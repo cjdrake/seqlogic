@@ -9,12 +9,22 @@ from seqlogic import (
     and_,
     bits,
     cat,
+    eq,
+    ge,
+    gt,
     i2bv,
+    le,
+    lt,
     nand,
+    ne,
     nor,
     not_,
     or_,
     rep,
+    sge,
+    sgt,
+    sle,
+    slt,
     sub,
     u2bv,
     xnor,
@@ -745,11 +755,12 @@ EQ = [
 
 def test_vec_eq():
     for a, b, y in EQ:
-        assert bits(a).eq(b) == y
+        assert eq(bits(a), b) == y
+        assert eq(a, bits(b)) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        bits("1b0").eq("2b00")
+        eq("1b0", "2b00")
 
 
 NE = [
@@ -770,11 +781,12 @@ NE = [
 
 def test_vec_ne():
     for a, b, y in NE:
-        assert bits(a).ne(b) == y
+        assert ne(bits(a), b) == y
+        assert ne(a, bits(b)) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        bits("1b0").ne("2b00")
+        ne("1b0", "2b00")
 
 
 LT = [
@@ -789,11 +801,12 @@ LT = [
 
 def test_vec_lt():
     for a, b, y in LT:
-        assert bits(a).lt(b) == y
+        assert lt(bits(a), b) == y
+        assert lt(a, bits(b)) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        bits("1b0").lt("2b00")
+        lt("1b0", "2b00")
 
 
 LE = [
@@ -808,11 +821,12 @@ LE = [
 
 def test_vec_le():
     for a, b, y in LE:
-        assert bits(a).le(b) == y
+        assert le(bits(a), b) == y
+        assert le(a, bits(b)) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        bits("1b0").le("2b00")
+        le("1b0", "2b00")
 
 
 SLT = [
@@ -827,11 +841,12 @@ SLT = [
 
 def test_vec_slt():
     for a, b, y in SLT:
-        assert bits(a).slt(b) == y
+        assert slt(bits(a), b) == y
+        assert slt(a, bits(b)) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        bits("1b0").slt("2b00")
+        slt("1b0", "2b00")
 
 
 SLE = [
@@ -846,11 +861,12 @@ SLE = [
 
 def test_vec_sle():
     for a, b, y in SLE:
-        assert bits(a).sle(b) == y
+        assert sle(bits(a), b) == y
+        assert sle(a, bits(b)) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        bits("1b0").sle("2b00")
+        sle("1b0", "2b00")
 
 
 GT = [
@@ -865,11 +881,12 @@ GT = [
 
 def test_vec_gt():
     for a, b, y in GT:
-        assert bits(a).gt(b) == y
+        assert gt(bits(a), b) == y
+        assert gt(a, bits(b)) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        bits("1b0").gt("2b00")
+        gt("1b0", "2b00")
 
 
 GE = [
@@ -884,11 +901,12 @@ GE = [
 
 def test_vec_ge():
     for a, b, y in GE:
-        assert bits(a).ge(b) == y
+        assert ge(bits(a), b) == y
+        assert ge(a, bits(b)) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        bits("1b0").ge("2b00")
+        ge("1b0", "2b00")
 
 
 SGT = [
@@ -903,11 +921,12 @@ SGT = [
 
 def test_vec_sgt():
     for a, b, y in SGT:
-        assert bits(a).sgt(b) == y
+        assert sgt(bits(a), b) == y
+        assert sgt(a, bits(b)) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        bits("1b0").sgt("2b00")
+        sgt("1b0", "2b00")
 
 
 SGE = [
@@ -922,11 +941,12 @@ SGE = [
 
 def test_vec_sge():
     for a, b, y in SGE:
-        assert bits(a).sge(b) == y
+        assert sge(bits(a), b) == y
+        assert sge(a, bits(b)) == y
 
     # Invalid rhs
     with pytest.raises(TypeError):
-        bits("1b0").sge("2b00")
+        sge("1b0", "2b00")
 
 
 def test_vec_xt():
