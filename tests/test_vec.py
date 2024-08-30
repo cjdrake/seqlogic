@@ -12,6 +12,7 @@ from seqlogic import (
     i2bv,
     nand,
     nor,
+    not_,
     or_,
     rep,
     sub,
@@ -508,7 +509,7 @@ def test_vec_hash():
 
 def test_vec_not():
     x = bits("4b-10X")
-    assert x.not_() == bits("4b-01X")
+    assert not_(x) == bits("4b-01X")
     assert ~x == bits("4b-01X")
 
 

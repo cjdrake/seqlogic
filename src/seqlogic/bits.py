@@ -271,20 +271,6 @@ class Bits:
         s, co = _neg(self)
         return cat(s, co)
 
-    def not_(self) -> Bits:
-        """Bitwise NOT.
-
-        f(x) -> y:
-            X => X | 00 => 00
-            0 => 1 | 01 => 10
-            1 => 0 | 10 => 01
-            - => - | 11 => 11
-
-        Returns:
-            Bits of equal size w/ inverted data.
-        """
-        return _not_(self)
-
     def uor(self) -> Scalar:
         """Unary OR reduction.
 
