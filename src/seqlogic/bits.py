@@ -198,7 +198,7 @@ class Bits:
 
     # Bitwise Operations
     def __invert__(self) -> Bits:
-        return self.not_()
+        return _not_(self)
 
     def __or__(self, other: Bits | str) -> Bits:
         other = _expect_size(other, self.size)
@@ -258,12 +258,12 @@ class Bits:
     # Note: Keep carry-out
     def __sub__(self, other: Bits | str) -> Scalar | Vector:
         other = _expect_size(other, self.size)
-        s, co = _add(self, other.not_(), _Scalar1)
+        s, co = _add(self, _not_(other), _Scalar1)
         return cat(s, co)
 
     def __rsub__(self, other: Bits | str) -> Scalar | Vector:
         other = _expect_size(other, self.size)
-        s, co = _add(other, self.not_(), _Scalar1)
+        s, co = _add(other, _not_(self), _Scalar1)
         return cat(s, co)
 
     # Note: Keep carry-out
@@ -359,7 +359,7 @@ class Bits:
             return 0
         sign = self._get_index(self.size - 1)
         if sign == _1:
-            return -(self.not_().to_uint() + 1)
+            return -(_not_(self).to_uint() + 1)
         return self.to_uint()
 
     def eq(self, other: Bits | str) -> Scalar:
@@ -765,7 +765,7 @@ class Bits:
         """
         cls = self.__class__
         zero = cls._cast_data(self._dmax, 0)
-        s, co = _add(zero, self.not_(), ci=_Scalar1)
+        s, co = _add(zero, _not_(self), ci=_Scalar1)
         return AddResult(s, co)
 
     def count_xes(self) -> int:
@@ -1380,6 +1380,11 @@ def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> AddResu
     return AddResult(s, co)
 
 
+def _sub(a: Bits, b: Bits) -> AddResult:
+    s, co = _add(a, _not_(b), ci=_Scalar1)
+    return AddResult(s, co)
+
+
 def sub(a: Bits | str, b: Bits | str) -> AddResult:
     """Twos complement subtraction.
 
@@ -1395,8 +1400,7 @@ def sub(a: Bits | str, b: Bits | str) -> AddResult:
     """
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)
-    s, co = _add(a, b.not_(), ci=_Scalar1)
-    return AddResult(s, co)
+    return _sub(a, b)
 
 
 def _eq(a: Bits, b: Bits) -> Scalar:
