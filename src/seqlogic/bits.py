@@ -21,7 +21,7 @@ from collections import namedtuple
 from collections.abc import Callable, Generator
 from functools import cache, partial
 
-from .lbconst import _W, _X, _0, _1, from_char, to_char, to_vcd_char
+from .lbool import _W, _X, _0, _1, from_char, land, lnot, lor, lxnor, lxor, to_char, to_vcd_char
 from .util import classproperty, clog2
 
 AddResult = namedtuple("AddResult", ["s", "co"])
@@ -674,60 +674,28 @@ class Array(Bits, _ShapeIf):
         return tuple(f(n, key) for n, key in zip(cls._shape, keys))
 
 
-def _lnot(d: tuple[int, int]) -> tuple[int, int]:
-    return d[1], d[0]
-
-
-def _lor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
-    return (
-        d0[0] & d1[0],
-        d0[0] & d1[1] | d0[1] & d1[0] | d0[1] & d1[1],
-    )
-
-
-def _land(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
-    return (
-        d0[0] & d1[0] | d0[0] & d1[1] | d0[1] & d1[0],
-        d0[1] & d1[1],
-    )
-
-
-def _lxnor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
-    return (
-        d0[0] & d1[1] | d0[1] & d1[0],
-        d0[0] & d1[0] | d0[1] & d1[1],
-    )
-
-
-def _lxor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
-    return (
-        d0[0] & d1[0] | d0[1] & d1[1],
-        d0[0] & d1[1] | d0[1] & d1[0],
-    )
-
-
 def _not_(x: Bits) -> Bits:
-    d0, d1 = _lnot(x.data)
+    d0, d1 = lnot(x.data)
     return x._cast_data(d0, d1)
 
 
 def _or_(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = _lor(x0.data, x1.data)
+    d0, d1 = lor(x0.data, x1.data)
     return x0._cast_data(d0, d1)
 
 
 def _and_(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = _land(x0.data, x1.data)
+    d0, d1 = land(x0.data, x1.data)
     return x0._cast_data(d0, d1)
 
 
 def _xnor_(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = _lxnor(x0.data, x1.data)
+    d0, d1 = lxnor(x0.data, x1.data)
     return x0._cast_data(d0, d1)
 
 
 def _xor_(x0: Bits, x1: Bits) -> Bits:
-    d0, d1 = _lxor(x0.data, x1.data)
+    d0, d1 = lxor(x0.data, x1.data)
     return x0._cast_data(d0, d1)
 
 
@@ -756,18 +724,6 @@ def or_(x0: Bits | str, *xs: Bits | str) -> Bits:
         X - => X
         - 0 => -
 
-           x1
-           00 01 11 10
-          +--+--+--+--+
-    x0 00 |00|00|00|00|  y1 = x0[0] & x1[1]
-          +--+--+--+--+     | x0[1] & x1[0]
-       01 |00|01|11|10|     | x0[1] & x1[1]
-          +--+--+--+--+
-       11 |00|11|11|10|  y0 = x0[0] & x1[0]
-          +--+--+--+--+
-       10 |00|10|10|10|
-          +--+--+--+--+
-
     Args:
         x0: Bits
         x1: Bits of equal size.
@@ -795,18 +751,6 @@ def nor(x0: Bits | str, *xs: Bits | str) -> Bits:
         X - => X
         - 0 => -
 
-           x1
-           00 01 11 10
-          +--+--+--+--+
-    x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
-          +--+--+--+--+
-       01 |00|10|11|01|
-          +--+--+--+--+
-       11 |00|11|11|01|  y0 = x0[0] & x1[1]
-          +--+--+--+--+     | x0[1] & x1[0]
-       10 |00|01|01|01|     | x0[1] & x1[1]
-          +--+--+--+--+
-
     Args:
         x0: Bits
         x1: Bits of equal size.
@@ -828,18 +772,6 @@ def and_(x0: Bits | str, *xs: Bits | str) -> Bits:
         0 - => 0
         X - => X
         - 1 => -
-
-           x1
-           00 01 11 10
-          +--+--+--+--+
-    x0 00 |00|00|00|00|  y1 = x0[1] & x1[1]
-          +--+--+--+--+
-       01 |00|01|01|01|
-          +--+--+--+--+
-       11 |00|01|11|11|  y0 = x0[0] & x1[0]
-          +--+--+--+--+     | x0[0] & x1[1]
-       10 |00|01|11|10|     | x0[1] & x1[0]
-          +--+--+--+--+
 
     Args:
         x0: Bits
@@ -868,18 +800,6 @@ def nand(x0: Bits | str, *xs: Bits | str) -> Bits:
         X - => X
         - 1 => -
 
-           x1
-           00 01 11 10
-          +--+--+--+--+
-    x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
-          +--+--+--+--+     | x0[0] & x1[1]
-       01 |00|10|10|10|     | x0[1] & x1[0]
-          +--+--+--+--+
-       11 |00|10|11|11|  y0 = x0[1] & x1[1]
-          +--+--+--+--+
-       10 |00|10|11|01|
-          +--+--+--+--+
-
     Args:
         x0: Bits
         x1: Bits of equal size.
@@ -904,18 +824,6 @@ def xor(x0: Bits | str, *xs: Bits | str) -> Bits:
         X - => X
         - 0 => -
         - 1 => -
-
-           x1
-           00 01 11 10
-          +--+--+--+--+
-    x0 00 |00|00|00|00|  y1 = x0[0] & x1[1]
-          +--+--+--+--+     | x0[1] & x1[0]
-       01 |00|01|11|10|
-          +--+--+--+--+
-       11 |00|11|11|11|  y0 = x0[0] & x1[0]
-          +--+--+--+--+     | x0[1] & x1[1]
-       10 |00|10|11|01|
-          +--+--+--+--+
 
     Args:
         x0: Bits
@@ -947,18 +855,6 @@ def xnor(x0: Bits | str, *xs: Bits | str) -> Bits:
         - 0 => -
         - 1 => -
 
-           x1
-           00 01 11 10
-          +--+--+--+--+
-    x0 00 |00|00|00|00|  y1 = x0[0] & x1[0]
-          +--+--+--+--+     | x0[1] & x1[1]
-       01 |00|10|11|01|
-          +--+--+--+--+
-       11 |00|11|11|11|  y0 = x0[0] & x1[1]
-          +--+--+--+--+     | x0[1] & x1[0]
-       10 |00|01|11|10|
-          +--+--+--+--+
-
     Args:
         x0: Bits
         x1: Bits of equal size.
@@ -975,7 +871,7 @@ def xnor(x0: Bits | str, *xs: Bits | str) -> Bits:
 def _uor(x: Bits) -> Scalar:
     y = _0
     for i in range(x.size):
-        y = _lor(y, x._get_index(i))
+        y = lor(y, x._get_index(i))
     return Scalar(y[0], y[1])
 
 
@@ -992,7 +888,7 @@ def uor(x: Bits | str) -> Scalar:
 def _uand(x: Bits) -> Scalar:
     y = _1
     for i in range(x.size):
-        y = _land(y, x._get_index(i))
+        y = land(y, x._get_index(i))
     return Scalar(y[0], y[1])
 
 
@@ -1009,7 +905,7 @@ def uand(x: Bits | str) -> Scalar:
 def _uxnor(x: Bits) -> Scalar:
     y = _1
     for i in range(x.size):
-        y = _lxnor(y, x._get_index(i))
+        y = lxnor(y, x._get_index(i))
     return Scalar(y[0], y[1])
 
 
@@ -1026,7 +922,7 @@ def uxnor(x: Bits | str) -> Scalar:
 def _uxor(x: Bits) -> Scalar:
     y = _0
     for i in range(x.size):
-        y = _lxor(y, x._get_index(i))
+        y = lxor(y, x._get_index(i))
     return Scalar(y[0], y[1])
 
 

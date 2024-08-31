@@ -41,7 +41,7 @@ from seqlogic import (
     xor,
     xt,
 )
-from seqlogic.lbconst import _W, _X, _0, _1
+from seqlogic.lbool import _W, _X, _0, _1
 
 E = Vector[0](*_X)
 X = Vector[1](*_X)
