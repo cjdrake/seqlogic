@@ -674,6 +674,307 @@ class Array(Bits, _ShapeIf):
         return tuple(f(n, key) for n, key in zip(cls._shape, keys))
 
 
+class _EnumMeta(type):
+    """Enum Metaclass: Create enum base classes."""
+
+    def __new__(mcs, name, bases, attrs):
+        # Base case for API
+        if name == "Enum":
+            return super().__new__(mcs, name, bases, attrs)
+
+        enum_attrs = {}
+        data2key: dict[tuple[int, int], str] = {}
+        size = None
+        for key, val in attrs.items():
+            if key.startswith("__"):
+                enum_attrs[key] = val
+            # NAME = lit
+            else:
+                if size is None:
+                    size, data = _parse_lit(val)
+                else:
+                    size_i, data = _parse_lit(val)
+                    if size_i != size:
+                        s = f"Expected lit len {size}, got {size_i}"
+                        raise ValueError(s)
+                if key in ("X", "DC"):
+                    raise ValueError(f"Cannot use reserved name = '{key}'")
+                dmax = _mask(size)
+                if data in ((0, 0), (dmax, dmax)):
+                    raise ValueError(f"Cannot use reserved value = {val}")
+                if data in data2key:
+                    raise ValueError(f"Duplicate value: {val}")
+                data2key[data] = key
+
+        # Empty Enum
+        if size is None:
+            raise ValueError("Empty Enum is not supported")
+
+        # Add X/DC members
+        data2key[(0, 0)] = "X"
+        dmax = _mask(size)
+        data2key[(dmax, dmax)] = "DC"
+
+        # Create Enum class
+        vec = _vec_size(size)
+        enum = super().__new__(mcs, name, bases + (vec,), enum_attrs)
+
+        # Instantiate members
+        for (d0, d1), key in data2key.items():
+            setattr(enum, key, enum._cast_data(d0, d1))
+
+        # Override Vector._cast_data method
+        def _cast_data(cls, d0: int, d1: int) -> Bits:
+            data = (d0, d1)
+            try:
+                obj = getattr(cls, data2key[data])
+            except KeyError:
+                obj = object.__new__(cls)
+                obj._data = data
+            return obj
+
+        # Override Vector._cast_data method
+        enum._cast_data = classmethod(_cast_data)
+
+        # Override Vector.__new__ method
+        def _new(cls, arg: Bits | str):
+            x = _expect_size(arg, cls.size)
+            return cls.cast(x)
+
+        enum.__new__ = _new
+
+        # Override Vector.__repr__ method
+        def _repr(self):
+            try:
+                return f"{name}.{data2key[self._data]}"
+            except KeyError:
+                return f'{name}("{vec.__str__(self)}")'
+
+        enum.__repr__ = _repr
+
+        # Override Vector.__str__ method
+        def _str(self):
+            try:
+                return f"{name}.{data2key[self._data]}"
+            except KeyError:
+                return f"{name}({vec.__str__(self)})"
+
+        enum.__str__ = _str
+
+        # Create name property
+        def _name(self):
+            try:
+                return data2key[self._data]
+            except KeyError:
+                return f"{name}({vec.__str__(self)})"
+
+        enum.name = property(fget=_name)
+
+        # Override VCD methods
+        enum.vcd_var = lambda _: "string"
+        enum.vcd_val = _name
+
+        return enum
+
+
+class Enum(metaclass=_EnumMeta):
+    """Enum Base Class: Create enums."""
+
+
+def _struct_init_source(fields: list[tuple[str, type]]) -> str:
+    """Return source code for Struct __init__ method w/ fields."""
+    lines = []
+    s = ", ".join(f"{fn}=None" for fn, _ in fields)
+    lines.append(f"def init(self, {s}):\n")
+    s = ", ".join(fn for fn, _ in fields)
+    lines.append(f"    _init_body(self, {s})\n")
+    return "".join(lines)
+
+
+class _StructMeta(type):
+    """Struct Metaclass: Create struct base classes."""
+
+    def __new__(mcs, name, bases, attrs):
+        # Base case for API
+        if name == "Struct":
+            return super().__new__(mcs, name, bases, attrs)
+
+        # Scan attributes for field_name: field_type items
+        fields = []
+        for key, val in attrs.items():
+            if key == "__annotations__":
+                for field_name, field_type in val.items():
+                    fields.append((field_name, field_type))
+
+        if not fields:
+            raise ValueError("Empty Struct is not supported")
+
+        # Add struct member base/size attributes
+        offset = 0
+        offsets = {}
+        for field_name, field_type in fields:
+            offsets[field_name] = offset
+            offset += field_type.size
+
+        # Create Struct class
+        size = sum(field_type.size for _, field_type in fields)
+        struct = super().__new__(mcs, name, bases + (Bits,), {})
+
+        # Class properties
+        struct.size = classproperty(lambda _: size)
+
+        # Override Bits.__init__ method
+        def _init_body(obj, *args):
+            d0, d1 = 0, 0
+            for arg, (fn, ft) in zip(args, fields):
+                if arg is not None:
+                    # TODO(cjdrake): Check input type?
+                    x = _expect_size(arg, ft.size)
+                    d0 |= x.data[0] << offsets[fn]
+                    d1 |= x.data[1] << offsets[fn]
+            obj._data = (d0, d1)
+
+        source = _struct_init_source(fields)
+        globals_ = {"_init_body": _init_body}
+        locals_ = {}
+        exec(source, globals_, locals_)
+        struct.__init__ = locals_["init"]
+
+        # Override Bits.__getitem__ method
+        def _getitem(self, key: int | Bits | slice) -> Empty | Scalar | Vector:
+            size, (d0, d1) = self._get_key(key)
+            return _vec_size(size)(d0, d1)
+
+        struct.__getitem__ = _getitem
+
+        # Override Bits.__str__ method
+        def _str(self):
+            parts = [f"{name}("]
+            for fn, _ in fields:
+                x = getattr(self, fn)
+                parts.append(f"    {fn}={x!s},")
+            parts.append(")")
+            return "\n".join(parts)
+
+        struct.__str__ = _str
+
+        # Override Bits.__repr__ method
+        def _repr(self):
+            parts = [f"{name}("]
+            for fn, _ in fields:
+                x = getattr(self, fn)
+                parts.append(f"    {fn}={x!r},")
+            parts.append(")")
+            return "\n".join(parts)
+
+        struct.__repr__ = _repr
+
+        # Create Struct fields
+        def _fget(fn: str, ft: type[Bits], self):
+            mask = _mask(ft.size)
+            d0 = (self._data[0] >> offsets[fn]) & mask
+            d1 = (self._data[1] >> offsets[fn]) & mask
+            return ft._cast_data(d0, d1)
+
+        for fn, ft in fields:
+            setattr(struct, fn, property(fget=partial(_fget, fn, ft)))
+
+        return struct
+
+
+class Struct(metaclass=_StructMeta):
+    """Struct Base Class: Create struct."""
+
+
+class _UnionMeta(type):
+    """Union Metaclass: Create union base classes."""
+
+    def __new__(mcs, name, bases, attrs):
+        # Base case for API
+        if name == "Union":
+            return super().__new__(mcs, name, bases, attrs)
+
+        # Scan attributes for field_name: field_type items
+        fields = []
+        for key, val in attrs.items():
+            if key == "__annotations__":
+                for field_name, field_type in val.items():
+                    fields.append((field_name, field_type))
+
+        if not fields:
+            raise ValueError("Empty Union is not supported")
+
+        # Create Union class
+        size = max(field_type.size for _, field_type in fields)
+        union = super().__new__(mcs, name, bases + (Bits,), {})
+
+        # Class properties
+        union.size = classproperty(lambda _: size)
+
+        # Override Bits.__init__ method
+        def _init(self, arg: Bits | str):
+            if isinstance(arg, str):
+                x = _lit2vec(arg)
+            else:
+                x = arg
+            ts = []
+            for _, ft in fields:
+                if ft not in ts:
+                    ts.append(ft)
+            if not isinstance(x, tuple(ts)):
+                s = ", ".join(t.__name__ for t in ts)
+                s = f"Expected arg to be {{{s}}}, or str literal"
+                raise TypeError(s)
+            self._data = x.data
+
+        union.__init__ = _init
+
+        # Override Bits.__getitem__ method
+        def _getitem(self, key: int | Bits | slice) -> Empty | Scalar | Vector:
+            size, (d0, d1) = self._get_key(key)
+            return _vec_size(size)(d0, d1)
+
+        union.__getitem__ = _getitem
+
+        # Override Bits.__str__ method
+        def _str(self):
+            parts = [f"{name}("]
+            for fn, _ in fields:
+                x = getattr(self, fn)
+                parts.append(f"    {fn}={x!s},")
+            parts.append(")")
+            return "\n".join(parts)
+
+        union.__str__ = _str
+
+        # Override Bits.__repr__ method
+        def _repr(self):
+            parts = [f"{name}("]
+            for fn, _ in fields:
+                x = getattr(self, fn)
+                parts.append(f"    {fn}={x!r},")
+            parts.append(")")
+            return "\n".join(parts)
+
+        union.__repr__ = _repr
+
+        # Create Union fields
+        def _fget(ft: type[Bits], self):
+            mask = _mask(ft.size)
+            d0 = self._data[0] & mask
+            d1 = self._data[1] & mask
+            return ft._cast_data(d0, d1)
+
+        for fn, ft in fields:
+            setattr(union, fn, property(fget=partial(_fget, ft)))
+
+        return union
+
+
+class Union(metaclass=_UnionMeta):
+    """Union Base Class: Create union."""
+
+
 def _not_(x: Bits) -> Bits:
     d0, d1 = lnot(x.data)
     return x._cast_data(d0, d1)
@@ -1527,307 +1828,6 @@ def _lit2vec(lit: str) -> Scalar | Vector:
     """
     size, (d0, d1) = _parse_lit(lit)
     return _vec_size(size)(d0, d1)
-
-
-class _EnumMeta(type):
-    """Enum Metaclass: Create enum base classes."""
-
-    def __new__(mcs, name, bases, attrs):
-        # Base case for API
-        if name == "Enum":
-            return super().__new__(mcs, name, bases, attrs)
-
-        enum_attrs = {}
-        data2key: dict[tuple[int, int], str] = {}
-        size = None
-        for key, val in attrs.items():
-            if key.startswith("__"):
-                enum_attrs[key] = val
-            # NAME = lit
-            else:
-                if size is None:
-                    size, data = _parse_lit(val)
-                else:
-                    size_i, data = _parse_lit(val)
-                    if size_i != size:
-                        s = f"Expected lit len {size}, got {size_i}"
-                        raise ValueError(s)
-                if key in ("X", "DC"):
-                    raise ValueError(f"Cannot use reserved name = '{key}'")
-                dmax = _mask(size)
-                if data in ((0, 0), (dmax, dmax)):
-                    raise ValueError(f"Cannot use reserved value = {val}")
-                if data in data2key:
-                    raise ValueError(f"Duplicate value: {val}")
-                data2key[data] = key
-
-        # Empty Enum
-        if size is None:
-            raise ValueError("Empty Enum is not supported")
-
-        # Add X/DC members
-        data2key[(0, 0)] = "X"
-        dmax = _mask(size)
-        data2key[(dmax, dmax)] = "DC"
-
-        # Create Enum class
-        vec = _vec_size(size)
-        enum = super().__new__(mcs, name, bases + (vec,), enum_attrs)
-
-        # Instantiate members
-        for (d0, d1), key in data2key.items():
-            setattr(enum, key, enum._cast_data(d0, d1))
-
-        # Override Vector._cast_data method
-        def _cast_data(cls, d0: int, d1: int) -> Bits:
-            data = (d0, d1)
-            try:
-                obj = getattr(cls, data2key[data])
-            except KeyError:
-                obj = object.__new__(cls)
-                obj._data = data
-            return obj
-
-        # Override Vector._cast_data method
-        enum._cast_data = classmethod(_cast_data)
-
-        # Override Vector.__new__ method
-        def _new(cls, arg: Bits | str):
-            x = _expect_size(arg, cls.size)
-            return cls.cast(x)
-
-        enum.__new__ = _new
-
-        # Override Vector.__repr__ method
-        def _repr(self):
-            try:
-                return f"{name}.{data2key[self._data]}"
-            except KeyError:
-                return f'{name}("{vec.__str__(self)}")'
-
-        enum.__repr__ = _repr
-
-        # Override Vector.__str__ method
-        def _str(self):
-            try:
-                return f"{name}.{data2key[self._data]}"
-            except KeyError:
-                return f"{name}({vec.__str__(self)})"
-
-        enum.__str__ = _str
-
-        # Create name property
-        def _name(self):
-            try:
-                return data2key[self._data]
-            except KeyError:
-                return f"{name}({vec.__str__(self)})"
-
-        enum.name = property(fget=_name)
-
-        # Override VCD methods
-        enum.vcd_var = lambda _: "string"
-        enum.vcd_val = _name
-
-        return enum
-
-
-class Enum(metaclass=_EnumMeta):
-    """Enum Base Class: Create enums."""
-
-
-def _struct_init_source(fields: list[tuple[str, type]]) -> str:
-    """Return source code for Struct __init__ method w/ fields."""
-    lines = []
-    s = ", ".join(f"{fn}=None" for fn, _ in fields)
-    lines.append(f"def init(self, {s}):\n")
-    s = ", ".join(fn for fn, _ in fields)
-    lines.append(f"    _init_body(self, {s})\n")
-    return "".join(lines)
-
-
-class _StructMeta(type):
-    """Struct Metaclass: Create struct base classes."""
-
-    def __new__(mcs, name, bases, attrs):
-        # Base case for API
-        if name == "Struct":
-            return super().__new__(mcs, name, bases, attrs)
-
-        # Scan attributes for field_name: field_type items
-        fields = []
-        for key, val in attrs.items():
-            if key == "__annotations__":
-                for field_name, field_type in val.items():
-                    fields.append((field_name, field_type))
-
-        if not fields:
-            raise ValueError("Empty Struct is not supported")
-
-        # Add struct member base/size attributes
-        offset = 0
-        offsets = {}
-        for field_name, field_type in fields:
-            offsets[field_name] = offset
-            offset += field_type.size
-
-        # Create Struct class
-        size = sum(field_type.size for _, field_type in fields)
-        struct = super().__new__(mcs, name, bases + (Bits,), {})
-
-        # Class properties
-        struct.size = classproperty(lambda _: size)
-
-        # Override Bits.__init__ method
-        def _init_body(obj, *args):
-            d0, d1 = 0, 0
-            for arg, (fn, ft) in zip(args, fields):
-                if arg is not None:
-                    # TODO(cjdrake): Check input type?
-                    x = _expect_size(arg, ft.size)
-                    d0 |= x.data[0] << offsets[fn]
-                    d1 |= x.data[1] << offsets[fn]
-            obj._data = (d0, d1)
-
-        source = _struct_init_source(fields)
-        globals_ = {"_init_body": _init_body}
-        locals_ = {}
-        exec(source, globals_, locals_)
-        struct.__init__ = locals_["init"]
-
-        # Override Bits.__getitem__ method
-        def _getitem(self, key: int | Bits | slice) -> Empty | Scalar | Vector:
-            size, (d0, d1) = self._get_key(key)
-            return _vec_size(size)(d0, d1)
-
-        struct.__getitem__ = _getitem
-
-        # Override Bits.__str__ method
-        def _str(self):
-            parts = [f"{name}("]
-            for fn, _ in fields:
-                x = getattr(self, fn)
-                parts.append(f"    {fn}={x!s},")
-            parts.append(")")
-            return "\n".join(parts)
-
-        struct.__str__ = _str
-
-        # Override Bits.__repr__ method
-        def _repr(self):
-            parts = [f"{name}("]
-            for fn, _ in fields:
-                x = getattr(self, fn)
-                parts.append(f"    {fn}={x!r},")
-            parts.append(")")
-            return "\n".join(parts)
-
-        struct.__repr__ = _repr
-
-        # Create Struct fields
-        def _fget(fn: str, ft: type[Bits], self):
-            mask = _mask(ft.size)
-            d0 = (self._data[0] >> offsets[fn]) & mask
-            d1 = (self._data[1] >> offsets[fn]) & mask
-            return ft._cast_data(d0, d1)
-
-        for fn, ft in fields:
-            setattr(struct, fn, property(fget=partial(_fget, fn, ft)))
-
-        return struct
-
-
-class Struct(metaclass=_StructMeta):
-    """Struct Base Class: Create struct."""
-
-
-class _UnionMeta(type):
-    """Union Metaclass: Create union base classes."""
-
-    def __new__(mcs, name, bases, attrs):
-        # Base case for API
-        if name == "Union":
-            return super().__new__(mcs, name, bases, attrs)
-
-        # Scan attributes for field_name: field_type items
-        fields = []
-        for key, val in attrs.items():
-            if key == "__annotations__":
-                for field_name, field_type in val.items():
-                    fields.append((field_name, field_type))
-
-        if not fields:
-            raise ValueError("Empty Union is not supported")
-
-        # Create Union class
-        size = max(field_type.size for _, field_type in fields)
-        union = super().__new__(mcs, name, bases + (Bits,), {})
-
-        # Class properties
-        union.size = classproperty(lambda _: size)
-
-        # Override Bits.__init__ method
-        def _init(self, arg: Bits | str):
-            if isinstance(arg, str):
-                x = _lit2vec(arg)
-            else:
-                x = arg
-            ts = []
-            for _, ft in fields:
-                if ft not in ts:
-                    ts.append(ft)
-            if not isinstance(x, tuple(ts)):
-                s = ", ".join(t.__name__ for t in ts)
-                s = f"Expected arg to be {{{s}}}, or str literal"
-                raise TypeError(s)
-            self._data = x.data
-
-        union.__init__ = _init
-
-        # Override Bits.__getitem__ method
-        def _getitem(self, key: int | Bits | slice) -> Empty | Scalar | Vector:
-            size, (d0, d1) = self._get_key(key)
-            return _vec_size(size)(d0, d1)
-
-        union.__getitem__ = _getitem
-
-        # Override Bits.__str__ method
-        def _str(self):
-            parts = [f"{name}("]
-            for fn, _ in fields:
-                x = getattr(self, fn)
-                parts.append(f"    {fn}={x!s},")
-            parts.append(")")
-            return "\n".join(parts)
-
-        union.__str__ = _str
-
-        # Override Bits.__repr__ method
-        def _repr(self):
-            parts = [f"{name}("]
-            for fn, _ in fields:
-                x = getattr(self, fn)
-                parts.append(f"    {fn}={x!r},")
-            parts.append(")")
-            return "\n".join(parts)
-
-        union.__repr__ = _repr
-
-        # Create Union fields
-        def _fget(ft: type[Bits], self):
-            mask = _mask(ft.size)
-            d0 = self._data[0] & mask
-            d1 = self._data[1] & mask
-            return ft._cast_data(d0, d1)
-
-        for fn, ft in fields:
-            setattr(union, fn, property(fget=partial(_fget, ft)))
-
-        return union
-
-
-class Union(metaclass=_UnionMeta):
-    """Union Base Class: Create union."""
 
 
 def _bools2vec(x0: int, *xs: int) -> Empty | Scalar | Vector:
