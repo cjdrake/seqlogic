@@ -990,10 +990,6 @@ def test_vec_lsh():
     with pytest.raises(ValueError):
         v.lsh(5)
 
-    assert v.lsh(2, ci=bits("2b01")) == ("4b1101", "2b11")
-    with pytest.raises(ValueError):
-        v.lsh(2, ci=bits("3b000"))
-
     assert bits("2b01").lsh(bits("1bX")) == (bits("2bXX"), E)
     assert bits("2b01").lsh(bits("1b-")) == (bits("2b--"), E)
     assert bits("2b01").lsh(bits("1b1")) == (bits("2b10"), F)
@@ -1042,10 +1038,6 @@ def test_vec_rsh():
         v.rsh(-1)
     with pytest.raises(ValueError):
         v.rsh(5)
-
-    assert v.rsh(2, ci=bits("2b10")) == ("4b1011", "2b11")
-    with pytest.raises(ValueError):
-        v.rsh(2, ci=bits("3b000"))
 
     assert bits("2b01").rsh(bits("1bX")) == (bits("2bXX"), E)
     assert bits("2b01").rsh(bits("1b-")) == (bits("2b--"), E)

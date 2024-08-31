@@ -346,32 +346,29 @@ class Bits:
         d1 = self._data[1] | ext1 << self.size
         return _vec_size(self.size + n)(d0, d1)
 
-    def _lsh(self, n: int, ci: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
+    def _lsh(self, n: int) -> tuple[Bits, Empty | Scalar | Vector]:
         co_size, (co0, co1) = self._get_slice(self.size - n, self.size)
         co = _vec_size(co_size)(co0, co1)
 
         _, (sh0, sh1) = self._get_slice(0, self.size - n)
-        d0 = ci.data[0] | sh0 << n
-        d1 = ci.data[1] | sh1 << n
+        d0 = _mask(n) | (sh0 << n)
+        d1 = sh1 << n
         cls = self.__class__
         y = cls._cast_data(d0, d1)
 
         return y, co
 
-    def lsh(self, n: int | Bits, ci: Bits | None = None) -> tuple[Bits, Empty | Scalar | Vector]:
+    def lsh(self, n: int | Bits) -> tuple[Bits, Empty | Scalar | Vector]:
         """Left shift by n bits.
 
         Args:
             n: Non-negative number of bits.
-            ci: Optional "carry in"
 
         Returns:
             Bits left-shifted by n bits.
-            If ci is provided, use it for shift input.
-            Otherwise use zeros.
 
         Raises:
-            ValueError: If n or ci are invalid/inconsistent.
+            ValueError: If n is invalid.
         """
         if isinstance(n, Bits):
             if n.has_x():
@@ -384,39 +381,32 @@ class Bits:
             raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
         if n == 0:
             return self, _Empty
-        if ci is None:
-            ci = _vec_size(n)(_mask(n), 0)
-        elif ci.size != n:
-            raise ValueError(f"Expected ci to have size {n}")
 
-        return self._lsh(n, ci)
+        return self._lsh(n)
 
-    def _rsh(self, n: int, ci: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
+    def _rsh(self, n: int) -> tuple[Bits, Empty | Scalar | Vector]:
         co_size, (co0, co1) = self._get_slice(0, n)
         co = _vec_size(co_size)(co0, co1)
 
         sh_size, (sh0, sh1) = self._get_slice(n, self.size)
-        d0 = sh0 | ci.data[0] << sh_size
-        d1 = sh1 | ci.data[1] << sh_size
+        d0 = sh0 | (_mask(n) << sh_size)
+        d1 = sh1
         cls = self.__class__
         y = cls._cast_data(d0, d1)
 
         return y, co
 
-    def rsh(self, n: int | Bits, ci: Bits | None = None) -> tuple[Bits, Empty | Scalar | Vector]:
+    def rsh(self, n: int | Bits) -> tuple[Bits, Empty | Scalar | Vector]:
         """Right shift by n bits.
 
         Args:
             n: Non-negative number of bits.
-            ci: Optional "carry in"
 
         Returns:
             Bits right-shifted by n bits.
-            If ci is provided, use it for shift input.
-            Otherwise use zeros.
 
         Raises:
-            ValueError: If n or ci are invalid/inconsistent.
+            ValueError: If n is invalid.
         """
         if isinstance(n, Bits):
             if n.has_x():
@@ -429,12 +419,8 @@ class Bits:
             raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
         if n == 0:
             return self, _Empty
-        if ci is None:
-            ci = _vec_size(n)(_mask(n), 0)
-        elif ci.size != n:
-            raise ValueError(f"Expected ci to have size {n}")
 
-        return self._rsh(n, ci)
+        return self._rsh(n)
 
     def _srsh(self, n: int) -> tuple[Bits, Empty | Scalar | Vector]:
         co_size, (co0, co1) = self._get_slice(0, n)
