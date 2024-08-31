@@ -271,50 +271,6 @@ class Bits:
         s, co = _neg(self)
         return cat(s, co)
 
-    def uor(self) -> Scalar:
-        """Unary OR reduction.
-
-        Returns:
-            Scalar w/ OR reduction.
-        """
-        y = _0
-        for i in range(self.size):
-            y = _lor(y, self._get_index(i))
-        return Scalar(y[0], y[1])
-
-    def uand(self) -> Scalar:
-        """Unary AND reduction.
-
-        Returns:
-            Scalar w/ AND reduction.
-        """
-        y = _1
-        for i in range(self.size):
-            y = _land(y, self._get_index(i))
-        return Scalar(y[0], y[1])
-
-    def uxnor(self) -> Scalar:
-        """Unary XNOR reduction.
-
-        Returns:
-            Scalar w/ XNOR reduction.
-        """
-        y = _1
-        for i in range(self.size):
-            y = _lxnor(y, self._get_index(i))
-        return Scalar(y[0], y[1])
-
-    def uxor(self) -> Scalar:
-        """Unary XOR reduction.
-
-        Returns:
-            Scalar w/ XOR reduction.
-        """
-        y = _0
-        for i in range(self.size):
-            y = _lxor(y, self._get_index(i))
-        return Scalar(y[0], y[1])
-
     def to_uint(self) -> int:
         """Convert to unsigned integer.
 
@@ -1185,6 +1141,74 @@ def xnor(x0: Bits | str, *xs: Bits | str) -> Bits:
     return _not_(xor(x0, *xs))
 
 
+def _uor(x: Bits) -> Scalar:
+    y = _0
+    for i in range(x.size):
+        y = _lor(y, x._get_index(i))
+    return Scalar(y[0], y[1])
+
+
+def uor(x: Bits | str) -> Scalar:
+    """Unary OR reduction.
+
+    Returns:
+        Scalar w/ OR reduction.
+    """
+    x = _expect_type(x, Bits)
+    return _uor(x)
+
+
+def _uand(x: Bits) -> Scalar:
+    y = _1
+    for i in range(x.size):
+        y = _land(y, x._get_index(i))
+    return Scalar(y[0], y[1])
+
+
+def uand(x: Bits | str) -> Scalar:
+    """Unary AND reduction.
+
+    Returns:
+        Scalar w/ AND reduction.
+    """
+    x = _expect_type(x, Bits)
+    return _uand(x)
+
+
+def _uxnor(x: Bits) -> Scalar:
+    y = _1
+    for i in range(x.size):
+        y = _lxnor(y, x._get_index(i))
+    return Scalar(y[0], y[1])
+
+
+def uxnor(x: Bits | str) -> Scalar:
+    """Unary XNOR reduction.
+
+    Returns:
+        Scalar w/ XNOR reduction.
+    """
+    x = _expect_type(x, Bits)
+    return _uxnor(x)
+
+
+def _uxor(x: Bits) -> Scalar:
+    y = _0
+    for i in range(x.size):
+        y = _lxor(y, x._get_index(i))
+    return Scalar(y[0], y[1])
+
+
+def uxor(x: Bits | str) -> Scalar:
+    """Unary XOR reduction.
+
+    Returns:
+        Scalar w/ XOR reduction.
+    """
+    x = _expect_type(x, Bits)
+    return _uxor(x)
+
+
 def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     # X/DC propagation
     if a.has_x() or b.has_x() or ci.has_x():
@@ -1317,7 +1341,7 @@ def ngc(x: Bits | str) -> AddResult:
 
 
 def _eq(x0: Bits, x1: Bits) -> Scalar:
-    return _xnor_(x0, x1).uand()
+    return _uand(_xnor_(x0, x1))
 
 
 def eq(x0: Bits | str, x1: Bits | str) -> Scalar:
@@ -1336,7 +1360,7 @@ def eq(x0: Bits | str, x1: Bits | str) -> Scalar:
 
 
 def _ne(x0: Bits, x1: Bits) -> Scalar:
-    return _xor_(x0, x1).uor()
+    return _uor(_xor_(x0, x1))
 
 
 def ne(x0: Bits | str, x1: Bits | str) -> Scalar:

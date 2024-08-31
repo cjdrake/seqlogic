@@ -1,6 +1,6 @@
 """Gray Code."""
 
-from ..bits import Vector, cat
+from ..bits import Vector, cat, uxor
 
 
 def bin2gray(b: Vector) -> Vector:
@@ -10,4 +10,4 @@ def bin2gray(b: Vector) -> Vector:
 
 def gray2bin(g: Vector) -> Vector:
     """Convert gray to binary."""
-    return cat(*[g[i:].uxor() for i, _ in enumerate(g)])
+    return cat(*[uxor(g[i:]) for i, _ in enumerate(g)])

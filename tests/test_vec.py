@@ -29,6 +29,10 @@ from seqlogic import (
     slt,
     sub,
     u2bv,
+    uand,
+    uor,
+    uxnor,
+    uxor,
     xnor,
     xor,
 )
@@ -661,7 +665,7 @@ UOR = {
 
 def test_vec_uor():
     for lit, (d0, d1) in UOR.items():
-        assert bits(lit).uor() == Scalar(d0, d1)
+        assert uor(lit) == Scalar(d0, d1)
 
 
 UAND = {
@@ -686,7 +690,7 @@ UAND = {
 
 def test_vec_uand():
     for lit, (d0, d1) in UAND.items():
-        assert bits(lit).uand() == Scalar(d0, d1)
+        assert uand(lit) == Scalar(d0, d1)
 
 
 UXNOR = {
@@ -711,7 +715,7 @@ UXNOR = {
 
 def test_vec_uxnor():
     for lit, (d0, d1) in UXNOR.items():
-        assert bits(lit).uxnor() == Scalar(d0, d1)
+        assert uxnor(lit) == Scalar(d0, d1)
 
 
 UXOR = {
@@ -736,7 +740,7 @@ UXOR = {
 
 def test_vec_uxor():
     for lit, (d0, d1) in UXOR.items():
-        assert bits(lit).uxor() == Scalar(d0, d1)
+        assert uxor(lit) == Scalar(d0, d1)
 
 
 EQ = [

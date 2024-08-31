@@ -37,6 +37,10 @@ from .bits import (
     stack,
     sub,
     u2bv,
+    uand,
+    uor,
+    uxnor,
+    uxor,
     xnor,
     xor,
 )
@@ -87,6 +91,10 @@ __all__ = [
     "stack",
     "sub",
     "u2bv",
+    "uand",
+    "uor",
+    "uxnor",
+    "uxor",
     "xnor",
     "xor",
     # design
