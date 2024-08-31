@@ -1230,7 +1230,7 @@ def _lsh(x: Bits, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
     so = _vec_size(so_size)(so0, so1)
 
     _, (sh0, sh1) = x._get_slice(0, x.size - n)
-    d0 = _mask(n) | (sh0 << n)
+    d0 = _mask(n) | sh0 << n
     d1 = sh1 << n
     y = x._cast_data(d0, d1)
 
@@ -1511,24 +1511,6 @@ def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
     return _scmp(operator.ge, x0, x1)
-
-
-def _bools2vec(x0: int, *xs: int) -> Empty | Scalar | Vector:
-    """Convert an iterable of bools to a vec.
-
-    This is a convenience function.
-    For data in the form of [0, 1, 0, 1, ...],
-    or [False, True, False, True, ...].
-    """
-    size = 1
-    d1 = int(x0)
-    for x in xs:
-        if x in (0, 1):
-            d1 |= x << size
-        else:
-            raise TypeError(f"Expected x in {{0, 1}}, got {x}")
-        size += 1
-    return _vec_size(size)(d1 ^ _mask(size), d1)
 
 
 _LIT_PREFIX_RE = re.compile(r"(?P<Size>[1-9][0-9]*)(?P<Base>[bdh])")
@@ -2006,6 +1988,37 @@ class Union(metaclass=_UnionMeta):
     """Union Base Class: Create union."""
 
 
+def _bools2vec(x0: int, *xs: int) -> Empty | Scalar | Vector:
+    """Convert an iterable of bools to a vec.
+
+    This is a convenience function.
+    For data in the form of [0, 1, 0, 1, ...],
+    or [False, True, False, True, ...].
+    """
+    size = 1
+    d1 = int(x0)
+    for x in xs:
+        if x in (0, 1):
+            d1 |= x << size
+        else:
+            raise TypeError(f"Expected x in {{0, 1}}, got {x}")
+        size += 1
+    return _vec_size(size)(d1 ^ _mask(size), d1)
+
+
+def _rank2(fst: Scalar | Vector, *rst: Scalar | Vector | str) -> Vector | Array:
+    d0, d1 = fst.data
+    for i, x in enumerate(rst, start=1):
+        x = _expect_type(x, Vector[fst.size])
+        d0 |= x.data[0] << (fst.size * i)
+        d1 |= x.data[1] << (fst.size * i)
+    if fst.shape == (1,):
+        size = len(rst) + 1
+        return _get_vec_size(size)(d0, d1)
+    shape = (len(rst) + 1,) + fst.shape
+    return _get_array_shape(shape)(d0, d1)
+
+
 def bits(obj=None) -> _ShapeIf:
     """Create a Bits object using standard input formats.
 
@@ -2140,19 +2153,6 @@ def _sel(x: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:
         return stack(*[_sel(xx, key_r) for xx in x])
 
     return x
-
-
-def _rank2(fst: Scalar | Vector, *rst: Scalar | Vector | str) -> Vector | Array:
-    d0, d1 = fst.data
-    for i, x in enumerate(rst, start=1):
-        x = _expect_type(x, Vector[fst.size])
-        d0 |= x.data[0] << (fst.size * i)
-        d1 |= x.data[1] << (fst.size * i)
-    if fst.shape == (1,):
-        size = len(rst) + 1
-        return _get_vec_size(size)(d0, d1)
-    shape = (len(rst) + 1,) + fst.shape
-    return _get_array_shape(shape)(d0, d1)
 
 
 def _norm_index(n: int, index: int) -> int:
