@@ -1297,7 +1297,20 @@ def _neg(x: Bits) -> AddResult:
     return AddResult(s, co)
 
 
-def neg(x: Bits | str) -> AddResult:
+def neg(x: Bits | str) -> Bits:
+    """Twos complement negation.
+
+    Computed using 0 - x.
+
+    Returns:
+        2-tuple of (sum, carry-out).
+    """
+    x = _expect_type(x, Bits)
+    s, _ = _neg(x)
+    return s
+
+
+def ngc(x: Bits | str) -> AddResult:
     """Twos complement negation.
 
     Computed using 0 - x.
