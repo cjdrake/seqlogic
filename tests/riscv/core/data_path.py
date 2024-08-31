@@ -187,8 +187,8 @@ class DataPath(Module):
 
         self.combi(immediate, f_immediate, inst)
 
-        self.combi(pc_plus_4, lambda x: add(x, "32h0000_0004").s, pc)
-        self.combi(pc_plus_immediate, lambda a, b: add(a, b).s, pc, immediate)
+        self.combi(pc_plus_4, lambda x: add(x, "32h0000_0004"), pc)
+        self.combi(pc_plus_immediate, add, pc, immediate)
         self.combi(pc_next, f_pc_next, next_pc_sel, pc_plus_4, pc_plus_immediate, alu_result)
 
         self.combi(alu_op_a, f_alu_op_a, alu_op_a_sel, rs1_data, pc)

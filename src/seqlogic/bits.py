@@ -1201,7 +1201,31 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     return cls._cast_data(s ^ dmax, s), co
 
 
-def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> AddResult:
+def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
+    """Addition with carry-in.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+        ci: Scalar carry-in.
+
+    Returns:
+        2-tuple of (sum, carry-out).
+
+    Raises:
+        ValueError: Bits sizes are invalid/inconsistent.
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    if ci is None:
+        ci = _Scalar0
+    else:
+        ci = _expect_type(ci, Scalar)
+    s, _ = _add(a, b, ci)
+    return s
+
+
+def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> AddResult:
     """Addition with carry-in.
 
     Args:

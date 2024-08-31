@@ -9,7 +9,7 @@
 
 import pytest
 
-from seqlogic import Array, Vector, add, and_, bits, nand, nor, or_, stack, sub, xnor, xor
+from seqlogic import Array, Vector, adc, add, and_, bits, nand, nor, or_, stack, sub, xnor, xor
 from seqlogic.lbconst import _W, _X, _0, _1
 
 E = Array[0](*_X)
@@ -104,7 +104,8 @@ def test_xor():
 def test_add():
     b0 = bits(["4b1010", "4b0101"])
     b1 = bits(["4b0101", "4b1010"])
-    assert str(add(b0, b1).s) == "[4b1111, 4b1111]"
+    assert str(adc(b0, b1).s) == "[4b1111, 4b1111]"
+    assert str(add(b0, b1)) == "[4b1111, 4b1111]"
 
 
 def test_sub():

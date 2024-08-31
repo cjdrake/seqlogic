@@ -8,7 +8,7 @@ from . import AluOp
 def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
     match op:
         case AluOp.ADD:
-            return add(a, b).s
+            return add(a, b)
         case AluOp.SUB:
             return sub(a, b).s
         case AluOp.SLL:
