@@ -15,6 +15,7 @@ from seqlogic import (
     gt,
     i2bv,
     le,
+    lrot,
     lsh,
     lt,
     nand,
@@ -23,6 +24,7 @@ from seqlogic import (
     not_,
     or_,
     rep,
+    rrot,
     rsh,
     sbc,
     sge,
@@ -1002,30 +1004,30 @@ def test_vec_lsh():
 
 def test_vec_lrot():
     v = bits("4b-10X")
-    assert v.lrot(0) is v
-    assert str(v.lrot(1)) == "4b10X-"
-    assert str(v.lrot(2)) == "4b0X-1"
-    assert str(v.lrot(bits("2b10"))) == "4b0X-1"
-    assert str(v.lrot(bits("2b1-"))) == "4b----"
-    assert str(v.lrot(bits("2b1X"))) == "4bXXXX"
-    assert str(v.lrot(3)) == "4bX-10"
+    assert lrot(v, 0) is v
+    assert str(lrot(v, 1)) == "4b10X-"
+    assert str(lrot(v, 2)) == "4b0X-1"
+    assert str(lrot(v, "2b10")) == "4b0X-1"
+    assert str(lrot(v, "2b1-")) == "4b----"
+    assert str(lrot(v, "2b1X")) == "4bXXXX"
+    assert str(lrot(v, 3)) == "4bX-10"
 
     with pytest.raises(ValueError):
-        str(v.lrot(4))
+        str(lrot(v, 4))
 
 
 def test_vec_rrot():
     v = bits("4b-10X")
-    assert v.rrot(0) is v
-    assert str(v.rrot(1)) == "4bX-10"
-    assert str(v.rrot(2)) == "4b0X-1"
-    assert str(v.rrot(bits("2b10"))) == "4b0X-1"
-    assert str(v.rrot(bits("2b1-"))) == "4b----"
-    assert str(v.rrot(bits("2b1X"))) == "4bXXXX"
-    assert str(v.rrot(3)) == "4b10X-"
+    assert rrot(v, 0) is v
+    assert str(rrot(v, 1)) == "4bX-10"
+    assert str(rrot(v, 2)) == "4b0X-1"
+    assert str(rrot(v, "2b10")) == "4b0X-1"
+    assert str(rrot(v, "2b1-")) == "4b----"
+    assert str(rrot(v, "2b1X")) == "4bXXXX"
+    assert str(rrot(v, 3)) == "4b10X-"
 
     with pytest.raises(ValueError):
-        str(v.rrot(4))
+        str(rrot(v, 4))
 
 
 def test_vec_rsh():

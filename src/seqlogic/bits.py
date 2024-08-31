@@ -21,7 +21,8 @@ from collections import namedtuple
 from collections.abc import Callable, Generator
 from functools import cache, partial
 
-from .lbool import _W, _X, _0, _1, from_char, land, lnot, lor, lxnor, lxor, to_char, to_vcd_char
+from .lbool import (_W, _X, _0, _1, from_char, land, lnot, lor, lxnor, lxor,
+                    to_char, to_vcd_char)
 from .util import classproperty, clog2
 
 AddResult = namedtuple("AddResult", ["s", "co"])
@@ -309,72 +310,6 @@ class Bits:
         if sign == _1:
             return -(_not_(self).to_uint() + 1)
         return self.to_uint()
-
-    def _lrot(self, n: int) -> Bits:
-        _, (co0, co1) = self._get_slice(self.size - n, self.size)
-        _, (sh0, sh1) = self._get_slice(0, self.size - n)
-        d0 = co0 | sh0 << n
-        d1 = co1 | sh1 << n
-        return self._cast_data(d0, d1)
-
-    def lrot(self, n: int | Bits) -> Bits:
-        """Left rotate by n bits.
-
-        Args:
-            n: Non-negative number of bits.
-
-        Returns:
-            Bits left-rotated by n bits.
-
-        Raises:
-            ValueError: If n is invalid/inconsistent.
-        """
-        if isinstance(n, Bits):
-            if n.has_x():
-                return self.xes()
-            if n.has_dc():
-                return self.dcs()
-            n = n.to_uint()
-
-        if not 0 <= n < self.size:
-            raise ValueError(f"Expected 0 ≤ n < {self.size}, got {n}")
-        if n == 0:
-            return self
-
-        return self._lrot(n)
-
-    def _rrot(self, n: int) -> Bits:
-        _, (co0, co1) = self._get_slice(0, n)
-        sh_size, (sh0, sh1) = self._get_slice(n, self.size)
-        d0 = sh0 | co0 << sh_size
-        d1 = sh1 | co1 << sh_size
-        return self._cast_data(d0, d1)
-
-    def rrot(self, n: int | Bits) -> Bits:
-        """Right rotate by n bits.
-
-        Args:
-            n: Non-negative number of bits.
-
-        Returns:
-            Bits right-rotated by n bits.
-
-        Raises:
-            ValueError: If n is invalid/inconsistent.
-        """
-        if isinstance(n, Bits):
-            if n.has_x():
-                return self.xes()
-            if n.has_dc():
-                return self.dcs()
-            n = n.to_uint()
-
-        if not 0 <= n < self.size:
-            raise ValueError(f"Expected 0 ≤ n < {self.size}, got {n}")
-        if n == 0:
-            return self
-
-        return self._rrot(n)
 
     def count_xes(self) -> int:
         """Return number of X items."""
@@ -1715,6 +1650,78 @@ def sxt(x: Bits | str, n: int) -> Bits:
     d0 = x.data[0] | ext0 << x.size
     d1 = x.data[1] | ext1 << x.size
     return _vec_size(x.size + n)(d0, d1)
+
+
+def _lrot(x: Bits, n: Bits) -> Bits:
+    if n.has_x():
+        return x.xes()
+    if n.has_dc():
+        return x.dcs()
+
+    n = n.to_uint()
+    if n == 0:
+        return x
+    if n >= x.size:
+        raise ValueError(f"Expected n < {x.size}, got {n}")
+
+    _, (co0, co1) = x._get_slice(x.size - n, x.size)
+    _, (sh0, sh1) = x._get_slice(0, x.size - n)
+    d0 = co0 | sh0 << n
+    d1 = co1 | sh1 << n
+    return x._cast_data(d0, d1)
+
+
+def lrot(x: Bits | str, n: Bits | str | int) -> Bits:
+    """Left rotate by n bits.
+
+    Args:
+        n: Non-negative number of bits.
+
+    Returns:
+        Bits left-rotated by n bits.
+
+    Raises:
+        ValueError: If n is invalid/inconsistent.
+    """
+    x = _expect_type(x, Bits)
+    n = _expect_shift(n, x.size)
+    return _lrot(x, n)
+
+
+def _rrot(x: Bits, n: Bits) -> Bits:
+    if n.has_x():
+        return x.xes()
+    if n.has_dc():
+        return x.dcs()
+
+    n = n.to_uint()
+    if n == 0:
+        return x
+    if n >= x.size:
+        raise ValueError(f"Expected n < {x.size}, got {n}")
+
+    _, (co0, co1) = x._get_slice(0, n)
+    sh_size, (sh0, sh1) = x._get_slice(n, x.size)
+    d0 = sh0 | co0 << sh_size
+    d1 = sh1 | co1 << sh_size
+    return x._cast_data(d0, d1)
+
+
+def rrot(x: Bits | str, n: Bits | str | int) -> Bits:
+    """Right rotate by n bits.
+
+    Args:
+        n: Non-negative number of bits.
+
+    Returns:
+        Bits right-rotated by n bits.
+
+    Raises:
+        ValueError: If n is invalid/inconsistent.
+    """
+    x = _expect_type(x, Bits)
+    n = _expect_shift(n, x.size)
+    return _rrot(x, n)
 
 
 def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:

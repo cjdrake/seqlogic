@@ -21,6 +21,7 @@ from .bits import (
     gt,
     i2bv,
     le,
+    lrot,
     lsh,
     lt,
     nand,
@@ -31,6 +32,7 @@ from .bits import (
     not_,
     or_,
     rep,
+    rrot,
     rsh,
     sbc,
     sge,
@@ -97,6 +99,8 @@ __all__ = [
     # bits: word
     "xt",
     "sxt",
+    "lrot",
+    "rrot",
     "cat",
     "rep",
     # bits: predicate
