@@ -10,7 +10,7 @@ def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
         case AluOp.ADD:
             return add(a, b)
         case AluOp.SUB:
-            return sub(a, b).s
+            return sub(a, b)
         case AluOp.SLL:
             return a << b[0:5]
         case AluOp.SRL:

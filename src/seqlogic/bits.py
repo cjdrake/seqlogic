@@ -1254,7 +1254,26 @@ def _sub(a: Bits, b: Bits) -> AddResult:
     return AddResult(s, co)
 
 
-def sub(a: Bits | str, b: Bits | str) -> AddResult:
+def sub(a: Bits | str, b: Bits | str) -> Bits:
+    """Twos complement subtraction.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        2-tuple of (sum, carry-out).
+
+    Raises:
+        ValueError: Bits sizes are invalid/inconsistent.
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    s, _ = _sub(a, b)
+    return s
+
+
+def sbc(a: Bits | str, b: Bits | str) -> AddResult:
     """Twos complement subtraction.
 
     Args:
