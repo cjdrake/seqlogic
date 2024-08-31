@@ -1,6 +1,6 @@
 """Arithmetic Logic Unit (ALU)."""
 
-from seqlogic import Module, Vec, add, eq, lt, slt, sub
+from seqlogic import Module, Vec, add, eq, lt, slt, srsh, sub
 
 from . import AluOp
 
@@ -16,7 +16,7 @@ def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
         case AluOp.SRL:
             return a >> b[0:5]
         case AluOp.SRA:
-            y, _ = a.srsh(b[0:5])
+            y, _ = srsh(a, b[0:5])
             return y
         case AluOp.SEQ:
             return eq(a, b).xt(32 - 1)

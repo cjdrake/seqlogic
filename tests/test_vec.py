@@ -15,6 +15,7 @@ from seqlogic import (
     gt,
     i2bv,
     le,
+    lsh,
     lt,
     nand,
     ne,
@@ -22,11 +23,13 @@ from seqlogic import (
     not_,
     or_,
     rep,
+    rsh,
     sbc,
     sge,
     sgt,
     sle,
     slt,
+    srsh,
     sub,
     u2bv,
     uand,
@@ -976,23 +979,23 @@ def test_vec_sxt():
 
 def test_vec_lsh():
     v = bits("4b1111")
-    y, co = v.lsh(0)
+    y, co = lsh(v, 0)
     assert y is v and co == E
-    assert v.lsh(1) == ("4b1110", "1b1")
-    assert v.lsh(2) == ("4b1100", "2b11")
+    assert lsh(v, 1) == ("4b1110", "1b1")
+    assert lsh(v, 2) == ("4b1100", "2b11")
     assert v << 2 == "4b1100"
     assert "4b1111" << bits("2b10") == "4b1100"
-    assert v.lsh(3) == ("4b1000", "3b111")
-    assert v.lsh(4) == ("4b0000", "4b1111")
+    assert lsh(v, 3) == ("4b1000", "3b111")
+    assert lsh(v, 4) == ("4b0000", "4b1111")
 
     with pytest.raises(ValueError):
-        v.lsh(-1)
+        lsh(v, -1)
     with pytest.raises(ValueError):
-        v.lsh(5)
+        lsh(v, 5)
 
-    assert bits("2b01").lsh(bits("1bX")) == (bits("2bXX"), E)
-    assert bits("2b01").lsh(bits("1b-")) == (bits("2b--"), E)
-    assert bits("2b01").lsh(bits("1b1")) == (bits("2b10"), F)
+    assert lsh("2b01", "1bX") == (bits("2bXX"), E)
+    assert lsh("2b01", "1b-") == (bits("2b--"), E)
+    assert lsh("2b01", "1b1") == (bits("2b10"), F)
 
 
 def test_vec_lrot():
@@ -1025,48 +1028,48 @@ def test_vec_rrot():
 
 def test_vec_rsh():
     v = bits("4b1111")
-    y, co = v.rsh(0)
+    y, co = rsh(v, 0)
     assert y is v and co == E
-    assert v.rsh(1) == ("4b0111", "1b1")
-    assert v.rsh(2) == ("4b0011", "2b11")
+    assert rsh(v, 1) == ("4b0111", "1b1")
+    assert rsh(v, 2) == ("4b0011", "2b11")
     assert v >> 2 == "4b0011"
     assert "4b1111" >> bits("2b10") == "4b0011"
-    assert v.rsh(3) == ("4b0001", "3b111")
-    assert v.rsh(4) == ("4b0000", "4b1111")
+    assert rsh(v, 3) == ("4b0001", "3b111")
+    assert rsh(v, 4) == ("4b0000", "4b1111")
 
     with pytest.raises(ValueError):
-        v.rsh(-1)
+        rsh(v, -1)
     with pytest.raises(ValueError):
-        v.rsh(5)
+        rsh(v, 5)
 
-    assert bits("2b01").rsh(bits("1bX")) == (bits("2bXX"), E)
-    assert bits("2b01").rsh(bits("1b-")) == (bits("2b--"), E)
-    assert bits("2b01").rsh(bits("1b1")) == (bits("2b00"), T)
+    assert rsh("2b01", "1bX") == (bits("2bXX"), E)
+    assert rsh("2b01", "1b-") == (bits("2b--"), E)
+    assert rsh("2b01", "1b1") == (bits("2b00"), T)
 
 
 def test_vec_srsh():
     v = bits("4b1111")
-    assert v.srsh(0) == ("4b1111", E)
-    assert v.srsh(1) == ("4b1111", "1b1")
-    assert v.srsh(2) == ("4b1111", "2b11")
-    assert v.srsh(3) == ("4b1111", "3b111")
-    assert v.srsh(4) == ("4b1111", "4b1111")
+    assert srsh(v, 0) == ("4b1111", E)
+    assert srsh(v, 1) == ("4b1111", "1b1")
+    assert srsh(v, 2) == ("4b1111", "2b11")
+    assert srsh(v, 3) == ("4b1111", "3b111")
+    assert srsh(v, 4) == ("4b1111", "4b1111")
 
     v = bits("4b0111")
-    assert v.srsh(0) == ("4b0111", E)
-    assert v.srsh(1) == ("4b0011", "1b1")
-    assert v.srsh(2) == ("4b0001", "2b11")
-    assert v.srsh(3) == ("4b0000", "3b111")
-    assert v.srsh(4) == ("4b0000", "4b0111")
+    assert srsh(v, 0) == ("4b0111", E)
+    assert srsh(v, 1) == ("4b0011", "1b1")
+    assert srsh(v, 2) == ("4b0001", "2b11")
+    assert srsh(v, 3) == ("4b0000", "3b111")
+    assert srsh(v, 4) == ("4b0000", "4b0111")
 
     with pytest.raises(ValueError):
-        v.srsh(-1)
+        srsh(v, -1)
     with pytest.raises(ValueError):
-        v.srsh(5)
+        srsh(v, 5)
 
-    assert bits("2b01").srsh(bits("1bX")) == (bits("2bXX"), E)
-    assert bits("2b01").srsh(bits("1b-")) == (bits("2b--"), E)
-    assert bits("2b01").srsh(bits("1b1")) == (bits("2b00"), T)
+    assert srsh("2b01", "1bX") == (bits("2bXX"), E)
+    assert srsh("2b01", "1b-") == (bits("2b--"), E)
+    assert srsh("2b01", "1b1") == (bits("2b00"), T)
 
 
 ADD_VALS = [

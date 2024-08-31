@@ -88,6 +88,16 @@ def _expect_type(arg, t: type[Bits]):
     return x
 
 
+def _expect_shift(arg, size: int):
+    if isinstance(arg, int):
+        return u2bv(arg, size)
+    if isinstance(arg, str):
+        return _lit2vec(arg)
+    if isinstance(arg, Bits):
+        return arg
+    raise TypeError("Expected arg to be Bits, str literal, or int")
+
+
 def _expect_size(arg, size: int) -> Bits:
     x = _expect_type(arg, Bits)
     if x.size != size:
@@ -226,24 +236,22 @@ class Bits:
         return _xor_(other, self)
 
     # Note: Drop carry-out
-    def __lshift__(self, n: int | Bits) -> Bits:
-        y, _ = self.lsh(n)
-        return y
+    def __lshift__(self, n: Bits | str | int) -> Bits:
+        n = _expect_shift(n, self.size)
+        return _lsh(self, n)[0]
 
     def __rlshift__(self, other: Bits | str) -> Bits:
         other = _expect_type(other, Bits)
-        y, _ = other.lsh(self)
-        return y
+        return _lsh(other, self)[0]
 
     # Note: Drop carry-out
-    def __rshift__(self, n: int | Bits) -> Bits:
-        y, _ = self.rsh(n)
-        return y
+    def __rshift__(self, n: Bits | str | int) -> Bits:
+        n = _expect_shift(n, self.size)
+        return _rsh(self, n)[0]
 
     def __rrshift__(self, other: Bits | str) -> Bits:
         other = _expect_type(other, Bits)
-        y, _ = other.rsh(self)
-        return y
+        return _rsh(other, self)[0]
 
     # Note: Keep carry-out
     def __add__(self, other: Bits | str) -> Scalar | Vector:
@@ -347,139 +355,12 @@ class Bits:
         d1 = self._data[1] | ext1 << self.size
         return _vec_size(self.size + n)(d0, d1)
 
-    def _lsh(self, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
-        if n.has_x():
-            return self.xes(), _Empty
-        if n.has_dc():
-            return self.dcs(), _Empty
-
-        n = n.to_uint()
-        if n == 0:
-            return self, _Empty
-        if n > self.size:
-            raise ValueError(f"Expected n ≤ {self.size}, got {n}")
-
-        so_size, (so0, so1) = self._get_slice(self.size - n, self.size)
-        so = _vec_size(so_size)(so0, so1)
-
-        _, (sh0, sh1) = self._get_slice(0, self.size - n)
-        d0 = _mask(n) | (sh0 << n)
-        d1 = sh1 << n
-        y = self.__class__._cast_data(d0, d1)
-
-        return ShiftResult(y, so)
-
-    def lsh(self, n: Bits | int) -> tuple[Bits, Empty | Scalar | Vector]:
-        """Left shift by n bits.
-
-        Args:
-            n: Non-negative number of bits.
-
-        Returns:
-            Bits left-shifted by n bits.
-
-        Raises:
-            ValueError: If n is invalid.
-        """
-        if isinstance(n, int):
-            n = u2bv(n, self.size)
-        elif not isinstance(n, Bits):
-            raise TypeError("Expected n to be Bits or int")
-
-        return self._lsh(n)
-
-    def _rsh(self, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
-        if n.has_x():
-            return self.xes(), _Empty
-        if n.has_dc():
-            return self.dcs(), _Empty
-
-        n = n.to_uint()
-        if n == 0:
-            return self, _Empty
-        if n > self.size:
-            raise ValueError(f"Expected n ≤ {self.size}, got {n}")
-
-        so_size, (so0, so1) = self._get_slice(0, n)
-        so = _vec_size(so_size)(so0, so1)
-
-        sh_size, (sh0, sh1) = self._get_slice(n, self.size)
-        d0 = sh0 | (_mask(n) << sh_size)
-        d1 = sh1
-        y = self.__class__._cast_data(d0, d1)
-
-        return ShiftResult(y, so)
-
-    def rsh(self, n: Bits | int) -> tuple[Bits, Empty | Scalar | Vector]:
-        """Right shift by n bits.
-
-        Args:
-            n: Non-negative number of bits.
-
-        Returns:
-            Bits right-shifted by n bits.
-
-        Raises:
-            ValueError: If n is invalid.
-        """
-        if isinstance(n, int):
-            n = u2bv(n, self.size)
-        elif not isinstance(n, Bits):
-            raise TypeError("Expected n to be Bits or int")
-
-        return self._rsh(n)
-
-    def _srsh(self, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
-        if n.has_x():
-            return self.xes(), _Empty
-        if n.has_dc():
-            return self.dcs(), _Empty
-
-        n = n.to_uint()
-        if n == 0:
-            return self, _Empty
-        if n > self.size:
-            raise ValueError(f"Expected n ≤ {self.size}, got {n}")
-
-        so_size, (so0, so1) = self._get_slice(0, n)
-        so = _vec_size(so_size)(so0, so1)
-
-        sign0, sign1 = self._get_index(self.size - 1)
-        si0, si1 = _mask(n) * sign0, _mask(n) * sign1
-
-        sh_size, (sh0, sh1) = self._get_slice(n, self.size)
-        d0 = sh0 | si0 << sh_size
-        d1 = sh1 | si1 << sh_size
-        y = self.__class__._cast_data(d0, d1)
-
-        return ShiftResult(y, so)
-
-    def srsh(self, n: Bits | int) -> tuple[Bits, Empty | Scalar | Vector]:
-        """Signed (arithmetic) right shift by n bits.
-
-        Args:
-            n: Non-negative number of bits.
-
-        Returns:
-            Bits arithmetically right-shifted by n bits.
-
-        Raises:
-            ValueError: If n is invalid.
-        """
-        if isinstance(n, int):
-            n = u2bv(n, self.size)
-        elif not isinstance(n, Bits):
-            raise TypeError("Expected n to be Bits or int")
-
-        return self._srsh(n)
-
     def _lrot(self, n: int) -> Bits:
         _, (co0, co1) = self._get_slice(self.size - n, self.size)
         _, (sh0, sh1) = self._get_slice(0, self.size - n)
         d0 = co0 | sh0 << n
         d1 = co1 | sh1 << n
-        cls = self.__class__
-        return cls._cast_data(d0, d1)
+        return self._cast_data(d0, d1)
 
     def lrot(self, n: int | Bits) -> Bits:
         """Left rotate by n bits.
@@ -512,8 +393,7 @@ class Bits:
         sh_size, (sh0, sh1) = self._get_slice(n, self.size)
         d0 = sh0 | co0 << sh_size
         d1 = sh1 | co1 << sh_size
-        cls = self.__class__
-        return cls._cast_data(d0, d1)
+        return self._cast_data(d0, d1)
 
     def rrot(self, n: int | Bits) -> Bits:
         """Right rotate by n bits.
@@ -873,27 +753,27 @@ def _lxor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
 
 def _not_(x: Bits) -> Bits:
     d0, d1 = _lnot(x.data)
-    return x.__class__._cast_data(d0, d1)
+    return x._cast_data(d0, d1)
 
 
 def _or_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = _lor(x0.data, x1.data)
-    return x0.__class__._cast_data(d0, d1)
+    return x0._cast_data(d0, d1)
 
 
 def _and_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = _land(x0.data, x1.data)
-    return x0.__class__._cast_data(d0, d1)
+    return x0._cast_data(d0, d1)
 
 
 def _xnor_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = _lxnor(x0.data, x1.data)
-    return x0.__class__._cast_data(d0, d1)
+    return x0._cast_data(d0, d1)
 
 
 def _xor_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = _lxor(x0.data, x1.data)
-    return x0.__class__._cast_data(d0, d1)
+    return x0._cast_data(d0, d1)
 
 
 def not_(x: Bits | str) -> Bits:
@@ -1217,8 +1097,7 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     co = _bool2scalar[s > dmax]
     s &= dmax
 
-    cls = a.__class__
-    return cls._cast_data(s ^ dmax, s), co
+    return a._cast_data(s ^ dmax, s), co
 
 
 def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
@@ -1306,8 +1185,7 @@ def sbc(a: Bits | str, b: Bits | str) -> AddResult:
 
 
 def _neg(x: Bits) -> AddResult:
-    zero = x.__class__.zeros()
-    s, co = _add(zero, _not_(x), ci=_Scalar1)
+    s, co = _add(x.zeros(), _not_(x), ci=_Scalar1)
     return AddResult(s, co)
 
 
@@ -1334,6 +1212,129 @@ def ngc(x: Bits | str) -> AddResult:
     """
     x = _expect_type(x, Bits)
     return _neg(x)
+
+
+def _lsh(x: Bits, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
+    if n.has_x():
+        return x.xes(), _Empty
+    if n.has_dc():
+        return x.dcs(), _Empty
+
+    n = n.to_uint()
+    if n == 0:
+        return x, _Empty
+    if n > x.size:
+        raise ValueError(f"Expected n ≤ {x.size}, got {n}")
+
+    so_size, (so0, so1) = x._get_slice(x.size - n, x.size)
+    so = _vec_size(so_size)(so0, so1)
+
+    _, (sh0, sh1) = x._get_slice(0, x.size - n)
+    d0 = _mask(n) | (sh0 << n)
+    d1 = sh1 << n
+    y = x._cast_data(d0, d1)
+
+    return ShiftResult(y, so)
+
+
+def lsh(x: Bits | str, n: Bits | str | int) -> tuple[Bits, Empty | Scalar | Vector]:
+    """Left shift by n bits.
+
+    Args:
+        n: Non-negative number of bits.
+
+    Returns:
+        Bits left-shifted by n bits.
+
+    Raises:
+        ValueError: If n is invalid.
+    """
+    x = _expect_type(x, Bits)
+    n = _expect_shift(n, x.size)
+    return _lsh(x, n)
+
+
+def _rsh(x: Bits, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
+    if n.has_x():
+        return x.xes(), _Empty
+    if n.has_dc():
+        return x.dcs(), _Empty
+
+    n = n.to_uint()
+    if n == 0:
+        return x, _Empty
+    if n > x.size:
+        raise ValueError(f"Expected n ≤ {x.size}, got {n}")
+
+    so_size, (so0, so1) = x._get_slice(0, n)
+    so = _vec_size(so_size)(so0, so1)
+
+    sh_size, (sh0, sh1) = x._get_slice(n, x.size)
+    d0 = sh0 | (_mask(n) << sh_size)
+    d1 = sh1
+    y = x._cast_data(d0, d1)
+
+    return ShiftResult(y, so)
+
+
+def rsh(x: Bits | str, n: Bits | str | int) -> tuple[Bits, Empty | Scalar | Vector]:
+    """Right shift by n bits.
+
+    Args:
+        n: Non-negative number of bits.
+
+    Returns:
+        Bits right-shifted by n bits.
+
+    Raises:
+        ValueError: If n is invalid.
+    """
+    x = _expect_type(x, Bits)
+    n = _expect_shift(n, x.size)
+    return _rsh(x, n)
+
+
+def _srsh(x: Bits, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
+    if n.has_x():
+        return x.xes(), _Empty
+    if n.has_dc():
+        return x.dcs(), _Empty
+
+    n = n.to_uint()
+    if n == 0:
+        return x, _Empty
+    if n > x.size:
+        raise ValueError(f"Expected n ≤ {x.size}, got {n}")
+
+    so_size, (so0, so1) = x._get_slice(0, n)
+    so = _vec_size(so_size)(so0, so1)
+
+    sign0, sign1 = x._get_index(x.size - 1)
+    si0, si1 = _mask(n) * sign0, _mask(n) * sign1
+
+    sh_size, (sh0, sh1) = x._get_slice(n, x.size)
+    d0 = sh0 | si0 << sh_size
+    d1 = sh1 | si1 << sh_size
+    y = x._cast_data(d0, d1)
+
+    return ShiftResult(y, so)
+
+
+def srsh(x: Bits | str, n: Bits | str | int) -> tuple[Bits, Empty | Scalar | Vector]:
+    """Signed (arithmetic) right shift by n bits.
+
+    Args:
+        n: Non-negative number of bits.
+
+    Returns:
+        Bits arithmetically right-shifted by n bits.
+
+    Raises:
+        ValueError: If n is invalid.
+    """
+    x = _expect_type(x, Bits)
+    n = _expect_shift(n, x.size)
+    return _srsh(x, n)
 
 
 def _eq(x0: Bits, x1: Bits) -> Scalar:

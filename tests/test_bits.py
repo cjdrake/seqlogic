@@ -9,7 +9,23 @@
 
 import pytest
 
-from seqlogic import Array, Vector, adc, add, and_, bits, nand, nor, or_, sbc, stack, sub, xnor, xor
+from seqlogic import (
+    Array,
+    Vector,
+    adc,
+    add,
+    and_,
+    bits,
+    nand,
+    nor,
+    or_,
+    sbc,
+    srsh,
+    stack,
+    sub,
+    xnor,
+    xor,
+)
 from seqlogic.lbconst import _W, _X, _0, _1
 
 E = Array[0](*_X)
@@ -140,11 +156,11 @@ def test_rsh():
 
 def test_srsh():
     b0 = bits(["4b1111", "4b0000"])
-    y, _ = b0.srsh(2)
+    y, _ = srsh(b0, 2)
     assert str(y) == "[4b0011, 4b0000]"
 
     b1 = bits(["4b0000", "4b1111"])
-    y, _ = b1.srsh(2)
+    y, _ = srsh(b1, 2)
     assert str(y) == "[4b1100, 4b1111]"
 
 
