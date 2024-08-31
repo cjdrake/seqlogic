@@ -231,19 +231,21 @@ class Module(Branch, ProcIf, _TraceIf):
 
         self._combi(ys, f, xs)
 
-    def expr(self, ys: Value | list[Value] | tuple[Value, ...], x: tuple | Expr):
+    def expr(self, ys: Value | list[Value] | tuple[Value, ...], x):
         """Expression logic."""
 
         # Pack outputs
         if not isinstance(ys, (list, tuple)):
             ys = (ys,)
 
-        if isinstance(x, tuple):
-            f, xs = self._expr(parse(*x))
-        elif isinstance(x, Expr):
-            f, xs = self._expr(x)
-        else:
-            raise TypeError("Expected x to be tuple or Expr")
+        match x:
+            case Expr() as ex:
+                f, xs = self._expr(ex)
+            case [Op(), *xs]:
+                ex = parse(*x)
+                f, xs = self._expr(ex)
+            case _:
+                raise TypeError("Expected x to be tuple or Expr")
 
         self._combi(ys, f, xs)
 

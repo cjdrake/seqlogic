@@ -242,7 +242,7 @@ class GreaterEqual(PrefixOp):
         super().__init__(x0, x1)
 
 
-def f(arg):
+def f(arg) -> Expr:
     match arg:
         case tuple() as args:
             return parse(*args)
@@ -254,7 +254,7 @@ def f(arg):
             raise ValueError("Invalid argument")
 
 
-def parse(*args):
+def parse(*args) -> Expr:
     """Return a symbolic expression."""
     match args:
         case [Op.NOT, x]:
