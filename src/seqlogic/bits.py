@@ -1217,10 +1217,7 @@ def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
     """
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)
-    if ci is None:
-        ci = _Scalar0
-    else:
-        ci = _expect_type(ci, Scalar)
+    ci = _Scalar0 if ci is None else _expect_type(ci, Scalar)
     s, _ = _add(a, b, ci)
     return s
 
@@ -1241,10 +1238,7 @@ def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> AddResu
     """
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)
-    if ci is None:
-        ci = _Scalar0
-    else:
-        ci = _expect_type(ci, Scalar)
+    ci = _Scalar0 if ci is None else _expect_type(ci, Scalar)
     s, co = _add(a, b, ci)
     return AddResult(s, co)
 
