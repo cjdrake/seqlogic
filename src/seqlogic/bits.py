@@ -133,9 +133,10 @@ class Bits:
     Do NOT construct a bit array directly.
     Use one of the factory functions:
 
+        * bits
+        * stack
         * u2bv
         * i2bv
-        * bits
     """
 
     @classproperty
@@ -1580,67 +1581,6 @@ def _lit2vec(lit: str) -> Scalar | Vector:
     return _vec_size(size)(d0, d1)
 
 
-def u2bv(n: int, size: int | None = None) -> Empty | Scalar | Vector:
-    """Convert nonnegative int to Vector.
-
-    Args:
-        n: A nonnegative integer.
-        size: Optional output length.
-
-    Returns:
-        A Vector instance.
-
-    Raises:
-        ValueError: If n is negative or overflows the output length.
-    """
-    if n < 0:
-        raise ValueError(f"Expected n ≥ 0, got {n}")
-
-    # Compute required number of bits
-    min_size = clog2(n + 1)
-    if size is None:
-        size = min_size
-    elif size < min_size:
-        s = f"Overflow: n = {n} required size ≥ {min_size}, got {size}"
-        raise ValueError(s)
-
-    return _vec_size(size)(n ^ _mask(size), n)
-
-
-def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
-    """Convert int to Vector.
-
-    Args:
-        n: An integer.
-        size: Optional output length.
-
-    Returns:
-        A Vec instance.
-
-    Raises:
-        ValueError: If n overflows the output length.
-    """
-    negative = n < 0
-
-    # Compute required number of bits
-    if negative:
-        d1 = -n
-        min_size = clog2(d1) + 1
-    else:
-        d1 = n
-        min_size = clog2(d1 + 1) + 1
-    if size is None:
-        size = min_size
-    elif size < min_size:
-        s = f"Overflow: n = {n} required size ≥ {min_size}, got {size}"
-        raise ValueError(s)
-
-    x = _vec_size(size)(d1 ^ _mask(size), d1)
-    if negative:
-        return _neg(x).s
-    return x
-
-
 def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
     """Concatenate a sequence of Vectors.
 
@@ -2112,6 +2052,67 @@ def stack(*objs: _ShapeIf | int | str) -> _ShapeIf:
     # {Array[J,K], Array[J,K], ...} => Array[I,J,K]
     shape = (len(xs),) + fst.shape
     return _get_array_shape(shape)(d0, d1)
+
+
+def u2bv(n: int, size: int | None = None) -> Empty | Scalar | Vector:
+    """Convert nonnegative int to Vector.
+
+    Args:
+        n: A nonnegative integer.
+        size: Optional output length.
+
+    Returns:
+        A Vector instance.
+
+    Raises:
+        ValueError: If n is negative or overflows the output length.
+    """
+    if n < 0:
+        raise ValueError(f"Expected n ≥ 0, got {n}")
+
+    # Compute required number of bits
+    min_size = clog2(n + 1)
+    if size is None:
+        size = min_size
+    elif size < min_size:
+        s = f"Overflow: n = {n} required size ≥ {min_size}, got {size}"
+        raise ValueError(s)
+
+    return _vec_size(size)(n ^ _mask(size), n)
+
+
+def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
+    """Convert int to Vector.
+
+    Args:
+        n: An integer.
+        size: Optional output length.
+
+    Returns:
+        A Vec instance.
+
+    Raises:
+        ValueError: If n overflows the output length.
+    """
+    negative = n < 0
+
+    # Compute required number of bits
+    if negative:
+        d1 = -n
+        min_size = clog2(d1) + 1
+    else:
+        d1 = n
+        min_size = clog2(d1 + 1) + 1
+    if size is None:
+        size = min_size
+    elif size < min_size:
+        s = f"Overflow: n = {n} required size ≥ {min_size}, got {size}"
+        raise ValueError(s)
+
+    x = _vec_size(size)(d1 ^ _mask(size), d1)
+    if negative:
+        return _neg(x).s
+    return x
 
 
 def _chunk(data: tuple[int, int], base: int, size: int) -> tuple[int, int]:
