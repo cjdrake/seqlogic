@@ -347,6 +347,9 @@ class Bits:
         return _vec_size(self.size + n)(d0, d1)
 
     def _lsh(self, n: int) -> tuple[Bits, Empty | Scalar | Vector]:
+        if n == 0:
+            return self, _Empty
+
         co_size, (co0, co1) = self._get_slice(self.size - n, self.size)
         co = _vec_size(co_size)(co0, co1)
 
@@ -379,12 +382,13 @@ class Bits:
 
         if not 0 <= n <= self.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
-        if n == 0:
-            return self, _Empty
 
         return self._lsh(n)
 
     def _rsh(self, n: int) -> tuple[Bits, Empty | Scalar | Vector]:
+        if n == 0:
+            return self, _Empty
+
         co_size, (co0, co1) = self._get_slice(0, n)
         co = _vec_size(co_size)(co0, co1)
 
@@ -417,12 +421,13 @@ class Bits:
 
         if not 0 <= n <= self.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
-        if n == 0:
-            return self, _Empty
 
         return self._rsh(n)
 
     def _srsh(self, n: int) -> tuple[Bits, Empty | Scalar | Vector]:
+        if n == 0:
+            return self, _Empty
+
         co_size, (co0, co1) = self._get_slice(0, n)
         co = _vec_size(co_size)(co0, co1)
 
@@ -458,8 +463,6 @@ class Bits:
 
         if not 0 <= n <= self.size:
             raise ValueError(f"Expected 0 ≤ n ≤ {self.size}, got {n}")
-        if n == 0:
-            return self, _Empty
 
         return self._srsh(n)
 
