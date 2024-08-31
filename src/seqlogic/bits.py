@@ -1226,7 +1226,7 @@ def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
 
 
 def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> AddResult:
-    """Addition with carry-in.
+    """Addition with carry-in, and carry-out.
 
     Args:
         a: Bits
@@ -1274,7 +1274,7 @@ def sub(a: Bits | str, b: Bits | str) -> Bits:
 
 
 def sbc(a: Bits | str, b: Bits | str) -> AddResult:
-    """Twos complement subtraction.
+    """Twos complement subtraction, with carry-out.
 
     Args:
         a: Bits
@@ -1311,7 +1311,7 @@ def neg(x: Bits | str) -> Bits:
 
 
 def ngc(x: Bits | str) -> AddResult:
-    """Twos complement negation.
+    """Twos complement negation, with carry-out.
 
     Computed using 0 - x.
 
