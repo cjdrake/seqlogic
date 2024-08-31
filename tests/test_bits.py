@@ -23,8 +23,10 @@ from seqlogic import (
     srsh,
     stack,
     sub,
+    sxt,
     xnor,
     xor,
+    xt,
 )
 from seqlogic.lbconst import _W, _X, _0, _1
 
@@ -132,16 +134,16 @@ def test_sub():
 
 
 def test_xt():
-    assert bits("4b1010").xt(4) == bits("8b0000_1010")
+    assert xt("4b1010", 4) == bits("8b0000_1010")
     # Zero extension on multi-dimensional array will flatten
-    assert bits(["4b0000", "4b1111"]).xt(2) == bits("10b00_1111_0000")
+    assert xt(bits(["4b0000", "4b1111"]), 2) == bits("10b00_1111_0000")
 
 
 def test_sxt():
-    assert bits("4b1010").sxt(4) == bits("8b1111_1010")
-    assert bits("4b0101").sxt(4) == bits("8b0000_0101")
+    assert sxt("4b1010", 4) == bits("8b1111_1010")
+    assert sxt("4b0101", 4) == bits("8b0000_0101")
     # Sign extension of multi-dimensional array will flatten
-    assert bits(["4b0000", "4b1111"]).sxt(2) == bits("10b11_1111_0000")
+    assert sxt(bits(["4b0000", "4b1111"]), 2) == bits("10b11_1111_0000")
 
 
 def test_lsh():

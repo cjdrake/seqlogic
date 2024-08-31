@@ -310,52 +310,6 @@ class Bits:
             return -(_not_(self).to_uint() + 1)
         return self.to_uint()
 
-    def xt(self, n: int) -> Bits:
-        """Unsigned extend by n bits.
-
-        Args:
-            n: Non-negative number of bits.
-
-        Returns:
-            Vector zero-extended by n bits.
-
-        Raises:
-            ValueError: If n is negative.
-        """
-        if n < 0:
-            raise ValueError(f"Expected n ≥ 0, got {n}")
-        if n == 0:
-            return self
-
-        ext0 = _mask(n)
-        d0 = self._data[0] | ext0 << self.size
-        d1 = self._data[1]
-        return _vec_size(self.size + n)(d0, d1)
-
-    def sxt(self, n: int) -> Bits:
-        """Sign extend by n bits.
-
-        Args:
-            n: Non-negative number of bits.
-
-        Returns:
-            Vector sign-extended by n bits.
-
-        Raises:
-            ValueError: If n is negative.
-        """
-        if n < 0:
-            raise ValueError(f"Expected n ≥ 0, got {n}")
-        if n == 0:
-            return self
-
-        sign0, sign1 = self._get_index(self.size - 1)
-        ext0 = _mask(n) * sign0
-        ext1 = _mask(n) * sign1
-        d0 = self._data[0] | ext0 << self.size
-        d1 = self._data[1] | ext1 << self.size
-        return _vec_size(self.size + n)(d0, d1)
-
     def _lrot(self, n: int) -> Bits:
         _, (co0, co1) = self._get_slice(self.size - n, self.size)
         _, (sh0, sh1) = self._get_slice(0, self.size - n)
@@ -1514,6 +1468,104 @@ def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
     return _scmp(operator.ge, x0, x1)
 
 
+def xt(x: Bits | str, n: int) -> Bits:
+    """Unsigned extend by n bits.
+
+    Args:
+        n: Non-negative number of bits.
+
+    Returns:
+        Vector zero-extended by n bits.
+
+    Raises:
+        ValueError: If n is negative.
+    """
+    x = _expect_type(x, Bits)
+
+    if n < 0:
+        raise ValueError(f"Expected n ≥ 0, got {n}")
+    if n == 0:
+        return x
+
+    ext0 = _mask(n)
+    d0 = x.data[0] | ext0 << x.size
+    d1 = x.data[1]
+    return _vec_size(x.size + n)(d0, d1)
+
+
+def sxt(x: Bits | str, n: int) -> Bits:
+    """Sign extend by n bits.
+
+    Args:
+        n: Non-negative number of bits.
+
+    Returns:
+        Vector sign-extended by n bits.
+
+    Raises:
+        ValueError: If n is negative.
+    """
+    x = _expect_type(x, Bits)
+
+    if n < 0:
+        raise ValueError(f"Expected n ≥ 0, got {n}")
+    if n == 0:
+        return x
+
+    sign0, sign1 = x._get_index(x.size - 1)
+    ext0 = _mask(n) * sign0
+    ext1 = _mask(n) * sign1
+    d0 = x.data[0] | ext0 << x.size
+    d1 = x.data[1] | ext1 << x.size
+    return _vec_size(x.size + n)(d0, d1)
+
+
+def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
+    """Concatenate a sequence of Vectors.
+
+    Args:
+        objs: a sequence of vec/bool/lit objects.
+
+    Returns:
+        A Vec instance.
+
+    Raises:
+        TypeError: If input obj is invalid.
+    """
+    if len(objs) == 0:
+        return _Empty
+
+    # Convert inputs
+    xs = []
+    for obj in objs:
+        if isinstance(obj, Bits):
+            xs.append(obj)
+        elif obj in (0, 1):
+            xs.append(_bool2scalar[obj])
+        elif isinstance(obj, str):
+            x = _lit2vec(obj)
+            xs.append(x)
+        else:
+            raise TypeError(f"Invalid input: {obj}")
+
+    if len(xs) == 1:
+        return xs[0]
+
+    size = 0
+    d0, d1 = 0, 0
+    for x in xs:
+        d0 |= x.data[0] << size
+        d1 |= x.data[1] << size
+        size += x.size
+    return _vec_size(size)(d0, d1)
+
+
+def rep(obj: Bits | int | str, n: int) -> Empty | Scalar | Vector:
+    """Repeat a Vector n times."""
+    objs = [obj] * n
+    return cat(*objs)
+
+
 _LIT_PREFIX_RE = re.compile(r"(?P<Size>[1-9][0-9]*)(?P<Base>[bdh])")
 
 
@@ -1579,52 +1631,6 @@ def _lit2vec(lit: str) -> Scalar | Vector:
     """
     size, (d0, d1) = _parse_lit(lit)
     return _vec_size(size)(d0, d1)
-
-
-def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
-    """Concatenate a sequence of Vectors.
-
-    Args:
-        objs: a sequence of vec/bool/lit objects.
-
-    Returns:
-        A Vec instance.
-
-    Raises:
-        TypeError: If input obj is invalid.
-    """
-    if len(objs) == 0:
-        return _Empty
-
-    # Convert inputs
-    xs = []
-    for obj in objs:
-        if isinstance(obj, Bits):
-            xs.append(obj)
-        elif obj in (0, 1):
-            xs.append(_bool2scalar[obj])
-        elif isinstance(obj, str):
-            x = _lit2vec(obj)
-            xs.append(x)
-        else:
-            raise TypeError(f"Invalid input: {obj}")
-
-    if len(xs) == 1:
-        return xs[0]
-
-    size = 0
-    d0, d1 = 0, 0
-    for x in xs:
-        d0 |= x.data[0] << size
-        d1 |= x.data[1] << size
-        size += x.size
-    return _vec_size(size)(d0, d1)
-
-
-def rep(obj: Bits | int | str, n: int) -> Empty | Scalar | Vector:
-    """Repeat a Vector n times."""
-    objs = [obj] * n
-    return cat(*objs)
 
 
 class _EnumMeta(type):

@@ -39,6 +39,7 @@ from .bits import (
     srsh,
     stack,
     sub,
+    sxt,
     u2bv,
     uand,
     uor,
@@ -46,6 +47,7 @@ from .bits import (
     uxor,
     xnor,
     xor,
+    xt,
 )
 from .design import Module, Packed, Unpacked
 from .expr import Op
@@ -96,6 +98,7 @@ __all__ = [
     "srsh",
     "stack",
     "sub",
+    "sxt",
     "u2bv",
     "uand",
     "uor",
@@ -103,6 +106,7 @@ __all__ = [
     "uxor",
     "xnor",
     "xor",
+    "xt",
     # design
     "Module",
     "Packed",
