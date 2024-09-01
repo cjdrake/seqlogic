@@ -50,7 +50,7 @@ def _mod_init_source(params) -> str:
     return "".join(lines)
 
 
-class ModuleMeta(type):
+class _ModuleMeta(type):
     """Module metaclass, for parameterization."""
 
     def __new__(mcs, name, bases, attrs):
@@ -97,7 +97,7 @@ class ModuleMeta(type):
         return mod
 
 
-class Module(metaclass=ModuleMeta):
+class Module(metaclass=_ModuleMeta):
     """Hierarchical, branch-level design component.
 
     A module contains:
