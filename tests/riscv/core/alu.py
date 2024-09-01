@@ -37,9 +37,7 @@ def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
 class Alu(Module):
     """Arithmetic Logic Unit (ALU)."""
 
-    def __init__(self, name: str, parent: Module | None):
-        super().__init__(name, parent)
-
+    def build(self):
         # Ports
         y = self.output(name="y", dtype=Vec[32])
         op = self.input(name="op", dtype=AluOp)

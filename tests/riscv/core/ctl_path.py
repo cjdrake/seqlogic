@@ -257,9 +257,7 @@ def f_ctl(opcode: Opcode):
 class CtlPath(Module):
     """Control Path Module."""
 
-    def __init__(self, name: str, parent: Module | None):
-        super().__init__(name, parent)
-
+    def build(self):
         # Ports
         opcode = self.input(name="opcode", dtype=Opcode)
         funct3 = self.input(name="funct3", dtype=Funct3)

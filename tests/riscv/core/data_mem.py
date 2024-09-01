@@ -8,11 +8,11 @@ from seqlogic import Array, Module, Vec
 class DataMem(Module):
     """Data random access, read/write memory."""
 
-    def __init__(self, name: str, parent: Module | None, word_addr_bits: int = 10):
-        super().__init__(name, parent)
+    word_addr_bits: int = 10
 
+    def build(self):
         # Ports
-        addr = self.input(name="addr", dtype=Vec[word_addr_bits])
+        addr = self.input(name="addr", dtype=Vec[self.word_addr_bits])
         wr_en = self.input(name="wr_en", dtype=Vec[1])
         wr_be = self.input(name="wr_be", dtype=Vec[4])
         wr_data = self.input(name="wr_data", dtype=Array[4, 8])

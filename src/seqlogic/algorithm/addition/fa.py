@@ -7,9 +7,7 @@ from ...design import Module
 class FullAdd(Module):
     """Full Adder."""
 
-    def __init__(self, name: str, parent: Module | None):
-        super().__init__(name, parent)
-
+    def build(self):
         # Ports
         s = self.output(name="s", dtype=Vec[1])
         co = self.output(name="co", dtype=Vec[1])

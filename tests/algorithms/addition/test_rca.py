@@ -35,10 +35,10 @@ def test_functional():
 class Top(Module):
     """Top Level Module."""
 
-    def __init__(self, name: str, n: int):
-        super().__init__(name, parent=None)
+    n: int = 8
 
-        self.n = n
+    def build(self):
+        n = self.n
 
         s = self.output(name="s", dtype=Vec[n])
         co = self.output(name="co", dtype=Vec[1])
@@ -63,9 +63,9 @@ class Top(Module):
         self.initial(self.drive)
 
     async def drive(self):
-        await sleep(10)
-
         n = self.n
+
+        await sleep(10)
 
         for i in range(2**n):
             for j in range(2**n):

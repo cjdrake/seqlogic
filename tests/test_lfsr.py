@@ -18,9 +18,7 @@ def lfsr(x: Vec[3]) -> Vec[3]:
 class Top(Module):
     """Top level module."""
 
-    def __init__(self):
-        super().__init__(name="top", parent=None)
-
+    def build(self):
         # Control
         clock = self.input(name="clock", dtype=Vec[1])
         reset_n = self.input(name="reset_n", dtype=Vec[1])
@@ -41,7 +39,7 @@ def test_lfsr():
     """Test a 3-bit LFSR."""
     loop.reset()
 
-    top = Top()
+    top = Top(name="top")
     top.elab()
 
     waves = defaultdict(dict)

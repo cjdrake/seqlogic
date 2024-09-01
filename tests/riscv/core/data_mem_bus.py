@@ -18,11 +18,11 @@ def f_rd_data(rd_en: Vec[1], is_data: Vec[1], data: Vec[32]) -> Vec[32]:
 class DataMemBus(Module):
     """Data Memory Bus."""
 
-    def __init__(self, name: str, parent: Module | None, depth: int = 1024):
-        super().__init__(name, parent)
+    depth: int = 1024
 
+    def build(self):
         # Parameters
-        word_addr_bits = clog2(depth)
+        word_addr_bits = clog2(self.depth)
         data_start = u2bv(DATA_BASE, 32)
         data_stop = u2bv(DATA_BASE + DATA_SIZE, 32)
 

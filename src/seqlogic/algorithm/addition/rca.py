@@ -23,10 +23,10 @@ def add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
 class RCA(Module):
     """Ripple Carry Adder."""
 
-    def __init__(self, name: str, parent: Module | None, n: int):
-        assert n > 0
+    n: int = 8
 
-        super().__init__(name, parent)
+    def build(self):
+        n = self.n
 
         # Ports
         s = self.output(name="s", dtype=Vec[n])

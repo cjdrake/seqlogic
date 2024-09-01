@@ -12,9 +12,7 @@ Data = Vec[32]
 class RegFile(Module):
     """Register File."""
 
-    def __init__(self, name: str, parent: Module | None):
-        super().__init__(name, parent)
-
+    def build(self):
         # Ports
         wr_en = self.input(name="wr_en", dtype=Vec[1])
         wr_addr = self.input(name="wr_addr", dtype=Addr)

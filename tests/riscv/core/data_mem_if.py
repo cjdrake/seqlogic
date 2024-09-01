@@ -43,9 +43,7 @@ def f_rd_data(data_format: Vec[3], bus_rd_data: Vec[32], byte_addr: Vec[2]) -> V
 class DataMemIf(Module):
     """Data Memory Interface."""
 
-    def __init__(self, name: str, parent: Module | None):
-        super().__init__(name, parent)
-
+    def build(self):
         # Ports
         data_format = self.input(name="data_format", dtype=Vec[3])
 

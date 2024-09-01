@@ -103,9 +103,7 @@ def f_immediate(inst) -> Vec[32]:
 class DataPath(Module):
     """Data Path Module."""
 
-    def __init__(self, name: str, parent: Module | None):
-        super().__init__(name, parent)
-
+    def build(self):
         data_mem_addr = self.output(name="data_mem_addr", dtype=Addr)
         data_mem_wr_data = self.output(name="data_mem_wr_data", dtype=Vec[32])
         data_mem_rd_data = self.input(name="data_mem_rd_data", dtype=Vec[32])

@@ -12,9 +12,7 @@ from .text_mem_bus import TextMemBus
 class Top(Module):
     """Top Level Module."""
 
-    def __init__(self, name: str):
-        super().__init__(name, parent=None)
-
+    def build(self):
         # Ports
         bus_addr = self.output(name="bus_addr", dtype=Addr)
         bus_wr_en = self.output(name="bus_wr_en", dtype=Vec[1])

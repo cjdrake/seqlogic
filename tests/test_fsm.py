@@ -68,11 +68,16 @@ def f(ps: SeqDetect, x: Vec[1]) -> SeqDetect:
             return SeqDetect.xprop(ps)
 
 
+class MyFsm(Module):
+    def build(self):
+        pass
+
+
 def test_fsm():
     """Test a 3-bit LFSR."""
     loop.reset()
 
-    top = Module(name="top", parent=None)
+    top = MyFsm(name="top")
 
     clock = Packed(name="clock", parent=top, dtype=Vec[1])
     reset_n = Packed(name="reset_n", parent=top, dtype=Vec[1])

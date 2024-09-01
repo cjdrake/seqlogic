@@ -11,9 +11,7 @@ from .data_path import DataPath
 class Core(Module):
     """RiscV Core."""
 
-    def __init__(self, name: str, parent: Module | None):
-        super().__init__(name, parent)
-
+    def build(self):
         # Ports
         bus_addr = self.output(name="bus_addr", dtype=Addr)
         bus_wr_en = self.output(name="bus_wr_en", dtype=Vec[1])

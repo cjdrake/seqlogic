@@ -6,6 +6,9 @@ straightforward API for creating a digital design.
 
 # pylint: disable=exec-used
 
+# PyLint is confused by metaclass implementation
+# pylint: disable=protected-access
+
 from __future__ import annotations
 
 import re
@@ -50,7 +53,64 @@ class _TraceIf:
         """Dump design elements w/ names matching pattern to VCD file."""
 
 
-class Module(Branch, ProcIf, _TraceIf):
+def _mod_init_source(params) -> str:
+    """Return source code for Module __init__ method w/ parameters."""
+    lines = []
+    s = ", ".join(f"{pn}={pv}" for pn, _, pv in params)
+    lines.append(f"def init(self, name: str, parent: Module | None=None, {s}):\n")
+    s = ", ".join(f"{pn}={pn}" for pn, _, _ in params)
+    lines.append(f"    _init_body(self, name, parent, {s})\n")
+    return "".join(lines)
+
+
+class ModuleMeta(type):
+    """Module metaclass, for parameterization."""
+
+    def __new__(mcs, name, bases, attrs):
+        # Base case for API
+        if name == "Module":
+            return super().__new__(mcs, name, bases, attrs)
+
+        # Get parameters
+        params = []
+        for pn, pt in attrs.get("__annotations__", {}).items():
+            try:
+                pv = attrs[pn]
+            except KeyError as e:
+                s = f"Module {name} param {pn} has no value"
+                raise ValueError(s) from e
+            if not isinstance(pv, pt):
+                s = f"Module {name} param {pn} has invalid type"
+                raise TypeError(s)
+            params.append((pn, pt, pv))
+
+        # Create Module class
+        mod = super().__new__(mcs, name, bases + (Branch, ProcIf, _TraceIf), attrs)
+
+        # Override Module.__init__ method
+        def _init_body(self, name: str, parent: Module | None = None, **kwargs):
+            Branch.__init__(self, name, parent)
+            ProcIf.__init__(self)
+
+            for pn, pv in kwargs.items():
+                setattr(self, pn, pv)
+
+            # Ports: name => connected
+            self._inputs = {}
+            self._outputs = {}
+
+            self.build()
+
+        source = _mod_init_source(params)
+        globals_ = {"_init_body": _init_body}
+        locals_ = {}
+        exec(source, globals_, locals_)
+        mod.__init__ = locals_["init"]
+
+        return mod
+
+
+class Module(metaclass=ModuleMeta):
     """Hierarchical, branch-level design component.
 
     A module contains:
@@ -60,13 +120,8 @@ class Module(Branch, ProcIf, _TraceIf):
     * Local processes
     """
 
-    def __init__(self, name: str, parent: Module | None):
-        Branch.__init__(self, name, parent)
-        ProcIf.__init__(self)
-
-        # Ports: name => connected
-        self._inputs: dict[str, bool] = {}
-        self._outputs: dict[str, bool] = {}
+    def build(self):
+        raise NotImplementedError()
 
     def elab(self):
         """Add design processes to the simulator."""
