@@ -550,7 +550,7 @@ def get_loop() -> Sim:
     return _sim
 
 
-class ProcIf(ABC):
+class ProcIf:
     """Process interface.
 
     Implemented by components that contain local simulator processes.

@@ -9,7 +9,6 @@ straightforward API for creating a digital design.
 from __future__ import annotations
 
 import re
-from abc import ABC
 from collections import defaultdict
 from collections.abc import Callable, Sequence
 
@@ -38,7 +37,7 @@ class DesignError(Exception):
     """Design Error."""
 
 
-class _TraceIf(ABC):
+class _TraceIf:
     """Tracing interface.
 
     Implemented by components that support debug dump.

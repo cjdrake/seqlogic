@@ -8,11 +8,10 @@ A branch may either have a parent, or no parent (the root).
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from collections.abc import Generator
 
 
-class Hierarchy(ABC):
+class Hierarchy:
     """Any hierarchical design element."""
 
     def __init__(self, name: str, parent: Branch | None):
@@ -37,15 +36,12 @@ class Hierarchy(ABC):
         return self._parent
 
     @property
-    @abstractmethod
     def qualname(self) -> str:
         """Return the design element's fully qualified name."""
 
-    @abstractmethod
     def iter_bfs(self) -> Generator[Hierarchy, None, None]:
         """Iterate through the design hierarchy in BFS order."""
 
-    @abstractmethod
     def iter_dfs(self) -> Generator[Hierarchy, None, None]:
         """Iterate through the design hierarchy in DFS order."""
 

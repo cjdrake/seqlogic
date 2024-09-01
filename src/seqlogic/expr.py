@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from abc import ABC
 from enum import Enum, auto
 
 from .bits import Bits
@@ -30,7 +29,7 @@ class Op(Enum):
     GE = auto()
 
 
-class Expr(ABC):
+class Expr:
     """Symbolic expression."""
 
     def __repr__(self) -> str:
