@@ -17,23 +17,10 @@ from collections.abc import Callable, Sequence
 
 from vcd.writer import VCDWriter as VcdWriter
 
-from .bits import Bits, _lit2vec, and_, eq, ge, gt, le, lt, ne, not_, or_, stack, xor
+from .bits import Bits, _lit2vec, stack
 from .expr import Expr, Op, Variable, parse
 from .hier import Branch, Leaf
 from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
-
-expr_globals = {
-    "not_": not_,
-    "or_": or_,
-    "and_": and_,
-    "xor": xor,
-    "lt": lt,
-    "le": le,
-    "eq": eq,
-    "ne": ne,
-    "gt": gt,
-    "ge": ge,
-}
 
 
 class DesignError(Exception):
@@ -169,14 +156,6 @@ class Module(metaclass=ModuleMeta):
         setattr(self, name, node)
         return node
 
-    def _expr(self, ex: Expr) -> tuple[Callable, list[Variable]]:
-        vs = sorted(ex.support, key=lambda v: v.name)
-        args = ", ".join(v.name for v in vs)
-        source = f"def f({args}):\n    return {ex}\n"
-        locals_ = {}
-        exec(source, expr_globals, locals_)
-        return locals_["f"], vs
-
     def _connect_input(self, name: str, rhs):
         y = getattr(self, name)
         if self._inputs[name]:
@@ -187,10 +166,10 @@ class Module(metaclass=ModuleMeta):
                 self.assign(y, x)
             # y = (f, x0, x1, ...)
             case Expr() as ex:
-                f, xs = self._expr(ex)
+                f, xs = ex.to_func()
                 self.combi(y, f, *xs)
             case [Op(), *xs]:
-                f, xs = self._expr(parse(*rhs))
+                f, xs = parse(*rhs).to_func()
                 self.combi(y, f, *xs)
             case [Callable() as f, *xs]:
                 self.combi(y, f, *xs)
@@ -294,10 +273,9 @@ class Module(metaclass=ModuleMeta):
 
         match x:
             case Expr() as ex:
-                f, xs = self._expr(ex)
+                f, xs = ex.to_func()
             case [Op(), *xs]:
-                ex = parse(*x)
-                f, xs = self._expr(ex)
+                f, xs = parse(*x).to_func()
             case _:
                 raise TypeError("Expected x to be tuple or Expr")
 

@@ -1,10 +1,13 @@
 """Expression Symbolic Logic."""
 
+# pylint: disable=exec-used
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from enum import Enum, auto
 
-from .bits import Bits
+from .bits import Bits, and_, eq, ge, gt, le, lt, ne, not_, or_, xor
 
 
 class Op(Enum):
@@ -59,6 +62,26 @@ class Expr:
     @property
     def support(self) -> set[Variable]:
         return set(self.iter_vars())
+
+    def to_func(self) -> tuple[Callable, list[Variable]]:
+        vs = sorted(self.support, key=lambda v: v.name)
+        args = ", ".join(v.name for v in vs)
+        source = f"def f({args}):\n    return {self}\n"
+        globals_ = {
+            "not_": not_,
+            "or_": or_,
+            "and_": and_,
+            "xor": xor,
+            "lt": lt,
+            "le": le,
+            "eq": eq,
+            "ne": ne,
+            "gt": gt,
+            "ge": ge,
+        }
+        locals_ = {}
+        exec(source, globals_, locals_)
+        return locals_["f"], vs
 
 
 class Atom(Expr):
