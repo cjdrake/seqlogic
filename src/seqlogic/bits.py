@@ -733,15 +733,11 @@ class _StructMeta(type):
         if name == "Struct":
             return super().__new__(mcs, name, bases, attrs)
 
-        # Scan attributes for field_name: field_type items
-        fields = []
-        for key, val in attrs.items():
-            if key == "__annotations__":
-                for field_name, field_type in val.items():
-                    fields.append((field_name, field_type))
-
-        if not fields:
-            raise ValueError("Empty Struct is not supported")
+        # Get field_name: field_type items
+        try:
+            fields = list(attrs["__annotations__"].items())
+        except KeyError as e:
+            raise ValueError("Empty Struct is not supported") from e
 
         # Add struct member base/size attributes
         offset = 0
@@ -828,15 +824,11 @@ class _UnionMeta(type):
         if name == "Union":
             return super().__new__(mcs, name, bases, attrs)
 
-        # Scan attributes for field_name: field_type items
-        fields = []
-        for key, val in attrs.items():
-            if key == "__annotations__":
-                for field_name, field_type in val.items():
-                    fields.append((field_name, field_type))
-
-        if not fields:
-            raise ValueError("Empty Union is not supported")
+        # Get field_name: field_type items
+        try:
+            fields = list(attrs["__annotations__"].items())
+        except KeyError as e:
+            raise ValueError("Empty Union is not supported") from e
 
         # Create Union class
         size = max(field_type.size for _, field_type in fields)
