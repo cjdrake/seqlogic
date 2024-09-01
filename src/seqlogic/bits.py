@@ -21,8 +21,7 @@ from collections import namedtuple
 from collections.abc import Callable, Generator
 from functools import cache, partial
 
-from .lbool import (_W, _X, _0, _1, from_char, land, lnot, lor, lxnor, lxor,
-                    to_char, to_vcd_char)
+from .lbool import _W, _X, _0, _1, from_char, land, lnot, lor, lxnor, lxor, to_char, to_vcd_char
 from .util import classproperty, clog2
 
 AddResult = namedtuple("AddResult", ["s", "co"])
