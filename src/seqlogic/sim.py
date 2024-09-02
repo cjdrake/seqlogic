@@ -167,7 +167,7 @@ class Task(Awaitable):
 
     def __await__(self) -> Generator[None, None, None]:
         if not self._done:
-            _sim._task_waiting[self].append(_sim.task())
+            _sim.task_await(self)
             # Suspend
             yield
         # Resume
@@ -183,9 +183,6 @@ class Task(Awaitable):
 
     def _set_done(self):
         self._done = True
-        waiting = _sim._task_waiting[self]
-        while waiting:
-            _sim._queue.push(_sim.time(), waiting.popleft())
 
     def done(self) -> bool:
         return self._done
@@ -208,14 +205,12 @@ class Event:
 
     async def wait(self):
         if not self._flag:
-            _sim._event_waiting[self].append(_sim.task())
+            _sim.event_wait(self)
             await SimAwaitable()
 
     def set(self):
+        _sim.event_set(self)
         self._flag = True
-        waiting = _sim._event_waiting[self]
-        while waiting:
-            _sim._queue.push(_sim.time(), waiting.popleft())
 
     def clear(self):
         self._flag = False
@@ -242,17 +237,15 @@ class Semaphore:
     async def acquire(self):
         assert self._cnt >= 0
         if self._cnt == 0:
-            _sim._sem_waiting[self].append(_sim.task())
+            _sim.sem_acquire(self)
             await SimAwaitable()
         else:
             self._cnt -= 1
 
     def release(self):
         assert self._cnt >= 0
-        waiting = _sim._sem_waiting[self]
-        if waiting:
-            _sim._queue.push(_sim.time(), waiting.popleft())
-        else:
+        increment = _sim.sem_release(self)
+        if increment:
             if self._cnt == self._value:
                 raise RuntimeError("Cannot release")
             self._cnt += 1
@@ -421,6 +414,38 @@ class Sim:
             state = self._touched.pop()
             state.update()
 
+    # Task await / done callbacks
+    def task_await(self, task: Task):
+        self._task_waiting[task].append(self._task)
+
+    def task_done(self, task: Task):
+        waiting = self._task_waiting[task]
+        while waiting:
+            _sim._queue.push(self._time, waiting.popleft())
+        task._set_done()
+
+    # Event wait / set callbacks
+    def event_wait(self, event: Event):
+        self._event_waiting[event].append(self._task)
+
+    def event_set(self, event: Event):
+        waiting = self._event_waiting[event]
+        while waiting:
+            self._queue.push(self._time, waiting.popleft())
+
+    # Semaphore acquire / release callbacks
+    def sem_acquire(self, sem: Semaphore):
+        self._sem_waiting[sem].append(self._task)
+
+    def sem_release(self, sem: Semaphore) -> bool:
+        waiting = self._sem_waiting[sem]
+        if waiting:
+            self._queue.push(self._time, waiting.popleft())
+            # Do NOT increment semaphore counter
+            return False
+        # Increment semaphore counter
+        return True
+
     def _limit(self, ticks: int | None, until: int | None) -> int | None:
         """Determine the run limit."""
         match ticks, until:
@@ -462,11 +487,12 @@ class Sim:
                 self._time = time
 
             # Resume execution
-            for _, self._task, state in self._queue.pop_region():
+            for _, task, state in self._queue.pop_region():
+                self._task = task
                 try:
-                    self._task.coro.send(state)
+                    task.coro.send(state)
                 except StopIteration:
-                    self._task._set_done()
+                    self.task_done(task)
 
     def run(self, ticks: int | None = None, until: int | None = None):
         """Run the simulation.
@@ -504,11 +530,12 @@ class Sim:
                 self._time = time
 
             # Resume execution
-            for _, self._task, state in self._queue.pop_region():
+            for _, task, state in self._queue.pop_region():
+                self._task = task
                 try:
-                    self._task.coro.send(state)
+                    task.coro.send(state)
                 except StopIteration:
-                    self._task._set_done()
+                    self.task_done(task)
 
     def iter(
         self, ticks: int | None = None, until: int | None = None
