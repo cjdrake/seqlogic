@@ -285,10 +285,10 @@ class GreaterEqual(BinaryOp):
 
 def f(arg) -> Expr:
     match arg:
-        case tuple() as args:
-            return parse(*args)
-        case Bits() as b:
-            return BitsConst(b)
+        case [*xs]:
+            return parse(*xs)
+        case Bits() as x:
+            return BitsConst(x)
         case Expr() as x:
             return x
         case _:
