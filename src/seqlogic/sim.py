@@ -206,17 +206,18 @@ class Event:
 
     def __init__(self):
         self._flag = False
-        self._waiting: deque[Task] = deque()
 
     async def wait(self):
         if not self._flag:
-            self._waiting.append(_sim.task())
+            _sim._event_waiting[self].append(_sim.task())
             await SimAwaitable()
 
     def set(self):
         self._flag = True
-        while self._waiting:
-            _sim._queue.push(_sim.time(), self._waiting.popleft())
+        waiting = _sim._event_waiting[self]
+        while waiting:
+            task = _sim._event_waiting[self].popleft()
+            _sim._queue.push(_sim.time(), task)
 
     def clear(self):
         self._flag = False
@@ -346,6 +347,8 @@ class Sim:
         self._queue = _SimQueue()
         # Currently executing task
         self._task: Task | None = None
+        # Initial tasks
+        self._initial: list[Task] = []
         # Dynamic event dependencies
         self._waiting: dict[State, set[Task]] = defaultdict(set)
         self._predicates: dict[State, dict[Task, Predicate]] = defaultdict(dict)
@@ -353,8 +356,8 @@ class Sim:
         self._touched: set[State] = set()
         # Task waiting list
         self._task_waiting: dict[Task, deque[Task]] = defaultdict(deque)
-        # Initial coroutines
-        self._initial: list[Task] = []
+        # Event waiting list
+        self._event_waiting: dict[Event, deque[Task]] = defaultdict(deque)
 
     @property
     def started(self) -> bool:
@@ -370,6 +373,7 @@ class Sim:
         self._predicates.clear()
         self._touched.clear()
         self._task_waiting.clear()
+        self._event_waiting.clear()
 
     def reset(self):
         """Reset simulation state."""
