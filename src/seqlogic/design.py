@@ -510,7 +510,7 @@ class Packed(Logic, Singular, Variable):
             return False
 
     def is_negedge(self) -> bool:
-        """Return True when bit transition 1 => 0."""
+        """Return True when bit transitions 1 => 0."""
         try:
             return self._value and not self._next_value
         except ValueError:
@@ -523,6 +523,13 @@ class Packed(Logic, Singular, Variable):
         except ValueError:
             return False
 
+    def is_edge(self) -> bool:
+        """Return True when bit transitions 0 => 1 or 1 => 0."""
+        try:
+            return (not self._value and self._next_value) or (self._value and not self._next_value)
+        except ValueError:
+            return False
+
     async def posedge(self) -> State:
         """Suspend; resume execution at signal posedge."""
         await resume((self, self.is_posedge))
@@ -530,6 +537,10 @@ class Packed(Logic, Singular, Variable):
     async def negedge(self) -> State:
         """Suspend; resume execution at signal negedge."""
         await resume((self, self.is_negedge))
+
+    async def edge(self) -> State:
+        """Suspend; resume execution at signal edge."""
+        await resume((self, self.is_edge))
 
 
 class Unpacked(Logic, Aggregate):

@@ -4,8 +4,8 @@ from collections import defaultdict
 
 import pytest
 
-from seqlogic import get_loop, sleep
-from seqlogic.sim import SimAwaitable, Singular, State
+from seqlogic import get_loop, resume, sleep
+from seqlogic.sim import Singular, State
 
 loop = get_loop()
 waves = defaultdict(dict)
@@ -33,13 +33,17 @@ class Bool(Singular):
     def is_negedge(self) -> bool:
         return self._value and not self._next_value
 
-    async def edge(self) -> State:
-        def trigger():
-            return self.is_posedge() or self.is_negedge()
+    def is_edge(self) -> bool:
+        return self.is_posedge() or self.is_negedge()
 
-        self._sim.set_trigger(self, trigger)
-        state = await SimAwaitable()
-        return state
+    async def posedge(self) -> State:
+        await resume((self, self.is_posedge))
+
+    async def negedge(self) -> State:
+        await resume((self, self.is_negedge))
+
+    async def edge(self) -> State:
+        await resume((self, self.is_edge))
 
 
 HELLO_OUT = """\
