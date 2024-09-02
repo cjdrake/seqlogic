@@ -234,7 +234,6 @@ class Semaphore:
             raise ValueError(f"Expected value >= 1, got {value}")
         self._value = value
         self._cnt = value
-        self._waiting: deque[Task] = deque()
 
     async def __aenter__(self):
         await self.acquire()
@@ -245,15 +244,16 @@ class Semaphore:
     async def acquire(self):
         assert self._cnt >= 0
         if self._cnt == 0:
-            self._waiting.append(_sim.task())
+            _sim._sem_waiting[self].append(_sim.task())
             await SimAwaitable()
         else:
             self._cnt -= 1
 
     def release(self):
         assert self._cnt >= 0
-        if self._waiting:
-            _sim._queue.push(_sim.time(), self._waiting.popleft())
+        if _sim._sem_waiting[self]:
+            task = _sim._sem_waiting[self].popleft()
+            _sim._queue.push(_sim.time(), task)
         else:
             if self._cnt == self._value:
                 raise RuntimeError("Cannot release")
@@ -358,6 +358,8 @@ class Sim:
         self._task_waiting: dict[Task, deque[Task]] = defaultdict(deque)
         # Event waiting list
         self._event_waiting: dict[Event, deque[Task]] = defaultdict(deque)
+        # Semaphore/Lock waiting list
+        self._sem_waiting: dict[Semaphore, deque[Task]] = defaultdict(deque)
 
     @property
     def started(self) -> bool:
@@ -374,6 +376,7 @@ class Sim:
         self._touched.clear()
         self._task_waiting.clear()
         self._event_waiting.clear()
+        self._sem_waiting.clear()
 
     def reset(self):
         """Reset simulation state."""
