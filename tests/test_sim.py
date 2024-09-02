@@ -124,12 +124,8 @@ def test_vars_run():
         45: {clk: True, a: True},
     }
 
-    # Event loop not started yet
-    assert not loop.started
-
     # Relative run limit
     loop.run(ticks=25)
-    assert loop.started
 
     # Absolute run limit
     loop.run(until=50)

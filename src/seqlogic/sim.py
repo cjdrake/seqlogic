@@ -328,7 +328,6 @@ class Sim:
 
     def __init__(self):
         """Initialize simulation."""
-        self._started: bool = False
         # Simulation time
         self._time: int = _INIT_TIME
         # Task queue
@@ -337,6 +336,8 @@ class Sim:
         self._task: Task | None = None
         # Initial tasks
         self._initial: list[Task] = []
+        self._initial_started: bool = False
+        self._initial_done: bool = False
         # State waiting set
         self._waiting: dict[State, set[Task]] = defaultdict(set)
         self._predicates: dict[State, dict[Task, Predicate]] = defaultdict(dict)
@@ -348,25 +349,28 @@ class Sim:
         # Semaphore/Lock waiting list
         self._sem_waiting: dict[Semaphore, deque[Task]] = defaultdict(deque)
 
-    @property
-    def started(self) -> bool:
-        return self._started
+    def _pending(self):
+        return [
+            self._queue,
+            self._waiting,
+            self._predicates,
+            self._touched,
+            self._task_waiting,
+            self._event_waiting,
+            self._sem_waiting,
+        ]
 
-    def _clear_tasks(self):
-        self._queue.clear()
-        self._waiting.clear()
-        self._predicates.clear()
-        self._touched.clear()
-        self._task_waiting.clear()
-        self._event_waiting.clear()
-        self._sem_waiting.clear()
+    def clear(self):
+        for tasks in self._pending():
+            tasks.clear()
 
     def restart(self):
-        """Restart simulation."""
-        self._started = False
+        """Restart current simulation."""
+        self._initial_started = False
+        self._initial_done = False
         self._time = _INIT_TIME
         self._task = None
-        self._clear_tasks()
+        self.clear()
 
     def reset(self):
         """Reset simulation state."""
@@ -470,10 +474,10 @@ class Sim:
                 s = "Expected either ticks or until to be int | None"
                 raise TypeError(s)
 
-    def _start(self):
+    def _initial_start(self):
         for task in self._initial:
             self._queue.push(_START_TIME, task)
-        self._started = True
+        self._initial_started = True
 
     def _run_kernel(self, limit: int | None):
         while self._queue:
@@ -512,14 +516,17 @@ class Sim:
         limit = self._limit(ticks, until)
 
         # Start the simulation
-        if not self._started:
-            self._start()
+        if not self._initial_started:
+            self._initial_start()
 
         # Run until either 1) all tasks complete, or 2) finish()
-        try:
-            self._run_kernel(limit)
-        except Finish:
-            self._clear_tasks()
+        if not self._initial_done:
+            try:
+                self._run_kernel(limit)
+            except Finish:
+                self.clear()
+            if not any(self._pending()):
+                self._initial_done = True
 
     def _iter_kernel(self, limit: int | None) -> Generator[int, None, None]:
         while self._queue:
@@ -561,13 +568,16 @@ class Sim:
         limit = self._limit(ticks, until)
 
         # Start the simulation
-        if not self._started:
-            self._start()
+        if not self._initial_started:
+            self._initial_start()
 
-        try:
-            yield from self._iter_kernel(limit)
-        except Finish:
-            self._clear_tasks()
+        if not self._initial_done:
+            try:
+                yield from self._iter_kernel(limit)
+            except Finish:
+                self.clear()
+            if not any(self._pending()):
+                self._initial_done = True
 
 
 _sim = Sim()

@@ -110,7 +110,7 @@ EXP1 = """\
 """
 
 
-def test_acquire_release(capsys):
+def test_finish(capsys):
     loop.reset()
 
     loop.add_initial(main())
@@ -119,6 +119,9 @@ def test_acquire_release(capsys):
     loop.add_initial(ping("FIZ", 7))
     loop.add_initial(ping("BUZ", 11))
 
+    loop.run()
+
+    # Subsequent calls to run() have no effect
     loop.run()
 
     assert capsys.readouterr().out == EXP1
