@@ -93,7 +93,7 @@ def test_acquire_release(capsys):
 
     sem = Semaphore(4)
     for i in range(8):
-        loop.add_active(foo(sem, f"{i}", i + 10, 10))
+        loop.add_initial(foo(sem, f"{i}", i + 10, 10))
     loop.run()
 
     assert capsys.readouterr().out == EXP
@@ -104,7 +104,7 @@ def test_async_with(capsys):
 
     sem = Semaphore(4)
     for i in range(8):
-        loop.add_active(bar(sem, f"{i}", i + 10, 10))
+        loop.add_initial(bar(sem, f"{i}", i + 10, 10))
     loop.run()
 
     assert capsys.readouterr().out == EXP

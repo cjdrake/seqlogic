@@ -113,11 +113,11 @@ EXP1 = """\
 def test_acquire_release(capsys):
     loop.reset()
 
-    loop.add_active(main())
-    loop.add_active(ping("FOO", 3))
-    loop.add_active(ping("BAR", 5))
-    loop.add_active(ping("FIZ", 7))
-    loop.add_active(ping("BUZ", 11))
+    loop.add_initial(main())
+    loop.add_initial(ping("FOO", 3))
+    loop.add_initial(ping("BAR", 5))
+    loop.add_initial(ping("FIZ", 7))
+    loop.add_initial(ping("BUZ", 11))
 
     loop.run()
 

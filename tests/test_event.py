@@ -52,10 +52,10 @@ def test_acquire_release(capsys):
     loop.reset()
 
     event = Event()
-    loop.add_active(primary(event, "FOO"))
-    loop.add_active(secondary(event, "BAR"))
-    loop.add_active(secondary(event, "FIZ"))
-    loop.add_active(secondary(event, "BUZ"))
+    loop.add_initial(primary(event, "FOO"))
+    loop.add_initial(secondary(event, "BAR"))
+    loop.add_initial(secondary(event, "FIZ"))
+    loop.add_initial(secondary(event, "BUZ"))
     loop.run()
 
     assert capsys.readouterr().out == EXP1

@@ -50,8 +50,8 @@ def test_lfsr():
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_active(drive_reset(top.reset_n, offticks=6, onticks=10))
-    loop.add_active(drive_clock(top.clock, shiftticks=5, onticks=5, offticks=5))
+    loop.add_initial(drive_reset(top.reset_n, offticks=6, onticks=10))
+    loop.add_initial(drive_clock(top.clock, shiftticks=5, onticks=5, offticks=5))
 
     loop.run(until=100)
 

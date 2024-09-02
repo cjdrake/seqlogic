@@ -99,12 +99,12 @@ def test_fsm():
     top.dump_waves(waves, r"/top/ps")
 
     # Schedule input
-    loop.add_active(drive_input(x, reset_n, clock))
+    loop.add_initial(drive_input(x, reset_n, clock))
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_active(drive_reset(reset_n, offticks=6, onticks=10))
-    loop.add_active(drive_clock(clock, shiftticks=5, onticks=5, offticks=5))
+    loop.add_initial(drive_reset(reset_n, offticks=6, onticks=10))
+    loop.add_initial(drive_clock(clock, shiftticks=5, onticks=5, offticks=5))
 
     loop.run(until=100)
 

@@ -59,7 +59,7 @@ EXP1 = """\
 def test_basic(capsys):
     loop.reset()
 
-    loop.add_active(main())
+    loop.add_initial(main())
     loop.run()
 
     assert capsys.readouterr().out == EXP1

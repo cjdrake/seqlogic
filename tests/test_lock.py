@@ -65,8 +65,8 @@ def test_acquire_release(capsys):
     loop.reset()
 
     lock = Lock()
-    loop.add_active(foo(lock))
-    loop.add_active(bar(lock))
+    loop.add_initial(foo(lock))
+    loop.add_initial(bar(lock))
     loop.run()
 
     assert capsys.readouterr().out == EXP1
@@ -119,8 +119,8 @@ def test_async_with(capsys):
     loop.reset()
 
     lock = Lock()
-    loop.add_active(fiz(lock))
-    loop.add_active(buz(lock))
+    loop.add_initial(fiz(lock))
+    loop.add_initial(buz(lock))
     loop.run()
 
     assert capsys.readouterr().out == EXP2

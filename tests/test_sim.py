@@ -62,7 +62,7 @@ def test_hello(capsys):
         await sleep(2)
         print(f"[{loop.time()}] World")
 
-    loop.add_active(hello())
+    loop.add_initial(hello())
 
     # Invalid run limit
     with pytest.raises(TypeError):
@@ -106,9 +106,9 @@ def test_vars_run():
                 b.next = not b.value
             i += 1
 
-    loop.add_active(p_clk())
-    loop.add_active(p_a())
-    loop.add_active(p_b())
+    loop.add_initial(p_clk())
+    loop.add_initial(p_a())
+    loop.add_initial(p_b())
 
     # Expected sim output
     exp = {
@@ -169,9 +169,9 @@ def test_vars_iter():
                 b.next = not b.value
             i += 1
 
-    loop.add_active(p_clk())
-    loop.add_active(p_a())
-    loop.add_active(p_b())
+    loop.add_initial(p_clk())
+    loop.add_initial(p_a())
+    loop.add_initial(p_b())
 
     # Expected sim output
     exp = {

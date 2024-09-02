@@ -379,14 +379,14 @@ class Sim:
     def task(self) -> Task | None:
         return self._task
 
-    def add_initial(self, task: Task):
+    def add_initial(self, proc: Task | Coroutine):
         """Add a task to run at start of simulation."""
-        self._initial.append(task)
-
-    def add_active(self, coro: Coroutine):
-        """Add a coroutine in active region to run at start of simulation."""
-        task = Task(coro, region=Region.ACTIVE)
-        self._initial.append(task)
+        if isinstance(proc, Task):
+            self._initial.append(proc)
+        elif isinstance(proc, Coroutine):
+            self._initial.append(Task(proc, region=Region.ACTIVE))
+        else:
+            raise TypeError("Expected proc to be Task or Coroutine")
 
     def set_timeout(self, delay: int):
         """Schedule current coroutine after delay."""
