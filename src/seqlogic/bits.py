@@ -88,7 +88,7 @@ def _expect_type(arg, t: type[Bits]):
     return x
 
 
-def _expect_shift(arg, size: int):
+def _expect_shift(arg, size: int) -> Bits:
     if isinstance(arg, int):
         return u2bv(arg, size)
     if isinstance(arg, str):
@@ -258,28 +258,28 @@ class Bits:
     def __add__(self, other: Bits | str) -> Scalar | Vector:
         other = _expect_size(other, self.size)
         s, co = _add(self, other, _Scalar0)
-        return cat(s, co)
+        return _cat(s, co)
 
     def __radd__(self, other: Bits | str) -> Scalar | Vector:
         other = _expect_size(other, self.size)
         s, co = _add(other, self, _Scalar0)
-        return cat(s, co)
+        return _cat(s, co)
 
     # Note: Keep carry-out
     def __sub__(self, other: Bits | str) -> Scalar | Vector:
         other = _expect_size(other, self.size)
         s, co = _sub(self, other)
-        return cat(s, co)
+        return _cat(s, co)
 
     def __rsub__(self, other: Bits | str) -> Scalar | Vector:
         other = _expect_size(other, self.size)
         s, co = _sub(other, self)
-        return cat(s, co)
+        return _cat(s, co)
 
     # Note: Keep carry-out
     def __neg__(self) -> Bits:
         s, co = _neg(self)
-        return cat(s, co)
+        return _cat(s, co)
 
     def to_uint(self) -> int:
         """Convert to unsigned integer.
@@ -1715,6 +1715,21 @@ def rrot(x: Bits | str, n: Bits | str | int) -> Bits:
     return _rrot(x, n)
 
 
+def _cat(*xs: Bits) -> Empty | Scalar | Vector:
+    if len(xs) == 0:
+        return _Empty
+    if len(xs) == 1:
+        return xs[0]
+
+    size = 0
+    d0, d1 = 0, 0
+    for x in xs:
+        d0 |= x.data[0] << size
+        d1 |= x.data[1] << size
+        size += x.size
+    return _vec_size(size)(d0, d1)
+
+
 def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
     """Concatenate a sequence of Vectors.
 
@@ -1727,9 +1742,6 @@ def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
     Raises:
         TypeError: If input obj is invalid.
     """
-    if len(objs) == 0:
-        return _Empty
-
     # Convert inputs
     xs = []
     for obj in objs:
@@ -1742,17 +1754,7 @@ def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
             xs.append(x)
         else:
             raise TypeError(f"Invalid input: {obj}")
-
-    if len(xs) == 1:
-        return xs[0]
-
-    size = 0
-    d0, d1 = 0, 0
-    for x in xs:
-        d0 |= x.data[0] << size
-        d1 |= x.data[1] << size
-        size += x.size
-    return _vec_size(size)(d0, d1)
+    return _cat(*xs)
 
 
 def rep(obj: Bits | int | str, n: int) -> Empty | Scalar | Vector:
