@@ -185,8 +185,7 @@ class Task(Awaitable):
         self._done = True
         waiting = _sim._task_waiting[self]
         while waiting:
-            task = _sim._task_waiting[self].popleft()
-            _sim._queue.push(_sim.time(), task)
+            _sim._queue.push(_sim.time(), waiting.popleft())
 
     def done(self) -> bool:
         return self._done
@@ -216,8 +215,7 @@ class Event:
         self._flag = True
         waiting = _sim._event_waiting[self]
         while waiting:
-            task = _sim._event_waiting[self].popleft()
-            _sim._queue.push(_sim.time(), task)
+            _sim._queue.push(_sim.time(), waiting.popleft())
 
     def clear(self):
         self._flag = False
@@ -251,9 +249,9 @@ class Semaphore:
 
     def release(self):
         assert self._cnt >= 0
-        if _sim._sem_waiting[self]:
-            task = _sim._sem_waiting[self].popleft()
-            _sim._queue.push(_sim.time(), task)
+        waiting = _sim._sem_waiting[self]
+        if waiting:
+            _sim._queue.push(_sim.time(), waiting.popleft())
         else:
             if self._cnt == self._value:
                 raise RuntimeError("Cannot release")
@@ -349,10 +347,9 @@ class Sim:
         self._task: Task | None = None
         # Initial tasks
         self._initial: list[Task] = []
-        # Dynamic event dependencies
+        # State waiting set
         self._waiting: dict[State, set[Task]] = defaultdict(set)
         self._predicates: dict[State, dict[Task, Predicate]] = defaultdict(dict)
-        # Postponed actions
         self._touched: set[State] = set()
         # Task waiting list
         self._task_waiting: dict[Task, deque[Task]] = defaultdict(deque)
