@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from enum import Enum, auto
 
-from .bits import Bits, and_, eq, ge, gt, le, lt, ne, not_, or_, xor
+from .bits import Bits, add, and_, eq, ge, gt, le, lt, ne, neg, not_, or_, sub, xor
 
 
 class Op(Enum):
@@ -19,11 +19,16 @@ class Op(Enum):
     AND = auto()
     XOR = auto()
 
+    # Arithmetic
+    ADD = auto()
+    SUB = auto()
+    NEG = auto()
+
     # Word
     GETITEM = auto()
     GETATTR = auto()
 
-    # Comparison
+    # Predicate
     LT = auto()
     LE = auto()
     EQ = auto()
@@ -72,6 +77,9 @@ class Expr:
             "or_": or_,
             "and_": and_,
             "xor": xor,
+            "add": add,
+            "sub": sub,
+            "neg": neg,
             "lt": lt,
             "le": le,
             "eq": eq,
@@ -148,6 +156,62 @@ class PrefixOp(Operator):
         return f"{self.name}({s})"
 
 
+class UnaryOp(PrefixOp):
+    """Unary operator: f(x)"""
+
+    def __init__(self, x: Expr):
+        super().__init__(x)
+
+
+class BinaryOp(PrefixOp):
+    """Binary operator: f(x0, x1)"""
+
+    def __init__(self, x0: Expr, x1: Expr):
+        super().__init__(x0, x1)
+
+
+class Not(UnaryOp):
+    """NOT operator node."""
+
+    name = "not_"
+
+
+class Or(PrefixOp):
+    """OR operator node."""
+
+    name = "or_"
+
+
+class And(PrefixOp):
+    """AND operator node."""
+
+    name = "and_"
+
+
+class Xor(PrefixOp):
+    """XOR operator node."""
+
+    name = "xor"
+
+
+class Add(BinaryOp):
+    """ADD operator node."""
+
+    name = "add"
+
+
+class Sub(BinaryOp):
+    """SUB operator node."""
+
+    name = "sub"
+
+
+class Neg(UnaryOp):
+    """NEG operator node."""
+
+    name = "neg"
+
+
 class GetItem(Operator):
     """GetItem operator node."""
 
@@ -183,85 +247,40 @@ class GetAttr(Operator):
         return f"{v}.{name}"
 
 
-class Not(PrefixOp):
-    """NOT operator node."""
-
-    name = "not_"
-
-    def __init__(self, x: Expr):
-        super().__init__(x)
-
-
-class Or(PrefixOp):
-    """OR operator node."""
-
-    name = "or_"
-
-
-class And(PrefixOp):
-    """AND operator node."""
-
-    name = "and_"
-
-
-class Xor(PrefixOp):
-    """XOR operator node."""
-
-    name = "xor"
-
-
-class LessThan(PrefixOp):
+class LessThan(BinaryOp):
     """LessThan (<) operator node."""
 
     name = "lt"
 
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
 
-
-class LessEqual(PrefixOp):
+class LessEqual(BinaryOp):
     """Less Than Or Equal (≤) operator node."""
 
     name = "le"
 
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
 
-
-class Equal(PrefixOp):
+class Equal(BinaryOp):
     """Equal (==) operator node."""
 
     name = "eq"
 
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
 
-
-class NotEqual(PrefixOp):
+class NotEqual(BinaryOp):
     """NotEqual (!=) operator node."""
 
     name = "ne"
 
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
 
-
-class GreaterThan(PrefixOp):
+class GreaterThan(BinaryOp):
     """GreaterThan (>) operator node."""
 
     name = "gt"
 
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
 
-
-class GreaterEqual(PrefixOp):
+class GreaterEqual(BinaryOp):
     """Greater Than Or Equal (≥) operator node."""
 
     name = "ge"
-
-    def __init__(self, x0: Expr, x1: Expr):
-        super().__init__(x0, x1)
 
 
 def f(arg) -> Expr:
@@ -279,6 +298,7 @@ def f(arg) -> Expr:
 def parse(*args) -> Expr:
     """Return a symbolic expression."""
     match args:
+        # Bitwise
         case [Op.NOT, x]:
             return Not(f(x))
         case [Op.OR, *xs]:
@@ -287,10 +307,19 @@ def parse(*args) -> Expr:
             return And(*[f(x) for x in xs])
         case [Op.XOR, *xs]:
             return Xor(*[f(x) for x in xs])
+        # Arithmetic
+        case [Op.ADD, x0, x1]:
+            return Add(f(x0), f(x1))
+        case [Op.SUB, x0, x1]:
+            return Sub(f(x0), f(x1))
+        case [Op.NEG, x]:
+            return Neg(f(x))
+        # Word
         case [Op.GETITEM, Expr() as x, (int() | slice()) as key]:
             return GetItem(x, Constant(key))
         case [Op.GETATTR, Variable() as v, str() as name]:
             return GetAttr(v, Constant(name))
+        # Predicate
         case [Op.LT, x0, x1]:
             return LessThan(f(x0), f(x1))
         case [Op.LE, x0, x1]:
@@ -303,5 +332,6 @@ def parse(*args) -> Expr:
             return GreaterThan(f(x0), f(x1))
         case [Op.GE, x0, x1]:
             return GreaterEqual(f(x0), f(x1))
+        # Error
         case _:
             raise ValueError("Invalid expression")

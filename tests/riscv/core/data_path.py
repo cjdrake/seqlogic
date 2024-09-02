@@ -1,6 +1,6 @@
 """Data Path."""
 
-from seqlogic import Module, Op, Vec, add, cat, rep, u2bv
+from seqlogic import Module, Op, Vec, cat, rep, u2bv
 
 from . import TEXT_BASE, Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu
@@ -185,8 +185,8 @@ class DataPath(Module):
 
         self.combi(immediate, f_immediate, inst)
 
-        self.combi(pc_plus_4, lambda x: add(x, "32h0000_0004"), pc)
-        self.combi(pc_plus_immediate, add, pc, immediate)
+        self.expr(pc_plus_4, (Op.ADD, pc, u2bv(4, 32)))
+        self.expr(pc_plus_immediate, (Op.ADD, pc, immediate))
         self.combi(pc_next, f_pc_next, next_pc_sel, pc_plus_4, pc_plus_immediate, alu_result)
 
         self.combi(alu_op_a, f_alu_op_a, alu_op_a_sel, rs1_data, pc)
