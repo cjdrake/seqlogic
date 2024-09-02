@@ -392,6 +392,7 @@ class Sim:
         """Schedule current coroutine after delay."""
         self._queue.push(self._time + delay, self._task)
 
+    # State suspend / resume callbacks
     def set_trigger(self, state: State, predicate: Predicate):
         """Schedule current coroutine after a state update trigger."""
         self._waiting[state].add(self._task)
