@@ -54,7 +54,7 @@ from .bits import (
 )
 from .design import Module, Packed, Unpacked
 from .expr import Op
-from .sim import Region, Sim, changed, get_loop, resume, sleep
+from .sim import Region, Sim, changed, finish, get_loop, resume, sleep
 from .util import clog2
 
 # Alias Vector to Vec for brevity
@@ -132,6 +132,7 @@ __all__ = [
     "sleep",
     "changed",
     "resume",
+    "finish",
     # util
     "clog2",
 ]

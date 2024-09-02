@@ -326,6 +326,10 @@ class StateAwaitable(Awaitable):
         return state
 
 
+class Finish(Exception):
+    """Force the simulation to stop."""
+
+
 class Sim:
     """Simulation event loop."""
 
@@ -355,18 +359,21 @@ class Sim:
     def started(self) -> bool:
         return self._started
 
-    def restart(self):
-        """Restart simulation."""
-        self._started = False
-        self._time = _INIT_TIME
+    def _clear_tasks(self):
         self._queue.clear()
-        self._task = None
         self._waiting.clear()
         self._predicates.clear()
         self._touched.clear()
         self._task_waiting.clear()
         self._event_waiting.clear()
         self._sem_waiting.clear()
+
+    def restart(self):
+        """Restart simulation."""
+        self._started = False
+        self._time = _INIT_TIME
+        self._task = None
+        self._clear_tasks()
 
     def reset(self):
         """Reset simulation state."""
@@ -507,7 +514,11 @@ class Sim:
         if not self._started:
             self._start()
 
-        self._run_kernel(limit)
+        # Run until either 1) all tasks complete, or 2) finish()
+        try:
+            self._run_kernel(limit)
+        except Finish:
+            self._clear_tasks()
 
     def _iter_kernel(self, limit: int | None) -> Generator[int, None, None]:
         while self._queue:
@@ -552,7 +563,10 @@ class Sim:
         if not self._started:
             self._start()
 
-        yield from self._iter_kernel(limit)
+        try:
+            yield from self._iter_kernel(limit)
+        except Finish:
+            self._clear_tasks()
 
 
 _sim = Sim()
@@ -578,6 +592,10 @@ async def resume(*triggers: tuple[State, Predicate]) -> State:
         _sim.set_trigger(state, predicate)
     state = await StateAwaitable()
     return state
+
+
+def finish():
+    raise Finish()
 
 
 def get_loop() -> Sim:
