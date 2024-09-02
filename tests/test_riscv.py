@@ -51,11 +51,12 @@ def get_mem(name: str) -> list[int]:
 
 def test_dump():
     loop.reset()
-    waves = defaultdict(dict)
 
     # Create module hierarchy
     top = Top(name="top")
+    top.elab()
 
+    waves = defaultdict(dict)
     top.dump_waves(waves, r"/top/pc")
     top.dump_waves(waves, r"/top/inst")
     top.dump_waves(waves, r"/top/bus_addr")
@@ -75,8 +76,6 @@ def test_dump():
     top.dump_waves(waves, r"/top/core/datapath.rs[12]_data")
     top.dump_waves(waves, r"/top/core/datapath.data_mem_addr")
     top.dump_waves(waves, r"/top/core/datapath.data_mem_wr_data")
-
-    top.elab()
 
     # Initialize instruction memory
     text = get_mem("tests/riscv/tests/add.text")
@@ -740,7 +739,6 @@ def run_riscv_test(name: str) -> int:
 
     # Create module hierarchy
     top = Top(name="top")
-
     top.elab()
 
     # Initialize instruction memory

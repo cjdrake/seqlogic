@@ -7,6 +7,8 @@ from vcd import VCDWriter
 from seqlogic import Module, Vec, get_loop, sleep, u2bv
 from seqlogic.algorithm.addition.rca import RCA, add
 
+loop = get_loop()
+
 DIR = os.path.dirname(__file__)
 
 N_START = 1
@@ -86,24 +88,22 @@ class Top(Module):
 
 
 def test_structural():
-    loop = get_loop()
-
     for n in range(N_START, N_STOP):
-        loop.reset()
-
-        vcd = os.path.join(DIR, "rca.vcd")
+        vcd = os.path.join(DIR, f"rca_{n}.vcd")
         with (
             open(vcd, "w", encoding="utf-8") as f,
             VCDWriter(f, timescale="1ns") as vcdw,
         ):
+            loop.reset()
+
             # Instantiate top
             top = Top(name="top", n=n)
 
-            # Dump all signals to VCD
-            top.dump_vcd(vcdw, ".*")
-
             # Register design w/ event loop
             top.elab()
+
+            # Dump all signals to VCD
+            top.dump_vcd(vcdw, ".*")
 
             # Do the damn thing
             loop.run()
