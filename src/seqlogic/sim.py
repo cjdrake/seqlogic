@@ -421,7 +421,7 @@ class Sim:
     def task_done(self, task: Task):
         waiting = self._task_waiting[task]
         while waiting:
-            _sim._queue.push(self._time, waiting.popleft())
+            self._queue.push(self._time, waiting.popleft())
         task._set_done()
 
     # Event wait / set callbacks
