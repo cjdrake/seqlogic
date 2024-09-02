@@ -163,12 +163,11 @@ class Task(Awaitable):
     def __init__(self, region: Region, coro: Coroutine):
         self._region = region
         self._coro = coro
-        self._waiting: deque[Task] = deque()
         self._done = False
 
     def __await__(self) -> Generator[None, None, None]:
         if not self._done:
-            self._waiting.append(_sim.task())
+            _sim._task_waiting[self].append(_sim.task())
             # Suspend
             yield
         # Resume
@@ -184,8 +183,10 @@ class Task(Awaitable):
 
     def _set_done(self):
         self._done = True
-        while self._waiting:
-            _sim._queue.push(_sim.time(), self._waiting.popleft())
+        waiting = _sim._task_waiting[self]
+        while waiting:
+            task = _sim._task_waiting[self].popleft()
+            _sim._queue.push(_sim.time(), task)
 
     def done(self) -> bool:
         return self._done
@@ -350,6 +351,8 @@ class Sim:
         self._predicates: dict[State, dict[Task, Predicate]] = defaultdict(dict)
         # Postponed actions
         self._touched: set[State] = set()
+        # Task waiting list
+        self._task_waiting: dict[Task, deque[Task]] = defaultdict(deque)
         # Initial coroutines
         self._initial: list[Task] = []
 
@@ -366,6 +369,7 @@ class Sim:
         self._waiting.clear()
         self._predicates.clear()
         self._touched.clear()
+        self._task_waiting.clear()
 
     def reset(self):
         """Reset simulation state."""
