@@ -7,8 +7,6 @@ Credit to David Beazley's "Build Your Own Async" tutorial for inspiration:
 https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 """
 
-# pylint: disable = protected-access
-
 import heapq
 from abc import ABC
 from collections import defaultdict, deque
@@ -160,7 +158,7 @@ class _AggrValue(Value):
 class Task(Awaitable):
     """Coroutine wrapper."""
 
-    def __init__(self, region: Region, coro: Coroutine):
+    def __init__(self, coro: Coroutine, region: Region = Region.ACTIVE):
         self._region = region
         self._coro = coro
         self._done = False
@@ -181,7 +179,7 @@ class Task(Awaitable):
     def coro(self):
         return self._coro
 
-    def _set_done(self):
+    def set_done(self):
         self._done = True
 
     def done(self) -> bool:
@@ -189,12 +187,7 @@ class Task(Awaitable):
 
 
 def create_task(coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
-    time = _sim.time()
-    # Cannot call create_task before the simulation starts
-    assert time >= 0
-    task = Task(region, coro)
-    _sim._queue.push(time, task)
-    return task
+    return _sim.task_create(coro, region)
 
 
 class Event:
@@ -392,7 +385,7 @@ class Sim:
 
     def add_active(self, coro: Coroutine):
         """Add a coroutine in active region to run at start of simulation."""
-        task = Task(Region.ACTIVE, coro)
+        task = Task(coro, region=Region.ACTIVE)
         self._initial.append(task)
 
     def set_timeout(self, delay: int):
@@ -422,6 +415,13 @@ class Sim:
             state.update()
 
     # Task await / done callbacks
+    def task_create(self, coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
+        # Cannot call task_create before the simulation starts
+        assert self._time >= 0
+        task = Task(coro, region)
+        self._queue.push(self._time, task)
+        return task
+
     def task_await(self, task: Task):
         self._task_waiting[task].append(self._task)
 
@@ -429,7 +429,7 @@ class Sim:
         waiting = self._task_waiting[task]
         while waiting:
             self._queue.push(self._time, waiting.popleft())
-        task._set_done()
+        task.set_done()
 
     # Event wait / set callbacks
     def event_wait(self, event: Event):

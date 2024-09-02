@@ -228,7 +228,7 @@ class Module(metaclass=_ModuleMeta):
         return node
 
     def initial(self, cf, *args, **kwargs):
-        self._initial.append(Task(Region.ACTIVE, cf(*args, **kwargs)))
+        self._initial.append(Task(cf(*args, **kwargs), region=Region.ACTIVE))
 
     def _combi(self, ys: Sequence[Value], f: Callable, xs: Sequence[State]):
 
@@ -248,7 +248,7 @@ class Module(metaclass=_ModuleMeta):
                 for y, value in zip(ys, values):
                     y.next = value
 
-        self._initial.append(Task(Region.REACTIVE, cf()))
+        self._initial.append(Task(cf(), region=Region.REACTIVE))
 
     def combi(
         self,
@@ -287,13 +287,13 @@ class Module(metaclass=_ModuleMeta):
         if isinstance(x, str):
             async def cf0():
                 y.next = x
-            self._initial.append(Task(Region.ACTIVE, cf0()))
+            self._initial.append(Task(cf0(), region=Region.ACTIVE))
         elif isinstance(x, Packed):
             async def cf1():
                 while True:
                     await changed(x)
                     y.next = x.value
-            self._initial.append(Task(Region.REACTIVE, cf1()))
+            self._initial.append(Task(cf1(), region=Region.REACTIVE))
         else:
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
@@ -309,7 +309,7 @@ class Module(metaclass=_ModuleMeta):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append(Task(Region.ACTIVE, cf()))
+        self._initial.append(Task(cf(), region=Region.ACTIVE))
 
     def dff_ar(self, q: Packed, d: Packed, clk: Packed, rst: Packed, rval: Bits | str):
         """D Flip Flop with async reset."""
@@ -327,7 +327,7 @@ class Module(metaclass=_ModuleMeta):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append(Task(Region.ACTIVE, cf()))
+        self._initial.append(Task(cf(), region=Region.ACTIVE))
 
     def dff_en(self, q: Packed, d: Packed, en: Packed, clk: Packed):
         """D Flip Flop with enable."""
@@ -342,7 +342,7 @@ class Module(metaclass=_ModuleMeta):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append(Task(Region.ACTIVE, cf()))
+        self._initial.append(Task(cf(), region=Region.ACTIVE))
 
     def dff_en_ar(
         self,
@@ -368,7 +368,7 @@ class Module(metaclass=_ModuleMeta):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append(Task(Region.ACTIVE, cf()))
+        self._initial.append(Task(cf(), region=Region.ACTIVE))
 
     def mem_wr_en(
         self,
@@ -391,7 +391,7 @@ class Module(metaclass=_ModuleMeta):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append(Task(Region.ACTIVE, cf()))
+        self._initial.append(Task(cf(), region=Region.ACTIVE))
 
     def mem_wr_be(
         self,
@@ -426,7 +426,7 @@ class Module(metaclass=_ModuleMeta):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append(Task(Region.ACTIVE, cf()))
+        self._initial.append(Task(cf(), region=Region.ACTIVE))
 
 
 class Logic(Leaf, ProcIf, _TraceIf):
