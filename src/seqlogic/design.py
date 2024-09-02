@@ -17,7 +17,7 @@ from collections.abc import Callable, Sequence
 
 from vcd.writer import VCDWriter as VcdWriter
 
-from .bits import Bits, _lit2vec, stack
+from .bits import Array, Bits, Vector, _lit2vec, stack
 from .expr import Expr, Op, Variable, parse
 from .hier import Branch, Leaf
 from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
@@ -43,7 +43,13 @@ class _TraceIf:
 def _mod_init_source(params) -> str:
     """Return source code for Module __init__ method w/ parameters."""
     lines = []
-    s = ", ".join(f"{pn}={pv}" for pn, _, pv in params)
+    kwargs = []
+    for pn, pt, pv in params:
+        if pt is type:
+            kwargs.append(f"{pn}={pv.__name__}")
+        else:
+            kwargs.append(f"{pn}={pv}")
+    s = ", ".join(kwargs)
     lines.append(f"def init(self, name: str, parent: Module | None=None, {s}):\n")
     s = ", ".join(f"{pn}={pn}" for pn, _, _ in params)
     lines.append(f"    _init_body(self, name, parent, {s})\n")
@@ -88,9 +94,13 @@ class _ModuleMeta(type):
 
             self.build()
 
+        # TODO(cjdrake): Improve parameter type limitations
         source = _mod_init_source(params)
         globals_ = {"_init_body": _init_body}
-        locals_ = {}
+        locals_ = {
+            "Vector": Vector,
+            "Array": Array,
+        }
         exec(source, globals_, locals_)
         mod.__init__ = locals_["init"]
 
