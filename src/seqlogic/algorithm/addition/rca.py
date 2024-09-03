@@ -23,36 +23,34 @@ def add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
 class RCA(Module):
     """Ripple Carry Adder."""
 
-    n: int = 8
+    N: int = 8
 
     def build(self):
-        n = self.n
-
         # Ports
-        s = self.output(name="s", dtype=Vec[n])
+        s = self.output(name="s", dtype=Vec[self.N])
         co = self.output(name="co", dtype=Vec[1])
 
-        a = self.input(name="a", dtype=Vec[n])
-        b = self.input(name="b", dtype=Vec[n])
+        a = self.input(name="a", dtype=Vec[self.N])
+        b = self.input(name="b", dtype=Vec[self.N])
         ci = self.input(name="ci", dtype=Vec[1])
 
         # Unpacked sum bits
-        ss = [self.logic(name=f"s{i}", dtype=Vec[1]) for i in range(n)]
+        ss = [self.logic(name=f"s{i}", dtype=Vec[1]) for i in range(self.N)]
 
         # Carries
-        cs = [self.logic(name=f"c{i}", dtype=Vec[1]) for i in range(n)]
+        cs = [self.logic(name=f"c{i}", dtype=Vec[1]) for i in range(self.N)]
 
         # Pack sum bits
         self.combi(s, cat, *ss)
 
         # Instantiate and connect N FullAdd submodules
-        for i in range(n):
+        for i in range(self.N):
             self.submod(
                 name=f"fa_{i}",
                 mod=FullAdd,
             ).connect(
                 s=ss[i],
-                co=(co if i == (n - 1) else cs[i]),
+                co=(co if i == (self.N - 1) else cs[i]),
                 a=a[i],
                 b=b[i],
                 ci=(ci if i == 0 else cs[i - 1]),

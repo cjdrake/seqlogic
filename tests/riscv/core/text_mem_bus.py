@@ -17,11 +17,11 @@ def f_rd_data(is_text: Vec[1], text: Vec[32]) -> Vec[32]:
 class TextMemBus(Module):
     """Text Memory Bus."""
 
-    depth: int = 1024
+    DEPTH: int = 1024
 
     def build(self):
         # Parameters
-        word_addr_bits = clog2(self.depth)
+        word_addr_bits = clog2(self.DEPTH)
         text_start = u2bv(TEXT_BASE, 32)
         text_stop = u2bv(TEXT_BASE + TEXT_SIZE, 32)
 
@@ -38,7 +38,7 @@ class TextMemBus(Module):
         self.submod(
             name="text_mem",
             mod=TextMem,
-            word_addr_bits=word_addr_bits,
+            WORD_ADDR_BITS=word_addr_bits,
         ).connect(
             rd_addr=rd_addr[m:n],
             rd_data=text,

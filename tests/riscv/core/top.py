@@ -32,7 +32,7 @@ class Top(Module):
         self.submod(
             name="text_mem_bus",
             mod=TextMemBus,
-            depth=1024,
+            DEPTH=1024,
         ).connect(
             rd_addr=pc,
             rd_data=(
@@ -52,7 +52,7 @@ class Top(Module):
         self.submod(
             name="data_mem_bus",
             mod=DataMemBus,
-            depth=1024,
+            DEPTH=1024,
         ).connect(
             addr=bus_addr,
             wr_en=bus_wr_en,

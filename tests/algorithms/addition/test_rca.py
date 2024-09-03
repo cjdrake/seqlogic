@@ -37,23 +37,21 @@ def test_functional():
 class Top(Module):
     """Top Level Module."""
 
-    n: int = 8
+    N: int = 8
 
     def build(self):
-        n = self.n
-
-        s = self.output(name="s", dtype=Vec[n])
+        s = self.output(name="s", dtype=Vec[self.N])
         co = self.output(name="co", dtype=Vec[1])
 
-        a = self.input(name="a", dtype=Vec[n])
-        b = self.input(name="b", dtype=Vec[n])
+        a = self.input(name="a", dtype=Vec[self.N])
+        b = self.input(name="b", dtype=Vec[self.N])
         ci = self.input(name="ci", dtype=Vec[1])
 
         # Design Under Test
         self.submod(
             name="dut",
             mod=RCA,
-            n=n,
+            N=self.N,
         ).connect(
             s=s,
             ci=ci,
@@ -65,22 +63,20 @@ class Top(Module):
         self.initial(self.drive)
 
     async def drive(self):
-        n = self.n
-
         await sleep(10)
 
-        for i in range(2**n):
-            for j in range(2**n):
+        for i in range(2**self.N):
+            for j in range(2**self.N):
                 for k in range(2**1):
                     # Inputs
-                    self.a.next = u2bv(i, n)
-                    self.b.next = u2bv(j, n)
+                    self.a.next = u2bv(i, self.N)
+                    self.b.next = u2bv(j, self.N)
                     self.ci.next = u2bv(k, 1)
 
                     await sleep(1)
 
                     # Check outputs
-                    q, r = divmod(i + j + k, 2**n)
+                    q, r = divmod(i + j + k, 2**self.N)
                     assert self.s.value.to_uint() == r
                     assert self.co.value.to_uint() == q
 
@@ -97,7 +93,7 @@ def test_structural():
             loop.reset()
 
             # Instantiate top
-            top = Top(name="top", n=n)
+            top = Top(name="top", N=n)
 
             # Register design w/ event loop
             top.elab()
