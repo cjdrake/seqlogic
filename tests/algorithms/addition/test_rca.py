@@ -60,9 +60,9 @@ class Top(Module):
             co=co,
         )
 
-        self.initial(self.drive)
+        self.drv(self.drv_inputs())
 
-    async def drive(self):
+    async def drv_inputs(self):
         await sleep(10)
 
         for i in range(2**self.N):

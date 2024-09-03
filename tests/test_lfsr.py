@@ -6,7 +6,7 @@
 from collections import defaultdict
 
 from seqlogic import Module, Vec, cat, get_loop
-from seqlogic.control.globals import drive_clock, drive_reset
+from seqlogic.control.globals import drv_clock, drv_reset
 
 loop = get_loop()
 
@@ -50,8 +50,8 @@ def test_lfsr():
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_initial(drive_reset(top.reset_n, offticks=6, onticks=10))
-    loop.add_initial(drive_clock(top.clock, shiftticks=5, onticks=5, offticks=5))
+    loop.add_initial(drv_reset(top.reset_n, offticks=6, onticks=10))
+    loop.add_initial(drv_clock(top.clock, shiftticks=5, onticks=5, offticks=5))
 
     loop.run(until=100)
 

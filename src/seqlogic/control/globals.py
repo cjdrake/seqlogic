@@ -4,7 +4,7 @@ from ..design import Packed
 from ..sim import sleep
 
 
-async def drive_reset(
+async def drv_reset(
     y: Packed,
     pos: bool = False,
     offticks: int = 0,
@@ -35,7 +35,7 @@ async def drive_reset(
     y.next = ~y.value
 
 
-async def drive_clock(
+async def drv_clock(
     y: Packed,
     pos: bool = True,
     shiftticks: int = 0,

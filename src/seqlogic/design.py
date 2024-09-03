@@ -238,8 +238,8 @@ class Module(metaclass=_ModuleMeta):
         setattr(self, f"_{name}", node)
         return node
 
-    def initial(self, cf, *args, **kwargs):
-        self._initial.append(Task(cf(*args, **kwargs), region=Region.ACTIVE))
+    def drv(self, coro: Coroutine):
+        self._initial.append(Task(coro, region=Region.ACTIVE))
 
     def mon(self, coro: Coroutine):
         self._initial.append(Task(coro, region=Region.INACTIVE))

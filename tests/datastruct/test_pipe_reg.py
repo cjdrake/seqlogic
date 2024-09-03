@@ -7,7 +7,7 @@ from random import randint
 from vcd import VCDWriter
 
 from seqlogic import Module, Vec, finish, get_loop, resume, sleep
-from seqlogic.control.globals import drive_clock, drive_reset
+from seqlogic.control.globals import drv_clock, drv_reset
 from seqlogic.datastruct.pipe_reg import PipeReg
 
 loop = get_loop()
@@ -43,9 +43,9 @@ class Top(Module):
             reset=reset,
         )
 
-        self.initial(drive_clock, clock, shiftticks=1)
-        self.initial(drive_reset, reset, pos=True, offticks=2, onticks=2)
-        self.initial(self.main)
+        self.drv(drv_clock(clock, shiftticks=1))
+        self.drv(drv_reset(reset, pos=True, offticks=2, onticks=2))
+        self.drv(self.drv_inputs())
 
         self.mon(self.mon_wr())
         self.mon(self.mon_rd())
@@ -53,7 +53,7 @@ class Top(Module):
         self.wdata = deque()
         self.rdata = deque()
 
-    async def main(self):
+    async def drv_inputs(self):
         # reset: __/‾‾
         await self._reset.posedge()
         self._wr_valid.next = "1b0"
