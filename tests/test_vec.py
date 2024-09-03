@@ -10,6 +10,7 @@ from seqlogic import (
     and_,
     bits,
     cat,
+    decode,
     eq,
     ge,
     gt,
@@ -1074,6 +1075,24 @@ def test_vec_srsh():
     assert srsh("2b01", "1bX") == (bits("2bXX"), E)
     assert srsh("2b01", "1b-") == (bits("2b--"), E)
     assert srsh("2b01", "1b1") == (bits("2b00"), T)
+
+
+DEC_VALS = [
+    (bits(), "1b1"),
+    ("1b0", "2b01"),
+    ("1b1", "2b10"),
+    ("1b-", "2b--"),
+    ("1bX", "2bXX"),
+    ("2b00", "4b0001"),
+    ("2b01", "4b0010"),
+    ("2b10", "4b0100"),
+    ("2b11", "4b1000"),
+]
+
+
+def test_decode():
+    for x, y in DEC_VALS:
+        assert y == decode(x)
 
 
 ADD_VALS = [

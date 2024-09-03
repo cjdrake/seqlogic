@@ -16,6 +16,7 @@ from .bits import (
     and_,
     bits,
     cat,
+    decode,
     eq,
     ge,
     gt,
@@ -87,6 +88,7 @@ __all__ = [
     "uxnor",
     "uxor",
     # bits: arithmetic
+    "decode",
     "add",
     "adc",
     "sub",

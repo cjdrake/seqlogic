@@ -1163,6 +1163,24 @@ def uxor(x: Bits | str) -> Scalar:
     return _uxor(x)
 
 
+def decode(x: Bits | str) -> Scalar | Vector:
+    """Decode dense encoding to sparse, one-hot encoding."""
+    x = _expect_type(x, Bits)
+
+    # Output has 2^N bits
+    n = 1 << x.size
+    vec = _vec_size(n)
+
+    # X/DC propagation
+    if x.has_x():
+        return vec.xes()
+    if x.has_dc():
+        return vec.dcs()
+
+    d1 = 1 << x.to_uint()
+    return vec(d1 ^ _mask(n), d1)
+
+
 def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     # X/DC propagation
     if a.has_x() or b.has_x() or ci.has_x():
