@@ -64,7 +64,7 @@ class Top(Module):
         for _ in range(2):
             await self._clock.posedge()
 
-        for _ in range(100):
+        for _ in range(self.N):
             self._wr_valid.next = "1b1"
             self._wr_data.next = self.T.rand()
             await self._clock.posedge()
