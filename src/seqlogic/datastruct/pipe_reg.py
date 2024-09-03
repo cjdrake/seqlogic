@@ -9,6 +9,7 @@ class PipeReg(Module):
     T: type = Vec[8]
 
     def build(self):
+        # Ports
         rd_valid = self.output(name="rd_valid", dtype=Vec[1])
         rd_data = self.output(name="rd_data", dtype=self.T)
 
@@ -18,5 +19,8 @@ class PipeReg(Module):
         clock = self.input(name="clock", dtype=Vec[1])
         reset = self.input(name="reset", dtype=Vec[1])
 
+        # Valid
         self.dff_ar(rd_valid, wr_valid, clock, reset, rval="1b0")
+
+        # Data
         self.dff_en(rd_data, wr_data, wr_valid, clock)
