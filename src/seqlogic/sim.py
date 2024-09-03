@@ -22,6 +22,7 @@ type Predicate = Callable[[], bool]
 class Region(IntEnum):
     REACTIVE = auto()
     ACTIVE = auto()
+    INACTIVE = auto()
 
 
 class State(ABC):

@@ -46,8 +46,9 @@ class Top(Module):
         self.initial(drive_clock, clock, shiftticks=1)
         self.initial(drive_reset, reset, pos=True, offticks=2, onticks=2)
         self.initial(self.main)
-        self.initial(self.mon_wr)
-        self.initial(self.mon_rd)
+
+        self.mon(self.mon_wr())
+        self.mon(self.mon_rd())
 
         self.wdata = deque()
         self.rdata = deque()
@@ -79,25 +80,27 @@ class Top(Module):
 
     async def mon_wr(self):
         clk, rst = self._clock, self._reset
+        en = self._wr_valid
+        data = self._wr_data
 
-        await rst.negedge()
+        def pred():
+            return clk.is_posedge() and rst.is_neg() and en.value == "1b1"
 
         while True:
-            await resume(
-                (clk, lambda: clk.is_posedge() and self._wr_valid.value == "1b1"),
-            )
-            self.wdata.append(self._wr_data.value)
+            await resume((clk, pred))
+            self.wdata.append(data.value)
 
     async def mon_rd(self):
         clk, rst = self._clock, self._reset
+        en = self._rd_valid
+        data = self._rd_data
 
-        await rst.negedge()
+        def pred():
+            return clk.is_posedge() and rst.is_neg() and en.value == "1b1"
 
         while True:
-            await resume(
-                (clk, lambda: clk.is_posedge() and self._rd_valid.value == "1b1"),
-            )
-            self.rdata.append(self._rd_data.value)
+            await resume((clk, pred))
+            self.rdata.append(data.value)
 
             exp = self.wdata.popleft()
             got = self.rdata.popleft()

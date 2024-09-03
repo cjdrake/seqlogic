@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Coroutine, Sequence
 
 from vcd.writer import VCDWriter as VcdWriter
 
@@ -240,6 +240,9 @@ class Module(metaclass=_ModuleMeta):
 
     def initial(self, cf, *args, **kwargs):
         self._initial.append(Task(cf(*args, **kwargs), region=Region.ACTIVE))
+
+    def mon(self, coro: Coroutine):
+        self._initial.append(Task(coro, region=Region.INACTIVE))
 
     def _combi(self, ys: Sequence[Value], f: Callable, xs: Sequence[State]):
 
