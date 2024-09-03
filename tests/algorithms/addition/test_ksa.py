@@ -3,7 +3,7 @@
 import os
 
 from seqlogic import u2bv
-from seqlogic.algorithm.addition.ksa import add
+from seqlogic.algorithm.addition.ksa import adc
 
 DIR = os.path.dirname(__file__)
 
@@ -22,7 +22,7 @@ def test_functional():
                     ci = u2bv(k, 1)
 
                     # Outputs
-                    s, co = add(a, b, ci)
+                    s, co = adc(a, b, ci)
 
                     # Check outputs
                     q, r = divmod(i + j + k, 2**n)

@@ -1,11 +1,12 @@
 """Kogge Stone Addition (KSA)."""
 
+from ...bits import AddResult
 from ...bits import Vector as Vec
 from ...bits import cat
 from ...util import clog2
 
 
-def add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
+def adc(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
     """Kogge Stone Addition."""
     n = len(a)
     assert n > 0 and n == len(b)
@@ -25,4 +26,4 @@ def add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
         c.append(g[i] | c[i] & p[i])
     c, co = cat(*c[:n]), c[n]
 
-    return a ^ b ^ c, co
+    return AddResult(a ^ b ^ c, co)

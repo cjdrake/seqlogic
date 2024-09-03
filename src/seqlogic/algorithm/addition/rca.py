@@ -1,12 +1,13 @@
 """Ripple Carry Addition (RCA)."""
 
+from ...bits import AddResult
 from ...bits import Vector as Vec
 from ...bits import cat
 from ...design import Module
 from .fa import FullAdd
 
 
-def add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
+def adc(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
     """Ripple Carry Addition."""
     n = len(a)
     assert n > 0 and n == len(b)
@@ -17,7 +18,7 @@ def add(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
         c.append(a_i & b_i | c[i] & (a_i | b_i))
     c, co = cat(*c[:n]), c[n]
 
-    return a ^ b ^ c, co
+    return AddResult(a ^ b ^ c, co)
 
 
 class RCA(Module):

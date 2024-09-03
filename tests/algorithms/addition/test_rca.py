@@ -5,7 +5,7 @@ import os
 from vcd import VCDWriter
 
 from seqlogic import Module, Vec, get_loop, sleep, u2bv
-from seqlogic.algorithm.addition.rca import RCA, add
+from seqlogic.algorithm.addition.rca import RCA, adc
 
 loop = get_loop()
 
@@ -26,7 +26,7 @@ def test_functional():
                     ci = u2bv(k, 1)
 
                     # Outputs
-                    s, co = add(a, b, ci)
+                    s, co = adc(a, b, ci)
 
                     # Check outputs
                     q, r = divmod(i + j + k, 2**n)
