@@ -96,11 +96,12 @@ class _ModuleMeta(type):
 
         # TODO(cjdrake): Improve parameter type limitations
         source = _mod_init_source(params)
-        globals_ = {"_init_body": _init_body}
-        locals_ = {
+        globals_ = {
+            "_init_body": _init_body,
             "Vector": Vector,
             "Array": Array,
         }
+        locals_ = {}
         exec(source, globals_, locals_)
         mod.__init__ = locals_["init"]
 
