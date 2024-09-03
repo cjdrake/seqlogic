@@ -288,10 +288,10 @@ class Module(metaclass=_ModuleMeta):
         match x:
             case Expr() as ex:
                 f, xs = ex.to_func()
-            case [Op(), *xs]:
-                f, xs = parse(*x).to_func()
+            case [Op(), *_] as args:
+                f, xs = parse(*args).to_func()
             case _:
-                raise TypeError("Expected x to be tuple or Expr")
+                raise TypeError("Expected x to be Expr or (Op, *args)")
 
         self._combi(ys, f, xs)
 
