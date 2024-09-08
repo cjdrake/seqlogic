@@ -24,6 +24,11 @@ from .hier import Branch, Leaf
 from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
 
 
+class Sync(Enum):
+    ASYNC = 0
+    SYNC = 1
+
+
 class Active(Enum):
     NEG = 0
     POS = 1
@@ -324,16 +329,17 @@ class Module(metaclass=_ModuleMeta):
 
         self._initial.append(Task(cf(), region=Region.ACTIVE))
 
-    def dff_ar(
+    def dff_r(
         self,
         q: Packed,
         d: Packed,
         clk: Packed,
         rst: Packed,
         rval: Bits | str,
+        rsync: Sync = Sync.ASYNC,
         ractive: Active = Active.POS,
     ):
-        """D Flip Flop with async reset."""
+        """D Flip Flop with reset."""
 
         # pylint: disable=unnecessary-lambda-assignment
         if ractive is Active.NEG:
@@ -343,17 +349,35 @@ class Module(metaclass=_ModuleMeta):
             rst_pred = rst.is_posedge
             clk_pred = lambda: clk.is_posedge() and rst.is_neg()  # noqa: E731
         else:
-            raise TypeError("Expected active to be type Active")
+            raise TypeError("Expected ractive to be type Active")
 
-        async def cf():
-            while True:
-                state = await resume((rst, rst_pred), (clk, clk_pred))
-                if state is rst:
-                    q.next = rval
-                elif state is clk:
-                    q.next = d.value
-                else:
-                    assert False  # pragma: no cover
+        if rsync is Sync.ASYNC:
+
+            async def cf():
+                while True:
+                    state = await resume((rst, rst_pred), (clk, clk_pred))
+                    if state is rst:
+                        q.next = rval
+                    elif state is clk:
+                        q.next = d.value
+                    else:
+                        assert False  # pragma: no cover
+
+        elif rsync is Sync.SYNC:
+
+            async def cf():
+                while True:
+                    state = await resume((clk, clk_pred))
+                    if state is clk:
+                        if rst.value:
+                            q.next = rval
+                        else:
+                            q.next = d.value
+                    else:
+                        assert False  # pragma: no cover
+
+        else:
+            raise TypeError("Expected rsync to be type Sync")
 
         self._initial.append(Task(cf(), region=Region.ACTIVE))
 
@@ -373,7 +397,7 @@ class Module(metaclass=_ModuleMeta):
 
         self._initial.append(Task(cf(), region=Region.ACTIVE))
 
-    def dff_en_ar(
+    def dff_en_r(
         self,
         q: Packed,
         d: Packed,
@@ -381,6 +405,7 @@ class Module(metaclass=_ModuleMeta):
         clk: Packed,
         rst: Packed,
         rval: Bits | str,
+        rsync: Sync = Sync.ASYNC,
         ractive: Active = Active.POS,
     ):
         """D Flip Flop with enable, and async reset."""
@@ -395,15 +420,32 @@ class Module(metaclass=_ModuleMeta):
         else:
             raise TypeError("Expected active to be type Active")
 
-        async def cf():
-            while True:
-                state = await resume((rst, rst_pred), (clk, clk_pred))
-                if state is rst:
-                    q.next = rval
-                elif state is clk:
-                    q.next = d.value
+        if rsync is Sync.ASYNC:
+
+            async def cf():
+                while True:
+                    state = await resume((rst, rst_pred), (clk, clk_pred))
+                    if state is rst:
+                        q.next = rval
+                    elif state is clk:
+                        q.next = d.value
+                    else:
+                        assert False  # pragma: no cover
+
+        elif rsync is Sync.SYNC:
+
+            async def cf():
+                state = await resume((clk, clk_pred))
+                if state is clk:
+                    if rst.value:
+                        q.next = rval
+                    else:
+                        q.next = d.value
                 else:
                     assert False  # pragma: no cover
+
+        else:
+            raise TypeError("Expected rsync to be type Sync")
 
         self._initial.append(Task(cf(), region=Region.ACTIVE))
 

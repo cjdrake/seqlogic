@@ -85,7 +85,7 @@ def test_fsm():
     x = Packed(name="x", parent=top, dtype=Vec[1])
 
     top.combi(ns, f, ps, x)
-    top.dff_ar(ps, ns, clock, reset_n, rval=SeqDetect.A, ractive=Active.NEG)
+    top.dff_r(ps, ns, clock, reset_n, rval=SeqDetect.A, ractive=Active.NEG)
 
     top.elab()
 

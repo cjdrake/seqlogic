@@ -197,4 +197,4 @@ class DataPath(Module):
 
         # Sequential Logic
         pc_rval = u2bv(TEXT_BASE, 32)
-        self.dff_en_ar(pc, pc_next, pc_wr_en, clock, reset, pc_rval)
+        self.dff_en_r(pc, pc_next, pc_wr_en, clock, reset, pc_rval)
