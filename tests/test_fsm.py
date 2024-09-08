@@ -5,7 +5,7 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Active, Enum, Module, Packed, Vec, get_loop
+from seqlogic import Enum, Module, Packed, Vec, get_loop
 from seqlogic.control.globals import drv_clock, drv_reset
 
 loop = get_loop()
@@ -85,7 +85,7 @@ def test_fsm():
     x = Packed(name="x", parent=top, dtype=Vec[1])
 
     top.combi(ns, f, ps, x)
-    top.dff_r(ps, ns, clock, reset_n, rval=SeqDetect.A, ractive=Active.NEG)
+    top.dff_r(ps, ns, clock, reset_n, rval=SeqDetect.A, rneg=True)
 
     top.elab()
 
@@ -98,7 +98,7 @@ def test_fsm():
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_initial(drv_reset(reset_n, shiftticks=6, onticks=10, active=Active.NEG))
+    loop.add_initial(drv_reset(reset_n, shiftticks=6, onticks=10, neg=True))
     loop.add_initial(drv_clock(clock, shiftticks=5, onticks=5, offticks=5))
 
     loop.run(until=100)

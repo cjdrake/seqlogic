@@ -14,7 +14,6 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from collections.abc import Callable, Coroutine, Sequence
-from enum import Enum
 
 from vcd.writer import VCDWriter as VcdWriter
 
@@ -22,16 +21,6 @@ from .bits import Bits, _lit2vec, stack
 from .expr import Expr, Op, Variable, parse
 from .hier import Branch, Leaf
 from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
-
-
-class Sync(Enum):
-    ASYNC = 0
-    SYNC = 1
-
-
-class Active(Enum):
-    NEG = 0
-    POS = 1
 
 
 class DesignError(Exception):
@@ -317,7 +306,13 @@ class Module(metaclass=_ModuleMeta):
         # fmt: on
 
     def dff(self, q: Packed, d: Packed, clk: Packed):
-        """D Flip Flop."""
+        """D Flip Flop.
+
+        Args:
+            q: output
+            d: input
+            clk: clock w/ positive edge trigger
+        """
 
         async def cf():
             while True:
@@ -336,22 +331,40 @@ class Module(metaclass=_ModuleMeta):
         clk: Packed,
         rst: Packed,
         rval: Bits | str,
-        rsync: Sync = Sync.ASYNC,
-        ractive: Active = Active.POS,
+        rsync: bool = False,
+        rneg: bool = False,
     ):
-        """D Flip Flop with reset."""
+        """D Flip Flop with reset.
+
+        Args:
+            q: output
+            d: output
+            clk: clock w/ positive edge trigger
+            rst: reset
+            rval: reset value
+            rsync: reset is edge triggered
+            rneg: reset is active negative
+        """
 
         # pylint: disable=unnecessary-lambda-assignment
-        if ractive is Active.NEG:
-            rst_pred = rst.is_negedge
+        if rneg:
             clk_pred = lambda: clk.is_posedge() and rst.is_pos()  # noqa: E731
-        elif ractive is Active.POS:
-            rst_pred = rst.is_posedge
-            clk_pred = lambda: clk.is_posedge() and rst.is_neg()  # noqa: E731
         else:
-            raise TypeError("Expected ractive to be type Active")
+            clk_pred = lambda: clk.is_posedge() and rst.is_neg()  # noqa: E731
 
-        if rsync is Sync.ASYNC:
+        if rsync:
+
+            async def cf():
+                while True:
+                    state = await resume((clk, clk_pred))
+                    if state is clk:
+                        ractive = (not rst.value) if rneg else bool(rst.value)
+                        q.next = rval if ractive else d.value
+                    else:
+                        assert False  # pragma: no cover
+
+        else:
+            rst_pred = rst.is_negedge if rneg else rst.is_posedge
 
             async def cf():
                 while True:
@@ -363,26 +376,17 @@ class Module(metaclass=_ModuleMeta):
                     else:
                         assert False  # pragma: no cover
 
-        elif rsync is Sync.SYNC:
-
-            async def cf():
-                while True:
-                    state = await resume((clk, clk_pred))
-                    if state is clk:
-                        if rst.value:
-                            q.next = rval
-                        else:
-                            q.next = d.value
-                    else:
-                        assert False  # pragma: no cover
-
-        else:
-            raise TypeError("Expected rsync to be type Sync")
-
         self._initial.append(Task(cf(), region=Region.ACTIVE))
 
     def dff_en(self, q: Packed, d: Packed, en: Packed, clk: Packed):
-        """D Flip Flop with enable."""
+        """D Flip Flop with enable.
+
+        Args:
+            q: output
+            d: input
+            en: enable
+            clk: clock w/ positive edge trigger
+        """
 
         # pylint: disable=unnecessary-lambda-assignment
         clk_pred = lambda: clk.is_posedge() and en.value == "1b1"  # noqa: E731
@@ -405,22 +409,40 @@ class Module(metaclass=_ModuleMeta):
         clk: Packed,
         rst: Packed,
         rval: Bits | str,
-        rsync: Sync = Sync.ASYNC,
-        ractive: Active = Active.POS,
+        rsync: bool = False,
+        rneg: bool = False,
     ):
-        """D Flip Flop with enable, and async reset."""
+        """D Flip Flop with enable, and reset.
+
+        Args:
+            q: output
+            d: input
+            en: enable
+            clk: clock w/ positive edge trigger
+            rst: reset
+            rval: reset value
+            rsync: reset is edge triggered
+            rneg: reset is active negative
+        """
 
         # pylint: disable=unnecessary-lambda-assignment
-        if ractive is Active.NEG:
-            rst_pred = rst.is_negedge
+        if rneg:
             clk_pred = lambda: clk.is_posedge() and rst.is_pos() and en.value == "1b1"  # noqa: E731
-        elif ractive is Active.POS:
-            rst_pred = rst.is_posedge
-            clk_pred = lambda: clk.is_posedge() and rst.is_neg() and en.value == "1b1"  # noqa: E731
         else:
-            raise TypeError("Expected active to be type Active")
+            clk_pred = lambda: clk.is_posedge() and rst.is_neg() and en.value == "1b1"  # noqa: E731
 
-        if rsync is Sync.ASYNC:
+        if rsync:
+
+            async def cf():
+                state = await resume((clk, clk_pred))
+                if state is clk:
+                    ractive = not rst.value if rneg else bool(rst.value)
+                    q.next = rval if ractive else d.value
+                else:
+                    assert False  # pragma: no cover
+
+        else:
+            rst_pred = rst.is_negedge if rneg else rst.is_posedge
 
             async def cf():
                 while True:
@@ -431,21 +453,6 @@ class Module(metaclass=_ModuleMeta):
                         q.next = d.value
                     else:
                         assert False  # pragma: no cover
-
-        elif rsync is Sync.SYNC:
-
-            async def cf():
-                state = await resume((clk, clk_pred))
-                if state is clk:
-                    if rst.value:
-                        q.next = rval
-                    else:
-                        q.next = d.value
-                else:
-                    assert False  # pragma: no cover
-
-        else:
-            raise TypeError("Expected rsync to be type Sync")
 
         self._initial.append(Task(cf(), region=Region.ACTIVE))
 

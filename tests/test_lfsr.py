@@ -5,7 +5,7 @@
 
 from collections import defaultdict
 
-from seqlogic import Active, Module, Vec, cat, get_loop
+from seqlogic import Module, Vec, cat, get_loop
 from seqlogic.control.globals import drv_clock, drv_reset
 
 loop = get_loop()
@@ -28,7 +28,7 @@ class Top(Module):
         d = self.logic(name="d", dtype=Vec[3])
 
         self.combi(d, lfsr, q)
-        self.dff_r(q, d, clock, reset_n, "3b100", ractive=Active.NEG)
+        self.dff_r(q, d, clock, reset_n, "3b100", rneg=True)
 
 
 def test_lfsr():
@@ -46,7 +46,7 @@ def test_lfsr():
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_initial(drv_reset(top.reset_n, shiftticks=6, onticks=10, active=Active.NEG))
+    loop.add_initial(drv_reset(top.reset_n, shiftticks=6, onticks=10, neg=True))
     loop.add_initial(drv_clock(top.clock, shiftticks=5, onticks=5, offticks=5))
 
     loop.run(until=100)
