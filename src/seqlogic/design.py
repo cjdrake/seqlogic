@@ -17,7 +17,7 @@ from collections.abc import Callable, Coroutine, Sequence
 
 from vcd.writer import VCDWriter as VcdWriter
 
-from .bits import Array, Bits, Vector, _lit2vec, stack
+from .bits import Bits, _lit2vec, stack
 from .expr import Expr, Op, Variable, parse
 from .hier import Branch, Leaf
 from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
@@ -43,15 +43,9 @@ class _TraceIf:
 def _mod_init_source(params) -> str:
     """Return source code for Module __init__ method w/ parameters."""
     lines = []
-    kwargs = []
-    for pn, pt, pv in params:
-        if pt is type:
-            kwargs.append(f"{pn}={pv.__name__}")
-        else:
-            kwargs.append(f"{pn}={pv}")
-    s = ", ".join(kwargs)
+    s = ", ".join(f"{pn}=None" for pn, _, _ in params)
     lines.append(f"def init(self, name: str, parent: Module | None=None, {s}):\n")
-    s = ", ".join(f"{pn}={pn}" for pn, _, _ in params)
+    s = ", ".join(pn for pn, _, _ in params)
     lines.append(f"    _init_body(self, name, parent, {s})\n")
     return "".join(lines)
 
@@ -81,12 +75,16 @@ class _ModuleMeta(type):
         mod = super().__new__(mcs, name, bases + (Branch, ProcIf, _TraceIf), attrs)
 
         # Override Module.__init__ method
-        def _init_body(self, name: str, parent: Module | None = None, **kwargs):
+        def _init_body(self, name: str, parent: Module, *args):
             Branch.__init__(self, name, parent)
             ProcIf.__init__(self)
 
-            for pn, pv in kwargs.items():
-                setattr(self, pn, pv)
+            for arg, (pn, _, pv) in zip(args, params):
+                if arg is not None:
+                    # TODO(cjdrake): Check input type?
+                    setattr(self, pn, arg)
+                else:
+                    setattr(self, pn, pv)
 
             # Ports: name => connected
             self._inputs = {}
@@ -94,13 +92,8 @@ class _ModuleMeta(type):
 
             self.build()
 
-        # TODO(cjdrake): Improve parameter type limitations
         source = _mod_init_source(params)
-        globals_ = {
-            "_init_body": _init_body,
-            "Vector": Vector,
-            "Array": Array,
-        }
+        globals_ = {"_init_body": _init_body}
         locals_ = {}
         exec(source, globals_, locals_)
         mod.__init__ = locals_["init"]

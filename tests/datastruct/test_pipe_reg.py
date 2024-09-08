@@ -6,7 +6,7 @@ from random import randint
 
 from vcd import VCDWriter
 
-from seqlogic import Module, Vec, finish, get_loop, resume, sleep
+from seqlogic import Module, Struct, Vec, finish, get_loop, resume, sleep
 from seqlogic.control.globals import drv_clock, drv_reset
 from seqlogic.datastruct.pipe_reg import PipeReg
 
@@ -15,11 +15,18 @@ loop = get_loop()
 DIR = os.path.dirname(__file__)
 
 
+class MyStruct(Struct):
+    a: Vec[4]
+    b: Vec[4]
+    c: Vec[4]
+    d: Vec[4]
+
+
 class Top(Module):
     """Testbench Top."""
 
     N: int = 100
-    T: type = Vec[16]
+    T: type = MyStruct
 
     def build(self):
         rd_valid = self.logic(name="rd_valid", dtype=Vec[1])
