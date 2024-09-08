@@ -28,8 +28,9 @@ class Fbeb(Module):
 
         # FIFO Control
         rd_addr = self.logic(name="rd_addr", dtype=Vec[1])
-        rd_addr_next = self.logic(name="rd_addr_next", dtype=Vec[1])
         wr_addr = self.logic(name="wr_addr", dtype=Vec[1])
+
+        rd_addr_next = self.logic(name="rd_addr_next", dtype=Vec[1])
         wr_addr_next = self.logic(name="wr_addr_next", dtype=Vec[1])
 
         empty = self.logic(name="empty", dtype=Vec[1])
@@ -54,14 +55,14 @@ class Fbeb(Module):
         self.expr(empty_next, empty & ~wr_en | ~empty & (rd_en & ~wr_en & (rd_addr ^ wr_addr)))
         self.expr(full_next, full & ~rd_en | ~full & (~rd_en & wr_en & (rd_addr ^ wr_addr)))
 
+        self.dff_r(empty, empty_next, clock, reset, rval="1b1")
+        self.dff_r(full, full_next, clock, reset, rval="1b0")
+
         self.expr(rd_addr_next, ~rd_addr)
         self.expr(wr_addr_next, ~wr_addr)
 
         self.dff_en_r(rd_addr, rd_addr_next, rd_en, clock, reset, rval="1b0")
         self.dff_en_r(wr_addr, wr_addr_next, wr_en, clock, reset, rval="1b0")
 
-        self.dff_r(empty, empty_next, clock, reset, rval="1b1")
-        self.dff_r(full, full_next, clock, reset, rval="1b0")
-
-        self.combi(rd_data, operator.getitem, buf, rd_addr)
         self.mem_wr_en(buf, wr_addr, wr_data, wr_en, clock)
+        self.combi(rd_data, operator.getitem, buf, rd_addr)
