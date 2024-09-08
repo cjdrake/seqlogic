@@ -64,5 +64,6 @@ class Fbeb(Module):
         self.dff_en_r(rd_addr, rd_addr_next, rd_en, clock, reset, rval="1b0")
         self.dff_en_r(wr_addr, wr_addr_next, wr_en, clock, reset, rval="1b0")
 
-        self.mem_wr_en(buf, wr_addr, wr_data, wr_en, clock)
+        # Data
         self.combi(rd_data, operator.getitem, buf, rd_addr)
+        self.mem_wr_en(buf, wr_addr, wr_data, wr_en, clock)
