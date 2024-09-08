@@ -1,6 +1,6 @@
 """Top Level Module."""
 
-from seqlogic import Active, Module, Vec
+from seqlogic import Module, Vec
 from seqlogic.control.globals import drv_clock, drv_reset
 
 from . import Addr, Inst, Opcode
@@ -81,4 +81,4 @@ class Top(Module):
         )
 
         self.drv(drv_clock(clock, shiftticks=1))
-        self.drv(drv_reset(reset, offticks=5, onticks=5, active=Active.POS))
+        self.drv(drv_reset(reset, offticks=5, onticks=5))

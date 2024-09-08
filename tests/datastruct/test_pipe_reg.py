@@ -6,7 +6,7 @@ from random import randint
 
 from vcd import VCDWriter
 
-from seqlogic import Active, Module, Struct, Vec, finish, get_loop, resume, sleep
+from seqlogic import Module, Struct, Vec, finish, get_loop, resume, sleep
 from seqlogic.control.globals import drv_clock, drv_reset
 from seqlogic.datastruct.pipe_reg import PipeReg
 
@@ -51,7 +51,7 @@ class Top(Module):
         )
 
         self.drv(drv_clock(clock, shiftticks=1))
-        self.drv(drv_reset(reset, offticks=2, onticks=2, active=Active.POS))
+        self.drv(drv_reset(reset, offticks=2, onticks=2))
         self.drv(self.drv_inputs())
 
         self.mon(self.mon_wr())

@@ -8,7 +8,7 @@ async def drv_reset(
     y: Packed,
     offticks: int = 0,
     onticks: int = 1,
-    active: Active = Active.NEG,
+    active: Active = Active.POS,
 ):
     r"""
     Drive a reset signal.
