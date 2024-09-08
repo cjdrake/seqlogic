@@ -298,15 +298,15 @@ class Module(metaclass=_ModuleMeta):
         """Assign input to output."""
         # fmt: off
         if isinstance(x, str):
-            async def cf0():
+            async def cf():
                 y.next = x
-            self._initial.append(Task(cf0(), region=Region.ACTIVE))
+            self._initial.append(Task(cf(), region=Region.ACTIVE))
         elif isinstance(x, Packed):
-            async def cf1():
+            async def cf():
                 while True:
                     await changed(x)
                     y.next = x.value
-            self._initial.append(Task(cf1(), region=Region.REACTIVE))
+            self._initial.append(Task(cf(), region=Region.REACTIVE))
         else:
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
@@ -335,16 +335,15 @@ class Module(metaclass=_ModuleMeta):
     ):
         """D Flip Flop with async reset."""
 
-        match ractive:
-            # pylint: disable=unnecessary-lambda-assignment
-            case Active.NEG:
-                rst_pred = rst.is_negedge
-                clk_pred = lambda: clk.is_posedge() and rst.is_pos()  # noqa: E731
-            case Active.POS:
-                rst_pred = rst.is_posedge
-                clk_pred = lambda: clk.is_posedge() and rst.is_neg()  # noqa: E731
-            case _:
-                raise TypeError("Expected active to be type Active")
+        # pylint: disable=unnecessary-lambda-assignment
+        if ractive is Active.NEG:
+            rst_pred = rst.is_negedge
+            clk_pred = lambda: clk.is_posedge() and rst.is_pos()  # noqa: E731
+        elif ractive is Active.POS:
+            rst_pred = rst.is_posedge
+            clk_pred = lambda: clk.is_posedge() and rst.is_neg()  # noqa: E731
+        else:
+            raise TypeError("Expected active to be type Active")
 
         async def cf():
             while True:
@@ -361,11 +360,12 @@ class Module(metaclass=_ModuleMeta):
     def dff_en(self, q: Packed, d: Packed, en: Packed, clk: Packed):
         """D Flip Flop with enable."""
 
+        # pylint: disable=unnecessary-lambda-assignment
+        clk_pred = lambda: clk.is_posedge() and en.value == "1b1"  # noqa: E731
+
         async def cf():
             while True:
-                state = await resume(
-                    (clk, lambda: clk.is_posedge() and en.value == "1b1"),
-                )
+                state = await resume((clk, clk_pred))
                 if state is clk:
                     q.next = d.value
                 else:
@@ -385,20 +385,15 @@ class Module(metaclass=_ModuleMeta):
     ):
         """D Flip Flop with enable, and async reset."""
 
-        match ractive:
-            # pylint: disable=unnecessary-lambda-assignment
-            case Active.NEG:
-                rst_pred = rst.is_negedge
-                clk_pred = (
-                    lambda: clk.is_posedge() and rst.is_pos() and en.value == "1b1"
-                )  # noqa: E731
-            case Active.POS:
-                rst_pred = rst.is_posedge
-                clk_pred = (
-                    lambda: clk.is_posedge() and rst.is_neg() and en.value == "1b1"
-                )  # noqa: E731
-            case _:
-                raise TypeError("Expected active to be type Active")
+        # pylint: disable=unnecessary-lambda-assignment
+        if ractive is Active.NEG:
+            rst_pred = rst.is_negedge
+            clk_pred = lambda: clk.is_posedge() and rst.is_pos() and en.value == "1b1"  # noqa: E731
+        elif ractive is Active.POS:
+            rst_pred = rst.is_posedge
+            clk_pred = lambda: clk.is_posedge() and rst.is_neg() and en.value == "1b1"  # noqa: E731
+        else:
+            raise TypeError("Expected active to be type Active")
 
         async def cf():
             while True:
@@ -422,11 +417,12 @@ class Module(metaclass=_ModuleMeta):
     ):
         """Memory with write enable."""
 
+        # pylint: disable=unnecessary-lambda-assignment
+        clk_pred = lambda: clk.is_posedge() and en.value == "1b1"  # noqa: E731
+
         async def cf():
             while True:
-                state = await resume(
-                    (clk, lambda: clk.is_posedge() and en.value == "1b1"),
-                )
+                state = await resume((clk, clk_pred))
                 assert not addr.value.has_unknown()
                 if state is clk:
                     mem[addr.value].next = data.value
@@ -446,15 +442,16 @@ class Module(metaclass=_ModuleMeta):
     ):
         """Memory with write byte enable."""
 
+        # pylint: disable=unnecessary-lambda-assignment
+        clk_pred = lambda: clk.is_posedge() and en.value == "1b1"  # noqa: E731
+
         # Require mem/data to be Array[N,8]
         assert len(mem.dtype.shape) == 2 and mem.dtype.shape[1] == 8
         assert len(data.dtype.shape) == 2 and data.dtype.shape[1] == 8
 
         async def cf():
             while True:
-                state = await resume(
-                    (clk, lambda: clk.is_posedge() and en.value == "1b1"),
-                )
+                state = await resume((clk, clk_pred))
                 assert not addr.value.has_unknown()
                 assert not be.value.has_unknown()
                 if state is clk:
