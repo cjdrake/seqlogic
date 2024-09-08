@@ -5,7 +5,7 @@
 
 from collections import defaultdict
 
-from seqlogic import Module, Vec, cat, get_loop
+from seqlogic import Active, Module, Vec, cat, get_loop
 from seqlogic.control.globals import drv_clock, drv_reset
 
 loop = get_loop()
@@ -27,12 +27,8 @@ class Top(Module):
         q = self.logic(name="q", dtype=Vec[3])
         d = self.logic(name="d", dtype=Vec[3])
 
-        # Invert the reset
-        reset = self.logic(name="reset", dtype=Vec[1])
-        self.expr(reset, ~reset_n)
-
         self.combi(d, lfsr, q)
-        self.dff_ar(q, d, clock, reset, "3b100")
+        self.dff_ar(q, d, clock, reset_n, "3b100", ractive=Active.NEG)
 
 
 def test_lfsr():

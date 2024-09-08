@@ -324,15 +324,31 @@ class Module(metaclass=_ModuleMeta):
 
         self._initial.append(Task(cf(), region=Region.ACTIVE))
 
-    def dff_ar(self, q: Packed, d: Packed, clk: Packed, rst: Packed, rval: Bits | str):
+    def dff_ar(
+        self,
+        q: Packed,
+        d: Packed,
+        clk: Packed,
+        rst: Packed,
+        rval: Bits | str,
+        ractive: Active = Active.POS,
+    ):
         """D Flip Flop with async reset."""
+
+        match ractive:
+            # pylint: disable=unnecessary-lambda-assignment
+            case Active.NEG:
+                rst_pred = rst.is_negedge
+                clk_pred = lambda: clk.is_posedge() and rst.is_pos()  # noqa: E731
+            case Active.POS:
+                rst_pred = rst.is_posedge
+                clk_pred = lambda: clk.is_posedge() and rst.is_neg()  # noqa: E731
+            case _:
+                assert False
 
         async def cf():
             while True:
-                state = await resume(
-                    (rst, rst.is_posedge),
-                    (clk, lambda: clk.is_posedge() and rst.is_neg()),
-                )
+                state = await resume((rst, rst_pred), (clk, clk_pred))
                 if state is rst:
                     q.next = rval
                 elif state is clk:
@@ -365,15 +381,28 @@ class Module(metaclass=_ModuleMeta):
         clk: Packed,
         rst: Packed,
         rval: Bits | str,
+        ractive: Active = Active.POS,
     ):
         """D Flip Flop with enable, and async reset."""
 
+        match ractive:
+            # pylint: disable=unnecessary-lambda-assignment
+            case Active.NEG:
+                rst_pred = rst.is_negedge
+                clk_pred = (
+                    lambda: clk.is_posedge() and rst.is_pos() and en.value == "1b1"
+                )  # noqa: E731
+            case Active.POS:
+                rst_pred = rst.is_posedge
+                clk_pred = (
+                    lambda: clk.is_posedge() and rst.is_neg() and en.value == "1b1"
+                )  # noqa: E731
+            case _:
+                assert False
+
         async def cf():
             while True:
-                state = await resume(
-                    (rst, rst.is_posedge),
-                    (clk, lambda: clk.is_posedge() and rst.is_neg() and en.value == "1b1"),
-                )
+                state = await resume((rst, rst_pred), (clk, clk_pred))
                 if state is rst:
                     q.next = rval
                 elif state is clk:

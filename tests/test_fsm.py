@@ -5,7 +5,7 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Enum, Module, Packed, Vec, get_loop
+from seqlogic import Active, Enum, Module, Packed, Vec, get_loop
 from seqlogic.control.globals import drv_clock, drv_reset
 
 loop = get_loop()
@@ -42,28 +42,26 @@ async def drive_input(x, reset_n, clock):
     x.next = "1b0"  # D => A
 
 
+def g(x: Vec[1], ns: SeqDetect) -> SeqDetect:
+    match x:
+        case "1b0":
+            return SeqDetect.A
+        case "1b1":
+            return ns
+        case _:
+            return SeqDetect.xprop(x)
+
+
 def f(ps: SeqDetect, x: Vec[1]) -> SeqDetect:
     match ps:
         case SeqDetect.A:
-            if x:
-                return SeqDetect.B
-            else:
-                return SeqDetect.A
+            return g(x, SeqDetect.B)
         case SeqDetect.B:
-            if x:
-                return SeqDetect.C
-            else:
-                return SeqDetect.A
+            return g(x, SeqDetect.C)
         case SeqDetect.C:
-            if x:
-                return SeqDetect.D
-            else:
-                return SeqDetect.A
+            return g(x, SeqDetect.D)
         case SeqDetect.D:
-            if x:
-                return SeqDetect.D
-            else:
-                return SeqDetect.A
+            return g(x, SeqDetect.D)
         case _:
             return SeqDetect.xprop(ps)
 
@@ -86,11 +84,8 @@ def test_fsm():
     ns = Packed(name="ns", parent=top, dtype=SeqDetect)
     x = Packed(name="x", parent=top, dtype=Vec[1])
 
-    reset = Packed(name="reset", parent=top, dtype=Vec[1])
-    top.expr(reset, ~reset_n)
-
     top.combi(ns, f, ps, x)
-    top.dff_ar(ps, ns, clock, reset, SeqDetect.A)
+    top.dff_ar(ps, ns, clock, reset_n, rval=SeqDetect.A, ractive=Active.NEG)
 
     top.elab()
 
