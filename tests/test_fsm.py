@@ -98,7 +98,7 @@ def test_fsm():
 
     # Schedule reset and clock
     # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_initial(drv_reset(reset_n, offticks=6, onticks=10, active=Active.NEG))
+    loop.add_initial(drv_reset(reset_n, shiftticks=6, onticks=10, active=Active.NEG))
     loop.add_initial(drv_clock(clock, shiftticks=5, onticks=5, offticks=5))
 
     loop.run(until=100)

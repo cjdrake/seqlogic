@@ -51,7 +51,7 @@ class Top(Module):
         )
 
         self.drv(drv_clock(clock, shiftticks=1))
-        self.drv(drv_reset(reset, offticks=2, onticks=2))
+        self.drv(drv_reset(reset, shiftticks=2, onticks=2))
         self.drv(self.drv_inputs())
 
         self.mon(self.mon_wr())

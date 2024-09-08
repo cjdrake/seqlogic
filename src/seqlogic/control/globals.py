@@ -6,7 +6,7 @@ from ..sim import sleep
 
 async def drv_reset(
     y: Packed,
-    offticks: int = 0,
+    shiftticks: int = 0,
     onticks: int = 1,
     active: Active = Active.POS,
 ):
@@ -26,8 +26,8 @@ async def drv_reset(
     Raises:
         ValueError: Invalid parameter values
     """
-    if offticks < 0:
-        raise ValueError(f"Expected offticks ≥ 0, got {offticks}")
+    if shiftticks < 0:
+        raise ValueError(f"Expected shiftticks ≥ 0, got {shiftticks}")
     if onticks < 0:
         raise ValueError(f"Expected onticks ≥ 0, got {onticks}")
 
@@ -40,7 +40,7 @@ async def drv_reset(
         case _:
             raise TypeError("Expected active to be type Active")
 
-    await sleep(offticks)
+    await sleep(shiftticks)
 
     y.next = ~y.value
     await sleep(onticks)

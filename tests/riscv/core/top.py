@@ -81,4 +81,4 @@ class Top(Module):
         )
 
         self.drv(drv_clock(clock, shiftticks=1))
-        self.drv(drv_reset(reset, offticks=5, onticks=5))
+        self.drv(drv_reset(reset, shiftticks=5, onticks=5))
