@@ -346,14 +346,15 @@ class Module(metaclass=_ModuleMeta):
             rneg: reset is active negative
         """
 
-        # pylint: disable=unnecessary-lambda-assignment
+        # fmt: off
         if rneg:
-            clk_pred = lambda: clk.is_posedge() and rst.is_pos()  # noqa: E731
+            def clk_pred():
+                return clk.is_posedge() and rst.is_pos()
         else:
-            clk_pred = lambda: clk.is_posedge() and rst.is_neg()  # noqa: E731
+            def clk_pred():
+                return clk.is_posedge() and rst.is_neg()
 
         if rsync:
-
             async def cf():
                 while True:
                     state = await resume((clk, clk_pred))
@@ -362,7 +363,6 @@ class Module(metaclass=_ModuleMeta):
                         q.next = rval if ractive else d.value
                     else:
                         assert False  # pragma: no cover
-
         else:
             rst_pred = rst.is_negedge if rneg else rst.is_posedge
 
@@ -377,6 +377,7 @@ class Module(metaclass=_ModuleMeta):
                         assert False  # pragma: no cover
 
         self._initial.append(Task(cf(), region=Region.ACTIVE))
+        # fmt: on
 
     def dff_en(self, q: Packed, d: Packed, en: Packed, clk: Packed):
         """D Flip Flop with enable.
@@ -388,8 +389,8 @@ class Module(metaclass=_ModuleMeta):
             clk: clock w/ positive edge trigger
         """
 
-        # pylint: disable=unnecessary-lambda-assignment
-        clk_pred = lambda: clk.is_posedge() and en.value == "1b1"  # noqa: E731
+        def clk_pred():
+            return clk.is_posedge() and en.value == "1b1"
 
         async def cf():
             while True:
@@ -425,14 +426,15 @@ class Module(metaclass=_ModuleMeta):
             rneg: reset is active negative
         """
 
-        # pylint: disable=unnecessary-lambda-assignment
+        # fmt: off
         if rneg:
-            clk_pred = lambda: clk.is_posedge() and rst.is_pos() and en.value == "1b1"  # noqa: E731
+            def clk_pred():
+                return clk.is_posedge() and rst.is_pos() and en.value == "1b1"
         else:
-            clk_pred = lambda: clk.is_posedge() and rst.is_neg() and en.value == "1b1"  # noqa: E731
+            def clk_pred():
+                return clk.is_posedge() and rst.is_neg() and en.value == "1b1"
 
         if rsync:
-
             async def cf():
                 state = await resume((clk, clk_pred))
                 if state is clk:
@@ -440,7 +442,6 @@ class Module(metaclass=_ModuleMeta):
                     q.next = rval if ractive else d.value
                 else:
                     assert False  # pragma: no cover
-
         else:
             rst_pred = rst.is_negedge if rneg else rst.is_posedge
 
@@ -455,6 +456,7 @@ class Module(metaclass=_ModuleMeta):
                         assert False  # pragma: no cover
 
         self._initial.append(Task(cf(), region=Region.ACTIVE))
+        # fmt: on
 
     def mem_wr_en(
         self,
@@ -466,8 +468,8 @@ class Module(metaclass=_ModuleMeta):
     ):
         """Memory with write enable."""
 
-        # pylint: disable=unnecessary-lambda-assignment
-        clk_pred = lambda: clk.is_posedge() and en.value == "1b1"  # noqa: E731
+        def clk_pred():
+            return clk.is_posedge() and en.value == "1b1"
 
         async def cf():
             while True:
@@ -491,8 +493,8 @@ class Module(metaclass=_ModuleMeta):
     ):
         """Memory with write byte enable."""
 
-        # pylint: disable=unnecessary-lambda-assignment
-        clk_pred = lambda: clk.is_posedge() and en.value == "1b1"  # noqa: E731
+        def clk_pred():
+            return clk.is_posedge() and en.value == "1b1"
 
         # Require mem/data to be Array[N,8]
         assert len(mem.dtype.shape) == 2 and mem.dtype.shape[1] == 8
