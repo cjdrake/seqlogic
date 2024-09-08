@@ -53,7 +53,7 @@ from .bits import (
     xor,
     xt,
 )
-from .design import Module, Packed, Unpacked
+from .design import Active, Module, Packed, Unpacked
 from .expr import Op
 from .sim import Region, Sim, changed, finish, get_loop, resume, sleep
 from .util import clog2
@@ -122,6 +122,7 @@ __all__ = [
     "u2bv",
     "i2bv",
     # design
+    "Active",
     "Module",
     "Packed",
     "Unpacked",

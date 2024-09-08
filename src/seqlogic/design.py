@@ -14,6 +14,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from collections.abc import Callable, Coroutine, Sequence
+from enum import Enum
 
 from vcd.writer import VCDWriter as VcdWriter
 
@@ -21,6 +22,11 @@ from .bits import Bits, _lit2vec, stack
 from .expr import Expr, Op, Variable, parse
 from .hier import Branch, Leaf
 from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
+
+
+class Active(Enum):
+    NEG = 0
+    POS = 1
 
 
 class DesignError(Exception):
