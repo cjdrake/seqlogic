@@ -8,7 +8,7 @@ from vcd import VCDWriter
 
 from seqlogic import Module, Struct, Vec, finish, get_loop, resume, sleep
 from seqlogic.control.globals import drv_clock, drv_reset
-from seqlogic.datastruct.hbeb import Hbeb
+from seqlogic.datastruct.fbeb import Fbeb
 
 loop = get_loop()
 
@@ -42,7 +42,7 @@ class Top(Module):
 
         self.submod(
             name="dut",
-            mod=Hbeb,
+            mod=Fbeb,
             T=self.T,
         ).connect(
             rd_ready=rd_ready,
@@ -163,8 +163,8 @@ class Top(Module):
             assert got == exp
 
 
-def test_hbeb():
-    vcd = os.path.join(DIR, "hbeb.vcd")
+def test_fbeb():
+    vcd = os.path.join(DIR, "fbeb.vcd")
     with (
         open(vcd, "w", encoding="utf-8") as f,
         VCDWriter(f, timescale="1ns") as vcdw,
