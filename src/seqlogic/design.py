@@ -344,7 +344,7 @@ class Module(metaclass=_ModuleMeta):
                 rst_pred = rst.is_posedge
                 clk_pred = lambda: clk.is_posedge() and rst.is_neg()  # noqa: E731
             case _:
-                assert False
+                raise TypeError("Expected active to be type Active")
 
         async def cf():
             while True:
@@ -398,7 +398,7 @@ class Module(metaclass=_ModuleMeta):
                     lambda: clk.is_posedge() and rst.is_neg() and en.value == "1b1"
                 )  # noqa: E731
             case _:
-                assert False
+                raise TypeError("Expected active to be type Active")
 
         async def cf():
             while True:

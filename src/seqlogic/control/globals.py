@@ -38,7 +38,7 @@ async def drv_reset(
         case Active.POS:
             y.next = "1b0"
         case _:
-            assert False
+            raise TypeError("Expected active to be type Active")
 
     await sleep(offticks)
 
@@ -88,7 +88,7 @@ async def drv_clock(
         case Active.POS:
             y.next = "1b0"
         case _:
-            assert False
+            raise TypeError("Expected active to be type Active")
 
     await sleep(shiftticks)
 
