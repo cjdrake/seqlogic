@@ -1,7 +1,7 @@
 """Half bandwidth elastic buffer."""
 
 # PyLint thinks some Packed types are Unpacked for some reason
-# xpylint: disable=invalid-unary-operand-type
+# pylint: disable=invalid-unary-operand-type
 
 import operator
 
