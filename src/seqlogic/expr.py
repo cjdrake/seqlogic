@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from enum import Enum, auto
 
-from .bits import Bits, add, and_, eq, ge, gt, le, lt, ne, neg, not_, or_, sub, xor
+from .bits import Bits, add, and_, eq, ge, gt, ite, le, lt, ne, neg, not_, or_, sub, xor
 
 
 class Op(Enum):
@@ -18,6 +18,7 @@ class Op(Enum):
     OR = auto()
     AND = auto()
     XOR = auto()
+    ITE = auto()
 
     # Arithmetic
     ADD = auto()
@@ -77,6 +78,7 @@ class Expr:
             "or_": or_,
             "and_": and_,
             "xor": xor,
+            "ite": ite,
             "add": add,
             "sub": sub,
             "neg": neg,
@@ -170,6 +172,13 @@ class BinaryOp(PrefixOp):
         super().__init__(x0, x1)
 
 
+class TernaryOp(PrefixOp):
+    """Ternary operator: f(x0, x1, x2)"""
+
+    def __init__(self, x0: Expr, x1: Expr, x2: Expr):
+        super().__init__(x0, x1, x2)
+
+
 class Not(UnaryOp):
     """NOT operator node."""
 
@@ -192,6 +201,12 @@ class Xor(PrefixOp):
     """XOR operator node."""
 
     name = "xor"
+
+
+class ITE(TernaryOp):
+    """If-Then-Else operator node."""
+
+    name = "ite"
 
 
 class Add(BinaryOp):

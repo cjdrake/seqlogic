@@ -21,6 +21,7 @@ from .bits import (
     ge,
     gt,
     i2bv,
+    ite,
     le,
     lrot,
     lsh,
@@ -54,7 +55,23 @@ from .bits import (
     xt,
 )
 from .design import Module, Packed, Unpacked
-from .expr import Op
+from .expr import (
+    ITE,
+    Add,
+    And,
+    Equal,
+    GreaterEqual,
+    GreaterThan,
+    LessEqual,
+    LessThan,
+    Neg,
+    Not,
+    NotEqual,
+    Op,
+    Or,
+    Sub,
+    Xor,
+)
 from .sim import Region, Sim, changed, finish, get_loop, resume, sleep
 from .util import clog2
 
@@ -82,6 +99,7 @@ __all__ = [
     "and_",
     "xnor",
     "xor",
+    "ite",
     # bits: unary
     "uor",
     "uand",
@@ -127,6 +145,20 @@ __all__ = [
     "Unpacked",
     # expr
     "Op",
+    "Not",
+    "Or",
+    "And",
+    "Xor",
+    "ITE",
+    "Add",
+    "Sub",
+    "Neg",
+    "LessThan",
+    "LessEqual",
+    "Equal",
+    "NotEqual",
+    "GreaterThan",
+    "GreaterEqual",
     # sim
     "Region",
     "Sim",

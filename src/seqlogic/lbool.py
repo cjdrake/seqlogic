@@ -116,3 +116,27 @@ def lxor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
         d0[0] & d1[0] | d0[1] & d1[1],
         d0[0] & d1[1] | d0[1] & d1[0],
     )
+
+
+def lite(s: tuple[int, int], a: tuple[int, int], b: tuple[int, int]) -> tuple[int, int]:
+    """Lifted If-Then-Else.
+
+    .i 6
+    .o 2
+    .ilb s0 s1 a0 a1 b0 b1
+    .ob y0 y1
+    .p 8
+    1--11- 10 ; s0 & a1 & b0 ;
+    1--1-1 01 ;              ; s0 & a1 & b1
+    1-1-1- 10 ; s0 & a0 & b0 ;
+    1-1--1 01 ;              ; s0 & a0 & b1
+    -11--1 10 ; s1 & a0 & b1 ;
+    -11-1- 10 ; s1 & a0 & b0 ;
+    -1-1-1 01 ;              ; s1 & a1 & b1
+    -1-11- 01 ;              ; s1 & a1 & b0
+    .e
+    """
+    return (
+        s[0] & a[1] & b[0] | s[0] & a[0] & b[0] | s[1] & a[0] & b[1] | s[1] & a[0] & b[0],
+        s[0] & a[1] & b[1] | s[0] & a[0] & b[1] | s[1] & a[1] & b[1] | s[1] & a[1] & b[0],
+    )

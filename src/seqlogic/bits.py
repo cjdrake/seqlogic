@@ -21,7 +21,21 @@ from collections import namedtuple
 from collections.abc import Callable, Generator
 from functools import cache, partial
 
-from .lbool import _W, _X, _0, _1, from_char, land, lnot, lor, lxnor, lxor, to_char, to_vcd_char
+from .lbool import (
+    _W,
+    _X,
+    _0,
+    _1,
+    from_char,
+    land,
+    lite,
+    lnot,
+    lor,
+    lxnor,
+    lxor,
+    to_char,
+    to_vcd_char,
+)
 from .util import classproperty, clog2
 
 AddResult = namedtuple("AddResult", ["s", "co"])
@@ -1095,6 +1109,31 @@ def xnor(x0: Bits | str, *xs: Bits | str) -> Bits:
     return _not_(xor(x0, *xs))
 
 
+def _ite(s: Bits, x1: Bits, x0: Bits) -> Bits:
+    n = x1.size
+    s0 = _mask(n) * s.data[0]
+    s1 = _mask(n) * s.data[1]
+    d0, d1 = lite((s0, s1), x1.data, x0.data)
+    return x1._cast_data(d0, d1)
+
+
+def ite(s: Bits | str, x1: Bits | str, x0: Bits | str) -> Bits:
+    """If-Then-Else operator.
+
+    Args:
+        s: One-bit select
+        x1: Bits
+        x0: Bits of equal length.
+
+    Returns:
+        If-Then-Else result s ? x1 : x0
+    """
+    s = _expect_size(s, 1)
+    x1 = _expect_type(x1, Bits)
+    x0 = _expect_size(x0, x1.size)
+    return _ite(s, x1, x0)
+
+
 def _uor(x: Bits) -> Scalar:
     y = _0
     for i in range(x.size):
@@ -1609,6 +1648,13 @@ def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
     return _scmp(operator.ge, x0, x1)
 
 
+def _xt(x: Bits, n: int) -> Vector:
+    ext0 = _mask(n)
+    d0 = x.data[0] | ext0 << x.size
+    d1 = x.data[1]
+    return _vec_size(x.size + n)(d0, d1)
+
+
 def xt(x: Bits | str, n: int) -> Bits:
     """Unsigned extend by n bits.
 
@@ -1628,9 +1674,15 @@ def xt(x: Bits | str, n: int) -> Bits:
     if n == 0:
         return x
 
-    ext0 = _mask(n)
+    return _xt(x, n)
+
+
+def _sxt(x: Bits, n: int) -> Vector:
+    sign0, sign1 = x._get_index(x.size - 1)
+    ext0 = _mask(n) * sign0
+    ext1 = _mask(n) * sign1
     d0 = x.data[0] | ext0 << x.size
-    d1 = x.data[1]
+    d1 = x.data[1] | ext1 << x.size
     return _vec_size(x.size + n)(d0, d1)
 
 
@@ -1653,12 +1705,7 @@ def sxt(x: Bits | str, n: int) -> Bits:
     if n == 0:
         return x
 
-    sign0, sign1 = x._get_index(x.size - 1)
-    ext0 = _mask(n) * sign0
-    ext1 = _mask(n) * sign1
-    d0 = x.data[0] | ext0 << x.size
-    d1 = x.data[1] | ext1 << x.size
-    return _vec_size(x.size + n)(d0, d1)
+    return _sxt(x, n)
 
 
 def _lrot(x: Bits, n: Bits) -> Bits:
@@ -1772,6 +1819,11 @@ def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
             xs.append(x)
         else:
             raise TypeError(f"Invalid input: {obj}")
+    return _cat(*xs)
+
+
+def _rep(x: Bits, n: int) -> Empty | Scalar | Vector:
+    xs = [x] * n
     return _cat(*xs)
 
 
