@@ -1,6 +1,6 @@
 """Data Path."""
 
-from seqlogic import Add, Equal, GetAttr, Module, Vec, cat, rep, u2bv
+from seqlogic import EQ, Add, GetAttr, Module, Vec, cat, rep, u2bv
 
 from . import TEXT_BASE, Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu
@@ -178,7 +178,7 @@ class DataPath(Module):
         )
 
         # Combinational Logic
-        self.expr(alu_result_eq_zero, Equal(alu_result, u2bv(0, 32)))
+        self.expr(alu_result_eq_zero, EQ(alu_result, u2bv(0, 32)))
 
         self.assign(data_mem_addr, alu_result)
         self.assign(data_mem_wr_data, rs2_data)

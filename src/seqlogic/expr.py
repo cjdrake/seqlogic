@@ -20,7 +20,7 @@ class Expr:
         raise NotImplementedError()
 
     def __getitem__(self, key: int | slice) -> GetItem:
-        return GetItem(self, Constant(key))
+        return GetItem(self, Const(key))
 
     def __invert__(self) -> Not:
         return Not(self)
@@ -66,11 +66,11 @@ class Expr:
         return locals_["f"], vs
 
 
-class Atom(Expr):
+class _Atom(Expr):
     """Atomic expression (leaf) node."""
 
 
-class Constant(Expr):
+class Const(Expr):
     """Constant node."""
 
     def __init__(self, value):
@@ -84,14 +84,14 @@ class Constant(Expr):
         yield from ()
 
 
-class BitsConst(Constant):
+class BitsConst(Const):
     """Const node."""
 
     def __str__(self) -> str:
         return f'"{self._value}"'
 
 
-class Variable(Atom):
+class Variable(_Atom):
     """Variable node."""
 
     # TODO(cjdrake): Disambiguate from Hierarchy._name
@@ -109,7 +109,7 @@ class Variable(Atom):
         yield self
 
 
-class Operator(Expr):
+class _Op(Expr):
     """Variable node."""
 
     def __init__(self, *objs: Expr | Bits):
@@ -129,7 +129,7 @@ class Operator(Expr):
             yield from x.iter_vars()
 
 
-class PrefixOp(Operator):
+class _PrefixOp(_Op):
     """Prefix operator: f(x[0], x[1], ..., x[n-1])"""
 
     name = NotImplemented
@@ -139,79 +139,79 @@ class PrefixOp(Operator):
         return f"{self.name}({s})"
 
 
-class UnaryOp(PrefixOp):
+class _UnaryOp(_PrefixOp):
     """Unary operator: f(x)"""
 
     def __init__(self, x: Expr | Bits):
         super().__init__(x)
 
 
-class BinaryOp(PrefixOp):
+class _BinaryOp(_PrefixOp):
     """Binary operator: f(x0, x1)"""
 
     def __init__(self, x0: Expr | Bits, x1: Expr | Bits):
         super().__init__(x0, x1)
 
 
-class TernaryOp(PrefixOp):
+class _TernaryOp(_PrefixOp):
     """Ternary operator: f(x0, x1, x2)"""
 
     def __init__(self, x0: Expr | Bits, x1: Expr | Bits, x2: Expr | Bits):
         super().__init__(x0, x1, x2)
 
 
-class Not(UnaryOp):
+class Not(_UnaryOp):
     """NOT operator node."""
 
     name = "not_"
 
 
-class Or(PrefixOp):
+class Or(_PrefixOp):
     """OR operator node."""
 
     name = "or_"
 
 
-class And(PrefixOp):
+class And(_PrefixOp):
     """AND operator node."""
 
     name = "and_"
 
 
-class Xor(PrefixOp):
+class Xor(_PrefixOp):
     """XOR operator node."""
 
     name = "xor"
 
 
-class IfThenElse(TernaryOp):
+class ITE(_TernaryOp):
     """If-Then-Else operator node."""
 
     name = "ite"
 
 
-class Add(BinaryOp):
+class Add(_BinaryOp):
     """ADD operator node."""
 
     name = "add"
 
 
-class Sub(BinaryOp):
+class Sub(_BinaryOp):
     """SUB operator node."""
 
     name = "sub"
 
 
-class Neg(UnaryOp):
+class Neg(_UnaryOp):
     """NEG operator node."""
 
     name = "neg"
 
 
-class GetItem(Operator):
+class GetItem(_Op):
     """GetItem operator node."""
 
-    def __init__(self, x: Expr, key: Constant):
+    def __init__(self, x: Expr, key: Const):
         super().__init__(x, key)
 
     def __str__(self) -> str:
@@ -231,15 +231,15 @@ class GetItem(Operator):
                 assert False
 
 
-class GetAttr(Operator):
+class GetAttr(_Op):
     """GetAttr operator node."""
 
-    def __init__(self, v: Variable, obj: Constant | str):
+    def __init__(self, v: Variable, obj: Const | str):
         match obj:
-            case Constant():
+            case Const():
                 name = obj
             case str():
-                name = Constant(obj)
+                name = Const(obj)
             case _:
                 assert False
         super().__init__(v, name)
@@ -250,37 +250,37 @@ class GetAttr(Operator):
         return f"{v}.{name}"
 
 
-class LessThan(BinaryOp):
+class LT(_BinaryOp):
     """LessThan (<) operator node."""
 
     name = "lt"
 
 
-class LessEqual(BinaryOp):
+class LE(_BinaryOp):
     """Less Than Or Equal (≤) operator node."""
 
     name = "le"
 
 
-class Equal(BinaryOp):
+class EQ(_BinaryOp):
     """Equal (==) operator node."""
 
     name = "eq"
 
 
-class NotEqual(BinaryOp):
+class NE(_BinaryOp):
     """NotEqual (!=) operator node."""
 
     name = "ne"
 
 
-class GreaterThan(BinaryOp):
+class GT(_BinaryOp):
     """GreaterThan (>) operator node."""
 
     name = "gt"
 
 
-class GreaterEqual(BinaryOp):
+class GE(_BinaryOp):
     """Greater Than Or Equal (≥) operator node."""
 
     name = "ge"
@@ -338,6 +338,8 @@ def parse(*args) -> Expr:
             return And(*[f(x) for x in xs])
         case [Op.XOR, *xs]:
             return Xor(*[f(x) for x in xs])
+        case [Op.ITE, x0, x1, x2]:
+            return ITE(f(x0), f(x1), f(x2))
         # Arithmetic
         case [Op.ADD, x0, x1]:
             return Add(f(x0), f(x1))
@@ -347,22 +349,22 @@ def parse(*args) -> Expr:
             return Neg(f(x))
         # Word
         case [Op.GETITEM, Expr() as x, (int() | slice()) as key]:
-            return GetItem(x, Constant(key))
+            return GetItem(x, Const(key))
         case [Op.GETATTR, Variable() as v, str() as name]:
-            return GetAttr(v, Constant(name))
+            return GetAttr(v, Const(name))
         # Predicate
         case [Op.LT, x0, x1]:
-            return LessThan(f(x0), f(x1))
+            return LT(f(x0), f(x1))
         case [Op.LE, x0, x1]:
-            return LessEqual(f(x0), f(x1))
+            return LE(f(x0), f(x1))
         case [Op.EQ, x0, x1]:
-            return Equal(f(x0), f(x1))
+            return EQ(f(x0), f(x1))
         case [Op.NE, x0, x1]:
-            return NotEqual(f(x0), f(x1))
+            return NE(f(x0), f(x1))
         case [Op.GT, x0, x1]:
-            return GreaterThan(f(x0), f(x1))
+            return GT(f(x0), f(x1))
         case [Op.GE, x0, x1]:
-            return GreaterEqual(f(x0), f(x1))
+            return GE(f(x0), f(x1))
         # Error
         case _:
             raise ValueError("Invalid expression")

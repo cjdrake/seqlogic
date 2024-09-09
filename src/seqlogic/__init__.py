@@ -55,23 +55,7 @@ from .bits import (
     xt,
 )
 from .design import Module, Packed, Unpacked
-from .expr import (
-    Add,
-    And,
-    Equal,
-    GetAttr,
-    GreaterEqual,
-    GreaterThan,
-    IfThenElse,
-    LessEqual,
-    LessThan,
-    Neg,
-    Not,
-    NotEqual,
-    Or,
-    Sub,
-    Xor,
-)
+from .expr import EQ, GE, GT, ITE, LE, LT, NE, Add, And, GetAttr, Neg, Not, Or, Sub, Xor
 from .sim import Region, Sim, changed, finish, get_loop, resume, sleep
 from .util import clog2
 
@@ -148,17 +132,17 @@ __all__ = [
     "Or",
     "And",
     "Xor",
-    "IfThenElse",
+    "ITE",
     "Add",
     "Sub",
     "Neg",
     "GetAttr",
-    "LessThan",
-    "LessEqual",
-    "Equal",
-    "NotEqual",
-    "GreaterThan",
-    "GreaterEqual",
+    "LT",
+    "LE",
+    "EQ",
+    "NE",
+    "GT",
+    "GE",
     # sim
     "Region",
     "Sim",

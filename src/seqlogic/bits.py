@@ -1110,9 +1110,8 @@ def xnor(x0: Bits | str, *xs: Bits | str) -> Bits:
 
 
 def _ite(s: Bits, x1: Bits, x0: Bits) -> Bits:
-    n = x1.size
-    s0 = _mask(n) * s.data[0]
-    s1 = _mask(n) * s.data[1]
+    s0 = _mask(x1.size) * s.data[0]
+    s1 = _mask(x1.size) * s.data[1]
     d0, d1 = lite((s0, s1), x1.data, x0.data)
     return x1._cast_data(d0, d1)
 
