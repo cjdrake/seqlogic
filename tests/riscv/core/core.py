@@ -1,6 +1,6 @@
 """RiscV Core."""
 
-from seqlogic import Module, Op, Vec
+from seqlogic import GetAttr, Module, Vec
 
 from . import Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst
 from .ctl_path import CtlPath
@@ -47,9 +47,9 @@ class Core(Module):
             name="ctlpath",
             mod=CtlPath,
         ).connect(
-            opcode=(Op.GETATTR, inst, "opcode"),
-            funct3=(Op.GETATTR, inst, "funct3"),
-            funct7=(Op.GETATTR, inst, "funct7"),
+            opcode=GetAttr(inst, "opcode"),
+            funct3=GetAttr(inst, "funct3"),
+            funct7=GetAttr(inst, "funct7"),
             alu_result_eq_zero=alu_result_eq_zero,
             pc_wr_en=pc_wr_en,
             reg_wr_en=reg_wr_en,
@@ -87,7 +87,7 @@ class Core(Module):
             name="data_mem_if",
             mod=DataMemIf,
         ).connect(
-            data_format=(Op.GETATTR, inst, "funct3"),
+            data_format=GetAttr(inst, "funct3"),
             addr=addr,
             wr_en=wr_en,
             wr_data=wr_data,

@@ -1,6 +1,6 @@
 """Data Path."""
 
-from seqlogic import Add, Equal, Module, Op, Vec, cat, rep, u2bv
+from seqlogic import Add, Equal, GetAttr, Module, Vec, cat, rep, u2bv
 
 from . import TEXT_BASE, Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu
@@ -168,11 +168,11 @@ class DataPath(Module):
             mod=RegFile,
         ).connect(
             wr_en=reg_wr_en,
-            wr_addr=(Op.GETATTR, inst, "rd"),
+            wr_addr=GetAttr(inst, "rd"),
             wr_data=wr_data,
-            rs1_addr=(Op.GETATTR, inst, "rs1"),
+            rs1_addr=GetAttr(inst, "rs1"),
             rs1_data=rs1_data,
-            rs2_addr=(Op.GETATTR, inst, "rs2"),
+            rs2_addr=GetAttr(inst, "rs2"),
             rs2_data=rs2_data,
             clock=clock,
         )

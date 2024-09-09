@@ -10,34 +10,6 @@ from enum import Enum, auto
 from .bits import Bits, add, and_, eq, ge, gt, ite, le, lt, ne, neg, not_, or_, sub, xor
 
 
-class Op(Enum):
-    """Expression opcode."""
-
-    # Bitwise
-    NOT = auto()
-    OR = auto()
-    AND = auto()
-    XOR = auto()
-    ITE = auto()
-
-    # Arithmetic
-    ADD = auto()
-    SUB = auto()
-    NEG = auto()
-
-    # Word
-    GETITEM = auto()
-    GETATTR = auto()
-
-    # Predicate
-    LT = auto()
-    LE = auto()
-    EQ = auto()
-    NE = auto()
-    GT = auto()
-    GE = auto()
-
-
 class Expr:
     """Symbolic expression."""
 
@@ -140,17 +112,17 @@ class Variable(Atom):
 class Operator(Expr):
     """Variable node."""
 
-    def __init__(self, *xs: Expr | Bits):
-        temp = []
-        for x in xs:
-            match x:
+    def __init__(self, *objs: Expr | Bits):
+        xs = []
+        for obj in objs:
+            match obj:
                 case Expr():
-                    temp.append(x)
+                    xs.append(obj)
                 case Bits():
-                    temp.append(BitsConst(x))
+                    xs.append(BitsConst(obj))
                 case _:
                     assert False
-        self._xs = tuple(temp)
+        self._xs = tuple(xs)
 
     def iter_vars(self):
         for x in self._xs:
@@ -262,7 +234,14 @@ class GetItem(Operator):
 class GetAttr(Operator):
     """GetAttr operator node."""
 
-    def __init__(self, v: Variable, name: Constant):
+    def __init__(self, v: Variable, obj: Constant | str):
+        match obj:
+            case Constant():
+                name = obj
+            case str():
+                name = Constant(obj)
+            case _:
+                assert False
         super().__init__(v, name)
 
     def __str__(self) -> str:
@@ -305,6 +284,34 @@ class GreaterEqual(BinaryOp):
     """Greater Than Or Equal (≥) operator node."""
 
     name = "ge"
+
+
+class Op(Enum):
+    """Expression opcode."""
+
+    # Bitwise
+    NOT = auto()
+    OR = auto()
+    AND = auto()
+    XOR = auto()
+    ITE = auto()
+
+    # Arithmetic
+    ADD = auto()
+    SUB = auto()
+    NEG = auto()
+
+    # Word
+    GETITEM = auto()
+    GETATTR = auto()
+
+    # Predicate
+    LT = auto()
+    LE = auto()
+    EQ = auto()
+    NE = auto()
+    GT = auto()
+    GE = auto()
 
 
 def f(arg) -> Expr:
