@@ -42,7 +42,7 @@ class Fbeb(Module):
         empty_next = self.logic(name="empty_next", dtype=Vec[1])
         full_next = self.logic(name="full_next", dtype=Vec[1])
 
-        buf = self.logic(name="buf", dtype=self.T, shape=(2,))
+        data = self.logic(name="data", dtype=self.T, shape=(2,))
 
         # Convert ready/valid to FIFO
         self.expr(rd_valid, ~empty)
@@ -65,5 +65,5 @@ class Fbeb(Module):
         self.dff_en_r(wr_addr, wr_addr_next, wr_en, clock, reset, rval="1b0")
 
         # Data
-        self.combi(rd_data, operator.getitem, buf, rd_addr)
-        self.mem_wr_en(buf, wr_addr, wr_data, wr_en, clock)
+        self.combi(rd_data, operator.getitem, data, rd_addr)
+        self.mem_wr_en(data, wr_addr, wr_data, wr_en, clock)

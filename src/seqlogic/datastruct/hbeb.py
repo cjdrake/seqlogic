@@ -31,7 +31,7 @@ class Hbeb(Module):
         rd_en = self.logic(name="rd_en", dtype=Vec[1])
         wr_en = self.logic(name="wr_en", dtype=Vec[1])
 
-        buf = self.logic(name="buf", dtype=self.T)
+        data = self.logic(name="data", dtype=self.T)
 
         # Convert ready/valid to FIFO
         self.assign(rd_valid, full)
@@ -45,5 +45,5 @@ class Hbeb(Module):
         self.dff_r(full, full_next, clock, reset, rval="1b0")
 
         # Data
-        self.assign(rd_data, buf)
-        self.dff_en(buf, wr_data, wr_en, clock)
+        self.assign(rd_data, data)
+        self.dff_en(data, wr_data, wr_en, clock)
