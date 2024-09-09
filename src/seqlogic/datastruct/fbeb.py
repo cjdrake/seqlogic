@@ -5,7 +5,7 @@
 
 import operator
 
-from seqlogic import ITE, Module, Vec
+from seqlogic import IfThenElse, Module, Vec
 
 
 class Fbeb(Module):
@@ -52,8 +52,8 @@ class Fbeb(Module):
         self.expr(wr_en, wr_ready & wr_valid)
 
         # Control
-        self.expr(empty_next, ITE(empty, ~wr_en, rd_en & ~wr_en & (rd_addr ^ wr_addr)))
-        self.expr(full_next, ITE(full, ~rd_en, ~rd_en & wr_en & (rd_addr ^ wr_addr)))
+        self.expr(empty_next, IfThenElse(empty, ~wr_en, rd_en & ~wr_en & (rd_addr ^ wr_addr)))
+        self.expr(full_next, IfThenElse(full, ~rd_en, ~rd_en & wr_en & (rd_addr ^ wr_addr)))
 
         self.dff_r(empty, empty_next, clock, reset, rval="1b1")
         self.dff_r(full, full_next, clock, reset, rval="1b0")

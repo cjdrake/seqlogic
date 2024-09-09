@@ -56,12 +56,12 @@ from .bits import (
 )
 from .design import Module, Packed, Unpacked
 from .expr import (
-    ITE,
     Add,
     And,
     Equal,
     GreaterEqual,
     GreaterThan,
+    IfThenElse,
     LessEqual,
     LessThan,
     Neg,
@@ -149,7 +149,7 @@ __all__ = [
     "Or",
     "And",
     "Xor",
-    "ITE",
+    "IfThenElse",
     "Add",
     "Sub",
     "Neg",

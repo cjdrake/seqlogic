@@ -203,7 +203,7 @@ class Xor(PrefixOp):
     name = "xor"
 
 
-class ITE(TernaryOp):
+class IfThenElse(TernaryOp):
     """If-Then-Else operator node."""
 
     name = "ite"

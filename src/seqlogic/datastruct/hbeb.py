@@ -4,7 +4,7 @@
 # pylint: disable=invalid-unary-operand-type
 
 
-from seqlogic import ITE, Module, Vec
+from seqlogic import IfThenElse, Module, Vec
 
 
 class Hbeb(Module):
@@ -41,7 +41,7 @@ class Hbeb(Module):
         self.expr(wr_en, wr_ready & wr_valid)
 
         # Control
-        self.expr(full_next, ITE(full, ~rd_en, wr_en))
+        self.expr(full_next, IfThenElse(full, ~rd_en, wr_en))
         self.dff_r(full, full_next, clock, reset, rval="1b0")
 
         # Data
