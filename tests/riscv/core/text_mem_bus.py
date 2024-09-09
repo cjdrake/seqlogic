@@ -1,6 +1,6 @@
 """Text Memory Bus."""
 
-from seqlogic import Module, Op, Vec, clog2, u2bv
+from seqlogic import And, GreaterEqual, LessThan, Module, Vec, clog2, u2bv
 
 from . import TEXT_BASE, TEXT_SIZE, Addr
 from .text_mem import TextMem
@@ -44,5 +44,5 @@ class TextMemBus(Module):
             rd_data=text,
         )
 
-        self.expr(is_text, (Op.AND, (Op.GE, rd_addr, text_start), (Op.LT, rd_addr, text_stop)))
+        self.expr(is_text, And(GreaterEqual(rd_addr, text_start), LessThan(rd_addr, text_stop)))
         self.combi(rd_data, f_rd_data, is_text, text)

@@ -1,6 +1,6 @@
 """Data Memory Bus."""
 
-from seqlogic import Module, Op, Vec, clog2, u2bv
+from seqlogic import And, GreaterEqual, LessThan, Module, Vec, clog2, u2bv
 
 from . import DATA_BASE, DATA_SIZE, Addr
 from .data_mem import DataMem
@@ -54,5 +54,5 @@ class DataMemBus(Module):
             clock=clock,
         )
 
-        self.expr(is_data, (Op.AND, (Op.GE, addr, data_start), (Op.LT, addr, data_stop)))
+        self.expr(is_data, And(GreaterEqual(addr, data_start), LessThan(addr, data_stop)))
         self.combi(rd_data, f_rd_data, rd_en, is_data, data)

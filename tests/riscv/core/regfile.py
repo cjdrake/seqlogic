@@ -2,7 +2,7 @@
 
 import operator
 
-from seqlogic import Module, Op, Vec, clog2, u2bv
+from seqlogic import And, Module, NotEqual, Vec, clog2, u2bv
 
 N = 32
 Addr = Vec[clog2(N)]
@@ -34,7 +34,7 @@ class RegFile(Module):
         self.assign(regs[a0], "32h0000_0000")
 
         en = self.logic(name="en", dtype=Vec[1])
-        self.expr(en, (Op.AND, wr_en, (Op.NE, wr_addr, a0)))
+        self.expr(en, And(wr_en, NotEqual(wr_addr, a0)))
 
         # Write Port
         self.mem_wr_en(regs, wr_addr, wr_data, en, clock)

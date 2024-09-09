@@ -140,8 +140,17 @@ class Variable(Atom):
 class Operator(Expr):
     """Variable node."""
 
-    def __init__(self, *xs: Expr):
-        self._xs = xs
+    def __init__(self, *xs: Expr | Bits):
+        temp = []
+        for x in xs:
+            match x:
+                case Expr():
+                    temp.append(x)
+                case Bits():
+                    temp.append(BitsConst(x))
+                case _:
+                    assert False
+        self._xs = tuple(temp)
 
     def iter_vars(self):
         for x in self._xs:
@@ -161,21 +170,21 @@ class PrefixOp(Operator):
 class UnaryOp(PrefixOp):
     """Unary operator: f(x)"""
 
-    def __init__(self, x: Expr):
+    def __init__(self, x: Expr | Bits):
         super().__init__(x)
 
 
 class BinaryOp(PrefixOp):
     """Binary operator: f(x0, x1)"""
 
-    def __init__(self, x0: Expr, x1: Expr):
+    def __init__(self, x0: Expr | Bits, x1: Expr | Bits):
         super().__init__(x0, x1)
 
 
 class TernaryOp(PrefixOp):
     """Ternary operator: f(x0, x1, x2)"""
 
-    def __init__(self, x0: Expr, x1: Expr, x2: Expr):
+    def __init__(self, x0: Expr | Bits, x1: Expr | Bits, x2: Expr | Bits):
         super().__init__(x0, x1, x2)
 
 
