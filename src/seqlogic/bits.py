@@ -1821,11 +1821,6 @@ def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
     return _cat(*xs)
 
 
-def _rep(x: Bits, n: int) -> Empty | Scalar | Vector:
-    xs = [x] * n
-    return _cat(*xs)
-
-
 def rep(obj: Bits | int | str, n: int) -> Empty | Scalar | Vector:
     """Repeat a Vector n times."""
     objs = [obj] * n
