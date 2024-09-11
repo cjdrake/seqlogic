@@ -37,7 +37,7 @@ def _arg_xbs(obj: Expr | Bits | str) -> Expr:
     if isinstance(obj, str):
         v = _lit2vec(obj)
         return BitsConst(v)
-    raise TypeError("WTF")
+    raise TypeError(f"Invalid input: {obj}")
 
 
 def _arg_bs(obj: Bits | str) -> Expr:
@@ -48,7 +48,7 @@ def _arg_bs(obj: Bits | str) -> Expr:
     if isinstance(obj, str):
         v = _lit2vec(obj)
         return BitsConst(v)
-    raise TypeError("WTF")
+    raise TypeError(f"Invalid input: {obj}")
 
 
 class Expr:
@@ -302,7 +302,7 @@ class GetAttr(_Op):
         elif isinstance(obj, str):
             name = Const(obj)
         else:
-            raise TypeError("WTF")
+            raise TypeError(f"Invalid input: {obj}")
         super().__init__(v, name)
 
     def __str__(self) -> str:
