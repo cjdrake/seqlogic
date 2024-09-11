@@ -55,7 +55,26 @@ from .bits import (
     xt,
 )
 from .design import Module, Packed, Unpacked
-from .expr import EQ, GE, GT, ITE, LE, LT, NE, Add, And, GetAttr, Neg, Not, Or, Sub, Xor
+from .expr import (
+    EQ,
+    GE,
+    GT,
+    ITE,
+    LE,
+    LT,
+    NE,
+    Add,
+    And,
+    GetAttr,
+    Nand,
+    Neg,
+    Nor,
+    Not,
+    Or,
+    Sub,
+    Xnor,
+    Xor,
+)
 from .sim import Region, Sim, changed, finish, get_loop, resume, sleep
 from .util import clog2
 
@@ -129,8 +148,11 @@ __all__ = [
     "Unpacked",
     # expr
     "Not",
+    "Nor",
     "Or",
+    "Nand",
     "And",
+    "Xnor",
     "Xor",
     "ITE",
     "Add",

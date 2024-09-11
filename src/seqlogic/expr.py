@@ -6,7 +6,27 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from .bits import Bits, _lit2vec, add, and_, eq, ge, gt, ite, le, lt, ne, neg, not_, or_, sub, xor
+from .bits import (
+    Bits,
+    _lit2vec,
+    add,
+    and_,
+    eq,
+    ge,
+    gt,
+    ite,
+    le,
+    lt,
+    nand,
+    ne,
+    neg,
+    nor,
+    not_,
+    or_,
+    sub,
+    xnor,
+    xor,
+)
 
 
 def _arg_xbs(obj: Expr | Bits | str) -> Expr:
@@ -77,8 +97,11 @@ class Expr:
         source = f"def f({args}):\n    return {self}\n"
         globals_ = {
             "not_": not_,
+            "nor": nor,
             "or_": or_,
+            "nand": nand,
             "and_": and_,
+            "xnor": xnor,
             "xor": xor,
             "ite": ite,
             "add": add,
@@ -187,16 +210,34 @@ class Not(_UnaryOp):
     name = "not_"
 
 
+class Nor(_PrefixOp):
+    """NOR operator node."""
+
+    name = "nor"
+
+
 class Or(_PrefixOp):
     """OR operator node."""
 
     name = "or_"
 
 
+class Nand(_PrefixOp):
+    """NAND operator node."""
+
+    name = "nand"
+
+
 class And(_PrefixOp):
     """AND operator node."""
 
     name = "and_"
+
+
+class Xnor(_PrefixOp):
+    """XNOR operator node."""
+
+    name = "xnor"
 
 
 class Xor(_PrefixOp):
