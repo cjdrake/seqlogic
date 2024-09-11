@@ -5,7 +5,7 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Enum, Module, Packed, Vec, get_loop
+from seqlogic import Enum, Module, Packed, Vec, get_loop, ite
 from seqlogic.control.globals import drv_clock, drv_reset
 
 loop = get_loop()
@@ -42,26 +42,16 @@ async def drive_input(x, reset_n, clock):
     x.next = "1b0"  # D => A
 
 
-def g(x: Vec[1], ns: SeqDetect) -> SeqDetect:
-    match x:
-        case "1b0":
-            return SeqDetect.A
-        case "1b1":
-            return ns
-        case _:
-            return SeqDetect.xprop(x)
-
-
 def f(ps: SeqDetect, x: Vec[1]) -> SeqDetect:
     match ps:
         case SeqDetect.A:
-            return g(x, SeqDetect.B)
+            return ite(x, SeqDetect.B, SeqDetect.A)
         case SeqDetect.B:
-            return g(x, SeqDetect.C)
+            return ite(x, SeqDetect.C, SeqDetect.A)
         case SeqDetect.C:
-            return g(x, SeqDetect.D)
+            return ite(x, SeqDetect.D, SeqDetect.A)
         case SeqDetect.D:
-            return g(x, SeqDetect.D)
+            return ite(x, SeqDetect.D, SeqDetect.A)
         case _:
             return SeqDetect.xprop(ps)
 

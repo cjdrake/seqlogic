@@ -3,7 +3,7 @@
 See https://csrc.nist.gov/pubs/fips/197/final for details.
 """
 
-from ...bits import Array, Vector, bits, rep, stack, xt
+from ...bits import Array, Vector, bits, ite, rep, stack, xt
 
 NB = 4
 
@@ -190,13 +190,7 @@ def _rowxcol(a: Polynomial, b: Word) -> Word:
     y = Byte.zeros()
     for i, a_i in enumerate(a):
         for j, a_ij in enumerate(a_i):
-            match a_ij:
-                case "1b0":
-                    pass
-                case "1b1":
-                    y ^= _xtime(b[3 - i], j)
-                case _:
-                    y = y.xprop(a_ij)
+            y = ite(a_ij, y ^ _xtime(b[3 - i], j), y)
     return y
 
 

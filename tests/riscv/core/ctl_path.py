@@ -1,6 +1,6 @@
 """Control Path."""
 
-from seqlogic import Module, Vec, eq
+from seqlogic import Module, Vec, eq, ite
 
 from . import (
     AluOp,
@@ -90,25 +90,13 @@ def f_alu_op(
         case CtlAlu.BRANCH:
             return branch_func
         case CtlAlu.OP:
-            match funct7[5]:
-                case "1b0":
-                    return default_func
-                case "1b1":
-                    return secondary_func
-                case _:
-                    return AluOp.xprop(funct7[5])
+            return ite(funct7[5], secondary_func, default_func)
         case CtlAlu.OP_IMM:
             a = funct7[5]
             b = eq(funct3.alu_logic, Funct3AluLogic.SLL)
             c = eq(funct3.alu_logic, Funct3AluLogic.SHIFTR)
             sel = a & (b | c)
-            match sel:
-                case "1b0":
-                    return default_func
-                case "1b1":
-                    return secondary_func
-                case _:
-                    return AluOp.xprop(sel)
+            return ite(sel, secondary_func, default_func)
         case _:
             return AluOp.xprop(alu_op_type)
 
@@ -126,13 +114,7 @@ def f_next_pc_sel(opcode: Opcode, take_branch: Vec[1]):
         ):
             return CtlPc.PC4
         case Opcode.BRANCH:
-            match take_branch:
-                case "1b0":
-                    return CtlPc.PC4
-                case "1b1":
-                    return CtlPc.PC_IMM
-                case _:
-                    return CtlPc.xprop(take_branch)
+            return ite(take_branch, CtlPc.PC_IMM, CtlPc.PC4)
         case Opcode.JALR:
             return CtlPc.RS1_IMM
         case Opcode.JAL:
