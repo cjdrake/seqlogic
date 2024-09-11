@@ -5,9 +5,30 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from enum import Enum, auto
 
-from .bits import Bits, add, and_, eq, ge, gt, ite, le, lt, ne, neg, not_, or_, sub, xor
+from .bits import Bits, _lit2vec, add, and_, eq, ge, gt, ite, le, lt, ne, neg, not_, or_, sub, xor
+
+
+def _arg_xbs(obj: Expr | Bits | str) -> Expr:
+    if isinstance(obj, Expr):
+        return obj
+    if isinstance(obj, Bits):
+        return BitsConst(obj)
+    if isinstance(obj, str):
+        v = _lit2vec(obj)
+        return BitsConst(v)
+    raise TypeError("WTF")
+
+
+def _arg_bs(obj: Bits | str) -> Expr:
+    if isinstance(obj, Expr):
+        return obj
+    if isinstance(obj, Bits):
+        return BitsConst(obj)
+    if isinstance(obj, str):
+        v = _lit2vec(obj)
+        return BitsConst(v)
+    raise TypeError("WTF")
 
 
 class Expr:
@@ -25,14 +46,23 @@ class Expr:
     def __invert__(self) -> Not:
         return Not(self)
 
-    def __or__(self, other: Expr) -> Or:
-        return Or(self, other)
+    def __or__(self, other: Expr | Bits | str) -> Or:
+        return Or(self, _arg_xbs(other))
 
-    def __and__(self, other: Expr) -> And:
-        return And(self, other)
+    def __ror__(self, other: Bits | str) -> Or:
+        return Or(_arg_bs(other), self)
 
-    def __xor__(self, other: Expr) -> Xor:
-        return Xor(self, other)
+    def __and__(self, other: Expr | Bits | str) -> And:
+        return And(self, _arg_xbs(other))
+
+    def __rand__(self, other: Bits | str) -> And:
+        return And(_arg_bs(other), self)
+
+    def __xor__(self, other: Expr | Bits | str) -> Xor:
+        return Xor(self, _arg_xbs(other))
+
+    def __rxor__(self, other: Bits | str) -> Xor:
+        return Xor(_arg_bs(other), self)
 
     def iter_vars(self):
         raise NotImplementedError()
@@ -112,17 +142,8 @@ class Variable(_Atom):
 class _Op(Expr):
     """Variable node."""
 
-    def __init__(self, *objs: Expr | Bits):
-        xs = []
-        for obj in objs:
-            match obj:
-                case Expr():
-                    xs.append(obj)
-                case Bits():
-                    xs.append(BitsConst(obj))
-                case _:
-                    assert False
-        self._xs = tuple(xs)
+    def __init__(self, *objs: Expr | Bits | str):
+        self._xs = tuple(_arg_xbs(obj) for obj in objs)
 
     def iter_vars(self):
         for x in self._xs:
@@ -235,13 +256,12 @@ class GetAttr(_Op):
     """GetAttr operator node."""
 
     def __init__(self, v: Variable, obj: Const | str):
-        match obj:
-            case Const():
-                name = obj
-            case str():
-                name = Const(obj)
-            case _:
-                assert False
+        if isinstance(obj, Const):
+            name = obj
+        elif isinstance(obj, str):
+            name = Const(obj)
+        else:
+            raise TypeError("WTF")
         super().__init__(v, name)
 
     def __str__(self) -> str:
@@ -284,87 +304,3 @@ class GE(_BinaryOp):
     """Greater Than Or Equal (≥) operator node."""
 
     name = "ge"
-
-
-class Op(Enum):
-    """Expression opcode."""
-
-    # Bitwise
-    NOT = auto()
-    OR = auto()
-    AND = auto()
-    XOR = auto()
-    ITE = auto()
-
-    # Arithmetic
-    ADD = auto()
-    SUB = auto()
-    NEG = auto()
-
-    # Word
-    GETITEM = auto()
-    GETATTR = auto()
-
-    # Predicate
-    LT = auto()
-    LE = auto()
-    EQ = auto()
-    NE = auto()
-    GT = auto()
-    GE = auto()
-
-
-def f(arg) -> Expr:
-    match arg:
-        case [*xs]:
-            return parse(*xs)
-        case Bits() as x:
-            return BitsConst(x)
-        case Expr() as x:
-            return x
-        case _:
-            raise ValueError("Invalid argument")
-
-
-def parse(*args) -> Expr:
-    """Return a symbolic expression."""
-    match args:
-        # Bitwise
-        case [Op.NOT, x]:
-            return Not(f(x))
-        case [Op.OR, *xs]:
-            return Or(*[f(x) for x in xs])
-        case [Op.AND, *xs]:
-            return And(*[f(x) for x in xs])
-        case [Op.XOR, *xs]:
-            return Xor(*[f(x) for x in xs])
-        case [Op.ITE, x0, x1, x2]:
-            return ITE(f(x0), f(x1), f(x2))
-        # Arithmetic
-        case [Op.ADD, x0, x1]:
-            return Add(f(x0), f(x1))
-        case [Op.SUB, x0, x1]:
-            return Sub(f(x0), f(x1))
-        case [Op.NEG, x]:
-            return Neg(f(x))
-        # Word
-        case [Op.GETITEM, Expr() as x, (int() | slice()) as key]:
-            return GetItem(x, Const(key))
-        case [Op.GETATTR, Variable() as v, str() as name]:
-            return GetAttr(v, Const(name))
-        # Predicate
-        case [Op.LT, x0, x1]:
-            return LT(f(x0), f(x1))
-        case [Op.LE, x0, x1]:
-            return LE(f(x0), f(x1))
-        case [Op.EQ, x0, x1]:
-            return EQ(f(x0), f(x1))
-        case [Op.NE, x0, x1]:
-            return NE(f(x0), f(x1))
-        case [Op.GT, x0, x1]:
-            return GT(f(x0), f(x1))
-        case [Op.GE, x0, x1]:
-            return GE(f(x0), f(x1))
-        # Error
-        case _:
-            raise ValueError("Invalid expression")

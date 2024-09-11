@@ -1,6 +1,6 @@
 """Data Path."""
 
-from seqlogic import EQ, Add, GetAttr, Module, Vec, cat, rep, u2bv
+from seqlogic import EQ, Add, GetAttr, Module, Vec, cat, rep
 
 from . import TEXT_BASE, Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
 from .alu import Alu
@@ -178,14 +178,14 @@ class DataPath(Module):
         )
 
         # Combinational Logic
-        self.expr(alu_result_eq_zero, EQ(alu_result, u2bv(0, 32)))
+        self.expr(alu_result_eq_zero, EQ(alu_result, "32h0000_0000"))
 
         self.assign(data_mem_addr, alu_result)
         self.assign(data_mem_wr_data, rs2_data)
 
         self.combi(immediate, f_immediate, inst)
 
-        self.expr(pc_plus_4, Add(pc, u2bv(4, 32)))
+        self.expr(pc_plus_4, Add(pc, "32h0000_0004"))
         self.expr(pc_plus_immediate, Add(pc, immediate))
         self.combi(pc_next, f_pc_next, next_pc_sel, pc_plus_4, pc_plus_immediate, alu_result)
 
@@ -196,5 +196,4 @@ class DataPath(Module):
         self.combi(wr_data, f_wr_data, *xs)
 
         # Sequential Logic
-        pc_rval = u2bv(TEXT_BASE, 32)
-        self.dff_en_r(pc, pc_next, pc_wr_en, clock, reset, pc_rval)
+        self.dff_en_r(pc, pc_next, pc_wr_en, clock, reset, rval=f"32d{TEXT_BASE}")
