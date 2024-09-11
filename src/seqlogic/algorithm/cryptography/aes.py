@@ -27,7 +27,7 @@ Polynomial = Array[4, 4]
 # fmt: off
 
 # Substitution Box
-_SBOX = bits([
+SBOX = bits([
     "8h63", "8h7C", "8h77", "8h7B", "8hF2", "8h6B", "8h6F", "8hC5",
     "8h30", "8h01", "8h67", "8h2B", "8hFE", "8hD7", "8hAB", "8h76",
     "8hCA", "8h82", "8hC9", "8h7D", "8hFA", "8h59", "8h47", "8hF0",
@@ -66,7 +66,7 @@ _SBOX = bits([
 ])
 
 # Inverse Substitution Box
-_INV_SBOX = bits([
+INV_SBOX = bits([
     "8h52", "8h09", "8h6A", "8hD5", "8h30", "8h36", "8hA5", "8h38",
     "8hBF", "8h40", "8hA3", "8h9E", "8h81", "8hF3", "8hD7", "8hFB",
     "8h7C", "8hE3", "8h39", "8h82", "8h9B", "8h2F", "8hFF", "8h87",
@@ -105,7 +105,7 @@ _INV_SBOX = bits([
 ])
 
 # Round Constant
-_RCON = bits([
+RCON = bits([
     "8h8D", "8h01", "8h02", "8h04", "8h08", "8h10", "8h20", "8h40",
     "8h80", "8h1B", "8h36", "8h6C", "8hD8", "8hAB", "8h4D", "8h9A",
     "8h2F", "8h5E", "8hBC", "8h63", "8hC6", "8h97", "8h35", "8h6A",
@@ -152,24 +152,24 @@ INV_PA = bits(["4hE", "4h9", "4hD", "4hB"])
 # fmt: on
 
 
-def _sub_word(w: Word) -> Word:
+def sub_word(w: Word) -> Word:
     """AES SubWord() function.
 
     Function used in the Key Expansion routine that takes a four-byte input word
     and applies an S-box to each of the four bytes to produce an output word.
     """
-    return stack(*[_SBOX[b] for b in w])
+    return stack(*[SBOX[b] for b in w])
 
 
-def _inv_sub_word(w: Word) -> Word:
+def inv_sub_word(w: Word) -> Word:
     """AES InvSubWord() function.
 
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
     """
-    return stack(*[_INV_SBOX[b] for b in w])
+    return stack(*[INV_SBOX[b] for b in w])
 
 
-def _rot_word(w: Word) -> Word:
+def rot_word(w: Word) -> Word:
     """AES RotWord() function.
 
     Function used in the Key Expansion routine that takes a four-byte word and
@@ -178,23 +178,23 @@ def _rot_word(w: Word) -> Word:
     return stack(w[1], w[2], w[3], w[0])
 
 
-def _xtime(b: Byte, n: int) -> Byte:
+def xtime(b: Byte, n: int) -> Byte:
     """Repeated polynomial multiplication in GF(2^8)."""
     for _ in range(n):
         b = (b << 1) ^ ("8h1B" & rep(b[7], 8))
     return b
 
 
-def _rowxcol(a: Polynomial, b: Word) -> Word:
+def rowxcol(a: Polynomial, b: Word) -> Word:
     """Multiply one row and one column."""
     y = Byte.zeros()
     for i, a_i in enumerate(a):
         for j, a_ij in enumerate(a_i):
-            y = ite(a_ij, y ^ _xtime(b[3 - i], j), y)
+            y = ite(a_ij, y ^ xtime(b[3 - i], j), y)
     return y
 
 
-def _multiply(a: Polynomial, b: Word) -> Word:
+def multiply(a: Polynomial, b: Word) -> Word:
     """Multiply two polynomials in GF(2^8).
 
     [a0 a1 a2 a3] x [b0 b1 b2 b3] = [d0 d1 d2 d3]
@@ -206,10 +206,10 @@ def _multiply(a: Polynomial, b: Word) -> Word:
     """
     a0, a1, a2, a3 = a
     d = [
-        _rowxcol(stack(a1, a2, a3, a0), b),
-        _rowxcol(stack(a2, a3, a0, a1), b),
-        _rowxcol(stack(a3, a0, a1, a2), b),
-        _rowxcol(stack(a0, a1, a2, a3), b),
+        rowxcol(stack(a1, a2, a3, a0), b),
+        rowxcol(stack(a2, a3, a0, a1), b),
+        rowxcol(stack(a3, a0, a1, a2), b),
+        rowxcol(stack(a0, a1, a2, a3), b),
     ]
     return stack(*d)
 
@@ -220,7 +220,7 @@ def mix_columns(state: State) -> State:
     Transformation in the Cipher that takes all of the columns of the State and
     mixes their data (independently of one another) to produce new columns.
     """
-    return stack(*[_multiply(PA, col) for col in state])
+    return stack(*[multiply(PA, col) for col in state])
 
 
 def inv_mix_columns(state: State) -> State:
@@ -228,7 +228,7 @@ def inv_mix_columns(state: State) -> State:
 
     Transformation in the Inverse Cipher that is the inverse of MixColumns().
     """
-    return stack(*[_multiply(INV_PA, col) for col in state])
+    return stack(*[multiply(INV_PA, col) for col in state])
 
 
 def sub_bytes(state: State) -> State:
@@ -238,7 +238,7 @@ def sub_bytes(state: State) -> State:
     byte substitution table (S-box) that operates on each of the State bytes
     independently.
     """
-    return stack(*[_sub_word(col) for col in state])
+    return stack(*[sub_word(col) for col in state])
 
 
 def inv_sub_bytes(state: State) -> State:
@@ -246,7 +246,7 @@ def inv_sub_bytes(state: State) -> State:
 
     Transformation in the Inverse Cipher that is the inverse of SubBytes().
     """
-    return stack(*[_inv_sub_word(col) for col in state])
+    return stack(*[inv_sub_word(col) for col in state])
 
 
 def shift_rows(state: State) -> State:
@@ -282,9 +282,9 @@ def inv_shift_rows(state: State) -> State:
 
 def key_expand(nk: int, k0: Word, k1: Word, i: int) -> Word:
     if i % nk == 0:
-        return k0 ^ _sub_word(_rot_word(k1)) ^ xt(_RCON[i // nk], 8 * 3)
+        return k0 ^ sub_word(rot_word(k1)) ^ xt(RCON[i // nk], 8 * 3)
     if nk > 6 and i % nk == 4:
-        return k0 ^ _sub_word(k1)
+        return k0 ^ sub_word(k1)
     return k0 ^ k1
 
 
