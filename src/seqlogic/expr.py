@@ -273,7 +273,13 @@ class Neg(_UnaryOp):
 class GetItem(_Op):
     """GetItem operator node."""
 
-    def __init__(self, x: Expr, key: Const):
+    def __init__(self, x: Expr, obj: Const | int | slice):
+        if isinstance(obj, Const):
+            key = obj
+        elif isinstance(obj, (int, slice)):
+            key = obj
+        else:
+            raise TypeError(f"Invalid input: {obj}")
         super().__init__(x, key)
 
     def __str__(self) -> str:
