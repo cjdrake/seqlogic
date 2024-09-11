@@ -20,8 +20,15 @@ type Predicate = Callable[[], bool]
 
 
 class Region(IntEnum):
+    # Coroutines that react to changes from Active region.
+    # Used by combinational logic.
     REACTIVE = auto()
+
+    # Coroutines that drive changes to model state.
+    # Used by 1) testbench, and 2) sequential logic.
     ACTIVE = auto()
+
+    # Coroutines that monitor model state.
     INACTIVE = auto()
 
 
