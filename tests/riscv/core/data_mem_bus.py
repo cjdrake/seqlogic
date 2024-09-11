@@ -1,18 +1,9 @@
 """Data Memory Bus."""
 
-from seqlogic import GE, LT, Module, Vec, clog2, u2bv
+from seqlogic import GE, ITE, LT, Module, Vec, clog2, u2bv
 
 from . import DATA_BASE, DATA_SIZE, Addr
 from .data_mem import DataMem
-
-
-def f_rd_data(rd_en: Vec[1], is_data: Vec[1], data: Vec[32]) -> Vec[32]:
-    sel = rd_en & is_data
-    match sel:
-        case "1b1":
-            return data
-        case _:
-            return Vec[32].xprop(sel)
 
 
 class DataMemBus(Module):
@@ -55,4 +46,4 @@ class DataMemBus(Module):
         )
 
         self.expr(is_data, GE(addr, data_start) & LT(addr, data_stop))
-        self.combi(rd_data, f_rd_data, rd_en, is_data, data)
+        self.expr(rd_data, ITE(rd_en & is_data, data, Vec[32].dcs()))
