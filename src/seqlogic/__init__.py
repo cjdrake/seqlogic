@@ -26,6 +26,7 @@ from .bits import (
     lrot,
     lsh,
     lt,
+    mux,
     nand,
     ne,
     neg,
@@ -103,6 +104,7 @@ __all__ = [
     "xnor",
     "xor",
     "ite",
+    "mux",
     # bits: unary
     "uor",
     "uand",

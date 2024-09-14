@@ -20,6 +20,7 @@ from seqlogic import (
     lrot,
     lsh,
     lt,
+    mux,
     nand,
     ne,
     nor,
@@ -724,6 +725,32 @@ ITE = (
 def test_vec_ite():
     for s, a, b, y in ITE:
         assert ite(s, a, b) == y
+
+
+def test_vec_mux():
+    # Invalid x[n] argument name
+    with pytest.raises(ValueError):
+        mux("2b00", x4="4b0000")
+    with pytest.raises(ValueError):
+        mux("2b00", foo="4b0000")
+    # Mismatching sizes
+    with pytest.raises(TypeError):
+        mux("2b00", x0="4b0000", x1="8h00")
+    # No inputs
+    with pytest.raises(ValueError):
+        mux("2b00")
+
+    assert mux(bits(), x0="4b1010") == "4b1010"
+
+    assert mux("2b00", x0="4b10_00", x1="4b10_01", x2="4b10_10", x3="4b10_11") == "4b1000"
+    assert mux("2b01", x0="4b10_00", x1="4b10_01", x2="4b10_10", x3="4b10_11") == "4b1001"
+    assert mux("2b10", x0="4b10_00", x1="4b10_01", x2="4b10_10", x3="4b10_11") == "4b1010"
+    assert mux("2b11", x0="4b10_00", x1="4b10_01", x2="4b10_10", x3="4b10_11") == "4b1011"
+
+    assert mux("2b0-", x0="4b10_00", x1="4b10_01", x2="4b10_10", x3="4b10_11") == "4b100-"
+    assert mux("2b-0", x0="4b10_00", x1="4b10_01", x2="4b10_10", x3="4b10_11") == "4b10-0"
+    assert mux("2b1-", x0="4b10_00", x1="4b10_01", x2="4b10_10", x3="4b10_11") == "4b101-"
+    assert mux("2b-1", x0="4b10_00", x1="4b10_01", x2="4b10_10", x3="4b10_11") == "4b10-1"
 
 
 UOR = {

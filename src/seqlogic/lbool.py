@@ -151,3 +151,25 @@ def lite(s: tuple[int, int], a: tuple[int, int], b: tuple[int, int]) -> tuple[in
         s[1] & a[0] & b01 | s[0] & b[0] & a01,
         s[1] & a[1] & b01 | s[0] & b[1] & a01,
     )
+
+
+def _lmux(s: tuple[int, int], x0: tuple[int, int], x1: tuple[int, int]) -> tuple[int, int]:
+    """Lifted 2:1 Mux."""
+    x0_01 = x0[0] | x0[1]
+    x1_01 = x1[0] | x1[1]
+    return (
+        s[0] & x0[0] & x1_01 | s[1] & x1[0] & x0_01,
+        s[0] & x0[1] & x1_01 | s[1] & x1[1] & x0_01,
+    )
+
+
+def lmux(s: tuple[tuple[int, int], ...], xs: tuple[tuple[int, int], ...]) -> tuple[int, int]:
+    """Lifted N:1 Mux."""
+    n = 1 << len(s)
+    assert len(xs) == n
+    if n == 1:
+        return xs[0]
+    if n == 2:
+        return _lmux(s[0], xs[0], xs[1])
+    m = n >> 1
+    return _lmux(s[-1], lmux(s[:-1], xs[:m]), lmux(s[:-1], xs[m:]))

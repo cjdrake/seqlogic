@@ -29,6 +29,7 @@ from .lbool import (
     from_char,
     land,
     lite,
+    lmux,
     lnot,
     lor,
     lxnor,
@@ -119,10 +120,7 @@ def _expect_size(arg, size: int) -> Bits:
     return x
 
 
-def _resolve_type(x0: Bits, x1: Bits) -> type[Bits]:
-    t0 = type(x0)
-    t1 = type(x1)
-
+def _resolve_type(t0: type[Bits], t1: type[Bits]) -> type[Bits]:
     # T (op) T -> T
     if t0 == t1:
         return t0
@@ -934,25 +932,25 @@ def _not_(x: Bits) -> Bits:
 
 def _or_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = lor(x0.data, x1.data)
-    t = _resolve_type(x0, x1)
+    t = _resolve_type(type(x0), type(x1))
     return t._cast_data(d0, d1)
 
 
 def _and_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = land(x0.data, x1.data)
-    t = _resolve_type(x0, x1)
+    t = _resolve_type(type(x0), type(x1))
     return t._cast_data(d0, d1)
 
 
 def _xnor_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = lxnor(x0.data, x1.data)
-    t = _resolve_type(x0, x1)
+    t = _resolve_type(type(x0), type(x1))
     return t._cast_data(d0, d1)
 
 
 def _xor_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = lxor(x0.data, x1.data)
-    t = _resolve_type(x0, x1)
+    t = _resolve_type(type(x0), type(x1))
     return t._cast_data(d0, d1)
 
 
@@ -1129,7 +1127,7 @@ def _ite(s: Bits, x1: Bits, x0: Bits) -> Bits:
     s0 = _mask(x1.size) * s.data[0]
     s1 = _mask(x1.size) * s.data[1]
     d0, d1 = lite((s0, s1), x1.data, x0.data)
-    t = _resolve_type(x0, x1)
+    t = _resolve_type(type(x0), type(x1))
     return t._cast_data(d0, d1)
 
 
@@ -1148,6 +1146,60 @@ def ite(s: Bits | str, x1: Bits | str, x0: Bits | str) -> Bits:
     x1 = _expect_type(x1, Bits)
     x0 = _expect_size(x0, x1.size)
     return _ite(s, x1, x0)
+
+
+def _mux(s: Bits, t: type[Bits], xs: list[Bits]) -> Bits:
+    m = _mask(t.size)
+    si = (s._get_index(i) for i in range(s.size))
+    s = tuple((m * d0, m * d1) for d0, d1 in si)
+    d0, d1 = lmux(s, tuple(x.data for x in xs))
+    return t._cast_data(d0, d1)
+
+
+_MUX_XN_RE = re.compile(r"x(\d+)")
+
+
+def mux(s: Bits | str, **xs: Bits | str) -> Bits:
+    """Mux operator.
+
+    Args:
+        s: Mux select
+        **xs: Mux inputs, e.g. x0="4b0001", x1="4b0010", ...
+
+    Mux input names are in the form xN,
+    where N is a valid int.
+    Muxes require at least one input.
+    Any inputs not specified will default to "don't care".
+
+    Returns:
+        Mux output, selected from inputs.
+    """
+    s = _expect_type(s, Bits)
+    n = 1 << s.size
+
+    # Parse and check inputs
+    t = None
+    inputs = {}
+    for name, value in xs.items():
+        m = _MUX_XN_RE.match(name)
+        if m:
+            i = int(m.group(1))
+            if not 0 <= i < n:
+                raise ValueError(f"Expected x in [x0, ..., x{n - 1}]; got {name}")
+            if t is None:
+                x = _expect_type(value, Bits)
+                t = type(x)
+            else:
+                x = _expect_size(value, t.size)
+                t = _resolve_type(t, type(x))
+            inputs[i] = x
+        else:
+            raise ValueError(f"Invalid input name: {name}")
+
+    if t is None:
+        raise ValueError("Expected at least one mux input")
+
+    return _mux(s, t, [inputs.get(i, t.dcs()) for i in range(n)])
 
 
 def _uor(x: Bits) -> Scalar:
@@ -1248,7 +1300,7 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     co = _bool2scalar[s > dmax]
     s &= dmax
 
-    t = _resolve_type(a, b)
+    t = _resolve_type(type(a), type(b))
     return t._cast_data(s ^ dmax, s), co
 
 
