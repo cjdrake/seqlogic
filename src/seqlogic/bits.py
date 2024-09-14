@@ -1171,6 +1171,10 @@ def mux(s: Bits | str, **xs: Bits | str) -> Bits:
     Muxes require at least one input.
     Any inputs not specified will default to "don't care".
 
+    Warning:
+        The number of inputs is 2^(select width).
+        For example, if s = "20h0", the mux has over a million inputs.
+
     Returns:
         Mux output, selected from inputs.
     """
