@@ -1,6 +1,6 @@
 """Data Memory Bus."""
 
-from seqlogic import GE, ITE, LT, Module, Vec, clog2, u2bv
+from seqlogic import GE, LT, Module, Mux, Vec, clog2, u2bv
 
 from . import DATA_BASE, DATA_SIZE, Addr
 from .data_mem import DataMem
@@ -46,4 +46,4 @@ class DataMemBus(Module):
         )
 
         self.expr(is_data, GE(addr, data_start) & LT(addr, data_stop))
-        self.expr(rd_data, ITE(rd_en & is_data, data, Vec[32].dcs()))
+        self.expr(rd_data, Mux(rd_en & is_data, x1=data))

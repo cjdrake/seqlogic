@@ -17,6 +17,7 @@ from .bits import (
     ite,
     le,
     lt,
+    mux,
     nand,
     ne,
     neg,
@@ -102,6 +103,7 @@ class Expr:
             "xnor": xnor,
             "xor": xor,
             "ite": ite,
+            "mux": mux,
             "add": add,
             "sub": sub,
             "neg": neg,
@@ -248,6 +250,23 @@ class ITE(_TernaryOp):
     """If-Then-Else operator node."""
 
     name = "ite"
+
+
+class Mux(Expr):
+    """Multiplexer operator node."""
+
+    def __init__(self, s: Expr | Bits | str, **xs: Expr | Bits | str):
+        self._s = _arg_xbs(s)
+        self._xs = {name: _arg_xbs(value) for name, value in xs.items()}
+
+    def __str__(self) -> str:
+        kwargs = ", ".join(f"{name}={value}" for name, value in self._xs.items())
+        return f"mux({self._s}, {kwargs})"
+
+    def iter_vars(self):
+        yield from self._s.iter_vars()
+        for x in self._xs.values():
+            yield from x.iter_vars()
 
 
 class Add(_BinaryOp):

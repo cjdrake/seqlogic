@@ -1,6 +1,6 @@
 """Text Memory Bus."""
 
-from seqlogic import GE, ITE, LT, Module, Vec, clog2, u2bv
+from seqlogic import GE, LT, Module, Mux, Vec, clog2, u2bv
 
 from . import TEXT_BASE, TEXT_SIZE, Addr
 from .text_mem import TextMem
@@ -37,4 +37,4 @@ class TextMemBus(Module):
         )
 
         self.expr(is_text, GE(rd_addr, text_start) & LT(rd_addr, text_stop))
-        self.expr(rd_data, ITE(is_text, text, Vec[32].dcs()))
+        self.expr(rd_data, Mux(is_text, x1=text))
