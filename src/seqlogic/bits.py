@@ -119,6 +119,18 @@ def _expect_size(arg, size: int) -> Bits:
     return x
 
 
+def _resolve_type(x0: Bits, x1: Bits) -> type[Bits]:
+    t0 = type(x0)
+    t1 = type(x1)
+
+    # T (op) T -> T
+    if t0 == t1:
+        return t0
+
+    # Otherwise, downgrade to Scalar/Vector
+    return _vec_size(t0.size)
+
+
 class _ShapeIf:
     """Shaping interface."""
 
@@ -922,22 +934,26 @@ def _not_(x: Bits) -> Bits:
 
 def _or_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = lor(x0.data, x1.data)
-    return x0._cast_data(d0, d1)
+    t = _resolve_type(x0, x1)
+    return t._cast_data(d0, d1)
 
 
 def _and_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = land(x0.data, x1.data)
-    return x0._cast_data(d0, d1)
+    t = _resolve_type(x0, x1)
+    return t._cast_data(d0, d1)
 
 
 def _xnor_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = lxnor(x0.data, x1.data)
-    return x0._cast_data(d0, d1)
+    t = _resolve_type(x0, x1)
+    return t._cast_data(d0, d1)
 
 
 def _xor_(x0: Bits, x1: Bits) -> Bits:
     d0, d1 = lxor(x0.data, x1.data)
-    return x0._cast_data(d0, d1)
+    t = _resolve_type(x0, x1)
+    return t._cast_data(d0, d1)
 
 
 def not_(x: Bits | str) -> Bits:
@@ -1113,7 +1129,8 @@ def _ite(s: Bits, x1: Bits, x0: Bits) -> Bits:
     s0 = _mask(x1.size) * s.data[0]
     s1 = _mask(x1.size) * s.data[1]
     d0, d1 = lite((s0, s1), x1.data, x0.data)
-    return x1._cast_data(d0, d1)
+    t = _resolve_type(x0, x1)
+    return t._cast_data(d0, d1)
 
 
 def ite(s: Bits | str, x1: Bits | str, x0: Bits | str) -> Bits:
@@ -1231,7 +1248,8 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     co = _bool2scalar[s > dmax]
     s &= dmax
 
-    return a._cast_data(s ^ dmax, s), co
+    t = _resolve_type(a, b)
+    return t._cast_data(s ^ dmax, s), co
 
 
 def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:

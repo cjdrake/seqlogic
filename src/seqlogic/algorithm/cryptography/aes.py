@@ -3,7 +3,7 @@
 See https://csrc.nist.gov/pubs/fips/197/final for details.
 """
 
-from ...bits import Array, Vector, bits, ite, rep, stack, xt
+from ...bits import Array, Vector, bits, ite, rep, stack
 
 NB = 4
 
@@ -282,7 +282,8 @@ def inv_shift_rows(state: State) -> State:
 
 def key_expand(nk: int, k0: Word, k1: Word, i: int) -> Word:
     if i % nk == 0:
-        return k0 ^ sub_word(rot_word(k1)) ^ xt(RCON[i // nk], 8 * 3)
+        rcon = bits([RCON[i // nk], "8h00", "8h00", "8h00"])
+        return k0 ^ sub_word(rot_word(k1)) ^ rcon
     if nk > 6 and i % nk == 4:
         return k0 ^ sub_word(k1)
     return k0 ^ k1
