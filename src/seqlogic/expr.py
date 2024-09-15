@@ -41,8 +41,6 @@ def _arg_xbs(obj: Expr | Bits | str) -> Expr:
 
 
 def _arg_bs(obj: Bits | str) -> Expr:
-    if isinstance(obj, Expr):
-        return obj
     if isinstance(obj, Bits):
         return BitsConst(obj)
     if isinstance(obj, str):
