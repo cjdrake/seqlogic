@@ -186,21 +186,21 @@ class _PrefixOp(_Op):
 class _UnaryOp(_PrefixOp):
     """Unary operator: f(x)"""
 
-    def __init__(self, x: Expr | Bits):
+    def __init__(self, x: Expr | Bits | str):
         super().__init__(x)
 
 
 class _BinaryOp(_PrefixOp):
     """Binary operator: f(x0, x1)"""
 
-    def __init__(self, x0: Expr | Bits, x1: Expr | Bits):
+    def __init__(self, x0: Expr | Bits | str, x1: Expr | Bits | str):
         super().__init__(x0, x1)
 
 
 class _TernaryOp(_PrefixOp):
     """Ternary operator: f(x0, x1, x2)"""
 
-    def __init__(self, x0: Expr | Bits, x1: Expr | Bits, x2: Expr | Bits):
+    def __init__(self, x0: Expr | Bits | str, x1: Expr | Bits | str, x2: Expr | Bits | str):
         super().__init__(x0, x1, x2)
 
 
