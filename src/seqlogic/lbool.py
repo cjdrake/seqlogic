@@ -188,15 +188,17 @@ def lmux(
                 x1 = x
         return _lmux(s[0], x0, x1)
 
-    h = n >> 1
-    mask = h - 1
+    x0, x1 = default, default
+    mid = (n >> 1) - 1
     xs_0, xs_1 = {}, {}
     for i, x in xs.items():
         assert i < n
-        if i < h:
-            xs_0[i & mask] = x
+        if i <= mid:
+            xs_0[i & mid] = x
         else:
-            xs_1[i & mask] = x
-    x0 = lmux(s[:-1], xs_0, default) if xs_0 else default
-    x1 = lmux(s[:-1], xs_1, default) if xs_1 else default
+            xs_1[i & mid] = x
+    if xs_0:
+        x0 = lmux(s[:-1], xs_0, default)
+    if xs_1:
+        x1 = lmux(s[:-1], xs_1, default)
     return _lmux(s[-1], x0, x1)
