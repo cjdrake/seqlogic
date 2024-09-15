@@ -1182,8 +1182,7 @@ def mux(s: Bits | str, **xs: Bits | str) -> Bits:
     t = None
     i2x = {}
     for name, value in xs.items():
-        m = _MUX_XN_RE.match(name)
-        if m:
+        if m := _MUX_XN_RE.match(name):
             i = int(m.group(1))
             if not 0 <= i < n:
                 raise ValueError(f"Expected x in [x0, ..., x{n - 1}]; got {name}")

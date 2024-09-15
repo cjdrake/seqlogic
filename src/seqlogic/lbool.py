@@ -171,32 +171,33 @@ def lmux(
     """Lifted N:1 Mux."""
     n = 1 << len(s)
 
+    x0 = default
+
     if n == 1:
-        x0 = default
         for i, x in xs.items():
             assert i < n
             x0 = x
         return x0
 
+    x1 = default
+
     if n == 2:
-        x0, x1 = default, default
         for i, x in xs.items():
             assert i < n
-            if i == 0:
-                x0 = x
-            else:
+            if i:
                 x1 = x
+            else:
+                x0 = x
         return _lmux(s[0], x0, x1)
 
-    x0, x1 = default, default
-    mid = (n >> 1) - 1
+    mask0 = (n >> 1) - 1
     xs_0, xs_1 = {}, {}
     for i, x in xs.items():
         assert i < n
-        if i <= mid:
-            xs_0[i & mid] = x
+        if i > mask0:
+            xs_1[i & mask0] = x
         else:
-            xs_1[i & mid] = x
+            xs_0[i] = x
     if xs_0:
         x0 = lmux(s[:-1], xs_0, default)
     if xs_1:
