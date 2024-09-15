@@ -1148,11 +1148,12 @@ def ite(s: Bits | str, x1: Bits | str, x0: Bits | str) -> Bits:
     return _ite(s, x1, x0)
 
 
-def _mux(s: Bits, t: type[Bits], xs: list[Bits]) -> Bits:
+def _mux(s: Bits, t: type[Bits], xs: dict[int, Bits]) -> Bits:
     m = _mask(t.size)
     si = (s._get_index(i) for i in range(s.size))
     s = tuple((m * d0, m * d1) for d0, d1 in si)
-    d0, d1 = lmux(s, tuple(x.data for x in xs))
+    dc = t.dcs()
+    d0, d1 = lmux(s, {i: x.data for i, x in xs.items()}, dc.data)
     return t._cast_data(d0, d1)
 
 
@@ -1171,10 +1172,6 @@ def mux(s: Bits | str, **xs: Bits | str) -> Bits:
     Muxes require at least one input.
     Any inputs not specified will default to "don't care".
 
-    Warning:
-        The number of inputs is 2^(select width).
-        For example, if s = "20h0", the mux has over a million inputs.
-
     Returns:
         Mux output, selected from inputs.
     """
@@ -1183,7 +1180,7 @@ def mux(s: Bits | str, **xs: Bits | str) -> Bits:
 
     # Parse and check inputs
     t = None
-    inputs = {}
+    i2x = {}
     for name, value in xs.items():
         m = _MUX_XN_RE.match(name)
         if m:
@@ -1196,14 +1193,14 @@ def mux(s: Bits | str, **xs: Bits | str) -> Bits:
             else:
                 x = _expect_size(value, t.size)
                 t = _resolve_type(t, type(x))
-            inputs[i] = x
+            i2x[i] = x
         else:
             raise ValueError(f"Invalid input name: {name}")
 
     if t is None:
         raise ValueError("Expected at least one mux input")
 
-    return _mux(s, t, [inputs.get(i, t.dcs()) for i in range(n)])
+    return _mux(s, t, i2x)
 
 
 def _uor(x: Bits) -> Scalar:

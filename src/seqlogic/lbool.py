@@ -163,13 +163,40 @@ def _lmux(s: tuple[int, int], x0: tuple[int, int], x1: tuple[int, int]) -> tuple
     )
 
 
-def lmux(s: tuple[tuple[int, int], ...], xs: tuple[tuple[int, int], ...]) -> tuple[int, int]:
+def lmux(
+    s: tuple[tuple[int, int], ...],
+    xs: dict[int, tuple[int, int]],
+    default: tuple[int, int],
+) -> tuple[int, int]:
     """Lifted N:1 Mux."""
     n = 1 << len(s)
-    assert len(xs) == n
+
     if n == 1:
-        return xs[0]
+        x0 = default
+        for i, x in xs.items():
+            assert i < n
+            x0 = x
+        return x0
+
     if n == 2:
-        return _lmux(s[0], xs[0], xs[1])
-    m = n >> 1
-    return _lmux(s[-1], lmux(s[:-1], xs[:m]), lmux(s[:-1], xs[m:]))
+        x0, x1 = default, default
+        for i, x in xs.items():
+            assert i < n
+            if i == 0:
+                x0 = x
+            else:
+                x1 = x
+        return _lmux(s[0], x0, x1)
+
+    h = n >> 1
+    mask = h - 1
+    xs_0, xs_1 = {}, {}
+    for i, x in xs.items():
+        assert i < n
+        if i < h:
+            xs_0[i & mask] = x
+        else:
+            xs_1[i & mask] = x
+    x0 = lmux(s[:-1], xs_0, default) if xs_0 else default
+    x1 = lmux(s[:-1], xs_1, default) if xs_1 else default
+    return _lmux(s[-1], x0, x1)
