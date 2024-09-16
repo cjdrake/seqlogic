@@ -17,7 +17,7 @@ def f_bus_wr_be(data_format: Vec[3], byte_addr: Vec[2]):
         case "2b11":
             return "4b0000"
         case _:
-            Vec[4].xprop(sel)
+            return Vec[4].xprop(sel)
 
 
 def f_bus_wr_data(wr_data: Vec[32], byte_addr: Vec[2]) -> Vec[32]:
