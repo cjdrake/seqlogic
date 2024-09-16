@@ -16,8 +16,7 @@ def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
         case AluOp.SRL:
             return a >> b[0:5]
         case AluOp.SRA:
-            y, _ = srsh(a, b[0:5])
-            return y
+            return srsh(a, b[0:5])
         case AluOp.SEQ:
             return xt(eq(a, b), 32 - 1)
         case AluOp.SLT:

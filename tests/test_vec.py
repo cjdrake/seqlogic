@@ -1156,27 +1156,27 @@ def test_vec_rsh():
 
 def test_vec_srsh():
     v = bits("4b1111")
-    assert srsh(v, 0) == ("4b1111", E)
-    assert srsh(v, 1) == ("4b1111", "1b1")
-    assert srsh(v, 2) == ("4b1111", "2b11")
-    assert srsh(v, 3) == ("4b1111", "3b111")
-    assert srsh(v, 4) == ("4b1111", "4b1111")
+    assert srsh(v, 0) == "4b1111"
+    assert srsh(v, 1) == "4b1111"
+    assert srsh(v, 2) == "4b1111"
+    assert srsh(v, 3) == "4b1111"
+    assert srsh(v, 4) == "4b1111"
 
     v = bits("4b0111")
-    assert srsh(v, 0) == ("4b0111", E)
-    assert srsh(v, 1) == ("4b0011", "1b1")
-    assert srsh(v, 2) == ("4b0001", "2b11")
-    assert srsh(v, 3) == ("4b0000", "3b111")
-    assert srsh(v, 4) == ("4b0000", "4b0111")
+    assert srsh(v, 0) == "4b0111"
+    assert srsh(v, 1) == "4b0011"
+    assert srsh(v, 2) == "4b0001"
+    assert srsh(v, 3) == "4b0000"
+    assert srsh(v, 4) == "4b0000"
 
     with pytest.raises(ValueError):
         srsh(v, -1)
     with pytest.raises(ValueError):
         srsh(v, 5)
 
-    assert srsh("2b01", "1bX") == (bits("2bXX"), E)
-    assert srsh("2b01", "1b-") == (bits("2b--"), E)
-    assert srsh("2b01", "1b1") == (bits("2b00"), T)
+    assert srsh("2b01", "1bX") == bits("2bXX")
+    assert srsh("2b01", "1b-") == bits("2b--")
+    assert srsh("2b01", "1b1") == bits("2b00")
 
 
 DEC_VALS = [

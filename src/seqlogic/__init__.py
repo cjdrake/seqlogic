@@ -7,7 +7,6 @@ from .bits import (
     Empty,
     Enum,
     Scalar,
-    ShiftResult,
     Struct,
     Union,
     Vector,
@@ -86,7 +85,6 @@ Vec = Vector
 __all__ = [
     # bits
     "AddResult",
-    "ShiftResult",
     "Bits",
     "Empty",
     "Scalar",

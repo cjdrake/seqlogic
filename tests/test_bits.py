@@ -158,11 +158,11 @@ def test_rsh():
 
 def test_srsh():
     b0 = bits(["4b1111", "4b0000"])
-    y, _ = srsh(b0, 2)
+    y = srsh(b0, 2)
     assert str(y) == "[4b0011, 4b0000]"
 
     b1 = bits(["4b0000", "4b1111"])
-    y, _ = srsh(b1, 2)
+    y = srsh(b1, 2)
     assert str(y) == "[4b1100, 4b1111]"
 
 

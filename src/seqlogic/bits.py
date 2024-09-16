@@ -21,12 +21,25 @@ from collections import namedtuple
 from collections.abc import Callable, Generator
 from functools import cache, partial
 
-from .lbool import (_W, _X, _0, _1, from_char, land, lite, lmux, lnot, lor,
-                    lxnor, lxor, to_char, to_vcd_char)
+from .lbool import (
+    _W,
+    _X,
+    _0,
+    _1,
+    from_char,
+    land,
+    lite,
+    lmux,
+    lnot,
+    lor,
+    lxnor,
+    lxor,
+    to_char,
+    to_vcd_char,
+)
 from .util import classproperty, clog2
 
 AddResult = namedtuple("AddResult", ["s", "co"])
-ShiftResult = namedtuple("ShiftResult", ["y", "so"])
 
 
 @cache
@@ -1478,20 +1491,17 @@ def rsh(x: Bits | str, n: Bits | str | int) -> Bits:
     return _rsh(x, n)
 
 
-def _srsh(x: Bits, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
+def _srsh(x: Bits, n: Bits) -> Bits:
     if n.has_x():
-        return x.xes(), _Empty
+        return x.xes()
     if n.has_dc():
-        return x.dcs(), _Empty
+        return x.dcs()
 
     n = n.to_uint()
     if n == 0:
-        return x, _Empty
+        return x
     if n > x.size:
         raise ValueError(f"Expected n ≤ {x.size}, got {n}")
-
-    so_size, (so0, so1) = x._get_slice(0, n)
-    so = _vec_size(so_size)(so0, so1)
 
     sign0, sign1 = x._get_index(x.size - 1)
     si0, si1 = _mask(n) * sign0, _mask(n) * sign1
@@ -1501,7 +1511,7 @@ def _srsh(x: Bits, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
     d1 = sh1 | si1 << sh_size
     y = x._cast_data(d0, d1)
 
-    return ShiftResult(y, so)
+    return y
 
 
 def srsh(x: Bits | str, n: Bits | str | int) -> tuple[Bits, Empty | Scalar | Vector]:
