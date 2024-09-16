@@ -21,22 +21,8 @@ from collections import namedtuple
 from collections.abc import Callable, Generator
 from functools import cache, partial
 
-from .lbool import (
-    _W,
-    _X,
-    _0,
-    _1,
-    from_char,
-    land,
-    lite,
-    lmux,
-    lnot,
-    lor,
-    lxnor,
-    lxor,
-    to_char,
-    to_vcd_char,
-)
+from .lbool import (_W, _X, _0, _1, from_char, land, lite, lmux, lnot, lor,
+                    lxnor, lxor, to_char, to_vcd_char)
 from .util import classproperty, clog2
 
 AddResult = namedtuple("AddResult", ["s", "co"])
@@ -272,11 +258,11 @@ class Bits:
     # Note: Drop carry-out
     def __rshift__(self, n: Bits | str | int) -> Bits:
         n = _expect_shift(n, self.size)
-        return _rsh(self, n)[0]
+        return _rsh(self, n)
 
     def __rrshift__(self, other: Bits | str) -> Bits:
         other = _expect_type(other, Bits)
-        return _rsh(other, self)[0]
+        return _rsh(other, self)
 
     # Note: Keep carry-out
     def __add__(self, other: Bits | str) -> Scalar | Vector:
@@ -1455,30 +1441,27 @@ def lsh(x: Bits | str, n: Bits | str | int) -> Bits:
     return _lsh(x, n)
 
 
-def _rsh(x: Bits, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
+def _rsh(x: Bits, n: Bits) -> Bits:
     if n.has_x():
-        return x.xes(), _Empty
+        return x.xes()
     if n.has_dc():
-        return x.dcs(), _Empty
+        return x.dcs()
 
     n = n.to_uint()
     if n == 0:
-        return x, _Empty
+        return x
     if n > x.size:
         raise ValueError(f"Expected n ≤ {x.size}, got {n}")
-
-    so_size, (so0, so1) = x._get_slice(0, n)
-    so = _vec_size(so_size)(so0, so1)
 
     sh_size, (sh0, sh1) = x._get_slice(n, x.size)
     d0 = sh0 | (_mask(n) << sh_size)
     d1 = sh1
     y = x._cast_data(d0, d1)
 
-    return ShiftResult(y, so)
+    return y
 
 
-def rsh(x: Bits | str, n: Bits | str | int) -> tuple[Bits, Empty | Scalar | Vector]:
+def rsh(x: Bits | str, n: Bits | str | int) -> Bits:
     """Right shift by n bits.
 
     Args:
