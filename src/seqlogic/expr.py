@@ -11,11 +11,13 @@ from .bits import (
     _lit2vec,
     add,
     and_,
+    cat,
     eq,
     ge,
     gt,
     ite,
     le,
+    lsh,
     lt,
     mux,
     nand,
@@ -24,6 +26,7 @@ from .bits import (
     nor,
     not_,
     or_,
+    rsh,
     sub,
     xnor,
     xor,
@@ -83,6 +86,18 @@ class Expr:
     def __rxor__(self, other: Bits | str) -> Xor:
         return Xor(other, self)
 
+    def __lshift__(self, other: Expr | Bits | str) -> Lsh:
+        return Lsh(self, other)
+
+    def __rlshift__(self, other: Bits | str) -> Lsh:
+        return Lsh(other, self)
+
+    def __rshift__(self, other: Expr | Bits | str) -> Rsh:
+        return Rsh(self, other)
+
+    def __rrshift__(self, other: Bits | str) -> Rsh:
+        return Rsh(other, self)
+
     def iter_vars(self):
         raise NotImplementedError()
 
@@ -107,12 +122,15 @@ class Expr:
             "add": add,
             "sub": sub,
             "neg": neg,
+            "lsh": lsh,
+            "rsh": rsh,
             "lt": lt,
             "le": le,
             "eq": eq,
             "ne": ne,
             "gt": gt,
             "ge": ge,
+            "cat": cat,
         }
         locals_ = {}
         exec(source, globals_, locals_)
@@ -285,6 +303,24 @@ class Neg(_UnaryOp):
     """NEG operator node."""
 
     name = "neg"
+
+
+class Lsh(_BinaryOp):
+    """Left shift operator node."""
+
+    name = "lsh"
+
+
+class Rsh(_BinaryOp):
+    """Right shift operator node."""
+
+    name = "rsh"
+
+
+class Cat(_PrefixOp):
+    """Concatenate operator node."""
+
+    name = "cat"
 
 
 class GetItem(_Op):
