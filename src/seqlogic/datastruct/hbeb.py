@@ -25,13 +25,11 @@ class Hbeb(Module):
         clock = self.input(name="clock", dtype=Vec[1])
         reset = self.input(name="reset", dtype=Vec[1])
 
+        # FIFO Control
         full = self.logic(name="full", dtype=Vec[1])
-        full_next = self.logic(name="full_next", dtype=Vec[1])
 
         rd_en = self.logic(name="rd_en", dtype=Vec[1])
         wr_en = self.logic(name="wr_en", dtype=Vec[1])
-
-        data = self.logic(name="data", dtype=self.T)
 
         # Convert ready/valid to FIFO
         self.assign(rd_valid, full)
@@ -41,9 +39,15 @@ class Hbeb(Module):
         self.expr(wr_en, wr_ready & wr_valid)
 
         # Control
+        full_next = self.logic(name="full_next", dtype=Vec[1])
         self.expr(full_next, ITE(full, ~rd_en, wr_en))
         self.dff_r(full, full_next, clock, reset, rval="1b0")
 
         # Data
+        data = self.logic(name="data", dtype=self.T)
+
+        # Read Port
         self.assign(rd_data, data)
+
+        # Write Port
         self.dff_en(data, wr_data, wr_en, clock)

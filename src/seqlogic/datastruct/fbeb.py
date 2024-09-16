@@ -5,7 +5,9 @@
 
 import operator
 
-from seqlogic import ITE, Module, Vec
+from seqlogic import Module, Vec
+
+from .fbeb_ctl import FbebCtl
 
 
 class Fbeb(Module):
@@ -30,40 +32,38 @@ class Fbeb(Module):
         rd_addr = self.logic(name="rd_addr", dtype=Vec[1])
         wr_addr = self.logic(name="wr_addr", dtype=Vec[1])
 
-        rd_addr_next = self.logic(name="rd_addr_next", dtype=Vec[1])
-        wr_addr_next = self.logic(name="wr_addr_next", dtype=Vec[1])
-
         empty = self.logic(name="empty", dtype=Vec[1])
         full = self.logic(name="full", dtype=Vec[1])
 
         rd_en = self.logic(name="rd_en", dtype=Vec[1])
         wr_en = self.logic(name="wr_en", dtype=Vec[1])
 
-        empty_next = self.logic(name="empty_next", dtype=Vec[1])
-        full_next = self.logic(name="full_next", dtype=Vec[1])
-
-        data = self.logic(name="data", dtype=self.T, shape=(2,))
-
-        # Convert ready/valid to FIFO
+        # Convert ready/valid to FIFO (full/push, empty/pop)
         self.expr(rd_valid, ~empty)
         self.expr(rd_en, rd_ready & rd_valid)
-
         self.expr(wr_ready, ~full)
         self.expr(wr_en, wr_ready & wr_valid)
 
         # Control
-        self.expr(empty_next, ITE(empty, ~wr_en, rd_en & ~wr_en & (rd_addr ^ wr_addr)))
-        self.expr(full_next, ITE(full, ~rd_en, ~rd_en & wr_en & (rd_addr ^ wr_addr)))
-
-        self.dff_r(empty, empty_next, clock, reset, rval="1b1")
-        self.dff_r(full, full_next, clock, reset, rval="1b0")
-
-        self.expr(rd_addr_next, ~rd_addr)
-        self.expr(wr_addr_next, ~wr_addr)
-
-        self.dff_en_r(rd_addr, rd_addr_next, rd_en, clock, reset, rval="1b0")
-        self.dff_en_r(wr_addr, wr_addr_next, wr_en, clock, reset, rval="1b0")
+        self.submod(
+            name="ctl",
+            mod=FbebCtl,
+        ).connect(
+            rd_addr=rd_addr,
+            wr_addr=wr_addr,
+            empty=empty,
+            full=full,
+            rd_en=rd_en,
+            wr_en=wr_en,
+            clock=clock,
+            reset=reset,
+        )
 
         # Data
+        data = self.logic(name="data", dtype=self.T, shape=(2,))
+
+        # Read Port
         self.combi(rd_data, operator.getitem, data, rd_addr)
+
+        # Write Port
         self.mem_wr_en(data, wr_addr, wr_data, wr_en, clock)
