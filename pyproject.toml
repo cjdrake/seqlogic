@@ -1,6 +1,6 @@
 [project]
 name = "seqlogic"
-version = "0.24.0"
+version = "0.25.0"
 description = "Sequential Logic"
 readme = "README.md"
 
