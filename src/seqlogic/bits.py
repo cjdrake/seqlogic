@@ -263,11 +263,11 @@ class Bits:
     # Note: Drop carry-out
     def __lshift__(self, n: Bits | str | int) -> Bits:
         n = _expect_shift(n, self.size)
-        return _lsh(self, n)[0]
+        return _lsh(self, n)
 
     def __rlshift__(self, other: Bits | str) -> Bits:
         other = _expect_type(other, Bits)
-        return _lsh(other, self)[0]
+        return _lsh(other, self)
 
     # Note: Drop carry-out
     def __rshift__(self, n: Bits | str | int) -> Bits:
@@ -1418,30 +1418,27 @@ def ngc(x: Bits | str) -> AddResult:
     return _neg(x)
 
 
-def _lsh(x: Bits, n: Bits) -> tuple[Bits, Empty | Scalar | Vector]:
+def _lsh(x: Bits, n: Bits) -> Bits:
     if n.has_x():
-        return x.xes(), _Empty
+        return x.xes()
     if n.has_dc():
-        return x.dcs(), _Empty
+        return x.dcs()
 
     n = n.to_uint()
     if n == 0:
-        return x, _Empty
+        return x
     if n > x.size:
         raise ValueError(f"Expected n ≤ {x.size}, got {n}")
-
-    so_size, (so0, so1) = x._get_slice(x.size - n, x.size)
-    so = _vec_size(so_size)(so0, so1)
 
     _, (sh0, sh1) = x._get_slice(0, x.size - n)
     d0 = _mask(n) | sh0 << n
     d1 = sh1 << n
     y = x._cast_data(d0, d1)
 
-    return ShiftResult(y, so)
+    return y
 
 
-def lsh(x: Bits | str, n: Bits | str | int) -> tuple[Bits, Empty | Scalar | Vector]:
+def lsh(x: Bits | str, n: Bits | str | int) -> Bits:
     """Left shift by n bits.
 
     Args:

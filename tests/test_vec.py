@@ -1086,23 +1086,23 @@ def test_vec_sxt():
 
 def test_vec_lsh():
     v = bits("4b1111")
-    y, co = lsh(v, 0)
-    assert y is v and co == E
-    assert lsh(v, 1) == ("4b1110", "1b1")
-    assert lsh(v, 2) == ("4b1100", "2b11")
+    y = lsh(v, 0)
+    assert y is v
+    assert lsh(v, 1) == "4b1110"
+    assert lsh(v, 2) == "4b1100"
     assert v << 2 == "4b1100"
     assert "4b1111" << bits("2b10") == "4b1100"
-    assert lsh(v, 3) == ("4b1000", "3b111")
-    assert lsh(v, 4) == ("4b0000", "4b1111")
+    assert lsh(v, 3) == "4b1000"
+    assert lsh(v, 4) == "4b0000"
 
     with pytest.raises(ValueError):
         lsh(v, -1)
     with pytest.raises(ValueError):
         lsh(v, 5)
 
-    assert lsh("2b01", "1bX") == (bits("2bXX"), E)
-    assert lsh("2b01", "1b-") == (bits("2b--"), E)
-    assert lsh("2b01", "1b1") == (bits("2b10"), F)
+    assert lsh("2b01", "1bX") == bits("2bXX")
+    assert lsh("2b01", "1b-") == bits("2b--")
+    assert lsh("2b01", "1b1") == bits("2b10")
 
 
 def test_vec_lrot():
