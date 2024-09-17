@@ -9,6 +9,7 @@ from collections.abc import Callable
 from .bits import (
     Bits,
     _lit2vec,
+    adc,
     add,
     and_,
     cat,
@@ -23,10 +24,12 @@ from .bits import (
     nand,
     ne,
     neg,
+    ngc,
     nor,
     not_,
     or_,
     rsh,
+    sbc,
     sub,
     xnor,
     xor,
@@ -120,8 +123,11 @@ class Expr:
             "ite": ite,
             "mux": mux,
             "add": add,
+            "adc": adc,
             "sub": sub,
+            "sbc": sbc,
             "neg": neg,
+            "ngc": ngc,
             "lsh": lsh,
             "rsh": rsh,
             "lt": lt,
@@ -293,16 +299,34 @@ class Add(_BinaryOp):
     name = "add"
 
 
+class Adc(_BinaryOp):
+    """ADC operator node."""
+
+    name = "adc"
+
+
 class Sub(_BinaryOp):
     """SUB operator node."""
 
     name = "sub"
 
 
+class Sbc(_BinaryOp):
+    """SBC operator node."""
+
+    name = "sbc"
+
+
 class Neg(_UnaryOp):
     """NEG operator node."""
 
     name = "neg"
+
+
+class Ngc(_UnaryOp):
+    """NGC operator node."""
+
+    name = "ngc"
 
 
 class Lsh(_BinaryOp):
