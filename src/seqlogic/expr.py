@@ -66,22 +66,22 @@ class Expr:
         return Not(self)
 
     def __or__(self, other: Expr | Bits | str) -> Or:
-        return Or(self, _arg_xbs(other))
+        return Or(self, other)
 
     def __ror__(self, other: Bits | str) -> Or:
-        return Or(_arg_bs(other), self)
+        return Or(other, self)
 
     def __and__(self, other: Expr | Bits | str) -> And:
-        return And(self, _arg_xbs(other))
+        return And(self, other)
 
     def __rand__(self, other: Bits | str) -> And:
-        return And(_arg_bs(other), self)
+        return And(other, self)
 
     def __xor__(self, other: Expr | Bits | str) -> Xor:
-        return Xor(self, _arg_xbs(other))
+        return Xor(self, other)
 
     def __rxor__(self, other: Bits | str) -> Xor:
-        return Xor(_arg_bs(other), self)
+        return Xor(other, self)
 
     def iter_vars(self):
         raise NotImplementedError()
