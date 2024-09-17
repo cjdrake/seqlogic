@@ -323,6 +323,42 @@ class Cat(_PrefixOp):
     name = "cat"
 
 
+class EQ(_BinaryOp):
+    """Equal (==) operator node."""
+
+    name = "eq"
+
+
+class NE(_BinaryOp):
+    """NotEqual (!=) operator node."""
+
+    name = "ne"
+
+
+class LT(_BinaryOp):
+    """LessThan (<) operator node."""
+
+    name = "lt"
+
+
+class LE(_BinaryOp):
+    """Less Than Or Equal (≤) operator node."""
+
+    name = "le"
+
+
+class GT(_BinaryOp):
+    """GreaterThan (>) operator node."""
+
+    name = "gt"
+
+
+class GE(_BinaryOp):
+    """Greater Than Or Equal (≥) operator node."""
+
+    name = "ge"
+
+
 class GetItem(_Op):
     """GetItem operator node."""
 
@@ -368,39 +404,3 @@ class GetAttr(_Op):
         v = self._xs[0]
         name = self._xs[1].value
         return f"{v}.{name}"
-
-
-class LT(_BinaryOp):
-    """LessThan (<) operator node."""
-
-    name = "lt"
-
-
-class LE(_BinaryOp):
-    """Less Than Or Equal (≤) operator node."""
-
-    name = "le"
-
-
-class EQ(_BinaryOp):
-    """Equal (==) operator node."""
-
-    name = "eq"
-
-
-class NE(_BinaryOp):
-    """NotEqual (!=) operator node."""
-
-    name = "ne"
-
-
-class GT(_BinaryOp):
-    """GreaterThan (>) operator node."""
-
-    name = "gt"
-
-
-class GE(_BinaryOp):
-    """Greater Than Or Equal (≥) operator node."""
-
-    name = "ge"

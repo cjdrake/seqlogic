@@ -924,6 +924,7 @@ class Union(metaclass=_UnionMeta):
     """Union Base Class: Create union."""
 
 
+# Bitwise
 def _not_(x: Bits) -> Bits:
     d0, d1 = lnot(x.data)
     return x._cast_data(d0, d1)
@@ -969,6 +970,28 @@ def not_(x: Bits | str) -> Bits:
     return _not_(x)
 
 
+def nor(x0: Bits | str, *xs: Bits | str) -> Bits:
+    """Bitwise NOR.
+
+    f(x0, x1) -> y:
+        0 0 => 1
+        1 - => 0
+        X - => X
+        - 0 => -
+
+    Args:
+        x0: Bits
+        x1: Bits of equal size.
+
+    Returns:
+        Bits of equal size, w/ NOR result.
+
+    Raises:
+        ValueError: Bits sizes do not match.
+    """
+    return _not_(or_(x0, *xs))
+
+
 def or_(x0: Bits | str, *xs: Bits | str) -> Bits:
     """Bitwise OR.
 
@@ -996,26 +1019,26 @@ def or_(x0: Bits | str, *xs: Bits | str) -> Bits:
     return y
 
 
-def nor(x0: Bits | str, *xs: Bits | str) -> Bits:
-    """Bitwise NOR.
+def nand(x0: Bits | str, *xs: Bits | str) -> Bits:
+    """Bitwise NAND.
 
     f(x0, x1) -> y:
-        0 0 => 1
-        1 - => 0
+        1 1 => 0
+        0 - => 1
         X - => X
-        - 0 => -
+        - 1 => -
 
     Args:
         x0: Bits
         x1: Bits of equal size.
 
     Returns:
-        Bits of equal size, w/ NOR result.
+        Bits of equal size, w/ NAND result.
 
     Raises:
         ValueError: Bits sizes do not match.
     """
-    return _not_(or_(x0, *xs))
+    return _not_(and_(x0, *xs))
 
 
 def and_(x0: Bits | str, *xs: Bits | str) -> Bits:
@@ -1045,13 +1068,16 @@ def and_(x0: Bits | str, *xs: Bits | str) -> Bits:
     return y
 
 
-def nand(x0: Bits | str, *xs: Bits | str) -> Bits:
-    """Bitwise NAND.
+def xnor(x0: Bits | str, *xs: Bits | str) -> Bits:
+    """Bitwise XNOR.
 
     f(x0, x1) -> y:
-        1 1 => 0
-        0 - => 1
+        0 0 => 1
+        0 1 => 0
+        1 0 => 0
+        1 1 => 1
         X - => X
+        - 0 => -
         - 1 => -
 
     Args:
@@ -1059,12 +1085,12 @@ def nand(x0: Bits | str, *xs: Bits | str) -> Bits:
         x1: Bits of equal size.
 
     Returns:
-        Bits of equal size, w/ NAND result.
+        Bits of equal size, w/ XNOR result.
 
     Raises:
         ValueError: Bits sizes do not match.
     """
-    return _not_(and_(x0, *xs))
+    return _not_(xor(x0, *xs))
 
 
 def xor(x0: Bits | str, *xs: Bits | str) -> Bits:
@@ -1095,31 +1121,6 @@ def xor(x0: Bits | str, *xs: Bits | str) -> Bits:
         x = _expect_size(x, x0.size)
         y = _xor_(y, x)
     return y
-
-
-def xnor(x0: Bits | str, *xs: Bits | str) -> Bits:
-    """Bitwise XNOR.
-
-    f(x0, x1) -> y:
-        0 0 => 1
-        0 1 => 0
-        1 0 => 0
-        1 1 => 1
-        X - => X
-        - 0 => -
-        - 1 => -
-
-    Args:
-        x0: Bits
-        x1: Bits of equal size.
-
-    Returns:
-        Bits of equal size, w/ XNOR result.
-
-    Raises:
-        ValueError: Bits sizes do not match.
-    """
-    return _not_(xor(x0, *xs))
 
 
 def _ite(s: Bits, x1: Bits, x0: Bits) -> Bits:
@@ -1201,6 +1202,7 @@ def mux(s: Bits | str, **xs: Bits | str) -> Bits:
     return _mux(s, t, i2x)
 
 
+# Unary
 def _uor(x: Bits) -> Scalar:
     y = _0
     for i in range(x.size):
@@ -1269,6 +1271,7 @@ def uxor(x: Bits | str) -> Scalar:
     return _uxor(x)
 
 
+# Arithmetic
 def decode(x: Bits | str) -> Scalar | Vector:
     """Decode dense encoding to sparse, one-hot encoding."""
     x = _expect_type(x, Bits)
@@ -1531,182 +1534,7 @@ def srsh(x: Bits | str, n: Bits | str | int) -> tuple[Bits, Empty | Scalar | Vec
     return _srsh(x, n)
 
 
-def _eq(x0: Bits, x1: Bits) -> Scalar:
-    return _uand(_xnor_(x0, x1))
-
-
-def eq(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Equal operator.
-
-    Args:
-        x1: Bits
-        x1: Bits of equal length.
-
-    Returns:
-        Scalar result of self == other
-    """
-    x0 = _expect_type(x0, Bits)
-    x1 = _expect_size(x1, x0.size)
-    return _eq(x0, x1)
-
-
-def _ne(x0: Bits, x1: Bits) -> Scalar:
-    return _uor(_xor_(x0, x1))
-
-
-def ne(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Not Equal operator.
-
-    Args:
-        x0: Bits
-        x1: Bits of equal length.
-
-    Returns:
-        Scalar result of self != other
-    """
-    x0 = _expect_type(x0, Bits)
-    x1 = _expect_size(x1, x0.size)
-    return _ne(x0, x1)
-
-
-def _cmp(op: Callable, x0: Bits, x1: Bits) -> Scalar:
-    # X/DC propagation
-    if x0.has_x() or x1.has_x():
-        return _ScalarX
-    if x0.has_dc() or x1.has_dc():
-        return _ScalarW
-    return _bool2scalar[op(x0.to_uint(), x1.to_uint())]
-
-
-def lt(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Unsigned less than operator.
-
-    Args:
-        x0: Bits
-        x1: Bits of equal length.
-
-    Returns:
-        Scalar result of unsigned(x0) < unsigned(x1)
-    """
-    x0 = _expect_type(x0, Bits)
-    x1 = _expect_size(x1, x0.size)
-    return _cmp(operator.lt, x0, x1)
-
-
-def le(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Unsigned less than or equal operator.
-
-    Args:
-        x0: Bits
-        x1: Bits of equal length.
-
-    Returns:
-        Scalar result of unsigned(x0) ≤ unsigned(x1)
-    """
-    x0 = _expect_type(x0, Bits)
-    x1 = _expect_size(x1, x0.size)
-    return _cmp(operator.le, x0, x1)
-
-
-def gt(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Unsigned greater than operator.
-
-    Args:
-        x0: Bits
-        x1: Bits of equal length.
-
-    Returns:
-        Scalar result of unsigned(x0) > unsigned(x1)
-    """
-    x0 = _expect_type(x0, Bits)
-    x1 = _expect_size(x1, x0.size)
-    return _cmp(operator.gt, x0, x1)
-
-
-def ge(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Unsigned greater than or equal operator.
-
-    Args:
-        x0: Bits
-        x1: Bits of equal length.
-
-    Returns:
-        Scalar result of unsigned(x0) ≥ unsigned(x1)
-    """
-    x0 = _expect_type(x0, Bits)
-    x1 = _expect_size(x1, x0.size)
-    return _cmp(operator.ge, x0, x1)
-
-
-def _scmp(op: Callable, x0: Bits, x1: Bits) -> Scalar:
-    # X/DC propagation
-    if x0.has_x() or x1.has_x():
-        return _ScalarX
-    if x0.has_dc() or x1.has_dc():
-        return _ScalarW
-    return _bool2scalar[op(x0.to_int(), x1.to_int())]
-
-
-def slt(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Signed less than operator.
-
-    Args:
-        x0: Bits
-        x1: Bits of equal length.
-
-    Returns:
-        Scalar result of signed(x0) < signed(x1)
-    """
-    x0 = _expect_type(x0, Bits)
-    x1 = _expect_size(x1, x0.size)
-    return _scmp(operator.lt, x0, x1)
-
-
-def sle(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Signed less than or equal operator.
-
-    Args:
-        x0: Bits
-        x1: Bits of equal length.
-
-    Returns:
-        Scalar result of signed(x0) ≤ signed(x1)
-    """
-    x0 = _expect_type(x0, Bits)
-    x1 = _expect_size(x1, x0.size)
-    return _scmp(operator.le, x0, x1)
-
-
-def sgt(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Signed greater than operator.
-
-    Args:
-        x0: Bits
-        x1: Bits of equal length.
-
-    Returns:
-        Scalar result of signed(x0) > signed(x1)
-    """
-    x0 = _expect_type(x0, Bits)
-    x1 = _expect_size(x1, x0.size)
-    return _scmp(operator.gt, x0, x1)
-
-
-def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Signed greater than or equal operator.
-
-    Args:
-        x0: Bits
-        x1: Bits of equal length.
-
-    Returns:
-        Scalar result of signed(x0) ≥ signed(x1)
-    """
-    x0 = _expect_type(x0, Bits)
-    x1 = _expect_size(x1, x0.size)
-    return _scmp(operator.ge, x0, x1)
-
-
+# Word operations
 def _xt(x: Bits, n: int) -> Vector:
     ext0 = _mask(n)
     d0 = x.data[0] | ext0 << x.size
@@ -1885,6 +1713,183 @@ def rep(obj: Bits | int | str, n: int) -> Empty | Scalar | Vector:
     """Repeat a Vector n times."""
     objs = [obj] * n
     return cat(*objs)
+
+
+# Predicates over bitvectors
+def _eq(x0: Bits, x1: Bits) -> Scalar:
+    return _uand(_xnor_(x0, x1))
+
+
+def eq(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Equal operator.
+
+    Args:
+        x1: Bits
+        x1: Bits of equal length.
+
+    Returns:
+        Scalar result of self == other
+    """
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _eq(x0, x1)
+
+
+def _ne(x0: Bits, x1: Bits) -> Scalar:
+    return _uor(_xor_(x0, x1))
+
+
+def ne(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Not Equal operator.
+
+    Args:
+        x0: Bits
+        x1: Bits of equal length.
+
+    Returns:
+        Scalar result of self != other
+    """
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _ne(x0, x1)
+
+
+def _cmp(op: Callable, x0: Bits, x1: Bits) -> Scalar:
+    # X/DC propagation
+    if x0.has_x() or x1.has_x():
+        return _ScalarX
+    if x0.has_dc() or x1.has_dc():
+        return _ScalarW
+    return _bool2scalar[op(x0.to_uint(), x1.to_uint())]
+
+
+def lt(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Unsigned less than operator.
+
+    Args:
+        x0: Bits
+        x1: Bits of equal length.
+
+    Returns:
+        Scalar result of unsigned(x0) < unsigned(x1)
+    """
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _cmp(operator.lt, x0, x1)
+
+
+def le(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Unsigned less than or equal operator.
+
+    Args:
+        x0: Bits
+        x1: Bits of equal length.
+
+    Returns:
+        Scalar result of unsigned(x0) ≤ unsigned(x1)
+    """
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _cmp(operator.le, x0, x1)
+
+
+def gt(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Unsigned greater than operator.
+
+    Args:
+        x0: Bits
+        x1: Bits of equal length.
+
+    Returns:
+        Scalar result of unsigned(x0) > unsigned(x1)
+    """
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _cmp(operator.gt, x0, x1)
+
+
+def ge(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Unsigned greater than or equal operator.
+
+    Args:
+        x0: Bits
+        x1: Bits of equal length.
+
+    Returns:
+        Scalar result of unsigned(x0) ≥ unsigned(x1)
+    """
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _cmp(operator.ge, x0, x1)
+
+
+def _scmp(op: Callable, x0: Bits, x1: Bits) -> Scalar:
+    # X/DC propagation
+    if x0.has_x() or x1.has_x():
+        return _ScalarX
+    if x0.has_dc() or x1.has_dc():
+        return _ScalarW
+    return _bool2scalar[op(x0.to_int(), x1.to_int())]
+
+
+def slt(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Signed less than operator.
+
+    Args:
+        x0: Bits
+        x1: Bits of equal length.
+
+    Returns:
+        Scalar result of signed(x0) < signed(x1)
+    """
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _scmp(operator.lt, x0, x1)
+
+
+def sle(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Signed less than or equal operator.
+
+    Args:
+        x0: Bits
+        x1: Bits of equal length.
+
+    Returns:
+        Scalar result of signed(x0) ≤ signed(x1)
+    """
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _scmp(operator.le, x0, x1)
+
+
+def sgt(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Signed greater than operator.
+
+    Args:
+        x0: Bits
+        x1: Bits of equal length.
+
+    Returns:
+        Scalar result of signed(x0) > signed(x1)
+    """
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _scmp(operator.gt, x0, x1)
+
+
+def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Signed greater than or equal operator.
+
+    Args:
+        x0: Bits
+        x1: Bits of equal length.
+
+    Returns:
+        Scalar result of signed(x0) ≥ signed(x1)
+    """
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+    return _scmp(operator.ge, x0, x1)
 
 
 _LIT_PREFIX_RE = re.compile(r"(?P<Size>[1-9][0-9]*)(?P<Base>[bdh])")

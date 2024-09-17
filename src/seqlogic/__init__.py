@@ -131,10 +131,10 @@ __all__ = [
     "cat",
     "rep",
     # bits: predicate
-    "lt",
-    "le",
     "eq",
     "ne",
+    "lt",
+    "le",
     "gt",
     "ge",
     "slt",
