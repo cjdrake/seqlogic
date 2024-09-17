@@ -1242,7 +1242,7 @@ ADD_VALS = [
 def test_vec_add():
     """Test bits add method."""
     for a, b, ci, s, co in ADD_VALS:
-        assert adc(a, b, ci) == (s, co)
+        assert adc(a, b, ci) == cat(s, co)
         assert add(a, b, ci) == s
         if ci == F:
             assert bits(a) + b == cat(s, co)
@@ -1275,7 +1275,7 @@ SUB_VALS = [
 
 def test_vec_sub():
     for a, b, s, co in SUB_VALS:
-        assert sbc(a, b) == (s, co)
+        assert sbc(a, b) == cat(s, co)
         assert sub(a, b) == s
         assert bits(a) - b == cat(s, co)
         assert a - bits(b) == cat(s, co)

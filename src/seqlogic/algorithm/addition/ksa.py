@@ -1,6 +1,5 @@
 """Kogge Stone Addition (KSA)."""
 
-from ...bits import AddResult
 from ...bits import Vector as Vec
 from ...bits import cat
 from ...util import clog2
@@ -26,4 +25,7 @@ def adc(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
         c.append(g[i] | c[i] & p[i])
     c, co = cat(*c[:n]), c[n]
 
-    return AddResult(a ^ b ^ c, co)
+    # Sum
+    s = a ^ b ^ c
+
+    return s, co

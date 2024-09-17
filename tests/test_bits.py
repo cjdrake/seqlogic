@@ -122,14 +122,14 @@ def test_xor():
 def test_add():
     b0 = bits(["4b1010", "4b0101"])
     b1 = bits(["4b0101", "4b1010"])
-    assert str(adc(b0, b1).s) == "[4b1111, 4b1111]"
+    assert str(adc(b0, b1)) == "9b0_1111_1111"
     assert str(add(b0, b1)) == "[4b1111, 4b1111]"
 
 
 def test_sub():
     b0 = bits(["4b1111", "4b1111"])
     b1 = bits(["4b0101", "4b1010"])
-    assert str(sbc(b0, b1).s) == "[4b1010, 4b0101]"
+    assert str(sbc(b0, b1)) == "9b1_0101_1010"
     assert str(sub(b0, b1)) == "[4b1010, 4b0101]"
 
 

@@ -1,7 +1,6 @@
 """Sequential Logic."""
 
 from .bits import (
-    AddResult,
     Array,
     Bits,
     Empty,
@@ -87,7 +86,6 @@ Vec = Vector
 
 __all__ = [
     # bits
-    "AddResult",
     "Bits",
     "Empty",
     "Scalar",

@@ -17,7 +17,6 @@ import math
 import operator
 import random
 import re
-from collections import namedtuple
 from collections.abc import Callable, Generator
 from functools import cache, partial
 
@@ -38,8 +37,6 @@ from .lbool import (
     to_vcd_char,
 )
 from .util import classproperty, clog2
-
-AddResult = namedtuple("AddResult", ["s", "co"])
 
 
 @cache
@@ -1327,7 +1324,7 @@ def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
     return s
 
 
-def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> AddResult:
+def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
     """Addition with carry-in, and carry-out.
 
     Args:
@@ -1345,12 +1342,11 @@ def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> AddResu
     b = _expect_size(b, a.size)
     ci = _Scalar0 if ci is None else _expect_type(ci, Scalar)
     s, co = _add(a, b, ci)
-    return AddResult(s, co)
+    return cat(s, co)
 
 
-def _sub(a: Bits, b: Bits) -> AddResult:
-    s, co = _add(a, _not_(b), ci=_Scalar1)
-    return AddResult(s, co)
+def _sub(a: Bits, b: Bits) -> tuple[Bits, Scalar]:
+    return _add(a, _not_(b), ci=_Scalar1)
 
 
 def sub(a: Bits | str, b: Bits | str) -> Bits:
@@ -1372,7 +1368,7 @@ def sub(a: Bits | str, b: Bits | str) -> Bits:
     return s
 
 
-def sbc(a: Bits | str, b: Bits | str) -> AddResult:
+def sbc(a: Bits | str, b: Bits | str) -> Bits:
     """Twos complement subtraction, with carry-out.
 
     Args:
@@ -1387,12 +1383,12 @@ def sbc(a: Bits | str, b: Bits | str) -> AddResult:
     """
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)
-    return _sub(a, b)
+    s, co = _sub(a, b)
+    return cat(s, co)
 
 
-def _neg(x: Bits) -> AddResult:
-    s, co = _add(x.zeros(), _not_(x), ci=_Scalar1)
-    return AddResult(s, co)
+def _neg(x: Bits) -> tuple[Bits, Scalar]:
+    return _add(x.zeros(), _not_(x), ci=_Scalar1)
 
 
 def neg(x: Bits | str) -> Bits:
@@ -1408,7 +1404,7 @@ def neg(x: Bits | str) -> Bits:
     return s
 
 
-def ngc(x: Bits | str) -> AddResult:
+def ngc(x: Bits | str) -> Bits:
     """Twos complement negation, with carry-out.
 
     Computed using 0 - x.
@@ -1417,7 +1413,8 @@ def ngc(x: Bits | str) -> AddResult:
         2-tuple of (sum, carry-out).
     """
     x = _expect_type(x, Bits)
-    return _neg(x)
+    s, co = _neg(x)
+    return cat(s, co)
 
 
 def _lsh(x: Bits, n: Bits) -> Bits:
@@ -2142,7 +2139,8 @@ def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
 
     x = _vec_size(size)(d1 ^ _mask(size), d1)
     if negative:
-        return _neg(x).s
+        s, _ = _neg(x)
+        return s
     return x
 
 

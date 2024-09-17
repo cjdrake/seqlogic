@@ -1,6 +1,5 @@
 """Ripple Carry Addition (RCA)."""
 
-from ...bits import AddResult
 from ...bits import Vector as Vec
 from ...bits import cat
 from ...design import Module
@@ -18,7 +17,10 @@ def adc(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
         c.append(a_i & b_i | c[i] & (a_i | b_i))
     c, co = cat(*c[:n]), c[n]
 
-    return AddResult(a ^ b ^ c, co)
+    # Sum
+    s = a ^ b ^ c
+
+    return s, co
 
 
 class RCA(Module):
