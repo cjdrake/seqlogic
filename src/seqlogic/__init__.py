@@ -79,12 +79,14 @@ from .expr import (
     Rsh,
     Srsh,
     Sub,
+    Sxt,
     Uand,
     Uor,
     Uxnor,
     Uxor,
     Xnor,
     Xor,
+    Xt,
 )
 from .sim import Region, Sim, changed, finish, get_loop, resume, sleep
 from .util import clog2
@@ -177,6 +179,8 @@ __all__ = [
     "Lsh",
     "Rsh",
     "Srsh",
+    "Xt",
+    "Sxt",
     "Lrot",
     "Rrot",
     "Cat",

@@ -34,12 +34,14 @@ from .bits import (
     sbc,
     srsh,
     sub,
+    sxt,
     uand,
     uor,
     uxnor,
     uxor,
     xnor,
     xor,
+    xt,
 )
 
 
@@ -155,6 +157,8 @@ class Expr:
             "lsh": lsh,
             "rsh": rsh,
             "srsh": srsh,
+            "xt": xt,
+            "sxt": sxt,
             "lrot": lrot,
             "rrot": rrot,
             "cat": cat,
@@ -441,6 +445,32 @@ class Srsh(_ShOp):
     """Signed right shift operator node."""
 
     name = "srsh"
+
+
+class Xt(_PrefixOp):
+    """Zero extend operator node."""
+
+    name = "xt"
+
+    def __init__(self, x: Expr | Bits | str, n: int):
+        if isinstance(n, int):
+            n = IntConst(n)
+        else:
+            raise TypeError(f"Invalid input: {n}")
+        self._xs = (_arg_xbs(x), n)
+
+
+class Sxt(_PrefixOp):
+    """Sign extend operator node."""
+
+    name = "sxt"
+
+    def __init__(self, x: Expr | Bits | str, n: int):
+        if isinstance(n, int):
+            n = IntConst(n)
+        else:
+            raise TypeError(f"Invalid input: {n}")
+        self._xs = (_arg_xbs(x), n)
 
 
 class Lrot(_ShOp):
