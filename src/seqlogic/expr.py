@@ -30,6 +30,7 @@ from .bits import (
     or_,
     rsh,
     sbc,
+    srsh,
     sub,
     xnor,
     xor,
@@ -44,6 +45,19 @@ def _arg_xbs(obj: Expr | Bits | str) -> Expr:
     if isinstance(obj, str):
         v = _lit2vec(obj)
         return BitsConst(v)
+    raise TypeError(f"Invalid input: {obj}")
+
+
+def _arg_xbsi(obj: Expr | Bits | str | int) -> Expr:
+    if isinstance(obj, Expr):
+        return obj
+    if isinstance(obj, Bits):
+        return BitsConst(obj)
+    if isinstance(obj, str):
+        v = _lit2vec(obj)
+        return BitsConst(v)
+    if isinstance(obj, int):
+        return Const(obj)
     raise TypeError(f"Invalid input: {obj}")
 
 
@@ -130,13 +144,14 @@ class Expr:
             "ngc": ngc,
             "lsh": lsh,
             "rsh": rsh,
+            "srsh": srsh,
+            "cat": cat,
             "lt": lt,
             "le": le,
             "eq": eq,
             "ne": ne,
             "gt": gt,
             "ge": ge,
-            "cat": cat,
         }
         locals_ = {}
         exec(source, globals_, locals_)
@@ -189,9 +204,6 @@ class Variable(_Atom):
 class _Op(Expr):
     """Variable node."""
 
-    def __init__(self, *objs: Expr | Bits | str):
-        self._xs = tuple(_arg_xbs(obj) for obj in objs)
-
     def iter_vars(self):
         for x in self._xs:
             yield from x.iter_vars()
@@ -207,21 +219,28 @@ class _PrefixOp(_Op):
         return f"{self.name}({s})"
 
 
-class _UnaryOp(_PrefixOp):
+class _NaryOp(_PrefixOp):
+    """N-ary operator: f(x0, x1, ..., x[n-1])"""
+
+    def __init__(self, *objs: Expr | Bits | str):
+        self._xs = tuple(_arg_xbs(obj) for obj in objs)
+
+
+class _UnaryOp(_NaryOp):
     """Unary operator: f(x)"""
 
     def __init__(self, x: Expr | Bits | str):
         super().__init__(x)
 
 
-class _BinaryOp(_PrefixOp):
+class _BinaryOp(_NaryOp):
     """Binary operator: f(x0, x1)"""
 
     def __init__(self, x0: Expr | Bits | str, x1: Expr | Bits | str):
         super().__init__(x0, x1)
 
 
-class _TernaryOp(_PrefixOp):
+class _TernaryOp(_NaryOp):
     """Ternary operator: f(x0, x1, x2)"""
 
     def __init__(self, x0: Expr | Bits | str, x1: Expr | Bits | str, x2: Expr | Bits | str):
@@ -234,37 +253,37 @@ class Not(_UnaryOp):
     name = "not_"
 
 
-class Nor(_PrefixOp):
+class Nor(_NaryOp):
     """NOR operator node."""
 
     name = "nor"
 
 
-class Or(_PrefixOp):
+class Or(_NaryOp):
     """OR operator node."""
 
     name = "or_"
 
 
-class Nand(_PrefixOp):
+class Nand(_NaryOp):
     """NAND operator node."""
 
     name = "nand"
 
 
-class And(_PrefixOp):
+class And(_NaryOp):
     """AND operator node."""
 
     name = "and_"
 
 
-class Xnor(_PrefixOp):
+class Xnor(_NaryOp):
     """XNOR operator node."""
 
     name = "xnor"
 
 
-class Xor(_PrefixOp):
+class Xor(_NaryOp):
     """XOR operator node."""
 
     name = "xor"
@@ -293,25 +312,47 @@ class Mux(Expr):
             yield from x.iter_vars()
 
 
-class Add(_BinaryOp):
+class _AddOp(_PrefixOp):
+    """Add or Adc operator node."""
+
+    def __init__(
+        self,
+        a: Expr | Bits | str,
+        b: Expr | Bits | str,
+        ci: Expr | Bits | str | None = None,
+    ):
+        xs = [_arg_xbs(a), _arg_xbs(b)]
+        if ci is not None:
+            xs.append(_arg_xbs(ci))
+        self._xs = tuple(xs)
+
+
+class Add(_AddOp):
     """ADD operator node."""
 
     name = "add"
 
 
-class Adc(_BinaryOp):
+class Adc(_AddOp):
     """ADC operator node."""
 
     name = "adc"
 
 
-class Sub(_BinaryOp):
+class _SubOp(_PrefixOp):
+    """Sub or Sbc operator node."""
+
+    def __init__(self, a: Expr | Bits | str, b: Expr | Bits | str):
+        self._xs = (_arg_xbs(a), _arg_xbs(b))
+
+
+class Sub(_SubOp):
     """SUB operator node."""
 
     name = "sub"
 
 
-class Sbc(_BinaryOp):
+class Sbc(_SubOp):
     """SBC operator node."""
 
     name = "sbc"
@@ -329,19 +370,32 @@ class Ngc(_UnaryOp):
     name = "ngc"
 
 
-class Lsh(_BinaryOp):
+class _ShOp(_PrefixOp):
+    """Shift operator node."""
+
+    def __init__(self, x: Expr | Bits | str, n: Expr | Bits | str | int):
+        self._xs = (_arg_xbs(x), _arg_xbsi(n))
+
+
+class Lsh(_ShOp):
     """Left shift operator node."""
 
     name = "lsh"
 
 
-class Rsh(_BinaryOp):
+class Rsh(_ShOp):
     """Right shift operator node."""
 
     name = "rsh"
 
 
-class Cat(_PrefixOp):
+class Srsh(_ShOp):
+    """Signed right shift operator node."""
+
+    name = "srsh"
+
+
+class Cat(_NaryOp):
     """Concatenate operator node."""
 
     name = "cat"
@@ -393,7 +447,7 @@ class GetItem(_Op):
             key = Const(obj)
         else:
             raise TypeError(f"Invalid input: {obj}")
-        super().__init__(x, key)
+        self._xs = (x, key)
 
     def __str__(self) -> str:
         x = self._xs[0]
@@ -422,7 +476,7 @@ class GetAttr(_Op):
             name = Const(obj)
         else:
             raise TypeError(f"Invalid input: {obj}")
-        super().__init__(v, name)
+        self._xs = (v, name)
 
     def __str__(self) -> str:
         v = self._xs[0]
