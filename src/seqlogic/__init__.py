@@ -53,7 +53,7 @@ from .bits import (
     xor,
     xt,
 )
-from .design import Module, Packed, Unpacked
+from .design import DesignError, Module, Packed, Unpacked
 from .expr import (
     EQ,
     GE,
@@ -147,6 +147,7 @@ __all__ = [
     "u2bv",
     "i2bv",
     # design
+    "DesignError",
     "Module",
     "Packed",
     "Unpacked",

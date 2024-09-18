@@ -141,6 +141,9 @@ class Module(metaclass=_ModuleMeta):
     def input(self, name: str, dtype: type[Bits]) -> Packed:
         # Require valid port name and type
         self._check_name(name)
+        # Require ports to have unique name
+        if hasattr(self, name):
+            raise DesignError(f"Invalid input port name: {name}")
         # Create port
         node = Packed(name, parent=self, dtype=dtype)
         # Mark port unconnected
@@ -152,6 +155,9 @@ class Module(metaclass=_ModuleMeta):
     def output(self, name: str, dtype: type[Bits]) -> Packed:
         # Require valid port name and type
         self._check_name(name)
+        # Require ports to have unique name
+        if hasattr(self, name):
+            raise DesignError(f"Invalid output port name: {name}")
         # Create port
         node = Packed(name, parent=self, dtype=dtype)
         # Mark port unconnected
@@ -163,7 +169,7 @@ class Module(metaclass=_ModuleMeta):
     def _connect_input(self, name: str, rhs):
         y = getattr(self, name)
         if self._inputs[name]:
-            raise DesignError(f"Input Port {name} already connected")
+            raise DesignError(f"Input port {name} already connected")
         match rhs:
             # y = x
             case Packed() as x:
@@ -175,14 +181,14 @@ class Module(metaclass=_ModuleMeta):
             case [Callable() as f, *xs]:
                 self.combi(y, f, *xs)
             case _:
-                raise DesignError(f"Input Port {name} invalid connection")
+                raise DesignError(f"Input port {name} invalid connection")
         # Mark port connected
         self._inputs[name] = True
 
     def _connect_output(self, name: str, rhs):
         x = getattr(self, name)
         if self._outputs[name]:
-            raise DesignError(f"Output Port {name} already connected")
+            raise DesignError(f"Output port {name} already connected")
         match rhs:
             # x = y
             case Packed() as y:
@@ -191,7 +197,7 @@ class Module(metaclass=_ModuleMeta):
             case [Callable() as f, *ys]:
                 self.combi(ys, f, x)
             case _:
-                raise DesignError(f"Output Port {name} invalid connection")
+                raise DesignError(f"Output port {name} invalid connection")
         # Mark port connected
         self._outputs[name] = True
 
@@ -204,7 +210,7 @@ class Module(metaclass=_ModuleMeta):
             elif name in self._outputs:
                 self._connect_output(name, rhs)
             else:
-                raise DesignError(f"Invalid port: {name}")
+                raise DesignError(f"Invalid port connection: {name}")
 
     def logic(
         self,
@@ -212,20 +218,34 @@ class Module(metaclass=_ModuleMeta):
         dtype: type[Bits],
         shape: tuple[int, ...] | None = None,
     ) -> Packed | Unpacked:
+        # Require valid logic name
         self._check_name(name)
+        local_name = f"_{name}"
+        # Require logic to have unique name
+        if hasattr(self, local_name):
+            raise DesignError(f"Invalid logic name: {name}")
+        # Create logic
         if shape is None:
             node = Packed(name, parent=self, dtype=dtype)
         else:
             # TODO(cjdrake): Support > 1 unpacked dimensions
             assert len(shape) == 1
             node = Unpacked(name, parent=self, dtype=dtype)
-        setattr(self, f"_{name}", node)
+        # Save logic in module namespace
+        setattr(self, local_name, node)
         return node
 
     def submod(self, name: str, mod: type[Module], **params) -> Module:
+        # Require valid submodule name
         self._check_name(name)
+        local_name = f"_{name}"
+        # Require submodule to have unique name
+        if hasattr(self, local_name):
+            raise DesignError(f"Invalid submodule name: {name}")
+        # Create submodule
         node = mod(name, parent=self, **params)
-        setattr(self, f"_{name}", node)
+        # Save submodule in module namespace
+        setattr(self, local_name, node)
         return node
 
     def drv(self, coro: Coroutine):
