@@ -63,7 +63,7 @@ def _arg_xbsi(obj: Expr | Bits | str | int) -> Expr:
         v = _lit2vec(obj)
         return BitsConst(v)
     if isinstance(obj, int):
-        return Const(obj)
+        return IntConst(obj)
     raise TypeError(f"Invalid input: {obj}")
 
 
@@ -85,7 +85,7 @@ class Expr:
     def __str__(self) -> str:
         raise NotImplementedError()
 
-    def __getitem__(self, key: Const | int | slice) -> GetItem:
+    def __getitem__(self, key: int | slice) -> GetItem:
         return GetItem(self, key)
 
     def __invert__(self) -> Not:
@@ -193,6 +193,13 @@ class BitsConst(Const):
 
     def __str__(self) -> str:
         return f'"{self._value}"'
+
+
+class IntConst(Const):
+    """Integer node."""
+
+    def __str__(self) -> str:
+        return str(self._value)
 
 
 class Variable(_Atom):
@@ -493,10 +500,8 @@ class GE(_BinaryOp):
 class GetItem(_Op):
     """GetItem operator node."""
 
-    def __init__(self, x: Expr, obj: Const | int | slice):
-        if isinstance(obj, Const):
-            key = obj
-        elif isinstance(obj, (int, slice)):
+    def __init__(self, x: Expr, obj: int | slice):
+        if isinstance(obj, (int, slice)):
             key = Const(obj)
         else:
             raise TypeError(f"Invalid input: {obj}")
@@ -522,10 +527,8 @@ class GetItem(_Op):
 class GetAttr(_Op):
     """GetAttr operator node."""
 
-    def __init__(self, v: Variable, obj: Const | str):
-        if isinstance(obj, Const):
-            name = obj
-        elif isinstance(obj, str):
+    def __init__(self, v: Variable, obj: str):
+        if isinstance(obj, str):
             name = Const(obj)
         else:
             raise TypeError(f"Invalid input: {obj}")
