@@ -18,6 +18,7 @@ from .bits import (
     gt,
     ite,
     le,
+    lrot,
     lsh,
     lt,
     mux,
@@ -28,6 +29,7 @@ from .bits import (
     nor,
     not_,
     or_,
+    rrot,
     rsh,
     sbc,
     srsh,
@@ -145,6 +147,8 @@ class Expr:
             "lsh": lsh,
             "rsh": rsh,
             "srsh": srsh,
+            "lrot": lrot,
+            "rrot": rrot,
             "cat": cat,
             "lt": lt,
             "le": le,
@@ -243,7 +247,12 @@ class _BinaryOp(_NaryOp):
 class _TernaryOp(_NaryOp):
     """Ternary operator: f(x0, x1, x2)"""
 
-    def __init__(self, x0: Expr | Bits | str, x1: Expr | Bits | str, x2: Expr | Bits | str):
+    def __init__(
+        self,
+        x0: Expr | Bits | str,
+        x1: Expr | Bits | str,
+        x2: Expr | Bits | str,
+    ):
         super().__init__(x0, x1, x2)
 
 
@@ -393,6 +402,18 @@ class Srsh(_ShOp):
     """Signed right shift operator node."""
 
     name = "srsh"
+
+
+class Lrot(_ShOp):
+    """Left rotate operator node."""
+
+    name = "lrot"
+
+
+class Rrot(_ShOp):
+    """Right rotate operator node."""
+
+    name = "rrot"
 
 
 class Cat(_NaryOp):
