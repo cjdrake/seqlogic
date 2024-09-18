@@ -1,23 +1,8 @@
 """Data Memory Interface."""
 
-from seqlogic import Cat, Module, Vec, cat, rep
+from seqlogic import Cat, Module, Mux, Vec, cat, rep
 
 from . import Addr
-
-
-def f_bus_wr_be(data_format: Vec[3], byte_addr: Vec[2]):
-    sel = data_format[:2]
-    match sel:
-        case "2b00":
-            return "4b0001" << byte_addr
-        case "2b01":
-            return "4b0011" << byte_addr
-        case "2b10":
-            return "4b1111" << byte_addr
-        case "2b11":
-            return "4b0000"
-        case _:
-            return Vec[4].xprop(sel)
 
 
 def f_rd_data(data_format: Vec[3], bus_rd_data: Vec[32], byte_addr: Vec[2]) -> Vec[32]:
@@ -63,7 +48,16 @@ class DataMemIf(Module):
         self.assign(bus_rd_en, rd_en)
 
         # Combinational Logic
-        self.combi(bus_wr_be, f_bus_wr_be, data_format, byte_addr)
+        self.expr(
+            bus_wr_be,
+            Mux(
+                data_format[:2],
+                x0=("4b0001" << byte_addr),
+                x1=("4b0011" << byte_addr),
+                x2=("4b1111" << byte_addr),
+                x3="4b0000",
+            ),
+        )
         self.expr(bus_wr_data, wr_data << Cat("3b000", byte_addr))
         self.combi(rd_data, f_rd_data, data_format, bus_rd_data, byte_addr)
         self.expr(byte_addr, addr[:2])
