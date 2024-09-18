@@ -65,8 +65,8 @@ class Expr:
     def __str__(self) -> str:
         raise NotImplementedError()
 
-    def __getitem__(self, key: int | slice) -> GetItem:
-        return GetItem(self, Const(key))
+    def __getitem__(self, key: Const | int | slice) -> GetItem:
+        return GetItem(self, key)
 
     def __invert__(self) -> Not:
         return Not(self)
@@ -390,7 +390,7 @@ class GetItem(_Op):
         if isinstance(obj, Const):
             key = obj
         elif isinstance(obj, (int, slice)):
-            key = obj
+            key = Const(obj)
         else:
             raise TypeError(f"Invalid input: {obj}")
         super().__init__(x, key)
