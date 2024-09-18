@@ -34,6 +34,10 @@ from .bits import (
     sbc,
     srsh,
     sub,
+    uand,
+    uor,
+    uxnor,
+    uxor,
     xnor,
     xor,
 )
@@ -138,6 +142,10 @@ class Expr:
             "xor": xor,
             "ite": ite,
             "mux": mux,
+            "uor": uor,
+            "uand": uand,
+            "uxnor": uxnor,
+            "uxor": uxor,
             "add": add,
             "adc": adc,
             "sub": sub,
@@ -319,6 +327,30 @@ class Mux(Expr):
         yield from self._s.iter_vars()
         for x in self._xs.values():
             yield from x.iter_vars()
+
+
+class Uor(_UnaryOp):
+    """Unary OR reduction operator node."""
+
+    name = "uor"
+
+
+class Uand(_UnaryOp):
+    """Unary AND reduction operator node."""
+
+    name = "uand"
+
+
+class Uxnor(_UnaryOp):
+    """Unary XNOR reduction operator node."""
+
+    name = "uxnor"
+
+
+class Uxor(_UnaryOp):
+    """Unary XOR reduction operator node."""
+
+    name = "uxor"
 
 
 class _AddOp(_PrefixOp):
