@@ -32,5 +32,4 @@ def test_bin2gray():
 def test_gray2bin():
     """Test gray2bin function."""
     for b, g in enumerate(B2G_EXP):
-        temp = gray2bin(u2bv(g, 4)).to_uint()
-        assert temp == b
+        assert gray2bin(u2bv(g, 4)).to_uint() == b
