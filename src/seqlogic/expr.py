@@ -29,6 +29,7 @@ from .bits import (
     nor,
     not_,
     or_,
+    rep,
     rrot,
     rsh,
     sbc,
@@ -162,6 +163,7 @@ class Expr:
             "lrot": lrot,
             "rrot": rrot,
             "cat": cat,
+            "rep": rep,
             "lt": lt,
             "le": le,
             "eq": eq,
@@ -489,6 +491,19 @@ class Cat(_NaryOp):
     """Concatenate operator node."""
 
     name = "cat"
+
+
+class Rep(_PrefixOp):
+    """Repeat operator node."""
+
+    name = "rep"
+
+    def __init__(self, x: Expr | Bits | str, n: int):
+        if isinstance(n, int):
+            n = IntConst(n)
+        else:
+            raise TypeError(f"Invalid input: {n}")
+        self._xs = (_arg_xbs(x), n)
 
 
 class EQ(_BinaryOp):
