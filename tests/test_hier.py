@@ -1,4 +1,4 @@
-"""Test hierarchy module."""
+"""Test seqlogic.hier module."""
 
 from seqlogic.hier import Branch, Leaf
 
