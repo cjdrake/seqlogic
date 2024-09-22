@@ -18,17 +18,9 @@ from . import (
 
 def f_take_branch(funct3: Funct3, alu_result_eq_zero: Vec[1]) -> Vec[1]:
     match funct3.branch:
-        case Funct3Branch.EQ:
+        case Funct3Branch.EQ | Funct3Branch.LT | Funct3Branch.LTU:
             return ~alu_result_eq_zero
-        case Funct3Branch.NE:
-            return alu_result_eq_zero
-        case Funct3Branch.LT:
-            return ~alu_result_eq_zero
-        case Funct3Branch.GE:
-            return alu_result_eq_zero
-        case Funct3Branch.LTU:
-            return ~alu_result_eq_zero
-        case Funct3Branch.GEU:
+        case Funct3Branch.NE | Funct3Branch.GE | Funct3Branch.GEU:
             return alu_result_eq_zero
         case _:
             return Vec[1].xprop(funct3.branch)
