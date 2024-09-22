@@ -391,18 +391,18 @@ class Bits:
         mask = _mask(size)
         return size, ((self._data[0] >> i) & mask, (self._data[1] >> i) & mask)
 
-    def _get_key(self, key: int | Bits | slice) -> tuple[int, tuple[int, int]]:
+    def _get_key(self, key: int | slice | Bits) -> tuple[int, tuple[int, int]]:
         if isinstance(key, int):
             index = _norm_index(self.size, key)
-            return 1, self._get_index(index)
-        if isinstance(key, Bits):
-            index = _norm_index(self.size, key.to_uint())
             return 1, self._get_index(index)
         if isinstance(key, slice):
             start, stop = _norm_slice(self.size, key)
             if start != 0 or stop != self.size:
                 return self._get_slice(start, stop)
             return self.size, self._data
+        if isinstance(key, Bits):
+            index = _norm_index(self.size, key.to_uint())
+            return 1, self._get_index(index)
         raise TypeError("Expected key to be int or slice")
 
 
@@ -462,7 +462,7 @@ class Scalar(Bits, _ShapeIf):
     def __len__(self) -> int:
         return 1
 
-    def __getitem__(self, key: int | Bits | slice) -> Empty | Scalar:
+    def __getitem__(self, key: int | slice | Bits) -> Empty | Scalar:
         size, (d0, d1) = self._get_key(key)
         return _vec_size(size)(d0, d1)
 
@@ -520,7 +520,7 @@ class Vector(Bits, _ShapeIf):
     def __len__(self) -> int:
         return self._size
 
-    def __getitem__(self, key: int | Bits | slice) -> Empty | Scalar | Vector:
+    def __getitem__(self, key: int | slice | Bits) -> Empty | Scalar | Vector:
         size, (d0, d1) = self._get_key(key)
         return _vec_size(size)(d0, d1)
 
@@ -573,8 +573,8 @@ class Array(Bits, _ShapeIf):
         indent = " "
         return f"{_array_str(indent, self)}"
 
-    def __getitem__(self, key: int | Bits | slice | tuple[int | slice | Bits, ...]) -> _ShapeIf:
-        if isinstance(key, (int, Bits, slice)):
+    def __getitem__(self, key: int | slice | Bits | tuple[int | slice | Bits, ...]) -> _ShapeIf:
+        if isinstance(key, (int, slice, Bits)):
             nkey = self._norm_key([key])
             return _sel(self, nkey)
         if isinstance(key, tuple):
@@ -601,7 +601,7 @@ class Array(Bits, _ShapeIf):
         return _get_vec_size(self._size)(self._data[0], self._data[1])
 
     @classmethod
-    def _norm_key(cls, keys: list[int | Bits | slice]) -> tuple[tuple[int, int], ...]:
+    def _norm_key(cls, keys: list[int | slice | Bits]) -> tuple[tuple[int, int], ...]:
         ndim = len(cls._shape)
         klen = len(keys)
 
@@ -614,15 +614,15 @@ class Array(Bits, _ShapeIf):
             keys.append(slice(None))
 
         # Normalize key dimensions
-        def f(n: int, key: int | Bits | slice) -> tuple[int, int]:
+        def f(n: int, key: int | slice | Bits) -> tuple[int, int]:
             if isinstance(key, int):
                 i = _norm_index(n, key)
                 return (i, i + 1)
+            if isinstance(key, slice):
+                return _norm_slice(n, key)
             if isinstance(key, Bits):
                 i = _norm_index(n, key.to_uint())
                 return (i, i + 1)
-            if isinstance(key, slice):
-                return _norm_slice(n, key)
             assert False  # pragma: no cover
 
         return tuple(f(n, key) for n, key in zip(cls._shape, keys))
@@ -791,7 +791,7 @@ class _StructMeta(type):
         struct.__init__ = locals_["init"]
 
         # Override Bits.__getitem__ method
-        def _getitem(self, key: int | Bits | slice) -> Empty | Scalar | Vector:
+        def _getitem(self, key: int | slice | Bits) -> Empty | Scalar | Vector:
             size, (d0, d1) = self._get_key(key)
             return _vec_size(size)(d0, d1)
 
@@ -876,7 +876,7 @@ class _UnionMeta(type):
         union.__init__ = _init
 
         # Override Bits.__getitem__ method
-        def _getitem(self, key: int | Bits | slice) -> Empty | Scalar | Vector:
+        def _getitem(self, key: int | slice | Bits) -> Empty | Scalar | Vector:
             size, (d0, d1) = self._get_key(key)
             return _vec_size(size)(d0, d1)
 
