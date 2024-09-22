@@ -1,6 +1,6 @@
 """Data Memory Bus."""
 
-from seqlogic import GE, LT, Module, Mux, Vec, clog2, u2bv
+from seqlogic import GE, LT, GetItem, Module, Mux, Vec, clog2, u2bv
 
 from . import DATA_BASE, DATA_SIZE, Addr
 from .data_mem import DataMem
@@ -37,7 +37,7 @@ class DataMemBus(Module):
             mod=DataMem,
             WORD_ADDR_BITS=word_addr_bits,
         ).connect(
-            addr=addr[m:n],
+            addr=GetItem(addr, slice(m, n)),
             wr_en=(wr_en & is_data),
             wr_be=wr_be,
             wr_data=wr_data,

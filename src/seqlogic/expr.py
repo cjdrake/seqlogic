@@ -80,9 +80,6 @@ class Expr(ABC):
     def __str__(self) -> str:
         raise NotImplementedError()
 
-    def __getitem__(self, key: int | slice) -> GetItem:
-        return GetItem(self, key)
-
     def __invert__(self) -> Not:
         return Not(self)
 

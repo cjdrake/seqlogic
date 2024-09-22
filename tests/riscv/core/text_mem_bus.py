@@ -1,6 +1,6 @@
 """Text Memory Bus."""
 
-from seqlogic import GE, LT, Module, Mux, Vec, clog2, u2bv
+from seqlogic import GE, LT, GetItem, Module, Mux, Vec, clog2, u2bv
 
 from . import TEXT_BASE, TEXT_SIZE, Addr
 from .text_mem import TextMem
@@ -32,7 +32,7 @@ class TextMemBus(Module):
             mod=TextMem,
             WORD_ADDR_BITS=word_addr_bits,
         ).connect(
-            rd_addr=rd_addr[m:n],
+            rd_addr=GetItem(rd_addr, slice(m, n)),
             rd_data=text,
         )
 

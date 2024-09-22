@@ -1,6 +1,6 @@
 """Data Memory Interface."""
 
-from seqlogic import Cat, Module, Mux, Vec, cat, rep
+from seqlogic import Cat, GetItem, Module, Mux, Vec, cat, rep
 
 from . import Addr
 
@@ -51,7 +51,7 @@ class DataMemIf(Module):
         self.expr(
             bus_wr_be,
             Mux(
-                data_format[:2],
+                GetItem(data_format, slice(0, 2)),
                 x0=("4b0001" << byte_addr),
                 x1=("4b0011" << byte_addr),
                 x2=("4b1111" << byte_addr),
@@ -60,4 +60,4 @@ class DataMemIf(Module):
         )
         self.expr(bus_wr_data, wr_data << Cat("3b000", byte_addr))
         self.combi(rd_data, f_rd_data, data_format, bus_rd_data, byte_addr)
-        self.expr(byte_addr, addr[:2])
+        self.expr(byte_addr, GetItem(addr, slice(0, 2)))

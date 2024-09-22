@@ -3,6 +3,7 @@
 from ...bits import Vector as Vec
 from ...bits import cat
 from ...design import Module
+from ...expr import GetItem
 from .fa import FullAdd
 
 
@@ -54,7 +55,7 @@ class RCA(Module):
             ).connect(
                 s=ss[i],
                 co=(co if i == (self.N - 1) else cs[i]),
-                a=a[i],
-                b=b[i],
+                a=GetItem(a, i),
+                b=GetItem(b, i),
                 ci=(ci if i == 0 else cs[i - 1]),
             )
