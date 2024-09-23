@@ -70,7 +70,6 @@ class Top(Module):
 
 
 def test_fa():
-
     vcd = os.path.join(DIR, "fa.vcd")
     with (
         open(vcd, "w", encoding="utf-8") as f,
