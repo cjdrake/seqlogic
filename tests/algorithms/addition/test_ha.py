@@ -62,7 +62,6 @@ class Top(Module):
 
 
 def test_ha():
-
     vcd = os.path.join(DIR, "ha.vcd")
     with (
         open(vcd, "w", encoding="utf-8") as f,
