@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from abc import ABC
 from collections.abc import Callable
 
 from .bits import (
@@ -70,16 +71,7 @@ def _arg_xbsi(obj: Expr | Bits | str | int) -> Expr:
     raise TypeError(f"Invalid input: {obj}")
 
 
-def _arg_bs(obj: Bits | str) -> Expr:
-    if isinstance(obj, Bits):
-        return BitsConst(obj)
-    if isinstance(obj, str):
-        v = _lit2vec(obj)
-        return BitsConst(v)
-    raise TypeError(f"Invalid input: {obj}")
-
-
-class Expr:
+class Expr(ABC):
     """Symbolic expression."""
 
     def __repr__(self) -> str:
@@ -229,6 +221,9 @@ class Variable(_Atom):
 class _Op(Expr):
     """Variable node."""
 
+    def __init__(self, *xs: Expr):
+        self._xs = xs
+
     def iter_vars(self):
         for x in self._xs:
             yield from x.iter_vars()
@@ -248,7 +243,8 @@ class _NaryOp(_PrefixOp):
     """N-ary operator: f(x0, x1, ..., x[n-1])"""
 
     def __init__(self, *objs: Expr | Bits | str):
-        self._xs = tuple(_arg_xbs(obj) for obj in objs)
+        xs = tuple(_arg_xbs(obj) for obj in objs)
+        super().__init__(*xs)
 
 
 class _UnaryOp(_NaryOp):
@@ -378,7 +374,7 @@ class _AddOp(_PrefixOp):
         xs = [_arg_xbs(a), _arg_xbs(b)]
         if ci is not None:
             xs.append(_arg_xbs(ci))
-        self._xs = tuple(xs)
+        super().__init__(*xs)
 
 
 class Add(_AddOp):
@@ -397,7 +393,7 @@ class _SubOp(_PrefixOp):
     """Sub or Sbc operator node."""
 
     def __init__(self, a: Expr | Bits | str, b: Expr | Bits | str):
-        self._xs = (_arg_xbs(a), _arg_xbs(b))
+        super().__init__(_arg_xbs(a), _arg_xbs(b))
 
 
 class Sub(_SubOp):
@@ -428,7 +424,7 @@ class _ShOp(_PrefixOp):
     """Shift operator node."""
 
     def __init__(self, x: Expr | Bits | str, n: Expr | Bits | str | int):
-        self._xs = (_arg_xbs(x), _arg_xbsi(n))
+        super().__init__(_arg_xbs(x), _arg_xbsi(n))
 
 
 class Lsh(_ShOp):
@@ -459,7 +455,7 @@ class Xt(_PrefixOp):
             n = IntConst(n)
         else:
             raise TypeError(f"Invalid input: {n}")
-        self._xs = (_arg_xbs(x), n)
+        super().__init__(_arg_xbs(x), n)
 
 
 class Sxt(_PrefixOp):
@@ -472,7 +468,7 @@ class Sxt(_PrefixOp):
             n = IntConst(n)
         else:
             raise TypeError(f"Invalid input: {n}")
-        self._xs = (_arg_xbs(x), n)
+        super().__init__(_arg_xbs(x), n)
 
 
 class Lrot(_ShOp):
@@ -503,7 +499,7 @@ class Rep(_PrefixOp):
             n = IntConst(n)
         else:
             raise TypeError(f"Invalid input: {n}")
-        self._xs = (_arg_xbs(x), n)
+        super().__init__(_arg_xbs(x), n)
 
 
 class EQ(_BinaryOp):
@@ -550,7 +546,7 @@ class GetItem(_Op):
             key = Const(obj)
         else:
             raise TypeError(f"Invalid input: {obj}")
-        self._xs = (x, key)
+        super().__init__(x, key)
 
     def __str__(self) -> str:
         x = self._xs[0]
@@ -577,7 +573,7 @@ class GetAttr(_Op):
             name = Const(obj)
         else:
             raise TypeError(f"Invalid input: {obj}")
-        self._xs = (v, name)
+        super().__init__(v, name)
 
     def __str__(self) -> str:
         v = self._xs[0]
