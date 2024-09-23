@@ -125,7 +125,6 @@ class Aggregate(State):
             return self._next_values.copy()
         return self._values.copy()
 
-    values = property(fget=_get_values)
     state = property(fget=_get_values)
 
     def _set_next(self, key: Hashable, value):
