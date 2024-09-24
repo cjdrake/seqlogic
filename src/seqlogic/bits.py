@@ -391,7 +391,7 @@ class Bits:
         mask = _mask(size)
         return size, ((self._data[0] >> i) & mask, (self._data[1] >> i) & mask)
 
-    def _get_key(self, key: int | slice | Bits) -> tuple[int, tuple[int, int]]:
+    def _get_key(self, key: int | slice | Bits | str) -> tuple[int, tuple[int, int]]:
         if isinstance(key, int):
             index = _norm_index(self.size, key)
             return 1, self._get_index(index)
@@ -400,10 +400,9 @@ class Bits:
             if start != 0 or stop != self.size:
                 return self._get_slice(start, stop)
             return self.size, self._data
-        if isinstance(key, Bits):
-            index = _norm_index(self.size, key.to_uint())
-            return 1, self._get_index(index)
-        raise TypeError("Expected key to be int or slice")
+        key = _expect_type(key, Bits)
+        index = _norm_index(self.size, key.to_uint())
+        return 1, self._get_index(index)
 
 
 class Empty(Bits, _ShapeIf):
@@ -462,7 +461,7 @@ class Scalar(Bits, _ShapeIf):
     def __len__(self) -> int:
         return 1
 
-    def __getitem__(self, key: int | slice | Bits) -> Empty | Scalar:
+    def __getitem__(self, key: int | slice | Bits | str) -> Empty | Scalar:
         size, (d0, d1) = self._get_key(key)
         return _vec_size(size)(d0, d1)
 
@@ -520,7 +519,7 @@ class Vector(Bits, _ShapeIf):
     def __len__(self) -> int:
         return self._size
 
-    def __getitem__(self, key: int | slice | Bits) -> Empty | Scalar | Vector:
+    def __getitem__(self, key: int | slice | Bits | str) -> Empty | Scalar | Vector:
         size, (d0, d1) = self._get_key(key)
         return _vec_size(size)(d0, d1)
 
@@ -791,7 +790,7 @@ class _StructMeta(type):
         struct.__init__ = locals_["init"]
 
         # Override Bits.__getitem__ method
-        def _getitem(self, key: int | slice | Bits) -> Empty | Scalar | Vector:
+        def _getitem(self, key: int | slice | Bits | str) -> Empty | Scalar | Vector:
             size, (d0, d1) = self._get_key(key)
             return _vec_size(size)(d0, d1)
 
@@ -876,7 +875,7 @@ class _UnionMeta(type):
         union.__init__ = _init
 
         # Override Bits.__getitem__ method
-        def _getitem(self, key: int | slice | Bits) -> Empty | Scalar | Vector:
+        def _getitem(self, key: int | slice | Bits | str) -> Empty | Scalar | Vector:
             size, (d0, d1) = self._get_key(key)
             return _vec_size(size)(d0, d1)
 
