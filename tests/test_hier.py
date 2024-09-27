@@ -25,3 +25,4 @@ def test_basic():
 
     assert list(a.iter_bfs()) == [a, w, b, x, y]
     assert list(a.iter_dfs()) == [w, x, y, b, a]
+    assert list(a.iter_leaves()) == [w, x, y]

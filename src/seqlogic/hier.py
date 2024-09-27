@@ -41,9 +41,15 @@ class Hierarchy:
 
     def iter_bfs(self) -> Generator[Hierarchy, None, None]:
         """Iterate through the design hierarchy in BFS order."""
+        raise NotImplementedError()
 
     def iter_dfs(self) -> Generator[Hierarchy, None, None]:
         """Iterate through the design hierarchy in DFS order."""
+        raise NotImplementedError()
+
+    def iter_leaves(self) -> Generator[Leaf, None, None]:
+        """Iterate through design leaves, left to right."""
+        raise NotImplementedError()
 
     @staticmethod
     def _check_name(name: str):
@@ -77,6 +83,10 @@ class Branch(Hierarchy):
             yield from child.iter_dfs()
         yield self
 
+    def iter_leaves(self) -> Generator[Leaf, None, None]:
+        for child in self._children:
+            yield from child.iter_leaves()
+
     def add_child(self, child: Branch | Leaf):
         """Add child branch or leaf."""
         self._children.append(child)
@@ -104,4 +114,7 @@ class Leaf(Hierarchy):
         yield self
 
     def iter_dfs(self) -> Generator[Hierarchy, None, None]:
+        yield self
+
+    def iter_leaves(self) -> Generator[Leaf, None, None]:
         yield self
