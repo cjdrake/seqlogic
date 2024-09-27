@@ -568,6 +568,7 @@ class Packed(Logic, Singular, Variable):
     # TraceIf
     def dump_waves(self, waves: defaultdict, pattern: str):
         if re.fullmatch(pattern, self.qualname):
+            # Initial time
             t = self._sim.time()
             waves[t][self] = self._value
 
@@ -580,7 +581,7 @@ class Packed(Logic, Singular, Variable):
     def dump_vcd(self, vcdw: VcdWriter, pattern: str):
         assert isinstance(self._parent, Module)
 
-        if re.match(pattern, self.qualname):
+        if re.fullmatch(pattern, self.qualname):
             var = vcdw.register_var(
                 scope=self._parent.scope,
                 name=self.name,
@@ -590,8 +591,9 @@ class Packed(Logic, Singular, Variable):
             )
 
             def change():
+                t = self._sim.time()
                 value = self._next_value.vcd_val()
-                return vcdw.change(var, self._sim.time(), value)
+                return vcdw.change(var, t, value)
 
             self._vcd_change = change
 
