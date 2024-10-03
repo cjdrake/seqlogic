@@ -33,6 +33,7 @@ from .bits import (
     not_,
     or_,
     rep,
+    rev,
     rrot,
     rsh,
     sbc,
@@ -139,6 +140,7 @@ __all__ = [
     "rrot",
     "cat",
     "rep",
+    "rev",
     # bits: predicate
     "eq",
     "ne",

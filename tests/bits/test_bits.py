@@ -19,6 +19,7 @@ from seqlogic import (
     nand,
     nor,
     or_,
+    rev,
     sbc,
     srsh,
     stack,
@@ -344,3 +345,9 @@ def test_stack():
         stack(42)
     with pytest.raises(TypeError):
         stack("2b00", "1b0")
+
+
+def test_rev():
+    assert rev(E) is E
+    assert rev("4b-10X") == "4bX01-"
+    assert rev("4bX01-") == "4b-10X"

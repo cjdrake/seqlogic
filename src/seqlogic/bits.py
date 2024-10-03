@@ -1888,6 +1888,26 @@ def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
     return _scmp(operator.ge, x0, x1)
 
 
+def _rev(x: Bits) -> Bits:
+    if x.size == 0:
+        return x
+
+    xd0, xd1 = x.data
+    d0, d1 = xd0 & 1, xd1 & 1
+    for _ in range(1, x.size):
+        xd0 >>= 1
+        xd1 >>= 1
+        d0 = (d0 << 1) | (xd0 & 1)
+        d1 = (d1 << 1) | (xd1 & 1)
+    return x._cast_data(d0, d1)
+
+
+def rev(x: Bits | str) -> Bits:
+    """Return reversed input."""
+    x = _expect_type(x, Bits)
+    return _rev(x)
+
+
 _LIT_PREFIX_RE = re.compile(r"(?P<Size>[1-9][0-9]*)(?P<Base>[bdh])")
 
 
