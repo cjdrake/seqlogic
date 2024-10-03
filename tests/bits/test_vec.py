@@ -1320,6 +1320,22 @@ def test_count():
     assert bits("4b00-0").has_unknown()
 
 
+def test_clz():
+    assert bits("4b0000").clz() == 4
+    assert bits("4b0001").clz() == 3
+    assert bits("4b000X").clz() == 3
+    assert bits("4b000-").clz() == 3
+    assert bits("4b0010").clz() == 2
+    assert bits("4b00X0").clz() == 2
+    assert bits("4b00-0").clz() == 2
+    assert bits("4b0100").clz() == 1
+    assert bits("4b0X00").clz() == 1
+    assert bits("4b0-00").clz() == 1
+    assert bits("4b1000").clz() == 0
+    assert bits("4bX000").clz() == 0
+    assert bits("4b-000").clz() == 0
+
+
 def test_reshape():
     v = bits("4b1010")
     assert v.reshape(v.shape) is v

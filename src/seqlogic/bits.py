@@ -355,6 +355,16 @@ class Bits:
         d: int = self._data[0] ^ self._data[1] ^ self._dmax
         return d.bit_count()
 
+    def clz(self) -> int:
+        """Count leading zeros."""
+        count = 0
+        for i in range(self.size - 1, -1, -1):
+            if self._get_index(i) == _0:
+                count += 1
+            else:
+                break
+        return count
+
     def onehot(self) -> bool:
         """Return True if vec contains exactly one 1 item."""
         return not self.has_unknown() and self.count_ones() == 1
