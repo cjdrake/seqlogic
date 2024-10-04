@@ -19,7 +19,7 @@ from seqlogic import (
     nand,
     nor,
     or_,
-    rev,
+    pack,
     sbc,
     srsh,
     stack,
@@ -347,7 +347,22 @@ def test_stack():
         stack("2b00", "1b0")
 
 
-def test_rev():
-    assert rev(E) is E
-    assert rev("4b-10X") == "4bX01-"
-    assert rev("4bX01-") == "4b-10X"
+def test_pack():
+    assert pack(E) is E
+
+    # Reverse bits
+    assert pack("4b-10X") == "4bX01-"
+    assert pack("4bX01-") == "4b-10X"
+
+    # Reverse nibbles
+    assert pack("32hdead_beef", 4) == "32hfeeb_daed"
+    assert pack("32hfeeb_daed", 4) == "32hdead_beef"
+
+    # Invalid values of n
+    with pytest.raises(ValueError):
+        pack("32hdead_beef", -1)
+    with pytest.raises(ValueError):
+        pack("32hdead_beef", 0)
+    # x.size not divisible by n
+    with pytest.raises(ValueError):
+        pack("32hdead_beef", 3)

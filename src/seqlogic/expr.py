@@ -31,7 +31,6 @@ from .bits import (
     not_,
     or_,
     rep,
-    rev,
     rrot,
     rsh,
     sbc,
@@ -154,7 +153,6 @@ class Expr(ABC):
             "rrot": rrot,
             "cat": cat,
             "rep": rep,
-            "rev": rev,
             "lt": lt,
             "le": le,
             "eq": eq,
@@ -499,12 +497,6 @@ class Rep(_PrefixOp):
         else:
             raise TypeError(f"Invalid input: {n}")
         super().__init__(_arg_xbs(x), n)
-
-
-class Rev(_UnaryOp):
-    """Reverse operator node."""
-
-    name = "rev"
 
 
 class EQ(_BinaryOp):

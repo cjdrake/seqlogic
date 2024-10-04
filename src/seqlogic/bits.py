@@ -1898,24 +1898,36 @@ def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
     return _scmp(operator.ge, x0, x1)
 
 
-def _rev(x: Bits) -> Bits:
+def _pack(x: Bits, n: int) -> Bits:
     if x.size == 0:
         return x
 
+    mask = _mask(n)
+
     xd0, xd1 = x.data
-    d0, d1 = xd0 & 1, xd1 & 1
-    for _ in range(1, x.size):
-        xd0 >>= 1
-        xd1 >>= 1
-        d0 = (d0 << 1) | (xd0 & 1)
-        d1 = (d1 << 1) | (xd1 & 1)
+
+    d0 = xd0 & mask
+    d1 = xd1 & mask
+
+    for _ in range(n, x.size, n):
+        xd0 >>= n
+        xd1 >>= n
+        d0 = (d0 << n) | (xd0 & mask)
+        d1 = (d1 << n) | (xd1 & mask)
+
     return x._cast_data(d0, d1)
 
 
-def rev(x: Bits | str) -> Bits:
-    """Return reversed input."""
+def pack(x: Bits | str, n: int = 1) -> Bits:
+    """Pack n-bit blocks in right to left order."""
+    if n < 1:
+        raise ValueError(f"Expected n < 1, got {n}")
+
     x = _expect_type(x, Bits)
-    return _rev(x)
+    if x.size % n != 0:
+        raise ValueError("Expected x.size to be a multiple of n")
+
+    return _pack(x, n)
 
 
 _LIT_PREFIX_RE = re.compile(r"(?P<Size>[1-9][0-9]*)(?P<Base>[bdh])")
