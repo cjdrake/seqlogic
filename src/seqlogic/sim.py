@@ -628,7 +628,7 @@ class ProcIf:
     """
 
     def __init__(self):
-        self._initial: list[tuple[Task]] = []
+        self._initial: list[Task] = []
 
     def add_initial(self):
         for task in self._initial:
