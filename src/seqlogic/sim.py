@@ -13,8 +13,8 @@ from collections import defaultdict, deque
 from collections.abc import Awaitable, Callable, Coroutine, Generator, Hashable
 from enum import IntEnum, auto
 
-_INIT_TIME = -1
-_START_TIME = 0
+INIT_TIME = -1
+START_TIME = 0
 
 type Predicate = Callable[[], bool]
 
@@ -34,10 +34,6 @@ class Region(IntEnum):
 
 class State(ABC):
     """Model component."""
-
-    def __init__(self):
-        # Reference to the event loop
-        self._sim = _sim
 
     state = property(fget=NotImplemented)
 
@@ -66,13 +62,12 @@ class Singular(State, Value):
     """Model state organized as a single unit."""
 
     def __init__(self, value):
-        State.__init__(self)
         self._value = value
         self._next_value = value
         self._changed = False
 
     def _get_value(self):
-        task = self._sim.task()
+        task = _loop.task()
         if task is not None and task.region == Region.REACTIVE:
             return self._next_value
         return self._value
@@ -85,7 +80,7 @@ class Singular(State, Value):
         self._next_value = value
 
         # Notify the event loop
-        _sim.touch(self)
+        _loop.touch(self)
 
     next = property(fset=_set_next)
 
@@ -120,7 +115,7 @@ class Aggregate(State):
         return _AggrValue(fget, fset)
 
     def _get_values(self):
-        task = self._sim.task()
+        task = _loop.task()
         if task is not None and task.region == Region.REACTIVE:
             return self._next_values.copy()
         return self._values.copy()
@@ -133,7 +128,7 @@ class Aggregate(State):
         self._next_values[key] = value
 
         # Notify the event loop
-        _sim.touch(self)
+        _loop.touch(self)
 
     def changed(self) -> bool:
         return bool(self._changed)
@@ -172,7 +167,7 @@ class Task(Awaitable):
 
     def __await__(self) -> Generator[None, None, None]:
         if not self._done:
-            _sim.task_await(self)
+            _loop.task_await(self)
             # Suspend
             yield
         # Resume
@@ -194,7 +189,7 @@ class Task(Awaitable):
 
 
 def create_task(coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
-    return _sim.task_create(coro, region)
+    return _loop.task_create(coro, region)
 
 
 class Event:
@@ -205,11 +200,11 @@ class Event:
 
     async def wait(self):
         if not self._flag:
-            _sim.event_wait(self)
+            _loop.event_wait(self)
             await SimAwaitable()
 
     def set(self):
-        _sim.event_set(self)
+        _loop.event_set(self)
         self._flag = True
 
     def clear(self):
@@ -237,14 +232,14 @@ class Semaphore:
     async def acquire(self):
         assert self._cnt >= 0
         if self._cnt == 0:
-            _sim.sem_acquire(self)
+            _loop.sem_acquire(self)
             await SimAwaitable()
         else:
             self._cnt -= 1
 
     def release(self):
         assert self._cnt >= 0
-        increment = _sim.sem_release(self)
+        increment = _loop.sem_release(self)
         if increment:
             if self._cnt == self._value:
                 raise RuntimeError("Cannot release")
@@ -336,15 +331,11 @@ class EventLoop:
     def __init__(self):
         """Initialize simulation."""
         # Simulation time
-        self._time: int = _INIT_TIME
+        self._time: int = INIT_TIME
         # Task queue
         self._queue = _SimQueue()
         # Currently executing task
         self._task: Task | None = None
-        # Initial tasks
-        self._initial: list[Task] = []
-        self._initial_started: bool = False
-        self._initial_done: bool = False
         # State waiting set
         self._waiting: dict[State, set[Task]] = defaultdict(set)
         self._predicates: dict[State, dict[Task, Predicate]] = defaultdict(dict)
@@ -373,16 +364,9 @@ class EventLoop:
 
     def restart(self):
         """Restart current simulation."""
-        self._initial_started = False
-        self._initial_done = False
-        self._time = _INIT_TIME
+        self._time = INIT_TIME
         self._task = None
         self.clear()
-
-    def reset(self):
-        """Reset simulation state."""
-        self.restart()
-        self._initial.clear()
 
     def time(self) -> int:
         return self._time
@@ -390,14 +374,8 @@ class EventLoop:
     def task(self) -> Task | None:
         return self._task
 
-    def add_initial(self, proc: Task | Coroutine):
-        """Add a task to run at start of simulation."""
-        if isinstance(proc, Task):
-            self._initial.append(proc)
-        elif isinstance(proc, Coroutine):
-            self._initial.append(Task(proc, region=Region.ACTIVE))
-        else:
-            raise TypeError("Expected proc to be Task or Coroutine")
+    def start(self, task: Task):
+        self._queue.push(START_TIME, task)
 
     def set_timeout(self, delay: int):
         """Schedule current coroutine after delay."""
@@ -476,15 +454,10 @@ class EventLoop:
                 return until
             # Run until a number of ticks in the future
             case int(), None:
-                return max(_START_TIME, self._time) + ticks
+                return max(START_TIME, self._time) + ticks
             case _:
                 s = "Expected either ticks or until to be int | None"
                 raise TypeError(s)
-
-    def _initial_start(self):
-        for task in self._initial:
-            self._queue.push(_START_TIME, task)
-        self._initial_started = True
 
     def _run_kernel(self, limit: int | None):
         while self._queue:
@@ -522,18 +495,11 @@ class EventLoop:
         """
         limit = self._limit(ticks, until)
 
-        # Start the simulation
-        if not self._initial_started:
-            self._initial_start()
-
         # Run until either 1) all tasks complete, or 2) finish()
-        if not self._initial_done:
-            try:
-                self._run_kernel(limit)
-            except Finish:
-                self.clear()
-            if not any(self._pending()):
-                self._initial_done = True
+        try:
+            self._run_kernel(limit)
+        except Finish:
+            self.clear()
 
     def _iter_kernel(self, limit: int | None) -> Generator[int, None, None]:
         while self._queue:
@@ -574,32 +540,95 @@ class EventLoop:
         """
         limit = self._limit(ticks, until)
 
-        # Start the simulation
-        if not self._initial_started:
-            self._initial_start()
-
-        if not self._initial_done:
-            try:
-                yield from self._iter_kernel(limit)
-            except Finish:
-                self.clear()
-            if not any(self._pending()):
-                self._initial_done = True
+        try:
+            yield from self._iter_kernel(limit)
+        except Finish:
+            self.clear()
 
 
-_sim = EventLoop()
+_loop: EventLoop | None = None
+
+
+def get_running_loop() -> EventLoop:
+    if _loop is None:
+        raise RuntimeError("No running loop")
+    return _loop
+
+
+def get_event_loop() -> EventLoop | None:
+    """Get the current event loop."""
+    return _loop
+
+
+def set_event_loop(loop: EventLoop):
+    """Set the current event loop."""
+    global _loop
+    _loop = loop
+
+
+def new_event_loop() -> EventLoop:
+    """Create and return a new event loop."""
+    return EventLoop()
+
+
+def del_event_loop():
+    """Delete the current event loop."""
+    global _loop
+    _loop = None
+
+
+def now() -> int:
+    if _loop is None:
+        raise RuntimeError("No running loop")
+    return _loop.time()
+
+
+def run(
+    coro: Coroutine | None = None,
+    region: Region = Region.ACTIVE,
+    loop: EventLoop | None = None,
+    ticks: int | None = None,
+    until: int | None = None,
+):
+    """Run a simulation."""
+    global _loop
+
+    if loop is not None:
+        _loop = loop
+    else:
+        _loop = EventLoop()
+        _loop.start(Task(coro, region))
+    _loop.run(ticks, until)
+
+
+def irun(
+    coro: Coroutine | None = None,
+    region: Region = Region.ACTIVE,
+    loop: EventLoop | None = None,
+    ticks: int | None = None,
+    until: int | None = None,
+) -> Generator[int, None, None]:
+    """Iterate a simulation."""
+    global _loop
+
+    if loop is not None:
+        _loop = loop
+    else:
+        _loop = EventLoop()
+        _loop.start(Task(coro, region))
+    yield from _loop.iter(ticks, until)
 
 
 async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
-    _sim.set_timeout(delay)
+    _loop.set_timeout(delay)
     await SimAwaitable()
 
 
 async def changed(*states: State) -> State:
     """Resume execution upon state change."""
     for state in states:
-        _sim.set_trigger(state, state.changed)
+        _loop.set_trigger(state, state.changed)
     state = await StateAwaitable()
     return state
 
@@ -607,18 +636,13 @@ async def changed(*states: State) -> State:
 async def resume(*triggers: tuple[State, Predicate]) -> State:
     """Resume execution upon event."""
     for state, predicate in triggers:
-        _sim.set_trigger(state, predicate)
+        _loop.set_trigger(state, predicate)
     state = await StateAwaitable()
     return state
 
 
 def finish():
     raise Finish()
-
-
-def get_loop() -> EventLoop:
-    """Return the event loop."""
-    return _sim
 
 
 class ProcIf:
@@ -628,8 +652,8 @@ class ProcIf:
     """
 
     def __init__(self):
-        self._initial: list[Task] = []
+        self._initial: list[tuple[Coroutine, Region]] = []
 
-    def add_initial(self):
-        for task in self._initial:
-            _sim.add_initial(task)
+    @property
+    def initial(self):
+        return self._initial

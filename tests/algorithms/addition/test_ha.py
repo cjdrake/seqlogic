@@ -4,10 +4,8 @@ import os
 
 from vcd import VCDWriter
 
-from seqlogic import Module, Vec, get_loop, sleep
+from seqlogic import Module, Vec, run, sleep
 from seqlogic.algorithm.addition.ha import HalfAdd
-
-loop = get_loop()
 
 DIR = os.path.dirname(__file__)
 
@@ -67,8 +65,7 @@ def test_ha():
         open(vcd, "w", encoding="utf-8") as f,
         VCDWriter(f, timescale="1ns") as vcdw,
     ):
-        loop.reset()
         top = Top(name="top")
-        top.elab()
         top.dump_vcd(vcdw, ".*")
-        loop.run()
+        main = top.elab()
+        run(main)

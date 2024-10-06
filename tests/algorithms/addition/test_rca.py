@@ -4,10 +4,8 @@ import os
 
 from vcd import VCDWriter
 
-from seqlogic import Module, Vec, get_loop, sleep, u2bv
+from seqlogic import Module, Vec, run, sleep, u2bv
 from seqlogic.algorithm.addition.rca import RCA, adc
-
-loop = get_loop()
 
 DIR = os.path.dirname(__file__)
 
@@ -90,16 +88,14 @@ def test_structural():
             open(vcd, "w", encoding="utf-8") as f,
             VCDWriter(f, timescale="1ns") as vcdw,
         ):
-            loop.reset()
-
             # Instantiate top
             top = Top(name="top", N=n)
-
-            # Register design w/ event loop
-            top.elab()
 
             # Dump all signals to VCD
             top.dump_vcd(vcdw, ".*")
 
+            # Register design w/ event loop
+            main = top.elab()
+
             # Do the damn thing
-            loop.run()
+            run(main)

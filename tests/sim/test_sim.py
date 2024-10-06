@@ -4,10 +4,9 @@ from collections import defaultdict
 
 import pytest
 
-from seqlogic import get_loop, resume, sleep
-from seqlogic.sim import Singular, State
+from seqlogic import create_task, get_running_loop, irun, now, resume, run, sleep
+from seqlogic.sim import INIT_TIME, Singular, State
 
-loop = get_loop()
 waves = defaultdict(dict)
 
 
@@ -20,11 +19,11 @@ class Bool(Singular):
 
     def __init__(self):
         super().__init__(value=False)
-        _waves_add(self._sim.time(), self, self._value)
+        _waves_add(INIT_TIME, self, self._value)
 
     def update(self):
         if self.dirty():
-            _waves_add(self._sim.time(), self, self._next_value)
+            _waves_add(now(), self, self._next_value)
         super().update()
 
     def is_posedge(self) -> bool:
@@ -54,22 +53,19 @@ HELLO_OUT = """\
 
 def test_hello(capsys):
     """Test basic async/await hello world functionality."""
-    loop.reset()
 
     async def hello():
         await sleep(2)
-        print(f"[{loop.time()}] Hello")
+        print(f"[{now()}] Hello")
         await sleep(2)
-        print(f"[{loop.time()}] World")
-
-    loop.add_initial(hello())
+        print(f"[{now()}] World")
 
     # Invalid run limit
     with pytest.raises(TypeError):
-        loop.run("Invalid argument type")
+        run(ticks="Invalid argument type")
 
     # Run until no events left
-    loop.run()
+    run(hello())
 
     assert capsys.readouterr().out == HELLO_OUT
 
@@ -77,7 +73,6 @@ def test_hello(capsys):
 def test_vars_run():
     """Test generic variable functionality."""
     waves.clear()
-    loop.reset()
 
     clk = Bool()
     a = Bool()
@@ -106,9 +101,10 @@ def test_vars_run():
                 b.next = not b.value
             i += 1
 
-    loop.add_initial(p_clk())
-    loop.add_initial(p_a())
-    loop.add_initial(p_b())
+    async def main():
+        create_task(p_clk())
+        create_task(p_a())
+        create_task(p_b())
 
     # Expected sim output
     exp = {
@@ -125,10 +121,10 @@ def test_vars_run():
     }
 
     # Relative run limit
-    loop.run(ticks=25)
+    run(main(), ticks=25)
 
     # Absolute run limit
-    loop.run(until=50)
+    run(loop=get_running_loop(), until=50)
 
     assert waves == exp
 
@@ -136,7 +132,6 @@ def test_vars_run():
 def test_vars_iter():
     """Test generic variable functionality."""
     waves.clear()
-    loop.reset()
 
     clk = Bool()
     a = Bool()
@@ -165,9 +160,10 @@ def test_vars_iter():
                 b.next = not b.value
             i += 1
 
-    loop.add_initial(p_clk())
-    loop.add_initial(p_a())
-    loop.add_initial(p_b())
+    async def main():
+        create_task(p_clk())
+        create_task(p_a())
+        create_task(p_b())
 
     # Expected sim output
     exp = {
@@ -183,7 +179,10 @@ def test_vars_iter():
         45: {clk: True, a: True},
     }
 
-    for _ in loop.iter(until=50):
+    for _ in irun(main(), until=25):
+        pass
+
+    for _ in irun(loop=get_running_loop(), until=50):
         pass
 
     assert waves == exp

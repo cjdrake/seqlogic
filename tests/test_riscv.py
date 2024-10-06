@@ -14,7 +14,7 @@ It merely serves as a non-trivial example design.
 
 from collections import defaultdict
 
-from seqlogic import get_loop, u2bv
+from seqlogic import irun, run, u2bv
 
 from .riscv.core import (
     AluOp,
@@ -28,9 +28,6 @@ from .riscv.core import (
     Opcode,
 )
 from .riscv.core.top import Top
-
-loop = get_loop()
-
 
 X32 = "32bXXXX_XXXX_XXXX_XXXX_XXXX_XXXX_XXXX_XXXX"
 W32 = "32b----_----_----_----_----_----_----_----"
@@ -50,11 +47,8 @@ def get_mem(name: str) -> list[int]:
 
 
 def test_dump():
-    loop.reset()
-
     # Create module hierarchy
     top = Top(name="top")
-    top.elab()
 
     waves = defaultdict(dict)
     top.dump_waves(waves, r"/top/pc")
@@ -78,13 +72,16 @@ def test_dump():
     top.dump_waves(waves, r"/top/core/datapath.data_mem_wr_data")
 
     # Initialize instruction memory
-    text = get_mem("tests/riscv/tests/add.text")
-    for i, d in enumerate(text):
-        addr = u2bv(i, 10)
-        data = u2bv(d, 32)
-        top._text_mem_bus._text_mem._mem[addr].next = data
+    async def main():
+        await top.elab()
 
-    loop.run(until=50)
+        text = get_mem("tests/riscv/tests/add.text")
+        for i, d in enumerate(text):
+            addr = u2bv(i, 10)
+            data = u2bv(d, 32)
+            top._text_mem_bus._text_mem._mem[addr].next = data
+
+    run(main(), until=50)
 
     exp = {
         # Initialize everything to X'es
@@ -735,28 +732,28 @@ def test_dump():
 
 
 def run_riscv_test(name: str) -> int:
-    loop.reset()
-
     # Create module hierarchy
     top = Top(name="top")
-    top.elab()
 
-    # Initialize instruction memory
-    text = get_mem(f"tests/riscv/tests/{name}.text")
-    for i, d in enumerate(text):
-        addr = u2bv(i, 10)
-        data = u2bv(d, 32)
-        top._text_mem_bus._text_mem._mem[addr].next = data
+    async def main():
+        await top.elab()
 
-    # Initialize data memory
-    data = get_mem(f"tests/riscv/tests/{name}.data")
-    for i, d in enumerate(data):
-        addr = u2bv(i, 10)
-        data = u2bv(d, 32).reshape((4, 8))
-        top._data_mem_bus._data_mem._mem[addr].next = data
+        # Initialize instruction memory
+        text = get_mem(f"tests/riscv/tests/{name}.text")
+        for i, d in enumerate(text):
+            addr = u2bv(i, 10)
+            data = u2bv(d, 32)
+            top._text_mem_bus._text_mem._mem[addr].next = data
+
+        # Initialize data memory
+        data = get_mem(f"tests/riscv/tests/{name}.data")
+        for i, d in enumerate(data):
+            addr = u2bv(i, 10)
+            data = u2bv(d, 32).reshape((4, 8))
+            top._data_mem_bus._data_mem._mem[addr].next = data
 
     # Run the simulation
-    for _ in loop.iter(until=10000):
+    for _ in irun(main(), until=10000):
         if top.bus_wr_en.value == "1b1" and top.bus_addr.value == DEBUG_REG:
             if top.bus_wr_data.value == "32h0000_0001":
                 return PASS

@@ -91,7 +91,24 @@ from .expr import (
     Xor,
     Xt,
 )
-from .sim import EventLoop, Region, changed, finish, get_loop, resume, sleep
+from .sim import (
+    EventLoop,
+    Region,
+    Task,
+    changed,
+    create_task,
+    del_event_loop,
+    finish,
+    get_event_loop,
+    get_running_loop,
+    irun,
+    new_event_loop,
+    now,
+    resume,
+    run,
+    set_event_loop,
+    sleep,
+)
 from .util import clog2
 
 # Alias Vector to Vec for brevity
@@ -201,7 +218,16 @@ __all__ = [
     # sim
     "Region",
     "EventLoop",
-    "get_loop",
+    "Task",
+    "create_task",
+    "get_event_loop",
+    "get_running_loop",
+    "set_event_loop",
+    "new_event_loop",
+    "del_event_loop",
+    "run",
+    "irun",
+    "now",
     "sleep",
     "changed",
     "resume",

@@ -6,11 +6,9 @@ from random import randint
 
 from vcd import VCDWriter
 
-from seqlogic import Module, Struct, Vec, finish, get_loop, resume, sleep
+from seqlogic import Module, Struct, Vec, finish, resume, run, sleep
 from seqlogic.control.globals import drv_clock, drv_reset
 from seqlogic.datastruct.hbeb import Hbeb
-
-loop = get_loop()
 
 DIR = os.path.dirname(__file__)
 
@@ -169,16 +167,14 @@ def test_hbeb():
         open(vcd, "w", encoding="utf-8") as f,
         VCDWriter(f, timescale="1ns") as vcdw,
     ):
-        loop.reset()
-
         # Instantiate top
         top = Top(name="top")
-
-        # Register design w/ event loop
-        top.elab()
 
         # Dump all signals to VCD
         top.dump_vcd(vcdw, ".*")
 
+        # Register design w/ event loop
+        main = top.elab()
+
         # Do the damn thing
-        loop.run()
+        run(main)

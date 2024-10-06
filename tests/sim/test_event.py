@@ -1,13 +1,11 @@
 """Test seqlogic.sim.Event class."""
 
-from seqlogic import get_loop, sleep
+from seqlogic import create_task, now, run, sleep
 from seqlogic.sim import Event
-
-loop = get_loop()
 
 
 def log(s: str):
-    print(f"{loop.time():04} {s}")
+    print(f"{now():04} {s}")
 
 
 async def primary(event: Event, name: str):
@@ -49,13 +47,14 @@ EXP1 = """\
 
 
 def test_acquire_release(capsys):
-    loop.reset()
 
-    event = Event()
-    loop.add_initial(primary(event, "FOO"))
-    loop.add_initial(secondary(event, "BAR"))
-    loop.add_initial(secondary(event, "FIZ"))
-    loop.add_initial(secondary(event, "BUZ"))
-    loop.run()
+    async def main():
+        event = Event()
+        create_task(primary(event, "FOO"))
+        create_task(secondary(event, "BAR"))
+        create_task(secondary(event, "FIZ"))
+        create_task(secondary(event, "BUZ"))
+
+    run(main())
 
     assert capsys.readouterr().out == EXP1

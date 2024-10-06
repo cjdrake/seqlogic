@@ -20,7 +20,19 @@ from vcd.writer import VCDWriter as VcdWriter
 from .bits import Bits, _lit2vec, stack
 from .expr import Expr, Variable
 from .hier import Branch, Leaf
-from .sim import Aggregate, ProcIf, Region, Singular, State, Task, Value, changed, resume
+from .sim import (
+    INIT_TIME,
+    Aggregate,
+    ProcIf,
+    Region,
+    Singular,
+    State,
+    Value,
+    changed,
+    create_task,
+    now,
+    resume,
+)
 
 
 class DesignError(Exception):
@@ -114,11 +126,15 @@ class Module(metaclass=_ModuleMeta):
     def build(self):
         raise NotImplementedError()
 
-    def elab(self):
+    def elab(self) -> Coroutine:
         """Add design processes to the simulator."""
-        for node in self.iter_bfs():
-            assert isinstance(node, ProcIf)
-            node.add_initial()
+
+        async def cf():
+            for node in self.iter_bfs():
+                for coro, region in node.initial:
+                    create_task(coro, region)
+
+        return cf()
 
     @property
     def scope(self) -> str:
@@ -249,10 +265,10 @@ class Module(metaclass=_ModuleMeta):
         return node
 
     def drv(self, coro: Coroutine):
-        self._initial.append(Task(coro, region=Region.ACTIVE))
+        self._initial.append((coro, Region.ACTIVE))
 
     def mon(self, coro: Coroutine):
-        self._initial.append(Task(coro, region=Region.INACTIVE))
+        self._initial.append((coro, Region.INACTIVE))
 
     def _combi(self, ys: Sequence[Value], f: Callable, xs: Sequence[State]):
 
@@ -272,7 +288,7 @@ class Module(metaclass=_ModuleMeta):
                 for y, value in zip(ys, values):
                     y.next = value
 
-        self._initial.append(Task(cf(), region=Region.REACTIVE))
+        self._initial.append((cf(), Region.REACTIVE))
 
     def combi(
         self,
@@ -304,13 +320,13 @@ class Module(metaclass=_ModuleMeta):
         if isinstance(x, str):
             async def cf():
                 y.next = x
-            self._initial.append(Task(cf(), region=Region.ACTIVE))
+            self._initial.append((cf(), Region.ACTIVE))
         elif isinstance(x, Packed):
             async def cf():
                 while True:
                     await changed(x)
                     y.next = x.value
-            self._initial.append(Task(cf(), region=Region.REACTIVE))
+            self._initial.append((cf(), Region.REACTIVE))
         else:
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
@@ -332,7 +348,7 @@ class Module(metaclass=_ModuleMeta):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append(Task(cf(), region=Region.ACTIVE))
+        self._initial.append((cf(), Region.ACTIVE))
 
     def dff_r(
         self,
@@ -386,7 +402,7 @@ class Module(metaclass=_ModuleMeta):
                     else:
                         assert False  # pragma: no cover
 
-        self._initial.append(Task(cf(), region=Region.ACTIVE))
+        self._initial.append((cf(), Region.ACTIVE))
         # fmt: on
 
     def dff_en(self, q: Packed, d: Packed, en: Packed, clk: Packed):
@@ -410,7 +426,7 @@ class Module(metaclass=_ModuleMeta):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append(Task(cf(), region=Region.ACTIVE))
+        self._initial.append((cf(), Region.ACTIVE))
 
     def dff_en_r(
         self,
@@ -465,7 +481,7 @@ class Module(metaclass=_ModuleMeta):
                     else:
                         assert False  # pragma: no cover
 
-        self._initial.append(Task(cf(), region=Region.ACTIVE))
+        self._initial.append((cf(), Region.ACTIVE))
         # fmt: on
 
     def mem_wr_en(
@@ -490,7 +506,7 @@ class Module(metaclass=_ModuleMeta):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append(Task(cf(), region=Region.ACTIVE))
+        self._initial.append((cf(), Region.ACTIVE))
 
     def mem_wr_be(
         self,
@@ -526,7 +542,7 @@ class Module(metaclass=_ModuleMeta):
                 else:
                     assert False  # pragma: no cover
 
-        self._initial.append(Task(cf(), region=Region.ACTIVE))
+        self._initial.append((cf(), Region.ACTIVE))
 
 
 class Logic(Leaf, ProcIf, _TraceIf):
@@ -569,11 +585,10 @@ class Packed(Logic, Singular, Variable):
     def dump_waves(self, waves: defaultdict, pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
-            t = self._sim.time()
-            waves[t][self] = self._value
+            waves[INIT_TIME][self] = self._value
 
             def change():
-                t = self._sim.time()
+                t = now()
                 waves[t][self] = self._next_value
 
             self._waves_change = change
@@ -591,7 +606,7 @@ class Packed(Logic, Singular, Variable):
             )
 
             def change():
-                t = self._sim.time()
+                t = now()
                 value = self._next_value.vcd_val()
                 return vcdw.change(var, t, value)
 

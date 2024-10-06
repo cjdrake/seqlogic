@@ -1,13 +1,11 @@
 """Test seqlogic.sim.Lock class."""
 
-from seqlogic import get_loop, sleep
+from seqlogic import create_task, now, run, sleep
 from seqlogic.sim import Lock
-
-loop = get_loop()
 
 
 def log(s: str):
-    print(f"{loop.time():04} {s}")
+    print(f"{now():04} {s}")
 
 
 async def foo(lock: Lock):
@@ -62,12 +60,13 @@ EXP1 = """\
 
 
 def test_acquire_release(capsys):
-    loop.reset()
 
-    lock = Lock()
-    loop.add_initial(foo(lock))
-    loop.add_initial(bar(lock))
-    loop.run()
+    async def main():
+        lock = Lock()
+        create_task(foo(lock))
+        create_task(bar(lock))
+
+    run(main())
 
     assert capsys.readouterr().out == EXP1
 
@@ -116,11 +115,12 @@ EXP2 = """\
 
 
 def test_async_with(capsys):
-    loop.reset()
 
-    lock = Lock()
-    loop.add_initial(fiz(lock))
-    loop.add_initial(buz(lock))
-    loop.run()
+    async def main():
+        lock = Lock()
+        create_task(fiz(lock))
+        create_task(buz(lock))
+
+    run(main())
 
     assert capsys.readouterr().out == EXP2

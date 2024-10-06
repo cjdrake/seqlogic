@@ -5,10 +5,8 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from seqlogic import Enum, Module, Packed, Vec, get_loop, ite
+from seqlogic import Enum, Module, Packed, Vec, create_task, ite, run
 from seqlogic.control.globals import drv_clock, drv_reset
-
-loop = get_loop()
 
 
 class SeqDetect(Enum):
@@ -63,8 +61,6 @@ class MyFsm(Module):
 
 def test_fsm():
     """Test a 3-bit LFSR."""
-    loop.reset()
-
     top = MyFsm(name="top")
 
     clock = Packed(name="clock", parent=top, dtype=Vec[1])
@@ -77,21 +73,22 @@ def test_fsm():
     top.combi(ns, f, ps, x)
     top.dff_r(ps, ns, clock, reset_n, rval=SeqDetect.A, rneg=True)
 
-    top.elab()
-
     waves = defaultdict(dict)
     top.dump_waves(waves, r"/top/x")
     top.dump_waves(waves, r"/top/ps")
 
-    # Schedule input
-    loop.add_initial(drive_input(x, reset_n, clock))
+    async def main():
+        await top.elab()
 
-    # Schedule reset and clock
-    # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-    loop.add_initial(drv_reset(reset_n, shiftticks=6, onticks=10, neg=True))
-    loop.add_initial(drv_clock(clock, shiftticks=5, onticks=5, offticks=5))
+        # Schedule input
+        create_task(drive_input(x, reset_n, clock))
 
-    loop.run(until=100)
+        # Schedule reset and clock
+        # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
+        create_task(drv_reset(reset_n, shiftticks=6, onticks=10, neg=True))
+        create_task(drv_clock(clock, shiftticks=5, onticks=5, offticks=5))
+
+    run(main(), until=100)
 
     exp = {
         # Initialize everything to X'es

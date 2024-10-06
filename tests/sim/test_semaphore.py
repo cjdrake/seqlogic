@@ -1,13 +1,11 @@
 """Test seqlogic.sim.Semaphore class."""
 
-from seqlogic import get_loop, sleep
+from seqlogic import create_task, now, run, sleep
 from seqlogic.sim import Semaphore
-
-loop = get_loop()
 
 
 def log(s: str):
-    print(f"{loop.time():04} {s}")
+    print(f"{now():04} {s}")
 
 
 async def foo(sem: Semaphore, name: str, t1: int, t2: int):
@@ -89,22 +87,24 @@ EXP = """\
 
 
 def test_acquire_release(capsys):
-    loop.reset()
 
-    sem = Semaphore(4)
-    for i in range(8):
-        loop.add_initial(foo(sem, f"{i}", i + 10, 10))
-    loop.run()
+    async def main():
+        sem = Semaphore(4)
+        for i in range(8):
+            create_task(foo(sem, f"{i}", i + 10, 10))
+
+    run(main())
 
     assert capsys.readouterr().out == EXP
 
 
 def test_async_with(capsys):
-    loop.reset()
 
-    sem = Semaphore(4)
-    for i in range(8):
-        loop.add_initial(bar(sem, f"{i}", i + 10, 10))
-    loop.run()
+    async def main():
+        sem = Semaphore(4)
+        for i in range(8):
+            create_task(bar(sem, f"{i}", i + 10, 10))
+
+    run(main())
 
     assert capsys.readouterr().out == EXP

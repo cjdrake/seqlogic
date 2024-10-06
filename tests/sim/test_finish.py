@@ -1,20 +1,18 @@
 """Test seqlogic.sim finish."""
 
-from seqlogic import finish, get_loop, sleep
-
-loop = get_loop()
+from seqlogic import create_task, finish, now, run, sleep
 
 
 def log(s: str):
-    print(f"{loop.time():04} {s}")
+    print(f"{now():04} {s}")
 
 
-async def main():
-    log("MAIN enter")
+async def ctl():
+    log("CTL enter")
     await sleep(100)
 
     # Force all PING threads to stop immediately
-    log("MAIN finish")
+    log("CTL finish")
     finish()
 
 
@@ -26,7 +24,7 @@ async def ping(name: str, period: int):
 
 
 EXP1 = """\
-0000 MAIN enter
+0000 CTL enter
 0000 FOO enter
 0000 BAR enter
 0000 FIZ enter
@@ -106,22 +104,20 @@ EXP1 = """\
 0098 FIZ PING
 0099 BUZ PING
 0099 FOO PING
-0100 MAIN finish
+0100 CTL finish
 """
 
 
 def test_finish(capsys):
-    loop.reset()
 
-    loop.add_initial(main())
-    loop.add_initial(ping("FOO", 3))
-    loop.add_initial(ping("BAR", 5))
-    loop.add_initial(ping("FIZ", 7))
-    loop.add_initial(ping("BUZ", 11))
-
-    loop.run()
+    async def main():
+        create_task(ctl())
+        create_task(ping("FOO", 3))
+        create_task(ping("BAR", 5))
+        create_task(ping("FIZ", 7))
+        create_task(ping("BUZ", 11))
 
     # Subsequent calls to run() have no effect
-    loop.run()
+    run(main())
 
     assert capsys.readouterr().out == EXP1
