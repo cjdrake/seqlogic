@@ -91,7 +91,7 @@ from .expr import (
     Xor,
     Xt,
 )
-from .sim import Region, Sim, changed, finish, get_loop, resume, sleep
+from .sim import EventLoop, Region, changed, finish, get_loop, resume, sleep
 from .util import clog2
 
 # Alias Vector to Vec for brevity
@@ -200,7 +200,7 @@ __all__ = [
     "GetAttr",
     # sim
     "Region",
-    "Sim",
+    "EventLoop",
     "get_loop",
     "sleep",
     "changed",

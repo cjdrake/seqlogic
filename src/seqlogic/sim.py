@@ -330,7 +330,7 @@ class Finish(Exception):
     """Force the simulation to stop."""
 
 
-class Sim:
+class EventLoop:
     """Simulation event loop."""
 
     def __init__(self):
@@ -587,7 +587,7 @@ class Sim:
                 self._initial_done = True
 
 
-_sim = Sim()
+_sim = EventLoop()
 
 
 async def sleep(delay: int):
@@ -616,7 +616,7 @@ def finish():
     raise Finish()
 
 
-def get_loop() -> Sim:
+def get_loop() -> EventLoop:
     """Return the event loop."""
     return _sim
 
