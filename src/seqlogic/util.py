@@ -1,6 +1,9 @@
 """Utility functions."""
 
+from functools import cache
 
+
+@cache
 def clog2(x: int) -> int:
     """Return the ceiling log base two of an integer ≥ 1.
 
