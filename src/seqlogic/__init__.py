@@ -14,6 +14,7 @@ from .bits import (
     and_,
     bits,
     cat,
+    clz,
     decode,
     eq,
     ge,
@@ -141,6 +142,7 @@ __all__ = [
     "cat",
     "rep",
     "pack",
+    "clz",
     # bits: predicate
     "eq",
     "ne",

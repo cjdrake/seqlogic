@@ -355,16 +355,6 @@ class Bits:
         d: int = self._data[0] ^ self._data[1] ^ self._dmax
         return d.bit_count()
 
-    def clz(self) -> int:
-        """Count leading zeros."""
-        count = 0
-        for i in range(self.size - 1, -1, -1):
-            if self._get_index(i) == _0:
-                count += 1
-            else:
-                break
-        return count
-
     def onehot(self) -> bool:
         """Return True if vec contains exactly one 1 item."""
         return not self.has_unknown() and self.count_ones() == 1
@@ -1715,10 +1705,26 @@ def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
     return _cat(*xs)
 
 
+def _rep(x: Bits, n: int) -> Empty | Scalar | Vector:
+    xs = [x] * n
+    return _cat(*xs)
+
+
 def rep(obj: Bits | int | str, n: int) -> Empty | Scalar | Vector:
     """Repeat a Vector n times."""
     objs = [obj] * n
     return cat(*objs)
+
+
+def clz(x: Bits | str) -> Empty | Scalar | Vector:
+    """Count leading zeros."""
+    x = _expect_type(x, Bits)
+    xr = pack(x)
+    s = _cat(xr, _Scalar1) & -xr
+    n = x.size + 1
+    m = clog2(n)
+    xs = [_and_(_rep(s[i], m), u2bv(i, m)) for i in range(n)]
+    return or_(*xs)
 
 
 # Predicates over bitvectors

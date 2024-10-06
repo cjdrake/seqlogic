@@ -10,6 +10,7 @@ from seqlogic import (
     and_,
     bits,
     cat,
+    clz,
     decode,
     eq,
     ge,
@@ -1320,20 +1321,46 @@ def test_count():
     assert bits("4b00-0").has_unknown()
 
 
+CLZ = [
+    ("1b0", "1b1"),
+    ("1b1", "1b0"),
+    ("2b00", "2b10"),
+    ("2b01", "2b01"),
+    ("2b10", "2b00"),
+    ("2b11", "2b00"),
+    ("3b000", "2b11"),
+    ("3b001", "2b10"),
+    ("3b010", "2b01"),
+    ("3b011", "2b01"),
+    ("3b100", "2b00"),
+    ("3b101", "2b00"),
+    ("3b110", "2b00"),
+    ("3b111", "2b00"),
+    ("4b0000", "3b100"),
+    ("4b0001", "3b011"),
+    ("4b0010", "3b010"),
+    ("4b0011", "3b010"),
+    ("4b0100", "3b001"),
+    ("4b0101", "3b001"),
+    ("4b0110", "3b001"),
+    ("4b0111", "3b001"),
+    ("4b1000", "3b000"),
+    ("4b1001", "3b000"),
+    ("4b1010", "3b000"),
+    ("4b1011", "3b000"),
+    ("4b1100", "3b000"),
+    ("4b1101", "3b000"),
+    ("4b1110", "3b000"),
+    ("4b1111", "3b000"),
+    ("4b000-", "3b---"),
+    ("4b000X", "3bXXX"),
+]
+
+
 def test_clz():
-    assert bits("4b0000").clz() == 4
-    assert bits("4b0001").clz() == 3
-    assert bits("4b000X").clz() == 3
-    assert bits("4b000-").clz() == 3
-    assert bits("4b0010").clz() == 2
-    assert bits("4b00X0").clz() == 2
-    assert bits("4b00-0").clz() == 2
-    assert bits("4b0100").clz() == 1
-    assert bits("4b0X00").clz() == 1
-    assert bits("4b0-00").clz() == 1
-    assert bits("4b1000").clz() == 0
-    assert bits("4bX000").clz() == 0
-    assert bits("4b-000").clz() == 0
+    assert clz(E) == E
+    for x, y in CLZ:
+        assert clz(x) == y
 
 
 def test_reshape():
