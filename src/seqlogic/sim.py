@@ -598,6 +598,7 @@ def run(
     else:
         _loop = EventLoop()
         _loop.start(Task(coro, region))
+
     _loop.run(ticks, until)
 
 
@@ -616,6 +617,7 @@ def irun(
     else:
         _loop = EventLoop()
         _loop.start(Task(coro, region))
+
     yield from _loop.iter(ticks, until)
 
 
