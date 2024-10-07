@@ -163,6 +163,7 @@ class Task(Awaitable):
     def __init__(self, coro: Coroutine, region: Region = Region.ACTIVE):
         self._region = region
         self._coro = coro
+        self._result = None
         self._done = False
 
     def __await__(self) -> Generator[None, None, None]:
@@ -180,6 +181,14 @@ class Task(Awaitable):
     @property
     def coro(self):
         return self._coro
+
+    def _get_result(self):
+        return self._result
+
+    def _set_result(self, value):
+        self._result = value
+
+    result = property(fget=_get_result, fset=_set_result)
 
     def set_done(self):
         self._done = True
@@ -483,7 +492,8 @@ class EventLoop:
                 self._task = task
                 try:
                     task.coro.send(state)
-                except StopIteration:
+                except StopIteration as e:
+                    task.result = e.value
                     self.task_done(task)
 
     def run(self, ticks: int | None = None, until: int | None = None):
@@ -526,7 +536,8 @@ class EventLoop:
                 self._task = task
                 try:
                     task.coro.send(state)
-                except StopIteration:
+                except StopIteration as e:
+                    task.result = e.value
                     self.task_done(task)
 
     def iter(
@@ -593,11 +604,13 @@ def run(
     """Run a simulation."""
     global _loop
 
+    task = None
     if loop is not None:
         _loop = loop
     else:
         _loop = EventLoop()
-        _loop.start(Task(coro, region))
+        task = Task(coro, region)
+        _loop.start(task)
 
     _loop.run(ticks, until)
 
@@ -612,11 +625,13 @@ def irun(
     """Iterate a simulation."""
     global _loop
 
+    task = None
     if loop is not None:
         _loop = loop
     else:
         _loop = EventLoop()
-        _loop.start(Task(coro, region))
+        task = Task(coro, region)
+        _loop.start(task)
 
     yield from _loop.iter(ticks, until)
 
