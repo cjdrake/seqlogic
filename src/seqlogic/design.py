@@ -23,7 +23,6 @@ from .hier import Branch, Leaf
 from .sim import (
     INIT_TIME,
     Aggregate,
-    ProcIf,
     Region,
     Singular,
     State,
@@ -37,6 +36,20 @@ from .sim import (
 
 class DesignError(Exception):
     """Design Error."""
+
+
+class _ProcIf:
+    """Process interface.
+
+    Implemented by components that contain local simulator processes.
+    """
+
+    def __init__(self):
+        self._initial: list[tuple[Coroutine, Region]] = []
+
+    @property
+    def initial(self):
+        return self._initial
 
 
 class _TraceIf:
@@ -84,12 +97,12 @@ class _ModuleMeta(type):
             params.append((pn, pt, pv))
 
         # Create Module class
-        mod = super().__new__(mcs, name, bases + (Branch, ProcIf, _TraceIf), attrs)
+        mod = super().__new__(mcs, name, bases + (Branch, _ProcIf, _TraceIf), attrs)
 
         # Override Module.__init__ method
         def _init_body(self, name: str, parent: Module, *args):
             Branch.__init__(self, name, parent)
-            ProcIf.__init__(self)
+            _ProcIf.__init__(self)
 
             for arg, (pn, _, pv) in zip(args, params):
                 if arg is not None:
@@ -545,10 +558,10 @@ class Module(metaclass=_ModuleMeta):
         self._initial.append((cf(), Region.ACTIVE))
 
 
-class Logic(Leaf, ProcIf, _TraceIf):
+class Logic(Leaf, _ProcIf, _TraceIf):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Leaf.__init__(self, name, parent)
-        ProcIf.__init__(self)
+        _ProcIf.__init__(self)
         self._dtype = dtype
 
     @property

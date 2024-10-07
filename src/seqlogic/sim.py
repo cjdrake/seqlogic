@@ -645,17 +645,3 @@ async def resume(*triggers: tuple[State, Predicate]) -> State:
 
 def finish():
     raise Finish()
-
-
-class ProcIf:
-    """Process interface.
-
-    Implemented by components that contain local simulator processes.
-    """
-
-    def __init__(self):
-        self._initial: list[tuple[Coroutine, Region]] = []
-
-    @property
-    def initial(self):
-        return self._initial
