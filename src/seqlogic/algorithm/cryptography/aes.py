@@ -185,7 +185,7 @@ def xtime(b: Byte, n: int) -> Byte:
     return b
 
 
-def rowxcol(a: Polynomial, b: Word) -> Word:
+def rowxcol(a: Polynomial, b: Word) -> Byte:
     """Multiply one row and one column."""
     y = Byte.zeros()
     for i, a_i in enumerate(a):
