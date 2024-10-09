@@ -1720,10 +1720,11 @@ def clz(x: Bits | str) -> Empty | Scalar | Vector:
     """Count leading zeros."""
     x = _expect_type(x, Bits)
     xr = pack(x)
-    s = _cat(xr, _Scalar1) & -xr
-    n = x.size + 1
-    m = clog2(n)
-    xs = [_and_(_rep(s[i], m), u2bv(i, m)) for i in range(n)]
+    # Decode: {0000: 10000, 0001: 01000, ..., 01--: 00010, 1---: 00001}
+    xd = _cat(xr, _Scalar1) & -xr
+    # Encode {10000: 100, 01000: 011, 00100: 010, 00010: 001, 00001: 000}
+    n = clog2(xd.size)
+    xs = [_and_(_rep(xd[i], n), u2bv(i, n)) for i in range(xd.size)]
     return or_(*xs)
 
 
