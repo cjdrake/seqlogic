@@ -1728,6 +1728,23 @@ def clz(x: Bits | str) -> Empty | Scalar | Vector:
     return or_(*xs)
 
 
+def match(x0: Bits | str, x1: Bits | str) -> Scalar:
+    """Pattern match operator."""
+    x0 = _expect_type(x0, Bits)
+    x1 = _expect_size(x1, x0.size)
+
+    # Propagate X
+    if x0.has_x() or x1.has_x():
+        return _ScalarX
+
+    for i in range(x0.size):
+        a0, a1 = x0._get_index(i)
+        b0, b1 = x1._get_index(i)
+        if a0 ^ b0 and a1 ^ b1:
+            return _Scalar0
+    return _Scalar1
+
+
 # Predicates over bitvectors
 def _eq(x0: Bits, x1: Bits) -> Scalar:
     return _uand(_xnor_(x0, x1))

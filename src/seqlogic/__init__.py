@@ -25,6 +25,7 @@ from .bits import (
     lrot,
     lsh,
     lt,
+    match,
     mux,
     nand,
     ne,
@@ -161,6 +162,7 @@ __all__ = [
     "pack",
     "clz",
     # bits: predicate
+    "match",
     "eq",
     "ne",
     "lt",
