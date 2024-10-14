@@ -1,5 +1,14 @@
 """IEEE 754 Floating Point Arithmetic.
 
+
+   1 bit   MSB   w bits  LSB   MSB    t = p - 1 bits    LSB
++--------+-------------------+------------------------------+
+|  S     |         E         |  T                           |
+| (sign) | (biased exponent) | (trailing significand field) |
++--------+-------------------+------------------------------+
+           E[0].......E[w-1]   d[1]..................d[p-1]
+
+
 +============+=============================+=================================+
 |            | IEEE                        | HardFloat Recoded               |
 |            | sign  exponent  significand | sign      exponent  significand |
