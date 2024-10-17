@@ -7,6 +7,8 @@ Credit to David Beazley's "Build Your Own Async" tutorial for inspiration:
 https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 """
 
+from __future__ import annotations
+
 import heapq
 from abc import ABC
 from collections import defaultdict, deque
@@ -104,7 +106,7 @@ class Aggregate(State):
         self._next_values = defaultdict(lambda: value)
         self._changed: set[Hashable] = set()
 
-    def __getitem__(self, key: Hashable):
+    def __getitem__(self, key: Hashable) -> AggrValue:
         def fget():
             values = self._get_values()
             return values[key]
@@ -112,7 +114,7 @@ class Aggregate(State):
         def fset(value):
             self._set_next(key, value)
 
-        return _AggrValue(fget, fset)
+        return AggrValue(fget, fset)
 
     def _get_values(self):
         task = _loop.task()
@@ -139,7 +141,7 @@ class Aggregate(State):
         self._changed.clear()
 
 
-class _AggrValue(Value):
+class AggrValue(Value):
     """Wrap Aggregate value getter/setter."""
 
     def __init__(self, fget, fset):
@@ -210,7 +212,7 @@ class Event:
     async def wait(self):
         if not self._flag:
             _loop.event_wait(self)
-            await SimAwaitable()
+            await _TaskAwaitable()
 
     def set(self):
         _loop.event_set(self)
@@ -242,7 +244,7 @@ class Semaphore:
         assert self._cnt >= 0
         if self._cnt == 0:
             _loop.sem_acquire(self)
-            await SimAwaitable()
+            await _TaskAwaitable()
         else:
             self._cnt -= 1
 
@@ -265,10 +267,10 @@ class Lock(Semaphore):
         super().__init__(value=1)
 
 
-type _SimQueueItem = tuple[int, Task, State | None]
+type _TaskQueueItem = tuple[int, Task, State | None]
 
 
-class _SimQueue:
+class _TaskQueue:
     """Priority queue for ordering task execution."""
 
     def __init__(self):
@@ -290,15 +292,15 @@ class _SimQueue:
         heapq.heappush(self._items, item)
         self._index += 1
 
-    def peek(self) -> _SimQueueItem:
+    def peek(self) -> _TaskQueueItem:
         time, _, _, task, state = self._items[0]
         return (time, task, state)
 
-    def pop(self) -> _SimQueueItem:
+    def pop(self) -> _TaskQueueItem:
         time, _, _, task, state = heapq.heappop(self._items)
         return (time, task, state)
 
-    def pop_region(self) -> Generator[_SimQueueItem, None, None]:
+    def pop_region(self) -> Generator[_TaskQueueItem, None, None]:
         time, region, _, task, state = heapq.heappop(self._items)
         yield (time, task, state)
         while self._items:
@@ -310,7 +312,7 @@ class _SimQueue:
                 break
 
 
-class SimAwaitable(Awaitable):
+class _TaskAwaitable(Awaitable):
     """Suspend execution of the current task."""
 
     def __await__(self) -> Generator[None, None, None]:
@@ -320,7 +322,7 @@ class SimAwaitable(Awaitable):
         return
 
 
-class StateAwaitable(Awaitable):
+class _StateAwaitable(Awaitable):
     """Suspend execution of the current task."""
 
     def __await__(self) -> Generator[None, State, State]:
@@ -342,7 +344,7 @@ class EventLoop:
         # Simulation time
         self._time: int = INIT_TIME
         # Task queue
-        self._queue = _SimQueue()
+        self._queue = _TaskQueue()
         # Currently executing task
         self._task: Task | None = None
         # State waiting set
@@ -540,7 +542,7 @@ class EventLoop:
                     task.result = e.value
                     self.task_done(task)
 
-    def iter(
+    def irun(
         self, ticks: int | None = None, until: int | None = None
     ) -> Generator[int, None, None]:
         """Iterate the simulation.
@@ -633,20 +635,20 @@ def irun(
         task = Task(coro, region)
         _loop.start(task)
 
-    yield from _loop.iter(ticks, until)
+    yield from _loop.irun(ticks, until)
 
 
 async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
     _loop.set_timeout(delay)
-    await SimAwaitable()
+    await _TaskAwaitable()
 
 
 async def changed(*states: State) -> State:
     """Resume execution upon state change."""
     for state in states:
         _loop.set_trigger(state, state.changed)
-    state = await StateAwaitable()
+    state = await _StateAwaitable()
     return state
 
 
@@ -654,7 +656,7 @@ async def resume(*triggers: tuple[State, Predicate]) -> State:
     """Resume execution upon event."""
     for state, predicate in triggers:
         _loop.set_trigger(state, predicate)
-    state = await StateAwaitable()
+    state = await _StateAwaitable()
     return state
 
 
