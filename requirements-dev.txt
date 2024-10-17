@@ -4,6 +4,9 @@
 build
 twine
 
+# Documentation
+sphinx
+
 # Code Quality
 black
 flake8
