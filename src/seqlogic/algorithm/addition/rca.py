@@ -7,7 +7,7 @@ from ...expr import GetItem
 from .fa import FullAdd
 
 
-def adc(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
+def adc(a: Vec, b: Vec, ci: Vec[1]) -> Vec:
     """Ripple Carry Addition."""
     n = len(a)
     assert n > 0 and n == len(b)
@@ -21,7 +21,7 @@ def adc(a: Vec, b: Vec, ci: Vec[1]) -> tuple[Vec, Vec[1]]:
     # Sum
     s = a ^ b ^ c
 
-    return s, co
+    return cat(s, co)
 
 
 class RCA(Module):

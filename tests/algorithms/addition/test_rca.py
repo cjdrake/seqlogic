@@ -24,12 +24,10 @@ def test_functional():
                     ci = u2bv(k, 1)
 
                     # Outputs
-                    s, co = adc(a, b, ci)
+                    s = adc(a, b, ci)
 
                     # Check outputs
-                    q, r = divmod(i + j + k, 2**n)
-                    assert s.to_uint() == r
-                    assert co.to_uint() == q
+                    assert s.to_uint() == (i + j + k)
 
 
 class Top(Module):
