@@ -6,6 +6,7 @@ twine
 
 # Documentation
 sphinx
+pydata-sphinx-theme
 
 # Code Quality
 black
