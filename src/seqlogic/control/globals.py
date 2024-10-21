@@ -32,17 +32,16 @@ async def drv_reset(
     """
     if shiftticks < 0:
         raise ValueError(f"Expected shiftticks ≥ 0, got {shiftticks}")
-    if onticks < 0:
-        raise ValueError(f"Expected onticks ≥ 0, got {onticks}")
+    if onticks < 1:
+        raise ValueError(f"Expected onticks > 0, got {onticks}")
 
     # T = 0
-    y.next = "1b1" if neg else "1b0"
+    y.next = ("1b0", "1b1")[neg]
     await sleep(shiftticks)
 
-    y.next = ~y.value
+    y.next = ("1b1", "1b0")[neg]
     await sleep(onticks)
-
-    y.next = ~y.value
+    y.next = ("1b0", "1b1")[neg]
 
 
 async def drv_clock(
@@ -78,18 +77,17 @@ async def drv_clock(
     """
     if shiftticks < 0:
         raise ValueError(f"Expected shiftticks ≥ 0, got {shiftticks}")
-    if onticks < 0:
-        raise ValueError(f"Expected onticks ≥ 0, got {onticks}")
-    if offticks < 0:
-        raise ValueError(f"Expected offticks ≥ 0, got {offticks}")
+    if onticks < 1:
+        raise ValueError(f"Expected onticks > 0, got {onticks}")
+    if offticks < 1:
+        raise ValueError(f"Expected offticks > 0, got {offticks}")
 
     # T = 0
-    y.next = "1b1" if neg else "1b0"
+    y.next = ("1b0", "1b1")[neg]
     await sleep(shiftticks)
 
     while True:
-        y.next = ~y.value
+        y.next = ("1b1", "1b0")[neg]
         await sleep(onticks)
-
-        y.next = ~y.value
+        y.next = ("1b0", "1b1")[neg]
         await sleep(offticks)
