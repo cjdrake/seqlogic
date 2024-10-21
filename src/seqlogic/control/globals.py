@@ -6,7 +6,7 @@ from ..sim import sleep
 
 async def drv_reset(
     y: Packed,
-    shiftticks: int = 0,
+    shiftticks: int = 1,
     onticks: int = 1,
     neg: bool = False,
 ):
@@ -30,8 +30,8 @@ async def drv_reset(
     Raises:
         ValueError: Invalid parameter values
     """
-    if shiftticks < 0:
-        raise ValueError(f"Expected shiftticks ≥ 0, got {shiftticks}")
+    if shiftticks < 1:
+        raise ValueError(f"Expected shiftticks > 0, got {shiftticks}")
     if onticks < 1:
         raise ValueError(f"Expected onticks > 0, got {onticks}")
 
