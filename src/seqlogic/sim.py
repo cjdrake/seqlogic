@@ -300,12 +300,12 @@ class _TaskQueue:
         time, _, _, task, state = heapq.heappop(self._items)
         return (time, task, state)
 
-    def pop_region(self) -> Generator[_TaskQueueItem, None, None]:
-        time, region, _, task, state = heapq.heappop(self._items)
+    def pop_time(self) -> Generator[_TaskQueueItem, None, None]:
+        time, _, _, task, state = heapq.heappop(self._items)
         yield (time, task, state)
         while self._items:
-            t, r, _, task, state = self._items[0]
-            if t == time and r == region:
+            t, _, _, task, state = self._items[0]
+            if t == time:
                 heapq.heappop(self._items)
                 yield (time, task, state)
             else:
@@ -472,31 +472,30 @@ class EventLoop:
 
     def _run_kernel(self, limit: int | None):
         while self._queue:
-            # Peek at when next event is scheduled
+            # Peek when next event is scheduled
             time, _, _ = self._queue.peek()
 
             # Protect against time traveling tasks
-            assert time >= self._time
+            assert time > self._time
 
-            # Next task scheduled: future time slot
-            if time > self._time:
-                # Update simulation state
-                self._update()
+            # Exit if we hit the run limit
+            if limit is not None and time >= limit:
+                break
 
-                # Exit if we hit the run limit
-                if limit is not None and time >= limit:
-                    break
-                # Otherwise, advance to new timeslot
-                self._time = time
+            # Otherwise, advance to new timeslot
+            self._time = time
 
-            # Resume execution
-            for _, task, state in self._queue.pop_region():
+            # Execute time slot
+            for _, task, state in self._queue.pop_time():
                 self._task = task
                 try:
                     task.coro.send(state)
                 except StopIteration as e:
                     task.result = e.value
                     self.task_done(task)
+
+            # Update simulation state
+            self._update()
 
     def run(self, ticks: int | None = None, until: int | None = None):
         """Run the simulation.
@@ -515,32 +514,31 @@ class EventLoop:
 
     def _iter_kernel(self, limit: int | None) -> Generator[int, None, None]:
         while self._queue:
-            # Peek at when next event is scheduled
+            # Peek when next event is scheduled
             time, _, _ = self._queue.peek()
 
             # Protect against time traveling tasks
-            assert time >= self._time
+            assert time > self._time
 
-            # Next task scheduled: future time slot
-            if time > self._time:
-                # Update simulation state
-                self._update()
-                yield self._time
+            # Exit if we hit the run limit
+            if limit is not None and time >= limit:
+                return
 
-                # Exit if we hit the run limit
-                if limit is not None and time >= limit:
-                    return
-                # Otherwise, advance to new timeslot
-                self._time = time
+            # Otherwise, advance to new timeslot
+            self._time = time
 
-            # Resume execution
-            for _, task, state in self._queue.pop_region():
+            # Execute time slot
+            for _, task, state in self._queue.pop_time():
                 self._task = task
                 try:
                     task.coro.send(state)
                 except StopIteration as e:
                     task.result = e.value
                     self.task_done(task)
+
+            # Update simulation state
+            self._update()
+            yield self._time
 
     def irun(
         self, ticks: int | None = None, until: int | None = None
