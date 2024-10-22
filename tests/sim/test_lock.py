@@ -1,7 +1,6 @@
 """Test seqlogic.sim.Lock class."""
 
-from seqlogic import create_task, now, run, sleep
-from seqlogic.sim import Lock
+from seqlogic import Lock, create_task, now, run, sleep
 
 
 def log(s: str):

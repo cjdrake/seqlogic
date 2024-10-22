@@ -1,7 +1,6 @@
 """Test seqlogic.sim.Semaphore class."""
 
-from seqlogic import create_task, now, run, sleep
-from seqlogic.sim import Semaphore
+from seqlogic import Semaphore, create_task, now, run, sleep
 
 
 def log(s: str):

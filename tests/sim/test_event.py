@@ -1,7 +1,6 @@
 """Test seqlogic.sim.Event class."""
 
-from seqlogic import create_task, now, run, sleep
-from seqlogic.sim import Event
+from seqlogic import Event, create_task, now, run, sleep
 
 
 def log(s: str):

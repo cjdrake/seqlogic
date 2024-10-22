@@ -93,8 +93,11 @@ from .expr import (
     Xt,
 )
 from .sim import (
+    Event,
     EventLoop,
+    Lock,
     Region,
+    Semaphore,
     Task,
     changed,
     create_task,
@@ -218,9 +221,12 @@ __all__ = [
     "GetItem",
     "GetAttr",
     # sim
-    "Region",
     "EventLoop",
+    "Region",
     "Task",
+    "Event",
+    "Semaphore",
+    "Lock",
     "create_task",
     "get_event_loop",
     "get_running_loop",
