@@ -248,6 +248,13 @@ class Semaphore:
         else:
             self._cnt -= 1
 
+    def try_acquire(self) -> bool:
+        assert self._cnt >= 0
+        if self._cnt == 0:
+            return False
+        self._cnt -= 1
+        return True
+
     def release(self):
         assert self._cnt >= 0
         increment = _loop.sem_release(self)
