@@ -660,15 +660,15 @@ class Packed(Logic, Singular, Variable):
         except ValueError:
             return False
 
-    async def posedge(self) -> State:
+    async def posedge(self):
         """Suspend; resume execution at signal posedge."""
         await resume((self, self.is_posedge))
 
-    async def negedge(self) -> State:
+    async def negedge(self):
         """Suspend; resume execution at signal negedge."""
         await resume((self, self.is_negedge))
 
-    async def edge(self) -> State:
+    async def edge(self):
         """Suspend; resume execution at signal edge."""
         await resume((self, self.is_edge))
 
