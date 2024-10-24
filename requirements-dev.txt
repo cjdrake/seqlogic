@@ -6,6 +6,7 @@ twine
 
 # Documentation
 sphinx
+sphinx-autobuild
 pydata-sphinx-theme
 
 # Code Quality
