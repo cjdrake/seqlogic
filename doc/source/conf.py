@@ -8,7 +8,7 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html
 import tomllib
 from pathlib import Path
 
-WORKSPACE = Path("../..").resolve()
+WORKSPACE = Path(__file__).parents[2]
 with open(WORKSPACE / "pyproject.toml", mode="rb") as f:
     proj_toml = tomllib.load(f)
 

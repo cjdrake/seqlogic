@@ -1,10 +1,8 @@
 """Prepend workspace root to system path."""
 
-import os
 import sys
+from pathlib import Path
 
-TESTS_DIR = os.path.dirname(__file__)
-WORKSPACE = os.path.abspath(os.path.join(TESTS_DIR, os.path.pardir))
-SRC_DIR = os.path.join(WORKSPACE, "src")
+WORKSPACE = Path(__file__).parents[1]
 
-sys.path.insert(0, SRC_DIR)
+sys.path.insert(0, str(WORKSPACE / "src"))
