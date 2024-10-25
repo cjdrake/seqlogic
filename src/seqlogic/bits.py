@@ -1119,13 +1119,14 @@ def ngc(x: Bits | str) -> Bits:
 
 
 def _mul(a: Bits, b: Bits) -> Empty | Vector:
+    n = 2 * a.size
+
     # X/DC propagation
     if a.has_x() or b.has_x():
-        return a.xes()
+        return Vector[n].xes()
     if a.has_dc() or b.has_dc():
-        return a.dcs()
+        return Vector[n].dcs()
 
-    n = 2 * a.size
     dmax = mask(n)
     p = a.data[1] * b.data[1]
 

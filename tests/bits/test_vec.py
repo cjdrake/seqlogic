@@ -21,6 +21,7 @@ from seqlogic import (
     lrot,
     lsh,
     lt,
+    mul,
     mux,
     nand,
     ne,
@@ -1291,6 +1292,43 @@ def test_vec_neg():
     assert -bits("3b011") == "4b0101"
     assert -bits("3b101") == "4b0011"
     assert -bits("3b100") == "4b0100"
+
+
+MUL_VALS = [
+    ("1b0", "1b0", "2b00"),
+    ("1b0", "1b1", "2b00"),
+    ("1b1", "1b0", "2b00"),
+    ("1b1", "1b1", "2b01"),
+    ("2b00", "2b00", "4b0000"),
+    ("2b00", "2b01", "4b0000"),
+    ("2b00", "2b10", "4b0000"),
+    ("2b00", "2b11", "4b0000"),
+    ("2b01", "2b00", "4b0000"),
+    ("2b01", "2b01", "4b0001"),
+    ("2b01", "2b10", "4b0010"),
+    ("2b01", "2b11", "4b0011"),
+    ("2b10", "2b00", "4b0000"),
+    ("2b10", "2b01", "4b0010"),
+    ("2b10", "2b10", "4b0100"),
+    ("2b10", "2b11", "4b0110"),
+    ("2b11", "2b00", "4b0000"),
+    ("2b11", "2b01", "4b0011"),
+    ("2b11", "2b10", "4b0110"),
+    ("2b11", "2b11", "4b1001"),
+    ("2b0X", "2b00", "4bXXXX"),
+    ("2b0-", "2b00", "4b----"),
+]
+
+
+def test_vec_mul():
+    """Test bits add method."""
+    # Empty X Empty = Empty
+    assert mul(bits(), bits()) == bits()
+
+    for a, b, p in MUL_VALS:
+        assert mul(a, b) == p
+        assert bits(a) * b == p
+        assert a * bits(b) == p
 
 
 def test_count():
