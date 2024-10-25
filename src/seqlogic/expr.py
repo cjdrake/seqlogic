@@ -22,6 +22,7 @@ from .bits import (
     lrot,
     lsh,
     lt,
+    mul,
     mux,
     nand,
     ne,
@@ -144,6 +145,7 @@ class Expr(ABC):
             "sbc": sbc,
             "neg": neg,
             "ngc": ngc,
+            "mul": mul,
             "lsh": lsh,
             "rsh": rsh,
             "srsh": srsh,
@@ -415,6 +417,12 @@ class Ngc(_UnaryOp):
     """NGC operator node."""
 
     name = "ngc"
+
+
+class Mul(_BinaryOp):
+    """Multiply operator node."""
+
+    name = "mul"
 
 
 class _ShOp(_PrefixOp):
