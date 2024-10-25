@@ -289,6 +289,13 @@ class Bits:
         s, co = _neg(self)
         return _cat(s, co)
 
+    def __mul__(self, other: Bits | str) -> Bits:
+        return mul(self, other)
+
+    def __rmul__(self, other: Bits | str) -> Bits:
+        other = _expect_size(other, self.size)
+        return mul(other, self)
+
     def to_uint(self) -> int:
         """Convert to unsigned integer.
 
@@ -1109,6 +1116,38 @@ def ngc(x: Bits | str) -> Bits:
     x = _expect_type(x, Bits)
     s, co = _neg(x)
     return cat(s, co)
+
+
+def _mul(a: Bits, b: Bits) -> Empty | Vector:
+    # X/DC propagation
+    if a.has_x() or b.has_x():
+        return a.xes()
+    if a.has_dc() or b.has_dc():
+        return a.dcs()
+
+    n = 2 * a.size
+    dmax = mask(n)
+    p = a.data[1] * b.data[1]
+
+    return _vec_size(n)(p ^ dmax, p)
+
+
+def mul(a: Bits | str, b: Bits | str) -> Empty | Vector:
+    """Unsigned multiply.
+
+    Args:
+        a: Bits
+        b: Bits of equal length.
+
+    Returns:
+        product w/ length 2 * a.size
+
+    Raises:
+        ValueError: Bits sizes are invalid/inconsistent.
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_size(b, a.size)
+    return _mul(a, b)
 
 
 def _lsh(x: Bits, n: Bits) -> Bits:
