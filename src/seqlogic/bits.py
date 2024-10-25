@@ -1416,10 +1416,10 @@ def clz(x: Bits | str) -> Empty | Scalar | Vector:
     x = _expect_type(x, Bits)
     xr = pack(x)
     # Decode: {0000: 10000, 0001: 01000, ..., 01--: 00010, 1---: 00001}
-    xd = _cat(xr, _Scalar1) & -xr
+    d = _cat(xr, _Scalar1) & -xr
     # Encode {10000: 100, 01000: 011, 00100: 010, 00010: 001, 00001: 000}
-    n = clog2(xd.size)
-    xs = [_and_(_rep(xd[i], n), u2bv(i, n)) for i in range(xd.size)]
+    n = clog2(d.size)
+    xs = [_and_(_rep(d[i], n), u2bv(i, n)) for i in range(d.size)]
     return or_(*xs)
 
 
