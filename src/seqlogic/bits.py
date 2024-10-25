@@ -1,14 +1,9 @@
-"""Logic vector data types."""
+"""Bit scalar/vector/array data types."""
 
 # PyLint is confused by my hacky classproperty implementation
 # pylint: disable=comparison-with-callable
-# pylint: disable=invalid-unary-operand-type
 # pylint: disable=no-self-argument
 
-# I need exec to define a Struct.__init__ method
-# pylint: disable=exec-used
-
-# PyLint is confused by Enum/Struct/Union metaclass implementation
 # pylint: disable=protected-access
 
 from __future__ import annotations
@@ -18,7 +13,7 @@ import operator
 import random
 import re
 from collections.abc import Callable, Generator
-from functools import cache, partial
+from functools import partial
 
 from .lbool import (
     _W,
@@ -36,14 +31,7 @@ from .lbool import (
     to_char,
     to_vcd_char,
 )
-from .util import classproperty, clog2
-
-
-@cache
-def _mask(n: int) -> int:
-    """Return n bit mask."""
-    return (1 << n) - 1
-
+from .util import classproperty, clog2, mask
 
 _VectorSize: dict[int, type[Vector]] = {}
 
@@ -204,7 +192,7 @@ class Bits:
 
     @classproperty
     def _dmax(cls) -> int:
-        return _mask(cls.size)
+        return mask(cls.size)
 
     @property
     def data(self) -> tuple[int, int]:
@@ -388,8 +376,8 @@ class Bits:
 
     def _get_slice(self, i: int, j: int) -> tuple[int, tuple[int, int]]:
         size = j - i
-        mask = _mask(size)
-        return size, ((self._data[0] >> i) & mask, (self._data[1] >> i) & mask)
+        m = mask(size)
+        return size, ((self._data[0] >> i) & m, (self._data[1] >> i) & m)
 
     def _get_key(self, key: int | slice | Bits | str) -> tuple[int, tuple[int, int]]:
         if isinstance(key, int):
@@ -627,299 +615,6 @@ class Array(Bits, _ShapeIf):
         return tuple(f(n, key) for n, key in zip(cls._shape, keys))
 
 
-class _EnumMeta(type):
-    """Enum Metaclass: Create enum base classes."""
-
-    def __new__(mcs, name, bases, attrs):
-        # Base case for API
-        if name == "Enum":
-            return super().__new__(mcs, name, bases, attrs)
-
-        enum_attrs = {}
-        data2key: dict[tuple[int, int], str] = {}
-        size = None
-        for key, val in attrs.items():
-            if key.startswith("__"):
-                enum_attrs[key] = val
-            # NAME = lit
-            else:
-                if size is None:
-                    size, data = _parse_lit(val)
-                else:
-                    size_i, data = _parse_lit(val)
-                    if size_i != size:
-                        s = f"Expected lit len {size}, got {size_i}"
-                        raise ValueError(s)
-                if key in ("X", "DC"):
-                    raise ValueError(f"Cannot use reserved name = '{key}'")
-                dmax = _mask(size)
-                if data in ((0, 0), (dmax, dmax)):
-                    raise ValueError(f"Cannot use reserved value = {val}")
-                if data in data2key:
-                    raise ValueError(f"Duplicate value: {val}")
-                data2key[data] = key
-
-        # Empty Enum
-        if size is None:
-            raise ValueError("Empty Enum is not supported")
-
-        # Add X/DC members
-        data2key[(0, 0)] = "X"
-        dmax = _mask(size)
-        data2key[(dmax, dmax)] = "DC"
-
-        # Create Enum class
-        vec = _vec_size(size)
-        enum = super().__new__(mcs, name, bases + (vec,), enum_attrs)
-
-        # Instantiate members
-        for (d0, d1), key in data2key.items():
-            setattr(enum, key, enum._cast_data(d0, d1))
-
-        # Override Vector._cast_data method
-        def _cast_data(cls, d0: int, d1: int) -> Bits:
-            data = (d0, d1)
-            try:
-                obj = getattr(cls, data2key[data])
-            except KeyError:
-                obj = object.__new__(cls)
-                obj._data = data
-            return obj
-
-        # Override Vector._cast_data method
-        enum._cast_data = classmethod(_cast_data)
-
-        # Override Vector.__new__ method
-        def _new(cls, arg: Bits | str):
-            x = _expect_size(arg, cls.size)
-            return cls.cast(x)
-
-        enum.__new__ = _new
-
-        # Override Vector.__repr__ method
-        def _repr(self):
-            try:
-                return f"{name}.{data2key[self._data]}"
-            except KeyError:
-                return f'{name}("{vec.__str__(self)}")'
-
-        enum.__repr__ = _repr
-
-        # Override Vector.__str__ method
-        def _str(self):
-            try:
-                return f"{name}.{data2key[self._data]}"
-            except KeyError:
-                return f"{name}({vec.__str__(self)})"
-
-        enum.__str__ = _str
-
-        # Create name property
-        def _name(self):
-            try:
-                return data2key[self._data]
-            except KeyError:
-                return f"{name}({vec.__str__(self)})"
-
-        enum.name = property(fget=_name)
-
-        # Override VCD methods
-        enum.vcd_var = lambda _: "string"
-        enum.vcd_val = _name
-
-        return enum
-
-
-class Enum(metaclass=_EnumMeta):
-    """Enum Base Class: Create enums."""
-
-
-def _struct_init_source(fields: list[tuple[str, type]]) -> str:
-    """Return source code for Struct __init__ method w/ fields."""
-    lines = []
-    s = ", ".join(f"{fn}=None" for fn, _ in fields)
-    lines.append(f"def init(self, {s}):\n")
-    s = ", ".join(fn for fn, _ in fields)
-    lines.append(f"    _init_body(self, {s})\n")
-    return "".join(lines)
-
-
-class _StructMeta(type):
-    """Struct Metaclass: Create struct base classes."""
-
-    def __new__(mcs, name, bases, attrs):
-        # Base case for API
-        if name == "Struct":
-            return super().__new__(mcs, name, bases, attrs)
-
-        # Get field_name: field_type items
-        try:
-            fields = list(attrs["__annotations__"].items())
-        except KeyError as e:
-            raise ValueError("Empty Struct is not supported") from e
-
-        # Add struct member base/size attributes
-        offset = 0
-        offsets = {}
-        for field_name, field_type in fields:
-            offsets[field_name] = offset
-            offset += field_type.size
-
-        # Create Struct class
-        size = sum(field_type.size for _, field_type in fields)
-        struct = super().__new__(mcs, name, bases + (Bits,), {})
-
-        # Class properties
-        struct.size = classproperty(lambda _: size)
-
-        # Override Bits.__init__ method
-        def _init_body(obj, *args):
-            d0, d1 = 0, 0
-            for arg, (fn, ft) in zip(args, fields):
-                if arg is not None:
-                    # TODO(cjdrake): Check input type?
-                    x = _expect_size(arg, ft.size)
-                    d0 |= x.data[0] << offsets[fn]
-                    d1 |= x.data[1] << offsets[fn]
-            obj._data = (d0, d1)
-
-        source = _struct_init_source(fields)
-        globals_ = {"_init_body": _init_body}
-        locals_ = {}
-        exec(source, globals_, locals_)
-        struct.__init__ = locals_["init"]
-
-        # Override Bits.__getitem__ method
-        def _getitem(self, key: int | slice | Bits | str) -> Empty | Scalar | Vector:
-            size, (d0, d1) = self._get_key(key)
-            return _vec_size(size)(d0, d1)
-
-        struct.__getitem__ = _getitem
-
-        # Override Bits.__str__ method
-        def _str(self):
-            parts = [f"{name}("]
-            for fn, _ in fields:
-                x = getattr(self, fn)
-                parts.append(f"    {fn}={x!s},")
-            parts.append(")")
-            return "\n".join(parts)
-
-        struct.__str__ = _str
-
-        # Override Bits.__repr__ method
-        def _repr(self):
-            parts = [f"{name}("]
-            for fn, _ in fields:
-                x = getattr(self, fn)
-                parts.append(f"    {fn}={x!r},")
-            parts.append(")")
-            return "\n".join(parts)
-
-        struct.__repr__ = _repr
-
-        # Create Struct fields
-        def _fget(fn: str, ft: type[Bits], self):
-            mask = _mask(ft.size)
-            d0 = (self._data[0] >> offsets[fn]) & mask
-            d1 = (self._data[1] >> offsets[fn]) & mask
-            return ft._cast_data(d0, d1)
-
-        for fn, ft in fields:
-            setattr(struct, fn, property(fget=partial(_fget, fn, ft)))
-
-        return struct
-
-
-class Struct(metaclass=_StructMeta):
-    """Struct Base Class: Create struct."""
-
-
-class _UnionMeta(type):
-    """Union Metaclass: Create union base classes."""
-
-    def __new__(mcs, name, bases, attrs):
-        # Base case for API
-        if name == "Union":
-            return super().__new__(mcs, name, bases, attrs)
-
-        # Get field_name: field_type items
-        try:
-            fields = list(attrs["__annotations__"].items())
-        except KeyError as e:
-            raise ValueError("Empty Union is not supported") from e
-
-        # Create Union class
-        size = max(field_type.size for _, field_type in fields)
-        union = super().__new__(mcs, name, bases + (Bits,), {})
-
-        # Class properties
-        union.size = classproperty(lambda _: size)
-
-        # Override Bits.__init__ method
-        def _init(self, arg: Bits | str):
-            if isinstance(arg, str):
-                x = _lit2vec(arg)
-            else:
-                x = arg
-            ts = []
-            for _, ft in fields:
-                if ft not in ts:
-                    ts.append(ft)
-            if not isinstance(x, tuple(ts)):
-                s = ", ".join(t.__name__ for t in ts)
-                s = f"Expected arg to be {{{s}}}, or str literal"
-                raise TypeError(s)
-            self._data = x.data
-
-        union.__init__ = _init
-
-        # Override Bits.__getitem__ method
-        def _getitem(self, key: int | slice | Bits | str) -> Empty | Scalar | Vector:
-            size, (d0, d1) = self._get_key(key)
-            return _vec_size(size)(d0, d1)
-
-        union.__getitem__ = _getitem
-
-        # Override Bits.__str__ method
-        def _str(self):
-            parts = [f"{name}("]
-            for fn, _ in fields:
-                x = getattr(self, fn)
-                parts.append(f"    {fn}={x!s},")
-            parts.append(")")
-            return "\n".join(parts)
-
-        union.__str__ = _str
-
-        # Override Bits.__repr__ method
-        def _repr(self):
-            parts = [f"{name}("]
-            for fn, _ in fields:
-                x = getattr(self, fn)
-                parts.append(f"    {fn}={x!r},")
-            parts.append(")")
-            return "\n".join(parts)
-
-        union.__repr__ = _repr
-
-        # Create Union fields
-        def _fget(ft: type[Bits], self):
-            mask = _mask(ft.size)
-            d0 = self._data[0] & mask
-            d1 = self._data[1] & mask
-            return ft._cast_data(d0, d1)
-
-        for fn, ft in fields:
-            setattr(union, fn, property(fget=partial(_fget, ft)))
-
-        return union
-
-
-class Union(metaclass=_UnionMeta):
-    """Union Base Class: Create union."""
-
-
 # Bitwise
 def _not_(x: Bits) -> Bits:
     d0, d1 = lnot(x.data)
@@ -1120,8 +815,8 @@ def xor(x0: Bits | str, *xs: Bits | str) -> Bits:
 
 
 def _ite(s: Bits, x1: Bits, x0: Bits) -> Bits:
-    s0 = _mask(x1.size) * s.data[0]
-    s1 = _mask(x1.size) * s.data[1]
+    s0 = mask(x1.size) * s.data[0]
+    s1 = mask(x1.size) * s.data[1]
     d0, d1 = lite((s0, s1), x1.data, x0.data)
     t = _resolve_type(type(x0), type(x1))
     return t._cast_data(d0, d1)
@@ -1145,7 +840,7 @@ def ite(s: Bits | str, x1: Bits | str, x0: Bits | str) -> Bits:
 
 
 def _mux(s: Bits, t: type[Bits], xs: dict[int, Bits]) -> Bits:
-    m = _mask(t.size)
+    m = mask(t.size)
     si = (s._get_index(i) for i in range(s.size))
     s = tuple((m * d0, m * d1) for d0, d1 in si)
     dc = t.dcs()
@@ -1283,7 +978,7 @@ def decode(x: Bits | str) -> Scalar | Vector:
         return vec.dcs()
 
     d1 = 1 << x.to_uint()
-    return vec(d1 ^ _mask(n), d1)
+    return vec(d1 ^ mask(n), d1)
 
 
 def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
@@ -1293,7 +988,7 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     if a.has_dc() or b.has_dc() or ci.has_dc():
         return a.dcs(), _ScalarW
 
-    dmax = _mask(a.size)
+    dmax = mask(a.size)
     s = a.data[1] + b.data[1] + ci.data[1]
     co = _bool2scalar[s > dmax]
     s &= dmax
@@ -1429,7 +1124,7 @@ def _lsh(x: Bits, n: Bits) -> Bits:
         raise ValueError(f"Expected n ≤ {x.size}, got {n}")
 
     _, (sh0, sh1) = x._get_slice(0, x.size - n)
-    d0 = _mask(n) | sh0 << n
+    d0 = mask(n) | sh0 << n
     d1 = sh1 << n
     y = x._cast_data(d0, d1)
 
@@ -1466,7 +1161,7 @@ def _rsh(x: Bits, n: Bits) -> Bits:
         raise ValueError(f"Expected n ≤ {x.size}, got {n}")
 
     sh_size, (sh0, sh1) = x._get_slice(n, x.size)
-    d0 = sh0 | (_mask(n) << sh_size)
+    d0 = sh0 | (mask(n) << sh_size)
     d1 = sh1
     y = x._cast_data(d0, d1)
 
@@ -1503,7 +1198,7 @@ def _srsh(x: Bits, n: Bits) -> Bits:
         raise ValueError(f"Expected n ≤ {x.size}, got {n}")
 
     sign0, sign1 = x._get_index(x.size - 1)
-    si0, si1 = _mask(n) * sign0, _mask(n) * sign1
+    si0, si1 = mask(n) * sign0, mask(n) * sign1
 
     sh_size, (sh0, sh1) = x._get_slice(n, x.size)
     d0 = sh0 | si0 << sh_size
@@ -1532,7 +1227,7 @@ def srsh(x: Bits | str, n: Bits | str | int) -> tuple[Bits, Empty | Scalar | Vec
 
 # Word operations
 def _xt(x: Bits, n: int) -> Vector:
-    ext0 = _mask(n)
+    ext0 = mask(n)
     d0 = x.data[0] | ext0 << x.size
     d1 = x.data[1]
     return _vec_size(x.size + n)(d0, d1)
@@ -1562,8 +1257,8 @@ def xt(x: Bits | str, n: int) -> Bits:
 
 def _sxt(x: Bits, n: int) -> Vector:
     sign0, sign1 = x._get_index(x.size - 1)
-    ext0 = _mask(n) * sign0
-    ext1 = _mask(n) * sign1
+    ext0 = mask(n) * sign0
+    ext1 = mask(n) * sign1
     d0 = x.data[0] | ext0 << x.size
     d1 = x.data[1] | ext1 << x.size
     return _vec_size(x.size + n)(d0, d1)
@@ -1926,18 +1621,18 @@ def _pack(x: Bits, n: int) -> Bits:
     if x.size == 0:
         return x
 
-    mask = _mask(n)
+    m = mask(n)
 
     xd0, xd1 = x.data
 
-    d0 = xd0 & mask
-    d1 = xd1 & mask
+    d0 = xd0 & m
+    d1 = xd1 & m
 
     for _ in range(n, x.size, n):
         xd0 >>= n
         xd1 >>= n
-        d0 = (d0 << n) | (xd0 & mask)
-        d1 = (d1 << n) | (xd1 & mask)
+        d0 = (d0 << n) | (xd0 & m)
+        d1 = (d1 << n) | (xd1 & m)
 
     return x._cast_data(d0, d1)
 
@@ -1981,7 +1676,7 @@ def _parse_lit(lit: str) -> tuple[int, tuple[int, int]]:
         # Decimal
         if base == "d":
             d1 = int(digits, base=10)
-            dmax = _mask(size)
+            dmax = mask(size)
             if d1 > dmax:
                 s = f"Expected digits in range [0, {dmax}], got {digits}"
                 raise ValueError(s)
@@ -1989,7 +1684,7 @@ def _parse_lit(lit: str) -> tuple[int, tuple[int, int]]:
         # Hexadecimal
         if base == "h":
             d1 = int(digits, base=16)
-            dmax = _mask(size)
+            dmax = mask(size)
             if d1 > dmax:
                 s = f"Expected digits in range [0, {dmax}], got {digits}"
                 raise ValueError(s)
@@ -2036,7 +1731,7 @@ def _bools2vec(x0: int, *xs: int) -> Empty | Scalar | Vector:
         else:
             raise TypeError(f"Expected x in {{0, 1}}, got {x}")
         size += 1
-    return _vec_size(size)(d1 ^ _mask(size), d1)
+    return _vec_size(size)(d1 ^ mask(size), d1)
 
 
 def _rank2(fst: Scalar | Vector, *rst: Scalar | Vector | str) -> Vector | Array:
@@ -2171,7 +1866,7 @@ def u2bv(n: int, size: int | None = None) -> Empty | Scalar | Vector:
         s = f"Overflow: n = {n} required size ≥ {min_size}, got {size}"
         raise ValueError(s)
 
-    return _vec_size(size)(n ^ _mask(size), n)
+    return _vec_size(size)(n ^ mask(size), n)
 
 
 def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
@@ -2202,7 +1897,7 @@ def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
         s = f"Overflow: n = {n} required size ≥ {min_size}, got {size}"
         raise ValueError(s)
 
-    x = _vec_size(size)(d1 ^ _mask(size), d1)
+    x = _vec_size(size)(d1 ^ mask(size), d1)
     if negative:
         s, _ = _neg(x)
         return s
@@ -2210,8 +1905,8 @@ def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
 
 
 def _chunk(data: tuple[int, int], base: int, size: int) -> tuple[int, int]:
-    mask = _mask(size)
-    return (data[0] >> base) & mask, (data[1] >> base) & mask
+    m = mask(size)
+    return (data[0] >> base) & m, (data[1] >> base) & m
 
 
 def _sel(x: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:

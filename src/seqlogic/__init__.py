@@ -1,13 +1,13 @@
 """Sequential Logic."""
 
+from ._bits_enum import Enum
+from ._bits_struct import Struct
+from ._bits_union import Union
 from .bits import (
     Array,
     Bits,
     Empty,
-    Enum,
     Scalar,
-    Struct,
-    Union,
     Vector,
     adc,
     add,
