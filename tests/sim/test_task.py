@@ -1,6 +1,6 @@
 """Test seqlogic.sim.Lock class."""
 
-from seqlogic import Task, create_task, now, run, sleep
+from seqlogic import CancelledError, Task, create_task, now, run, sleep
 
 
 def log(s: str):
@@ -56,3 +56,49 @@ def test_basic(capsys):
 
     run(main())
     assert capsys.readouterr().out == EXP1
+
+
+async def fiz():
+    log("FIZ enter")
+
+    try:
+        await sleep(1000)
+    except CancelledError:
+        log("FIZ except")
+        raise
+    finally:
+        log("FIZ finally")
+
+
+async def buz():
+    log("BUZ enter")
+
+    task = create_task(fiz())
+
+    await sleep(1)
+
+    log("BUZ cancels FIZ")
+    task.cancel()
+
+    try:
+        await task
+    except CancelledError:
+        log("BUZ except")
+    finally:
+        log("BUZ finally")
+
+
+EXP2 = """\
+0000 BUZ enter
+0000 FIZ enter
+0001 BUZ cancels FIZ
+0001 FIZ except
+0001 FIZ finally
+0001 BUZ except
+0001 BUZ finally
+"""
+
+
+def test_cancel(capsys):
+    run(buz())
+    assert capsys.readouterr().out == EXP2

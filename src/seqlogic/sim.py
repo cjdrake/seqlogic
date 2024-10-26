@@ -23,6 +23,14 @@ START_TIME = 0
 type Predicate = Callable[[], bool]
 
 
+class CancelledError(Exception):
+    """Task has been cancelled."""
+
+
+class FinishError(Exception):
+    """Force the simulation to stop."""
+
+
 class Region(IntEnum):
     # Coroutines that react to changes from Active region.
     # Used by combinational logic.
@@ -169,6 +177,7 @@ class Task(Awaitable):
         self._done = False
         self._result = None
         self._coro = coro
+        self._exc = None
 
     def __await__(self) -> Generator[None, None, None]:
         if not self._done:
@@ -190,6 +199,9 @@ class Task(Awaitable):
 
     def get_coro(self):
         return self._coro
+
+    def cancel(self):
+        _loop.task_throw(self, CancelledError())
 
 
 def create_task(coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
@@ -332,10 +344,6 @@ class _StateAwaitable(Awaitable):
         return state
 
 
-class Finish(Exception):
-    """Force the simulation to stop."""
-
-
 class EventLoop:
     """Simulation event loop."""
 
@@ -426,11 +434,25 @@ class EventLoop:
     def task_await(self, task: Task):
         self._task_waiting[task].append(self._task)
 
-    def _task_stop(self, task: Task, stop: StopIteration):
+    def task_throw(self, task: Task, e: Exception):
+        task._exc = e
+        self._queue.push(self._time, task)
+
+    def _task_except(self, task: Task, e: CancelledError):
         waiting = self._task_waiting[task]
         while waiting:
-            self._queue.push(self._time, waiting.popleft())
-        task._result = stop.value
+            t = waiting.popleft()
+            # Propagate exception to all waiting tasks
+            t._exc = e
+            self._queue.push(self._time, t)
+        task._done = True
+
+    def _task_return(self, task: Task, result):
+        waiting = self._task_waiting[task]
+        while waiting:
+            t = waiting.popleft()
+            self._queue.push(self._time, t)
+        task._result = result
         task._done = True
 
     # Event wait / set callbacks
@@ -488,11 +510,21 @@ class EventLoop:
 
             # Execute time slot
             for _, task, state in self._queue.pop_time():
+
+                # TODO(cjdrake): Evaluate preventing multi scheduling
+                if task.done():
+                    continue
+
                 self._task = task
                 try:
-                    task._coro.send(state)
-                except StopIteration as stop:
-                    self._task_stop(task, stop)
+                    if task._exc:
+                        task._coro.throw(task._exc)
+                    else:
+                        task._coro.send(state)
+                except CancelledError as e:
+                    self._task_except(task, e)
+                except StopIteration as e:
+                    self._task_return(task, e.value)
 
             # Update simulation state
             self._update()
@@ -509,7 +541,7 @@ class EventLoop:
         # Run until either 1) all tasks complete, or 2) finish()
         try:
             self._run_kernel(limit)
-        except Finish:
+        except FinishError:
             self.clear()
 
     def _iter_kernel(self, limit: int | None) -> Generator[int, None, None]:
@@ -529,11 +561,21 @@ class EventLoop:
 
             # Execute time slot
             for _, task, state in self._queue.pop_time():
+
+                # TODO(cjdrake): Evaluate preventing multi scheduling
+                if task.done():
+                    continue
+
                 self._task = task
                 try:
-                    task._coro.send(state)
-                except StopIteration as stop:
-                    self._task_stop(task, stop)
+                    if task._exc:
+                        task._coro.throw(task._exc)
+                    else:
+                        task._coro.send(state)
+                except CancelledError as e:
+                    self._task_except(task, e)
+                except StopIteration as e:
+                    self._task_return(task, e.value)
 
             # Update simulation state
             self._update()
@@ -552,7 +594,7 @@ class EventLoop:
 
         try:
             yield from self._iter_kernel(limit)
-        except Finish:
+        except FinishError:
             self.clear()
 
 
@@ -658,4 +700,4 @@ async def resume(*triggers: tuple[State, Predicate]) -> State:
 
 
 def finish():
-    raise Finish()
+    raise FinishError()

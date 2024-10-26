@@ -98,6 +98,7 @@ from .expr import (
     Xt,
 )
 from .sim import (
+    CancelledError,
     Event,
     EventLoop,
     Lock,
@@ -231,6 +232,7 @@ __all__ = [
     "GetItem",
     "GetAttr",
     # sim
+    "CancelledError",
     "EventLoop",
     "Region",
     "Task",
