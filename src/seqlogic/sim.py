@@ -7,6 +7,8 @@ Credit to David Beazley's "Build Your Own Async" tutorial for inspiration:
 https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 """
 
+# pylint: disable=protected-access
+
 from __future__ import annotations
 
 import heapq
@@ -164,9 +166,9 @@ class Task(Awaitable):
 
     def __init__(self, coro: Coroutine, region: Region = Region.ACTIVE):
         self._region = region
-        self._coro = coro
-        self._result = None
         self._done = False
+        self._result = None
+        self._coro = coro
 
     def __await__(self) -> Generator[None, None, None]:
         if not self._done:
@@ -180,23 +182,14 @@ class Task(Awaitable):
     def region(self):
         return self._region
 
-    @property
-    def coro(self):
-        return self._coro
-
-    def _get_result(self):
-        return self._result
-
-    def _set_result(self, value):
-        self._result = value
-
-    result = property(fget=_get_result, fset=_set_result)
-
-    def set_done(self):
-        self._done = True
-
     def done(self) -> bool:
         return self._done
+
+    def result(self):
+        return self._result
+
+    def get_coro(self):
+        return self._coro
 
 
 def create_task(coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
@@ -437,7 +430,7 @@ class EventLoop:
         waiting = self._task_waiting[task]
         while waiting:
             self._queue.push(self._time, waiting.popleft())
-        task.set_done()
+        task._done = True
 
     # Event wait / set callbacks
     def event_wait(self, event: Event):
@@ -496,9 +489,9 @@ class EventLoop:
             for _, task, state in self._queue.pop_time():
                 self._task = task
                 try:
-                    task.coro.send(state)
+                    task._coro.send(state)
                 except StopIteration as e:
-                    task.result = e.value
+                    task._result = e.value
                     self.task_done(task)
 
             # Update simulation state
@@ -538,9 +531,9 @@ class EventLoop:
             for _, task, state in self._queue.pop_time():
                 self._task = task
                 try:
-                    task.coro.send(state)
+                    task._coro.send(state)
                 except StopIteration as e:
-                    task.result = e.value
+                    task._result = e.value
                     self.task_done(task)
 
             # Update simulation state
