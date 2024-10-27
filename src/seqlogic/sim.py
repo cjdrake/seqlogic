@@ -426,11 +426,15 @@ class EventLoop:
     def task_await(self, task: Task):
         self._task_waiting[task].append(self._task)
 
-    def task_done(self, task: Task):
+    def _task_done(self, task: Task):
         waiting = self._task_waiting[task]
         while waiting:
             self._queue.push(self._time, waiting.popleft())
         task._done = True
+
+    def _task_stop(self, task: Task, stop: StopIteration):
+        task._result = stop.value
+        self._task_done(task)
 
     # Event wait / set callbacks
     def event_wait(self, event: Event):
@@ -490,9 +494,8 @@ class EventLoop:
                 self._task = task
                 try:
                     task._coro.send(state)
-                except StopIteration as e:
-                    task._result = e.value
-                    self.task_done(task)
+                except StopIteration as stop:
+                    self._task_stop(task, stop)
 
             # Update simulation state
             self._update()
@@ -532,9 +535,8 @@ class EventLoop:
                 self._task = task
                 try:
                     task._coro.send(state)
-                except StopIteration as e:
-                    task._result = e.value
-                    self.task_done(task)
+                except StopIteration as stop:
+                    self._task_stop(task, stop)
 
             # Update simulation state
             self._update()
