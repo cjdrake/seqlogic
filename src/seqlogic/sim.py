@@ -426,15 +426,12 @@ class EventLoop:
     def task_await(self, task: Task):
         self._task_waiting[task].append(self._task)
 
-    def _task_done(self, task: Task):
+    def _task_stop(self, task: Task, stop: StopIteration):
         waiting = self._task_waiting[task]
         while waiting:
             self._queue.push(self._time, waiting.popleft())
-        task._done = True
-
-    def _task_stop(self, task: Task, stop: StopIteration):
         task._result = stop.value
-        self._task_done(task)
+        task._done = True
 
     # Event wait / set callbacks
     def event_wait(self, event: Event):
