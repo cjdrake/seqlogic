@@ -7,13 +7,11 @@ Credit to David Beazley's "Build Your Own Async" tutorial for inspiration:
 https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 """
 
-# pylint: disable=protected-access
-
 from __future__ import annotations
 
 import heapq
 from abc import ABC
-from collections import defaultdict, deque
+from collections import defaultdict, deque, namedtuple
 from collections.abc import Awaitable, Callable, Coroutine, Generator, Hashable
 from enum import IntEnum, auto
 
@@ -29,6 +27,10 @@ class CancelledError(Exception):
 
 class FinishError(Exception):
     """Force the simulation to stop."""
+
+
+class InvalidStateError(Exception):
+    """Task has an invalid state."""
 
 
 class Region(IntEnum):
@@ -92,7 +94,7 @@ class Singular(State, Value):
         self._next_value = value
 
         # Notify the event loop
-        _loop.touch(self)
+        _loop.state_touch(self)
 
     next = property(fset=_set_next)
 
@@ -140,7 +142,7 @@ class Aggregate(State):
         self._next_values[key] = value
 
         # Notify the event loop
-        _loop.touch(self)
+        _loop.state_touch(self)
 
     def changed(self) -> bool:
         return bool(self._changed)
@@ -169,18 +171,41 @@ class AggrValue(Value):
     next = property(fset=_set_next)
 
 
+class _TaskState(IntEnum):
+    """TODO(cjdrake): Write docstring."""
+
+    CREATED = auto()
+
+    WAIT_STATE = auto()
+    WAIT_TASK = auto()
+    WAIT_EVENT = auto()
+    WAIT_SEM = auto()
+
+    PENDING = auto()
+    RUNNING = auto()
+
+    RETURNED = auto()
+    EXCEPTED = auto()
+    CANCELLED = auto()
+
+
 class Task(Awaitable):
     """Coroutine wrapper."""
 
     def __init__(self, coro: Coroutine, region: Region = Region.ACTIVE):
-        self._region = region
-        self._done = False
-        self._result = None
         self._coro = coro
-        self._exc = None
+        self._region = region
+
+        self._state = _TaskState.CREATED
+        self._wkey: State | Task | Event | Semaphore | None = None
+
+        self._result = None
+
+        self._exc_flag = False
+        self._exception = None
 
     def __await__(self) -> Generator[None, None, None]:
-        if not self._done:
+        if not self.done():
             _loop.task_await(self)
             # Suspend
             yield
@@ -191,17 +216,85 @@ class Task(Awaitable):
     def region(self):
         return self._region
 
+    def set_state(self, state: _TaskState, wkey=None):
+        self._state = state
+        self._wkey = wkey
+
+    def run(self, value=None):
+        self._state = _TaskState.RUNNING
+        if self._exception:
+            self._exc_flag = False
+            self._coro.throw(self._exception)
+        else:
+            self._coro.send(value)
+
     def done(self) -> bool:
-        return self._done
+        return self._state in {
+            _TaskState.CANCELLED,
+            _TaskState.EXCEPTED,
+            _TaskState.RETURNED,
+        }
+
+    def cancelled(self) -> bool:
+        return self._state == _TaskState.CANCELLED
+
+    def set_result(self, result):
+        self._result = result
 
     def result(self):
-        return self._result
+        match self._state:
+            case _TaskState.CANCELLED:
+                assert self._exception is not None
+                raise self._exception
+            case _TaskState.EXCEPTED:
+                assert self._exception is not None
+                raise self._exception  # Re-raise exception
+            case _TaskState.RETURNED:
+                assert self._exception is not None
+                return self._result
+            case _:
+                raise InvalidStateError("Task is not done")
 
-    def get_coro(self):
+    def set_exception(self, exc):
+        self._exc_flag = True
+        self._exception = exc
+
+    def exception(self):
+        match self._state:
+            case _TaskState.CANCELLED:
+                assert self._exception is not None
+                raise self._exception
+            case _TaskState.EXCEPTED:
+                assert self._exception is not None
+                return self._exception  # Return exception
+            case _TaskState.RETURNED:
+                assert self._exception is None
+                return self._exception
+            case _:
+                raise InvalidStateError("Task is not done")
+
+    def get_coro(self) -> Coroutine:
         return self._coro
 
-    def cancel(self):
-        _loop.task_throw(self, CancelledError())
+    def cancel(self, msg: str | None = None):
+        match self._state:
+            case _TaskState.WAIT_STATE:
+                _loop.state_drop(self._wkey, self)
+            case _TaskState.WAIT_TASK:
+                _loop.task_drop(self._wkey, self)
+            case _TaskState.WAIT_EVENT:
+                _loop.event_drop(self._wkey, self)
+            case _TaskState.WAIT_SEM:
+                _loop.sem_drop(self._wkey, self)
+            case _TaskState.PENDING:
+                _loop.drop(self)
+            case _:
+                raise ValueError("Task is not WAITING or PENDING")
+
+        self._exc_flag = True
+        args = () if msg is None else (msg,)
+        self._exception = CancelledError(*args)
+        _loop.call_soon(self)
 
 
 def create_task(coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
@@ -279,15 +372,15 @@ class Lock(Semaphore):
         super().__init__(value=1)
 
 
-type _TaskQueueItem = tuple[int, Task, State | None]
+_TaskQueueItem = namedtuple("_TaskQueueItem", ["time", "region", "index", "task", "value"])
 
 
 class _TaskQueue:
     """Priority queue for ordering task execution."""
 
     def __init__(self):
-        # time, region, index, task, state
-        self._items: list[tuple[int, Region, int, Task, State | None]] = []
+        # time, region, index, task, value
+        self._items: list[_TaskQueueItem] = []
 
         # Monotonically increasing integer to break ties in the heapq
         self._index: int = 0
@@ -299,29 +392,38 @@ class _TaskQueue:
         self._items.clear()
         self._index = 0
 
-    def push(self, time: int, task: Task, state: State | None = None):
-        item = (time, task.region, self._index, task, state)
+    def push(self, time: int, task: Task, value: State | None = None):
+        item = _TaskQueueItem(time, task.region, self._index, task, value)
         heapq.heappush(self._items, item)
         self._index += 1
 
-    def peek(self) -> _TaskQueueItem:
-        time, _, _, task, state = self._items[0]
-        return (time, task, state)
+    def peek(self) -> tuple[int, Task, State | None]:
+        time, _, _, task, value = self._items[0]
+        return (time, task, value)
 
-    def pop(self) -> _TaskQueueItem:
-        time, _, _, task, state = heapq.heappop(self._items)
-        return (time, task, state)
+    def pop(self) -> tuple[int, Task, State | None]:
+        time, _, _, task, value = heapq.heappop(self._items)
+        return (time, task, value)
 
-    def pop_time(self) -> Generator[_TaskQueueItem, None, None]:
-        time, _, _, task, state = heapq.heappop(self._items)
-        yield (time, task, state)
+    def pop_time(self) -> Generator[tuple[int, Task, State | None], None, None]:
+        time, _, _, task, value = heapq.heappop(self._items)
+        yield (time, task, value)
         while self._items:
-            t, _, _, task, state = self._items[0]
+            t, _, _, task, value = self._items[0]
             if t == time:
                 heapq.heappop(self._items)
-                yield (time, task, state)
+                yield (time, task, value)
             else:
                 break
+
+    def drop(self, task: Task):
+        for i, item in enumerate(self._items):
+            if item.task is task:
+                index = i
+                break
+        else:
+            raise ValueError("Task is not scheduled")
+        self._items.pop(index)
 
 
 class _TaskAwaitable(Awaitable):
@@ -366,20 +468,15 @@ class EventLoop:
         # Semaphore/Lock waiting list
         self._sem_waiting: dict[Semaphore, deque[Task]] = defaultdict(deque)
 
-    def _pending(self):
-        return [
-            self._queue,
-            self._waiting,
-            self._predicates,
-            self._touched,
-            self._task_waiting,
-            self._event_waiting,
-            self._sem_waiting,
-        ]
-
     def clear(self):
-        for tasks in self._pending():
-            tasks.clear()
+        """Clear all task collections."""
+        self._queue.clear()
+        self._waiting.clear()
+        self._predicates.clear()
+        self._touched.clear()
+        self._task_waiting.clear()
+        self._event_waiting.clear()
+        self._sem_waiting.clear()
 
     def restart(self):
         """Restart current simulation."""
@@ -393,32 +490,47 @@ class EventLoop:
     def task(self) -> Task | None:
         return self._task
 
-    def start(self, task: Task):
-        self._queue.push(START_TIME, task)
+    # Scheduling methods
+    def _schedule(self, time: int, task: Task, value):
+        task.set_state(_TaskState.PENDING)
+        self._queue.push(time, task, value)
 
-    def set_timeout(self, delay: int):
-        """Schedule current coroutine after delay."""
-        self._queue.push(self._time + delay, self._task)
+    def call_soon(self, task: Task, value=None):
+        self._schedule(self._time, task, value)
+
+    def call_later(self, delay: int, task: Task, value=None):
+        self._schedule(self._time + delay, task, value)
+
+    def call_at(self, when: int, task: Task, value=None):
+        self._schedule(when, task, value)
+
+    def drop(self, task: Task):
+        self._queue.drop(task)
 
     # State suspend / resume callbacks
-    def set_trigger(self, state: State, predicate: Predicate):
+    def state_wait(self, state: State, predicate: Predicate):
         """Schedule current coroutine after a state update trigger."""
-        self._waiting[state].add(self._task)
-        self._predicates[state][self._task] = predicate
+        task = self._task
+        task.set_state(_TaskState.WAIT_STATE, state)
+        self._waiting[state].add(task)
+        self._predicates[state][task] = predicate
 
-    def touch(self, state: State):
+    def state_touch(self, state: State):
         """Schedule coroutines triggered by touching model state."""
         waiting = self._waiting[state]
         predicates = self._predicates[state]
         pending = [task for task in waiting if predicates[task]()]
         for task in pending:
-            self._queue.push(self._time, task, state)
-            self._waiting[state].remove(task)
-            del self._predicates[state][task]
+            self.state_drop(state, task)
+            self.call_soon(task, state)
         # Add state to update set
         self._touched.add(state)
 
-    def _update(self):
+    def state_drop(self, state: State, task: Task):
+        self._waiting[state].remove(task)
+        del self._predicates[state][task]
+
+    def _state_update(self):
         while self._touched:
             state = self._touched.pop()
             state.update()
@@ -428,54 +540,74 @@ class EventLoop:
         # Cannot call task_create before the simulation starts
         assert self._time >= 0
         task = Task(coro, region)
-        self._queue.push(self._time, task)
+        self.call_soon(task)
         return task
 
-    def task_await(self, task: Task):
-        self._task_waiting[task].append(self._task)
+    def task_await(self, ptask: Task):
+        ctask = self._task
+        ctask.set_state(_TaskState.WAIT_TASK, ptask)
+        self._task_waiting[ptask].append(ctask)
 
-    def task_throw(self, task: Task, e: Exception):
-        task._exc = e
-        self._queue.push(self._time, task)
+    def task_drop(self, ptask: Task, ctask: Task):
+        self._task_waiting[ptask].remove(ctask)
 
-    def _task_except(self, task: Task, e: CancelledError):
-        waiting = self._task_waiting[task]
+    def _task_return(self, ptask: Task, result):
+        waiting = self._task_waiting[ptask]
         while waiting:
-            t = waiting.popleft()
-            # Propagate exception to all waiting tasks
-            t._exc = e
-            self._queue.push(self._time, t)
-        task._done = True
+            ctask = waiting.popleft()
+            self.call_soon(ctask)
+        ptask.set_state(_TaskState.RETURNED)
+        ptask.set_result(result)
 
-    def _task_return(self, task: Task, result):
-        waiting = self._task_waiting[task]
+    def _task_cancel(self, ptask: Task, e: CancelledError):
+        waiting = self._task_waiting[ptask]
         while waiting:
-            t = waiting.popleft()
-            self._queue.push(self._time, t)
-        task._result = result
-        task._done = True
+            ctask = waiting.popleft()
+            ctask.set_exception(e)
+            self.call_soon(ctask)
+        ptask.set_state(_TaskState.CANCELLED)
+
+    def _task_except(self, ptask: Task, e: Exception):
+        waiting = self._task_waiting[ptask]
+        while waiting:
+            ctask = waiting.popleft()
+            ctask.set_exception(e)
+            self.call_soon(ctask)
+        ptask.set_state(_TaskState.EXCEPTED)
 
     # Event wait / set callbacks
     def event_wait(self, event: Event):
-        self._event_waiting[event].append(self._task)
+        task = self._task
+        task.set_state(_TaskState.WAIT_EVENT, event)
+        self._event_waiting[event].append(task)
 
     def event_set(self, event: Event):
         waiting = self._event_waiting[event]
         while waiting:
-            self._queue.push(self._time, waiting.popleft())
+            task = waiting.popleft()
+            self.call_soon(task)
+
+    def event_drop(self, event: Event, task: Task):
+        self._event_waiting[event].remove(task)
 
     # Semaphore acquire / release callbacks
     def sem_acquire(self, sem: Semaphore):
-        self._sem_waiting[sem].append(self._task)
+        task = self._task
+        task.set_state(_TaskState.WAIT_SEM, sem)
+        self._sem_waiting[sem].append(task)
 
     def sem_release(self, sem: Semaphore) -> bool:
         waiting = self._sem_waiting[sem]
         if waiting:
-            self._queue.push(self._time, waiting.popleft())
+            task = waiting.popleft()
+            self.call_soon(task)
             # Do NOT increment semaphore counter
             return False
         # Increment semaphore counter
         return True
+
+    def sem_drop(self, sem: Semaphore, task: Task):
+        self._sem_waiting[sem].remove(task)
 
     def _limit(self, ticks: int | None, until: int | None) -> int | None:
         """Determine the run limit."""
@@ -509,25 +641,20 @@ class EventLoop:
             self._time = time
 
             # Execute time slot
-            for _, task, state in self._queue.pop_time():
-
-                # TODO(cjdrake): Evaluate preventing multi scheduling
-                if task.done():
-                    continue
-
+            for _, task, value in self._queue.pop_time():
                 self._task = task
                 try:
-                    if task._exc:
-                        task._coro.throw(task._exc)
-                    else:
-                        task._coro.send(state)
-                except CancelledError as e:
-                    self._task_except(task, e)
+                    task.run(value)
                 except StopIteration as e:
                     self._task_return(task, e.value)
+                except CancelledError as e:
+                    self._task_cancel(task, e)
+                except Exception as e:
+                    self._task_except(task, e)
+                    raise
 
             # Update simulation state
-            self._update()
+            self._state_update()
 
     def run(self, ticks: int | None = None, until: int | None = None):
         """Run the simulation.
@@ -560,25 +687,20 @@ class EventLoop:
             self._time = time
 
             # Execute time slot
-            for _, task, state in self._queue.pop_time():
-
-                # TODO(cjdrake): Evaluate preventing multi scheduling
-                if task.done():
-                    continue
-
+            for _, task, value in self._queue.pop_time():
                 self._task = task
                 try:
-                    if task._exc:
-                        task._coro.throw(task._exc)
-                    else:
-                        task._coro.send(state)
-                except CancelledError as e:
-                    self._task_except(task, e)
+                    task.run(value)
                 except StopIteration as e:
                     self._task_return(task, e.value)
+                except CancelledError as e:
+                    self._task_cancel(task, e)
+                except Exception as e:
+                    self._task_except(task, e)
+                    raise
 
             # Update simulation state
-            self._update()
+            self._state_update()
             yield self._time
 
     def irun(
@@ -651,7 +773,7 @@ def run(
     else:
         _loop = EventLoop()
         task = Task(coro, region)
-        _loop.start(task)
+        _loop.call_at(START_TIME, task)
 
     _loop.run(ticks, until)
 
@@ -672,21 +794,21 @@ def irun(
     else:
         _loop = EventLoop()
         task = Task(coro, region)
-        _loop.start(task)
+        _loop.call_at(START_TIME, task)
 
     yield from _loop.irun(ticks, until)
 
 
 async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
-    _loop.set_timeout(delay)
+    _loop.call_later(delay, _loop.task())
     await _TaskAwaitable()
 
 
 async def changed(*states: State) -> State:
     """Resume execution upon state change."""
     for state in states:
-        _loop.set_trigger(state, state.changed)
+        _loop.state_wait(state, state.changed)
     state = await _StateAwaitable()
     return state
 
@@ -694,7 +816,7 @@ async def changed(*states: State) -> State:
 async def resume(*triggers: tuple[State, Predicate]) -> State:
     """Resume execution upon event."""
     for state, predicate in triggers:
-        _loop.set_trigger(state, predicate)
+        _loop.state_wait(state, predicate)
     state = await _StateAwaitable()
     return state
 
