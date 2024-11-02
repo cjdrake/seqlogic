@@ -172,7 +172,16 @@ class AggrValue(Value):
 
 
 class _TaskState(IntEnum):
-    """TODO(cjdrake): Write docstring."""
+    """Task State.
+
+               +--------------------------+
+               |                          |
+               v                          |
+    CREATED -> PENDING -> RUNNING -> WAIT_*
+                                  -> CANCELLED
+                                  -> EXCEPTED
+                                  -> RETURNED
+    """
 
     CREATED = auto()
 
