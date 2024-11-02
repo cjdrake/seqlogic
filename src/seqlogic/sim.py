@@ -309,6 +309,26 @@ def create_task(coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
     return _loop.task_create(coro, region)
 
 
+class TaskGroup:
+    """Group of tasks."""
+
+    def __init__(self):
+        self._tasks = deque()
+
+    def create_task(self, coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
+        task = _loop.task_create(coro, region)
+        self._tasks.append(task)
+        return task
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, exc_tb):
+        while self._tasks:
+            task = self._tasks.popleft()
+            await task
+
+
 class Event:
     """Notify multiple tasks that some event has happened."""
 
