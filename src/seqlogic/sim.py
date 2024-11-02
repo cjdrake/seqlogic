@@ -244,13 +244,13 @@ class Task(Awaitable):
     def result(self):
         match self._state:
             case _TaskState.CANCELLED:
-                assert self._exception is not None
+                assert self._exception is not None and isinstance(self._exception, CancelledError)
                 raise self._exception
             case _TaskState.EXCEPTED:
                 assert self._exception is not None
                 raise self._exception  # Re-raise exception
             case _TaskState.RETURNED:
-                assert self._exception is not None
+                assert self._exception is None
                 return self._result
             case _:
                 raise InvalidStateError("Task is not done")
@@ -262,7 +262,7 @@ class Task(Awaitable):
     def exception(self):
         match self._state:
             case _TaskState.CANCELLED:
-                assert self._exception is not None
+                assert self._exception is not None and isinstance(self._exception, CancelledError)
                 raise self._exception
             case _TaskState.EXCEPTED:
                 assert self._exception is not None
