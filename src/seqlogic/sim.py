@@ -300,9 +300,8 @@ class Task(Awaitable):
             case _:
                 raise ValueError("Task is not WAITING or PENDING")
 
-        self._exc_flag = True
         args = () if msg is None else (msg,)
-        self._exception = CancelledError(*args)
+        self.set_exception(CancelledError(*args))
         _loop.call_soon(self)
 
 
