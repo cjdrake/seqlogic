@@ -216,7 +216,7 @@ class Task(Awaitable):
         self._region = region
 
         self._state = TaskState.CREATED
-        self._wkey: State | Task | Event | Semaphore | None = None
+        self._parent: State | Task | Event | Semaphore | None = None
 
         self._result = None
 
@@ -236,9 +236,9 @@ class Task(Awaitable):
     def region(self):
         return self._region
 
-    def set_state(self, state: TaskState, wkey=None):
+    def set_state(self, state: TaskState, parent=None):
         self._state = state
-        self._wkey = wkey
+        self._parent = parent
 
     def run(self, value=None):
         self._state = TaskState.RUNNING
@@ -299,13 +299,13 @@ class Task(Awaitable):
     def cancel(self, msg: str | None = None):
         match self._state:
             case TaskState.WAIT_STATE:
-                _loop.state_drop(self._wkey, self)
+                _loop.state_drop(self._parent, self)
             case TaskState.WAIT_TASK:
-                _loop.task_drop(self._wkey, self)
+                _loop.task_drop(self._parent, self)
             case TaskState.WAIT_EVENT:
-                _loop.event_drop(self._wkey, self)
+                _loop.event_drop(self._parent, self)
             case TaskState.WAIT_SEM:
-                _loop.sem_drop(self._wkey, self)
+                _loop.sem_drop(self._parent, self)
             case TaskState.PENDING:
                 _loop.drop(self)
             case _:
