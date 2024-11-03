@@ -195,8 +195,8 @@ class TaskState(IntEnum):
 
     CREATED = auto()
 
-    WAIT_STATE = auto()
     WAIT_TASK = auto()
+    WAIT_STATE = auto()
     WAIT_EVENT = auto()
     WAIT_SEM = auto()
 
@@ -216,7 +216,7 @@ class Task(Awaitable):
         self._region = region
 
         self._state = TaskState.CREATED
-        self._parent: State | Task | Event | Semaphore | None = None
+        self._parent: Task | State | Event | Semaphore | None = None
 
         self._result = None
 
@@ -226,7 +226,7 @@ class Task(Awaitable):
 
     def __await__(self) -> Generator[None, None, None]:
         if not self.done():
-            _loop.task_await(self)
+            _loop.task_wait(self)
             # Suspend
             yield
         # Resume
@@ -381,7 +381,7 @@ class Semaphore:
     async def acquire(self):
         assert self._cnt >= 0
         if self._cnt == 0:
-            _loop.sem_acquire(self)
+            _loop.sem_wait(self)
             await _TaskAwaitable()
         else:
             self._cnt -= 1
@@ -493,16 +493,18 @@ class EventLoop:
         """Initialize simulation."""
         # Simulation time
         self._time: int = INIT_TIME
+
         # Task queue
         self._queue = _TaskQueue()
         # Currently executing task
         self._task: Task | None = None
+
+        # Task waiting list
+        self._task_waiting: dict[Task, deque[Task]] = defaultdict(deque)
         # State waiting set
         self._waiting: dict[State, set[Task]] = defaultdict(set)
         self._predicates: dict[State, dict[Task, Predicate]] = defaultdict(dict)
         self._touched: set[State] = set()
-        # Task waiting list
-        self._task_waiting: dict[Task, deque[Task]] = defaultdict(deque)
         # Event waiting list
         self._event_waiting: dict[Event, deque[Task]] = defaultdict(deque)
         # Semaphore/Lock waiting list
@@ -511,10 +513,10 @@ class EventLoop:
     def clear(self):
         """Clear all task collections."""
         self._queue.clear()
+        self._task_waiting.clear()
         self._waiting.clear()
         self._predicates.clear()
         self._touched.clear()
-        self._task_waiting.clear()
         self._event_waiting.clear()
         self._sem_waiting.clear()
 
@@ -547,34 +549,6 @@ class EventLoop:
     def drop(self, task: Task):
         self._queue.drop(task)
 
-    # State suspend / resume callbacks
-    def state_wait(self, state: State, predicate: Predicate):
-        """Schedule current coroutine after a state update trigger."""
-        task = self._task
-        task.set_state(TaskState.WAIT_STATE, state)
-        self._waiting[state].add(task)
-        self._predicates[state][task] = predicate
-
-    def state_touch(self, state: State):
-        """Schedule coroutines triggered by touching model state."""
-        waiting = self._waiting[state]
-        predicates = self._predicates[state]
-        pending = [task for task in waiting if predicates[task]()]
-        for task in pending:
-            self.state_drop(state, task)
-            self.call_soon(task, state)
-        # Add state to update set
-        self._touched.add(state)
-
-    def state_drop(self, state: State, task: Task):
-        self._waiting[state].remove(task)
-        del self._predicates[state][task]
-
-    def _state_update(self):
-        while self._touched:
-            state = self._touched.pop()
-            state.update()
-
     # Task await / done callbacks
     def task_create(self, coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
         # Cannot call task_create before the simulation starts
@@ -583,7 +557,7 @@ class EventLoop:
         self.call_soon(task)
         return task
 
-    def task_await(self, ptask: Task):
+    def task_wait(self, ptask: Task):
         ctask = self._task
         ctask.set_state(TaskState.WAIT_TASK, ptask)
         self._task_waiting[ptask].append(ctask)
@@ -615,11 +589,42 @@ class EventLoop:
             self.call_soon(ctask)
         ptask.set_state(TaskState.EXCEPTED)
 
+    # State suspend / resume callbacks
+    def state_wait(self, state: State, predicate: Predicate):
+        """Schedule current coroutine after a state update trigger."""
+        task = self._task
+        task.set_state(TaskState.WAIT_STATE, state)
+        self._waiting[state].add(task)
+        self._predicates[state][task] = predicate
+
+    def state_drop(self, state: State, task: Task):
+        self._waiting[state].remove(task)
+        del self._predicates[state][task]
+
+    def state_touch(self, state: State):
+        """Schedule coroutines triggered by touching model state."""
+        waiting = self._waiting[state]
+        predicates = self._predicates[state]
+        pending = [task for task in waiting if predicates[task]()]
+        for task in pending:
+            self.state_drop(state, task)
+            self.call_soon(task, state)
+        # Add state to update set
+        self._touched.add(state)
+
+    def _state_update(self):
+        while self._touched:
+            state = self._touched.pop()
+            state.update()
+
     # Event wait / set callbacks
     def event_wait(self, event: Event):
         task = self._task
         task.set_state(TaskState.WAIT_EVENT, event)
         self._event_waiting[event].append(task)
+
+    def event_drop(self, event: Event, task: Task):
+        self._event_waiting[event].remove(task)
 
     def event_set(self, event: Event):
         waiting = self._event_waiting[event]
@@ -627,14 +632,14 @@ class EventLoop:
             task = waiting.popleft()
             self.call_soon(task)
 
-    def event_drop(self, event: Event, task: Task):
-        self._event_waiting[event].remove(task)
-
     # Semaphore acquire / release callbacks
-    def sem_acquire(self, sem: Semaphore):
+    def sem_wait(self, sem: Semaphore):
         task = self._task
         task.set_state(TaskState.WAIT_SEM, sem)
         self._sem_waiting[sem].append(task)
+
+    def sem_drop(self, sem: Semaphore, task: Task):
+        self._sem_waiting[sem].remove(task)
 
     def sem_release(self, sem: Semaphore) -> bool:
         waiting = self._sem_waiting[sem]
@@ -645,9 +650,6 @@ class EventLoop:
             return False
         # Increment semaphore counter
         return True
-
-    def sem_drop(self, sem: Semaphore, task: Task):
-        self._sem_waiting[sem].remove(task)
 
     def _limit(self, ticks: int | None, until: int | None) -> int | None:
         """Determine the run limit."""
