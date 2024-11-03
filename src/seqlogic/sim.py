@@ -46,8 +46,18 @@ class Region(IntEnum):
     INACTIVE = auto()
 
 
-class State(ABC):
+class State(Awaitable):
     """Model component."""
+
+    def __await__(self) -> Generator[None, State, State]:
+        _loop.state_wait(self, self.changed)
+
+        # Suspend
+        state = yield
+        assert state is self
+
+        # Resume
+        return state
 
     state = property(fget=NotImplemented)
 

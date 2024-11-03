@@ -337,7 +337,7 @@ class Module(metaclass=_ModuleMeta):
         elif isinstance(x, Packed):
             async def cf():
                 while True:
-                    await changed(x)
+                    await x
                     y.next = x.value
             self._initial.append((cf(), Region.REACTIVE))
         else:
