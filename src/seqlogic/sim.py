@@ -181,7 +181,7 @@ class AggrValue(Value):
     next = property(fset=_set_next)
 
 
-class _TaskState(IntEnum):
+class TaskState(IntEnum):
     """Task State.
 
                +--------------------------+
@@ -215,11 +215,12 @@ class Task(Awaitable):
         self._coro = coro
         self._region = region
 
-        self._state = _TaskState.CREATED
+        self._state = TaskState.CREATED
         self._wkey: State | Task | Event | Semaphore | None = None
 
         self._result = None
 
+        # Set flag to throw exception
         self._exc_flag = False
         self._exception = None
 
@@ -235,13 +236,13 @@ class Task(Awaitable):
     def region(self):
         return self._region
 
-    def set_state(self, state: _TaskState, wkey=None):
+    def set_state(self, state: TaskState, wkey=None):
         self._state = state
         self._wkey = wkey
 
     def run(self, value=None):
-        self._state = _TaskState.RUNNING
-        if self._exception:
+        self._state = TaskState.RUNNING
+        if self._exc_flag:
             self._exc_flag = False
             self._coro.throw(self._exception)
         else:
@@ -249,26 +250,26 @@ class Task(Awaitable):
 
     def done(self) -> bool:
         return self._state in {
-            _TaskState.CANCELLED,
-            _TaskState.EXCEPTED,
-            _TaskState.RETURNED,
+            TaskState.CANCELLED,
+            TaskState.EXCEPTED,
+            TaskState.RETURNED,
         }
 
     def cancelled(self) -> bool:
-        return self._state == _TaskState.CANCELLED
+        return self._state == TaskState.CANCELLED
 
     def set_result(self, result):
         self._result = result
 
     def result(self):
         match self._state:
-            case _TaskState.CANCELLED:
+            case TaskState.CANCELLED:
                 assert self._exception is not None and isinstance(self._exception, CancelledError)
                 raise self._exception
-            case _TaskState.EXCEPTED:
+            case TaskState.EXCEPTED:
                 assert self._exception is not None
                 raise self._exception  # Re-raise exception
-            case _TaskState.RETURNED:
+            case TaskState.RETURNED:
                 assert self._exception is None
                 return self._result
             case _:
@@ -280,13 +281,13 @@ class Task(Awaitable):
 
     def exception(self):
         match self._state:
-            case _TaskState.CANCELLED:
+            case TaskState.CANCELLED:
                 assert self._exception is not None and isinstance(self._exception, CancelledError)
                 raise self._exception
-            case _TaskState.EXCEPTED:
+            case TaskState.EXCEPTED:
                 assert self._exception is not None
                 return self._exception  # Return exception
-            case _TaskState.RETURNED:
+            case TaskState.RETURNED:
                 assert self._exception is None
                 return self._exception
             case _:
@@ -297,21 +298,22 @@ class Task(Awaitable):
 
     def cancel(self, msg: str | None = None):
         match self._state:
-            case _TaskState.WAIT_STATE:
+            case TaskState.WAIT_STATE:
                 _loop.state_drop(self._wkey, self)
-            case _TaskState.WAIT_TASK:
+            case TaskState.WAIT_TASK:
                 _loop.task_drop(self._wkey, self)
-            case _TaskState.WAIT_EVENT:
+            case TaskState.WAIT_EVENT:
                 _loop.event_drop(self._wkey, self)
-            case _TaskState.WAIT_SEM:
+            case TaskState.WAIT_SEM:
                 _loop.sem_drop(self._wkey, self)
-            case _TaskState.PENDING:
+            case TaskState.PENDING:
                 _loop.drop(self)
             case _:
                 raise ValueError("Task is not WAITING or PENDING")
 
         args = () if msg is None else (msg,)
-        self.set_exception(CancelledError(*args))
+        exc = CancelledError(*args)
+        self.set_exception(exc)
         _loop.call_soon(self)
 
 
@@ -530,7 +532,7 @@ class EventLoop:
 
     # Scheduling methods
     def _schedule(self, time: int, task: Task, value):
-        task.set_state(_TaskState.PENDING)
+        task.set_state(TaskState.PENDING)
         self._queue.push(time, task, value)
 
     def call_soon(self, task: Task, value=None):
@@ -549,7 +551,7 @@ class EventLoop:
     def state_wait(self, state: State, predicate: Predicate):
         """Schedule current coroutine after a state update trigger."""
         task = self._task
-        task.set_state(_TaskState.WAIT_STATE, state)
+        task.set_state(TaskState.WAIT_STATE, state)
         self._waiting[state].add(task)
         self._predicates[state][task] = predicate
 
@@ -583,7 +585,7 @@ class EventLoop:
 
     def task_await(self, ptask: Task):
         ctask = self._task
-        ctask.set_state(_TaskState.WAIT_TASK, ptask)
+        ctask.set_state(TaskState.WAIT_TASK, ptask)
         self._task_waiting[ptask].append(ctask)
 
     def task_drop(self, ptask: Task, ctask: Task):
@@ -594,7 +596,7 @@ class EventLoop:
         while waiting:
             ctask = waiting.popleft()
             self.call_soon(ctask)
-        ptask.set_state(_TaskState.RETURNED)
+        ptask.set_state(TaskState.RETURNED)
         ptask.set_result(result)
 
     def _task_cancel(self, ptask: Task, e: CancelledError):
@@ -603,7 +605,7 @@ class EventLoop:
             ctask = waiting.popleft()
             ctask.set_exception(e)
             self.call_soon(ctask)
-        ptask.set_state(_TaskState.CANCELLED)
+        ptask.set_state(TaskState.CANCELLED)
 
     def _task_except(self, ptask: Task, e: Exception):
         waiting = self._task_waiting[ptask]
@@ -611,12 +613,12 @@ class EventLoop:
             ctask = waiting.popleft()
             ctask.set_exception(e)
             self.call_soon(ctask)
-        ptask.set_state(_TaskState.EXCEPTED)
+        ptask.set_state(TaskState.EXCEPTED)
 
     # Event wait / set callbacks
     def event_wait(self, event: Event):
         task = self._task
-        task.set_state(_TaskState.WAIT_EVENT, event)
+        task.set_state(TaskState.WAIT_EVENT, event)
         self._event_waiting[event].append(task)
 
     def event_set(self, event: Event):
@@ -631,7 +633,7 @@ class EventLoop:
     # Semaphore acquire / release callbacks
     def sem_acquire(self, sem: Semaphore):
         task = self._task
-        task.set_state(_TaskState.WAIT_SEM, sem)
+        task.set_state(TaskState.WAIT_SEM, sem)
         self._sem_waiting[sem].append(task)
 
     def sem_release(self, sem: Semaphore) -> bool:
