@@ -71,6 +71,8 @@ class Top(Module):
         self.drv(drv_clock(clk))
         self.drv(drv_reset(rst))
 
+
+# Run simulation w/ VCD dump enabled
 with (
     open("dff.vcd", "w") as f,
     VCDWriter(f, timescale="1ns") as vcdw,
