@@ -1,5 +1,6 @@
-Sequential Logic Documentation
-==============================
+%%%%%%%%%%%%%%%%%%%%
+  Sequential Logic
+%%%%%%%%%%%%%%%%%%%%
 
 .. toctree::
    :maxdepth: 2
