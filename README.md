@@ -1,23 +1,117 @@
 # Sequential Logic
 
-Sequential Logic (`seqlogic`) is a logic simulation library.
-It uses Python's `async` / `await` syntax to model time,
-and provides a bit array data type for combinational logic.
+SeqiLog (pronounced seh-kwi-log) is a Python library for logic design and verification.
 
-The API design is a work in progress, and documentation has not started.
-See the `tests` directory for example usage.
+## Features
 
-# Installing
+SeqiLog provides building blocks to simulate hardware at the register transfer
+level (RTL) of abstraction:
 
-Sequential Logic is available on [PyPI](https://pypi.org):
+* Hierarchical, parameterized `Module` design element
+* Four-state `bits` multidimensional array data type
+* Discrete event simulation using `async` / `await` syntax
+
+SeqiLog is *declarative*.
+To the extent possible,
+the designer should only need to know *what* components to declare,
+not *how* they interact with the task scheduling algorithm.
+
+SeqiLog is *strict*.
+Functions should raise exceptions when arguments have inconsistent types.
+Uninitialized or metastable state should always propagate pessimistically.
+
+The API is an experiment in how to create a *Pythonic* meta-HDL.
+It is currently a work in progress.
+Expect breaking changes from time to time.
+
+## Example
+
+The following code implements a D flip flop (DFF) with the D input connected
+to the inverted Q output.
+
+```python
+from vcd import VCDWriter
+from seqlogic import Module, Vec, run, sleep
+
+
+async def drv_clock(y):
+    """Positive clock w/ no phase shift, period T=2, 50% duty cycle."""
+    while True:
+        y.next = "1b1"
+        await sleep(1)
+        y.next = "1b0"
+        await sleep(1)
+
+
+async def drv_reset(y):
+    """Positive reset asserting from T=[1..2]"""
+    y.next = "1b0"
+    await sleep(1)
+    y.next = "1b1"
+    await sleep(1)
+    y.next = "1b0"
+
+
+class Top(Module):
+    """Data flip flop (DFF) Example"""
+
+    def build(self):
+        clk = self.logic(name="clk", dtype=Vec[1])
+        rst = self.logic(name="rst", dtype=Vec[1])
+        q = self.logic(name="q", dtype=Vec[1])
+        d = self.logic(name="d", dtype=Vec[1])
+
+        # d = NOT(q)
+        self.expr(d, ~q)
+
+        # DFF w/ async positive (active high) reset, reset to 0
+        self.dff_r(q, d, clk, rst, rval="1b0")
+
+        # Clock/Reset
+        self.drv(drv_clock(clk))
+        self.drv(drv_reset(rst))
+
+with (
+    open("dff.vcd", "w") as f,
+    VCDWriter(f, timescale="1ns") as vcdw,
+):
+    top = Top(name="top")
+    top.dump_vcd(vcdw, ".*")
+    run(top.elab(), ticks=20)
+```
+
+Use [GTKWave](https://gtkwave.sourceforge.net)
+or [Surfer](https://surfer-project.org) to view the VCD wave dump.
+It should look this this:
+
+```
+T (ns)   0  1  2  3  4  5  6  7  8  9 ...
+---------+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+
+clk      /‾‾\__/‾‾\__/‾‾\__/‾‾\__/‾‾\__/‾‾\__/‾‾\__/‾‾\__/‾‾\__/‾‾\
+
+rst      ___/‾‾\___________________________________________________
+
+q        XXXX________/‾‾‾‾‾\_____/‾‾‾‾‾\_____/‾‾‾‾‾\_____/‾‾‾‾‾\___
+
+d        XXXX‾‾‾‾‾‾‾‾\_____/‾‾‾‾‾\_____/‾‾‾‾‾\_____/‾‾‾‾‾\_____/‾‾‾
+
+---------+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+```
+
+See the `ipynb` and `tests` directories for more examples.
+
+## Installing
+
+SeqiLog is available on [PyPI](https://pypi.org):
 
     $ pip install seqlogic
 
 It supports Python 3.12+.
 
-# Developing
+## Developing
 
-Sequential Logic's repository is on [GitHub](https://github.com):
+SeqiLog's repository is on [GitHub](https://github.com):
 
     $ git clone https://github.com/cjdrake/seqlogic.git
 
