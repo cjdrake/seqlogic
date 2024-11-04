@@ -7,7 +7,7 @@ twine
 # Documentation
 sphinx
 sphinx-autobuild
-pydata-sphinx-theme
+sphinx-book-theme
 
 # Code Quality
 black
