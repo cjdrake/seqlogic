@@ -346,7 +346,7 @@ class Event:
     async def wait(self):
         if not self._flag:
             _loop.event_wait(self)
-            await _TaskAwaitable()
+            await _Awaitable()
 
     def set(self):
         _loop.event_set(self)
@@ -378,7 +378,7 @@ class Semaphore:
         assert self._cnt >= 0
         if self._cnt == 0:
             _loop.sem_wait(self)
-            await _TaskAwaitable()
+            await _Awaitable()
         else:
             self._cnt -= 1
 
@@ -462,24 +462,14 @@ class _TaskQueue:
         self._items.pop(index)
 
 
-class _TaskAwaitable(Awaitable):
+class _Awaitable(Awaitable):
     """Suspend execution of the current task."""
 
-    def __await__(self) -> Generator[None, None, None]:
+    def __await__(self):
         # Suspend
-        yield
+        value = yield
         # Resume
-        return
-
-
-class _StateAwaitable(Awaitable):
-    """Suspend execution of the current task."""
-
-    def __await__(self) -> Generator[None, State, State]:
-        # Suspend
-        state = yield
-        # Resume
-        return state
+        return value
 
 
 class EventLoop:
@@ -840,14 +830,14 @@ def irun(
 async def sleep(delay: int):
     """Suspend the task, and wake up after a delay."""
     _loop.call_later(delay, _loop.task())
-    await _TaskAwaitable()
+    await _Awaitable()
 
 
 async def changed(*states: State) -> State:
     """Resume execution upon state change."""
     for state in states:
         _loop.state_wait(state, state.changed)
-    state = await _StateAwaitable()
+    state = await _Awaitable()
     return state
 
 
@@ -855,7 +845,7 @@ async def resume(*triggers: tuple[State, Predicate]) -> State:
     """Resume execution upon event."""
     for state, predicate in triggers:
         _loop.state_wait(state, predicate)
-    state = await _StateAwaitable()
+    state = await _Awaitable()
     return state
 
 
