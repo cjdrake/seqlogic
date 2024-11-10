@@ -27,21 +27,21 @@ async def secondary(event: Event, name: str):
 
 
 EXP1 = """\
-0000 FOO enter
-0000 BAR enter
-0000 BAR waiting
-0000 FIZ enter
-0000 FIZ waiting
-0000 BUZ enter
-0000 BUZ waiting
-0010 FOO set
-0010 BAR running
-0010 FIZ running
-0010 BUZ running
-0020 FOO exit
-0020 BAR exit
-0020 FIZ exit
-0020 BUZ exit
+0000 P1 enter
+0000 S1 enter
+0000 S1 waiting
+0000 S2 enter
+0000 S2 waiting
+0000 S3 enter
+0000 S3 waiting
+0010 P1 set
+0010 S1 running
+0010 S2 running
+0010 S3 running
+0020 P1 exit
+0020 S1 exit
+0020 S2 exit
+0020 S3 exit
 """
 
 
@@ -49,10 +49,10 @@ def test_acquire_release(capsys):
 
     async def main():
         event = Event()
-        create_task(primary(event, "FOO"))
-        create_task(secondary(event, "BAR"))
-        create_task(secondary(event, "FIZ"))
-        create_task(secondary(event, "BUZ"))
+        create_task(primary(event, "P1"))
+        create_task(secondary(event, "S1"))
+        create_task(secondary(event, "S2"))
+        create_task(secondary(event, "S3"))
 
     run(main())
 
