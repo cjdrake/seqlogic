@@ -370,6 +370,7 @@ class Semaphore:
 
     async def __aenter__(self):
         await self.acquire()
+        return self
 
     async def __aexit__(self, exc_type, exc_value, exc_tb):
         self.release()
