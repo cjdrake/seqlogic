@@ -262,36 +262,32 @@ class Task(Awaitable):
         self._result = result
 
     def result(self):
-        match self._state:
-            case TaskState.CANCELLED:
-                assert self._exception is not None and isinstance(self._exception, CancelledError)
-                raise self._exception
-            case TaskState.EXCEPTED:
-                assert self._exception is not None
-                raise self._exception  # Re-raise exception
-            case TaskState.RETURNED:
-                assert self._exception is None
-                return self._result
-            case _:
-                raise InvalidStateError("Task is not done")
+        if self._state == TaskState.CANCELLED:
+            assert self._exception is not None and isinstance(self._exception, CancelledError)
+            raise self._exception
+        if self._state == TaskState.EXCEPTED:
+            assert self._exception is not None
+            raise self._exception  # Re-raise exception
+        if self._state == TaskState.RETURNED:
+            assert self._exception is None
+            return self._result
+        raise InvalidStateError("Task is not done")
 
     def set_exception(self, exc):
         self._exc_flag = True
         self._exception = exc
 
     def exception(self):
-        match self._state:
-            case TaskState.CANCELLED:
-                assert self._exception is not None and isinstance(self._exception, CancelledError)
-                raise self._exception
-            case TaskState.EXCEPTED:
-                assert self._exception is not None
-                return self._exception  # Return exception
-            case TaskState.RETURNED:
-                assert self._exception is None
-                return self._exception
-            case _:
-                raise InvalidStateError("Task is not done")
+        if self._state == TaskState.CANCELLED:
+            assert self._exception is not None and isinstance(self._exception, CancelledError)
+            raise self._exception
+        if self._state == TaskState.EXCEPTED:
+            assert self._exception is not None
+            return self._exception  # Return exception
+        if self._state == TaskState.RETURNED:
+            assert self._exception is None
+            return self._exception
+        raise InvalidStateError("Task is not done")
 
     def get_coro(self) -> Coroutine:
         return self._coro
