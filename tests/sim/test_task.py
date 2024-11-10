@@ -1,5 +1,7 @@
 """Test seqlogic.sim.Lock class."""
 
+import pytest
+
 from seqlogic import CancelledError, Task, TaskGroup, create_task, now, run, sleep
 
 
@@ -86,6 +88,16 @@ async def cancel_c2():
         log("C2 except")
     finally:
         log("C2 finally")
+
+    assert task.done()
+    assert task.cancelled()
+
+    # Result should re-raise CancelledError
+    with pytest.raises(CancelledError):
+        task.result()
+    # So should exception
+    with pytest.raises(CancelledError):
+        task.exception()
 
 
 EXP2 = """\
