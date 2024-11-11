@@ -1,13 +1,15 @@
 """Test seqlogic.sim.Semaphore class."""
 
-from seqlogic import Semaphore, create_task, now, run, sleep
+import pytest
+
+from seqlogic import BoundedSemaphore, Semaphore, create_task, now, run, sleep
 
 
 def log(s: str):
     print(f"{now():04} {s}")
 
 
-async def foo(sem: Semaphore, name: str, t1: int, t2: int):
+async def use_acquire_release(sem: Semaphore, name: str, t1: int, t2: int):
     log(f"{name} enter")
 
     await sleep(t1)
@@ -26,7 +28,7 @@ async def foo(sem: Semaphore, name: str, t1: int, t2: int):
     log(f"{name} exit")
 
 
-async def bar(sem: Semaphore, name: str, t1: int, t2: int):
+async def use_with(sem: Semaphore, name: str, t1: int, t2: int):
     log(f"{name} enter")
 
     await sleep(t1)
@@ -90,7 +92,7 @@ def test_acquire_release(capsys):
     async def main():
         sem = Semaphore(4)
         for i in range(8):
-            create_task(foo(sem, f"{i}", i + 10, 10))
+            create_task(use_acquire_release(sem, f"{i}", i + 10, 10))
 
     run(main())
 
@@ -102,8 +104,38 @@ def test_async_with(capsys):
     async def main():
         sem = Semaphore(4)
         for i in range(8):
-            create_task(bar(sem, f"{i}", i + 10, 10))
+            create_task(use_with(sem, f"{i}", i + 10, 10))
 
     run(main())
 
     assert capsys.readouterr().out == EXP
+
+
+def test_bounds():
+    async def no_bounds():
+        sem = Semaphore(2)
+
+        await sem.acquire()
+        await sem.acquire()
+        sem.release()
+        sem.release()
+
+        # No exception!
+        sem.release()
+        assert sem._cnt == 3  # pylint: disable = protected-access
+
+    async def use_bounded():
+        sem = BoundedSemaphore(2)
+
+        await sem.acquire()
+        await sem.acquire()
+        sem.release()
+        sem.release()
+
+        # Exception!
+        sem.release()
+
+    run(no_bounds())
+
+    with pytest.raises(ValueError):
+        run(use_bounded())

@@ -14,6 +14,7 @@ from abc import ABC
 from collections import defaultdict, deque, namedtuple
 from collections.abc import Awaitable, Callable, Coroutine, Generator, Hashable
 from enum import IntEnum, auto
+from typing import override
 
 INIT_TIME = -1
 START_TIME = 0
@@ -398,12 +399,22 @@ class Semaphore:
         assert self._cnt >= 0
         increment = _loop.sem_release(self)
         if increment:
-            if self._cnt == self._value:
-                raise RuntimeError("Cannot release")
             self._cnt += 1
 
     def locked(self) -> bool:
         return self._cnt == 0
+
+
+class BoundedSemaphore(Semaphore):
+
+    @override
+    def release(self):
+        assert self._cnt >= 0
+        increment = _loop.sem_release(self)
+        if increment:
+            if self._cnt == self._value:
+                raise ValueError("Cannot release")
+            self._cnt += 1
 
 
 class Lock(Semaphore):
