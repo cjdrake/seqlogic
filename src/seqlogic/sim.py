@@ -592,14 +592,14 @@ class EventLoop:
         waiting = self._wait_fifos[event]
         while waiting:
             task = waiting.popleft()
-            self.call_soon(task)
+            self.call_soon(task, value=event)
 
     # Semaphore acquire / release callbacks
     def sem_release(self, sem: Semaphore) -> bool:
         waiting = self._wait_fifos[sem]
         if waiting:
             task = waiting.popleft()
-            self.call_soon(task)
+            self.call_soon(task, value=sem)
             # Do NOT increment semaphore counter
             return False
         # Increment semaphore counter
