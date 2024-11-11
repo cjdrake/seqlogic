@@ -112,7 +112,7 @@ def test_async_with(capsys):
 
 
 def test_bounds():
-    async def no_bounds():
+    async def use_unbounded():
         sem = Semaphore(2)
 
         await sem.acquire()
@@ -135,7 +135,7 @@ def test_bounds():
         # Exception!
         sem.release()
 
-    run(no_bounds())
+    run(use_unbounded())
 
     with pytest.raises(ValueError):
         run(use_bounded())
