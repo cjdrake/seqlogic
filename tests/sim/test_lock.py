@@ -7,54 +7,61 @@ def log(s: str):
     print(f"{now():04} {s}")
 
 
-async def foo(lock: Lock):
-    log("FOO enter")
+async def use_acquire_release(lock: Lock, name: str, t1: int, t2: int):
+    log(f"{name} enter")
 
-    await sleep(10)
+    await sleep(t1)
 
-    log("FOO attempt acquire")
+    log(f"{name} attempt acquire")
     await lock.acquire()
-    log("FOO acquired")
+    log(f"{name} acquired")
 
     try:
-        await sleep(10)
+        await sleep(t2)
     finally:
-        log("FOO release")
+        log(f"{name} release")
         lock.release()
 
     await sleep(10)
-    log("FOO exit")
+    log(f"{name} exit")
 
 
-async def bar(lock: Lock):
-    log("BAR enter")
+async def use_with(lock: Lock, name: str, t1: int, t2: int):
+    log(f"{name} enter")
 
-    await sleep(15)
+    await sleep(t1)
 
-    log("BAR attempt acquire")
-    await lock.acquire()
-    log("BAR acquired")
+    log(f"{name} attempt acquire")
+    async with lock:
+        log(f"{name} acquired")
+        await sleep(t2)
+    log(f"{name} release")
 
-    try:
-        await sleep(10)
-    finally:
-        log("BAR release")
-        lock.release()
-
-    log("BAR exit")
+    await sleep(10)
+    log(f"{name} exit")
 
 
-EXP1 = """\
-0000 FOO enter
-0000 BAR enter
-0010 FOO attempt acquire
-0010 FOO acquired
-0015 BAR attempt acquire
-0020 FOO release
-0020 BAR acquired
-0030 FOO exit
-0030 BAR release
-0030 BAR exit
+EXP = """\
+0000 0 enter
+0000 1 enter
+0000 2 enter
+0000 3 enter
+0010 0 attempt acquire
+0010 0 acquired
+0011 1 attempt acquire
+0012 2 attempt acquire
+0013 3 attempt acquire
+0020 0 release
+0020 1 acquired
+0030 0 exit
+0030 1 release
+0030 2 acquired
+0040 1 exit
+0040 2 release
+0040 3 acquired
+0050 2 exit
+0050 3 release
+0060 3 exit
 """
 
 
@@ -62,64 +69,21 @@ def test_acquire_release(capsys):
 
     async def main():
         lock = Lock()
-        create_task(foo(lock))
-        create_task(bar(lock))
+        for i in range(4):
+            create_task(use_acquire_release(lock, f"{i}", i + 10, 10))
 
     run(main())
 
-    assert capsys.readouterr().out == EXP1
-
-
-async def fiz(lock: Lock):
-    log("FIZ enter")
-
-    await sleep(10)
-
-    log("FIZ attempt acquire")
-    async with lock:
-        log("FIZ acquired")
-        await sleep(10)
-    log("FIZ release")
-
-    await sleep(10)
-    log("FIZ exit")
-
-
-async def buz(lock: Lock):
-    log("BUZ enter")
-
-    await sleep(15)
-
-    log("BUZ attempt acquire")
-    async with lock:
-        log("BUZ acquired")
-        await sleep(10)
-    log("BUZ release")
-
-    log("BUZ exit")
-
-
-EXP2 = """\
-0000 FIZ enter
-0000 BUZ enter
-0010 FIZ attempt acquire
-0010 FIZ acquired
-0015 BUZ attempt acquire
-0020 FIZ release
-0020 BUZ acquired
-0030 FIZ exit
-0030 BUZ release
-0030 BUZ exit
-"""
+    assert capsys.readouterr().out == EXP
 
 
 def test_async_with(capsys):
 
     async def main():
         lock = Lock()
-        create_task(fiz(lock))
-        create_task(buz(lock))
+        for i in range(4):
+            create_task(use_with(lock, f"{i}", i + 10, 10))
 
     run(main())
 
-    assert capsys.readouterr().out == EXP2
+    assert capsys.readouterr().out == EXP
