@@ -417,7 +417,7 @@ class BoundedSemaphore(Semaphore):
             self._cnt += 1
 
 
-class Lock(Semaphore):
+class Lock(BoundedSemaphore):
     """Mutex lock to synchronize tasks."""
 
     def __init__(self):
