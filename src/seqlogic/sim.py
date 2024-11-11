@@ -556,7 +556,7 @@ class EventLoop:
         waiting = self._wait_fifos[ptask]
         while waiting:
             ctask = waiting.popleft()
-            self.call_soon(ctask)
+            self.call_soon(ctask, value=ptask)
         ptask.set_state(TaskState.RETURNED)
         ptask.set_result(result)
 
@@ -565,7 +565,7 @@ class EventLoop:
         while waiting:
             ctask = waiting.popleft()
             ctask.set_exception(e)
-            self.call_soon(ctask)
+            self.call_soon(ctask, value=ptask)
         ptask.set_state(TaskState.CANCELLED)
 
     def _task_except(self, ptask: Task, e: Exception):
@@ -573,7 +573,7 @@ class EventLoop:
         while waiting:
             ctask = waiting.popleft()
             ctask.set_exception(e)
-            self.call_soon(ctask)
+            self.call_soon(ctask, value=ptask)
         ptask.set_state(TaskState.EXCEPTED)
 
     # Event wait / set callbacks
@@ -659,7 +659,8 @@ class EventLoop:
                 try:
                     task.run(value)
                 except StopIteration as e:
-                    self._task_return(task, e.value)
+                    result = e.value
+                    self._task_return(task, result)
                 except CancelledError as e:
                     self._task_cancel(task, e)
                 except Exception as e:
@@ -705,7 +706,8 @@ class EventLoop:
                 try:
                     task.run(value)
                 except StopIteration as e:
-                    self._task_return(task, e.value)
+                    result = e.value
+                    self._task_return(task, result)
                 except CancelledError as e:
                     self._task_cancel(task, e)
                 except Exception as e:
@@ -832,6 +834,44 @@ async def resume(*triggers: tuple[State, Predicate]) -> State:
         _loop.state_wait(state, predicate)
     state = await _Awaitable()
     return state
+
+
+FIRST_COMPLETED = "FIRST_COMPLETED"
+FIRST_EXCEPTION = "FIRST_EXCEPTION"
+ALL_COMPLETED = "ALL_COMPLETED"
+
+
+async def wait(aws, return_when=ALL_COMPLETED) -> tuple[set[Task], set[Task]]:
+    # TODO(cjdrake): Catch exceptions
+    if return_when == FIRST_EXCEPTION:
+        raise NotImplementedError("FIRST_EXCEPTION not implemented yet")
+
+    if return_when not in {FIRST_COMPLETED, ALL_COMPLETED}:
+        exp = ", ".join([FIRST_COMPLETED, FIRST_EXCEPTION, ALL_COMPLETED])
+        s = f"Expected return_when in {{{exp}}}, got {return_when}"
+        raise ValueError(s)
+
+    done = set()
+    pend = set(aws)
+
+    for aw in aws:
+        _loop.fifo_wait(aw)
+
+    while True:
+        aw = await _Awaitable()
+
+        done.add(aw)
+        pend.remove(aw)
+
+        if return_when == FIRST_COMPLETED and len(done) == 1:
+            for aw in pend:
+                _loop.fifo_drop(aw, _loop.task())
+            break
+
+        if return_when == ALL_COMPLETED and not pend:
+            break
+
+    return done, pend
 
 
 def finish():

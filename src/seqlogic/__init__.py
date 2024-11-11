@@ -98,6 +98,9 @@ from .expr import (
     Xt,
 )
 from .sim import (
+    ALL_COMPLETED,
+    FIRST_COMPLETED,
+    FIRST_EXCEPTION,
     Aggregate,
     AggrValue,
     CancelledError,
@@ -125,6 +128,7 @@ from .sim import (
     run,
     set_event_loop,
     sleep,
+    wait,
 )
 from .util import clog2
 
@@ -265,6 +269,10 @@ __all__ = [
     "sleep",
     "changed",
     "resume",
+    "FIRST_COMPLETED",
+    "FIRST_EXCEPTION",
+    "ALL_COMPLETED",
+    "wait",
     "finish",
     # util
     "clog2",
