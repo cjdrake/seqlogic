@@ -372,7 +372,7 @@ class Bits:
 
     def vcd_var(self) -> str:
         """Return VCD variable type."""
-        return "reg"
+        return "logic"
 
     def vcd_val(self) -> str:
         """Return VCD variable value."""
