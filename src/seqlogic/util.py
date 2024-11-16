@@ -10,7 +10,7 @@ def clog2(x: int) -> int:
     This function tells you the minimum dimension of a Boolean space with at
     least N points.
 
-    For example, here are the values of `clog2(N)` for `1 ≤ N < 18`:
+    For example, here are the values of ``clog2(N)`` for :math:`1 ≤ N < 18`:
 
     >>> [clog2(n) for n in range(1, 18)]
     [0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5]

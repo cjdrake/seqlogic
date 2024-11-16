@@ -5,11 +5,18 @@ For the full list of built-in configuration values, see the documentation:
 https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
 
+import sys
 import tomllib
 from pathlib import Path
 
 WORKSPACE = Path(__file__).parents[2]
-with open(WORKSPACE / "pyproject.toml", mode="rb") as f:
+PYPROJECT_TOML = WORKSPACE / "pyproject.toml"
+SRC_DIR = WORKSPACE / "src"
+
+# Make it possible to import from seqlogic package
+sys.path.insert(0, str(SRC_DIR))
+
+with open(PYPROJECT_TOML, mode="rb") as f:
     proj_toml = tomllib.load(f)
 
 # -- Project information -----------------------------------------------------
@@ -23,7 +30,9 @@ release = proj_toml["project"]["version"]
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = [
+    "sphinx.ext.autodoc",
+]
 
 templates_path = ["_templates"]
 exclude_patterns = []
