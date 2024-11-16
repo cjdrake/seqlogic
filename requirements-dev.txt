@@ -1,3 +1,6 @@
+# Development Requirements
+
+# Runtime
 -r requirements.txt
 
 # Python Package Index
@@ -5,9 +8,7 @@ build
 twine
 
 # Documentation
-sphinx
-sphinx-autobuild
-sphinx-book-theme
+-r doc/requirements.txt
 
 # Code Quality
 black

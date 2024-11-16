@@ -1,0 +1,5 @@
+# Documentation Requirements
+
+sphinx
+sphinx-autobuild
+sphinx-book-theme
