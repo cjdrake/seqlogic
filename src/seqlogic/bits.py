@@ -525,7 +525,39 @@ class Bits:
 
 
 class Empty(Bits, _ShapeIf):
-    """Empty sequence of bits."""
+    """Null dimensional sequence of bits.
+
+    Degenerate form of a ``Vector`` resulting from an empty slice.
+
+    >>> Vector[0] is Empty
+    True
+
+    To get a handle to the ``Empty`` singleton:
+
+    >>> empty = bits()
+
+    ``Empty`` implements ``Vector`` methods,
+    except for ``__getitem__``:
+
+    >>> empty.size
+    0
+    >>> empty.shape
+    (0,)
+    >>> len(empty)
+    0
+    >>> empty[0]
+    Traceback (most recent call last):
+        ...
+    TypeError: 'Empty' object is not subscriptable
+
+    Since ``Empty`` is a singleton;
+    all instances have the same ``id``:
+
+    >>> bits() is empty
+    True
+    >>> bits("4b1010")[0:0] is empty
+    True
+    """
 
     def __new__(cls, d0: int, d1: int):
         assert d0 == d1 == 0
@@ -561,7 +593,47 @@ _Empty = Empty._cast_data(0, 0)
 
 
 class Scalar(Bits, _ShapeIf):
-    """Zero dimensional (scalar) sequence of bits."""
+    """Zero dimensional (scalar) sequence of bits.
+
+    Degenerate form of a ``Vector`` resulting from a one bit slice.
+
+    >>> Vector[1] is Scalar
+    True
+
+    To get a handle to a ``Scalar`` singleton:
+
+    >>> f = bits("1b0")
+    >>> t = bits("1b1")
+    >>> x = bits("1bX")
+    >>> dc = bits("1b-")
+
+    For convenience, ``False`` and ``True`` also work:
+
+    >>> bits(False) is f and bits(True) is t
+    True
+
+    ``Scalar`` implements ``Vector`` methods,
+    including ``__getitem__``:
+
+    >>> t.size
+    1
+    >>> t.shape
+    (1,)
+    >>> len(t)
+    1
+    >>> t[0]
+    bits("1b1")
+
+    ``Scalars`` are singletons;
+    all instances have the same ``id``:
+
+    >>> bits("1b0") is f
+    True
+    >>> bits("4b1010")[0] is f
+    True
+    >>> bits("4b1010")[1] is t
+    True
+    """
 
     def __new__(cls, d0: int, d1: int):
         return _scalars[(d0, d1)]

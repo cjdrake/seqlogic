@@ -41,6 +41,10 @@ Bits Data Type
     .. automethod:: seqlogic.bits.Bits.has_dc
     .. automethod:: seqlogic.bits.Bits.has_unknown
 
+.. autoclass:: seqlogic.bits.Empty
+
+.. autoclass:: seqlogic.bits.Scalar
+
 Design Elements
 ===============
 
