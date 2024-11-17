@@ -1,4 +1,8 @@
-"""Bit scalar/vector/array data types."""
+"""SeqLogic Bits module.
+
+Contains classes and functions that implement hardware-oriented ``bits`` data
+types and operators.
+"""
 
 # PyLint is confused by my hacky classproperty implementation
 # pylint: disable=comparison-with-callable
@@ -114,33 +118,43 @@ def _resolve_type(t0: type[Bits], t1: type[Bits]) -> type[Bits]:
 
 
 class _ShapeIf:
-    """Shaping interface."""
-
     @classproperty
     def shape(cls) -> tuple[int, ...]:
         raise NotImplementedError()  # pragma: no cover
 
 
 class Bits:
-    """Base class for Bits
+    r"""Sequence of bits.
 
-    Inheritance::
+    A bit is a 4-state logical value in the set {``0``, ``1``, ``X``, ``-``}:
 
-        Bits[size]
-        |
-        +-- Empty[shape]
-        |
-        +-- Scalar[shape]
-        |
-        +-- Vector[shape] -- Enum
-        |
-        +-- Array[shape]
-        |
-        +-- Struct
-        |
-        +-- Union
+        * ``0`` is Boolean zero or "False"
+        * ``1`` is Boolean one or "True"
+        * ``X`` is an uninitialized or metastable value
+        * ``-`` is a "don't care" value
 
-    Do NOT construct a bit array directly.
+    The values ``0`` and ``1`` are "known".
+    The values ``X`` and ``-`` are "unknown".
+
+    ``Bits`` is the base class for a family of hardware-oriented data types.
+    All ``Bits`` objects have a ``size`` attribute.
+    Shaped subclasses (``Empty``, ``Scalar``, ``Vector``, ``Array``) have a
+    ``shape`` attribute.
+    Composite subclasses (``Struct``, ``Union``) have user-defined attributes.
+
+    ``Bits`` does **NOT** implement the Python ``Sequence`` protocol.
+
+    Children::
+
+                      Bits
+                        |
+          +------+------+-----+------+-----+
+          |      |      |     |      |     |
+        Empty Scalar Vector Array Struct Union
+                        |
+                      Enum
+
+    Do **NOT** construct a Bits object directly.
     Use one of the factory functions:
 
         * bits
@@ -151,10 +165,22 @@ class Bits:
 
     @classproperty
     def size(cls) -> int:
+        """Number of bits."""
         raise NotImplementedError()  # pragma: no cover
 
     @classmethod
     def cast(cls, x: Bits) -> Bits:
+        """Convert Bits object to an instance of this class.
+
+        For example, to cast an ``Array[2,2]`` to a ``Vector[4]``:
+
+        >>> x = bits(["2b00", "2b11"])
+        >>> Vector[4].cast(x)
+        bits("4b1100")
+
+        Raises:
+            TypeError: Object size does not match this class size.
+        """
         if x.size != cls.size:
             raise TypeError(f"Expected size {cls.size}, got {x.size}")
         return cls._cast_data(x.data[0], x.data[1])
@@ -167,27 +193,83 @@ class Bits:
 
     @classmethod
     def xes(cls) -> Bits:
+        """Return an instance filled with ``X`` bits.
+
+        For example:
+
+        >>> Vector[4].xes()
+        bits("4bXXXX")
+        """
         return cls._cast_data(0, 0)
 
     @classmethod
     def zeros(cls) -> Bits:
+        """Return an instance filled with ``0`` bits.
+
+        For example:
+
+        >>> Vector[4].zeros()
+        bits("4b0000")
+        """
         return cls._cast_data(cls._dmax, 0)
 
     @classmethod
     def ones(cls) -> Bits:
+        """Return an instance filled with ``1`` bits.
+
+        For example:
+
+        >>> Vector[4].ones()
+        bits("4b1111")
+        """
         return cls._cast_data(0, cls._dmax)
 
     @classmethod
     def dcs(cls) -> Bits:
+        """Return an instance filled with ``-`` bits.
+
+        For example:
+
+        >>> Vector[4].dcs()
+        bits("4b----")
+        """
         return cls._cast_data(cls._dmax, cls._dmax)
 
     @classmethod
     def rand(cls) -> Bits:
+        """Return an instance filled with random bits."""
         d1 = random.getrandbits(cls.size)
         return cls._cast_data(cls._dmax ^ d1, d1)
 
     @classmethod
     def xprop(cls, sel: Bits) -> Bits:
+        """Propagate ``X`` in a wildcard pattern (default case).
+
+        If ``sel`` contains an ``X``, propagate ``X``.
+        Otherwise, treat as a "don't care", and propagate ``-``.
+
+        For example:
+
+        >>> def f(x: Vector[1]) -> Vector[1]:
+        ...     match x:
+        ...         case "1b0":
+        ...             return bits("1b1")
+        ...         case _:
+        ...             return Vector[1].xprop(x)
+
+        >>> f(bits("1b0"))  # Match!
+        bits("1b1")
+        >>> f(bits("1b1"))  # No match; No X prop
+        bits("1b-")
+        >>> f(bits("1bX"))  # No match; Yes X prop
+        bits("1bX")
+
+        Args:
+            sel: Bits object, typically a ``match`` subject
+
+        Returns:
+            Class instance filled with either ``-`` or ``X``.
+        """
         if sel.has_x():
             return cls.xes()
         return cls.dcs()
@@ -198,12 +280,52 @@ class Bits:
 
     @property
     def data(self) -> tuple[int, int]:
+        """Internal representation."""
         return self._data
 
     def __bool__(self) -> bool:
+        """Convert to Python ``bool``.
+
+        A ``Bits`` object is ``True`` if its value is known nonzero.
+
+        For example:
+
+        >>> bool(bits("1b0"))
+        False
+        >>> bool(bits("1b1"))
+        True
+        >>> bool(bits("4b0000"))
+        False
+        >>> bool(bits("4b1010"))
+        True
+
+        .. warning::
+            Be cautious about using any expression that *might* have an unknown
+            value as the condition of a Python ``if`` or ``while`` statement.
+
+        Raises:
+            ValueError: Contains any unknown bits.
+        """
         return self.to_uint() != 0
 
     def __int__(self) -> int:
+        """Convert to Python ``int``.
+
+        Use two's complement representation:
+
+        * If most significant bit is ``1``, result will be negative.
+        * If most significant bit is ``0``, result will be non-negative.
+
+        For example:
+
+        >>> int(bits("4b1010"))
+        -6
+        >>> int(bits("4b0101"))
+        5
+
+        Raises:
+            ValueError: Contains any unknown bits.
+        """
         return self.to_int()
 
     # Comparison
@@ -302,10 +424,10 @@ class Bits:
         """Convert to unsigned integer.
 
         Returns:
-            An unsigned int.
+            A non-negative ``int``.
 
         Raises:
-            ValueError: vec is partially unknown.
+            ValueError: Contains any unknown bits.
         """
         if self.has_unknown():
             raise ValueError("Cannot convert unknown to uint")
@@ -315,10 +437,10 @@ class Bits:
         """Convert to signed integer.
 
         Returns:
-            A signed int, from two's complement encoding.
+            An ``int``, from two's complement encoding.
 
         Raises:
-            ValueError: vec is partially unknown.
+            ValueError: Contains any unknown bits.
         """
         if self.size == 0:
             return 0
@@ -328,48 +450,48 @@ class Bits:
         return self.to_uint()
 
     def count_xes(self) -> int:
-        """Return number of X items."""
+        """Return count of ``X`` bits."""
         d: int = (self._data[0] | self._data[1]) ^ self._dmax
         return d.bit_count()
 
     def count_zeros(self) -> int:
-        """Return number of 0 items."""
+        """Return count of of ``0`` bits."""
         d: int = self._data[0] & (self._data[1] ^ self._dmax)
         return d.bit_count()
 
     def count_ones(self) -> int:
-        """Return number of 1 items."""
+        """Return count of ``1`` bits."""
         d: int = (self._data[0] ^ self._dmax) & self._data[1]
         return d.bit_count()
 
     def count_dcs(self) -> int:
-        """Return number of DC items."""
+        """Return count of ``-`` bits."""
         d: int = self._data[0] & self._data[1]
         return d.bit_count()
 
     def count_unknown(self) -> int:
-        """Return number of X/DC items."""
+        """Return count of unknown bits."""
         d: int = self._data[0] ^ self._data[1] ^ self._dmax
         return d.bit_count()
 
     def onehot(self) -> bool:
-        """Return True if vec contains exactly one 1 item."""
+        """Return True if contains exactly one ``1`` bit."""
         return not self.has_unknown() and self.count_ones() == 1
 
     def onehot0(self) -> bool:
-        """Return True if vec contains at most one 1 item."""
+        """Return True if contains at most one ``1`` bit."""
         return not self.has_unknown() and self.count_ones() <= 1
 
     def has_x(self) -> bool:
-        """Return True if vec contains at least one X item."""
+        """Return True if contains at least one ``X`` bit."""
         return bool((self._data[0] | self._data[1]) ^ self._dmax)
 
     def has_dc(self) -> bool:
-        """Return True if vec contains at least one DC item."""
+        """Return True if contains at least one ``-`` bit."""
         return bool(self._data[0] & self._data[1])
 
     def has_unknown(self) -> bool:
-        """Return True if vec contains at least one X/DC item."""
+        """Return True if contains at least one unknown bit."""
         return bool(self._data[0] ^ self._data[1] ^ self._dmax)
 
     def vcd_var(self) -> str:
