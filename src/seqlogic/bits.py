@@ -1954,6 +1954,38 @@ def rep(obj: Bits | int | str, n: int) -> Empty | Scalar | Vector:
     return cat(*objs)
 
 
+def _pack(x: Bits, n: int) -> Bits:
+    if x.size == 0:
+        return x
+
+    m = mask(n)
+
+    xd0, xd1 = x.data
+
+    d0 = xd0 & m
+    d1 = xd1 & m
+
+    for _ in range(n, x.size, n):
+        xd0 >>= n
+        xd1 >>= n
+        d0 = (d0 << n) | (xd0 & m)
+        d1 = (d1 << n) | (xd1 & m)
+
+    return x._cast_data(d0, d1)
+
+
+def pack(x: Bits | str, n: int = 1) -> Bits:
+    """Pack n-bit blocks in right to left order."""
+    if n < 1:
+        raise ValueError(f"Expected n < 1, got {n}")
+
+    x = _expect_type(x, Bits)
+    if x.size % n != 0:
+        raise ValueError("Expected x.size to be a multiple of n")
+
+    return _pack(x, n)
+
+
 def clz(x: Bits | str) -> Empty | Scalar | Vector:
     """Count leading zeros."""
     x = _expect_type(x, Bits)
@@ -2158,38 +2190,6 @@ def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
     return _scmp(operator.ge, x0, x1)
-
-
-def _pack(x: Bits, n: int) -> Bits:
-    if x.size == 0:
-        return x
-
-    m = mask(n)
-
-    xd0, xd1 = x.data
-
-    d0 = xd0 & m
-    d1 = xd1 & m
-
-    for _ in range(n, x.size, n):
-        xd0 >>= n
-        xd1 >>= n
-        d0 = (d0 << n) | (xd0 & m)
-        d1 = (d1 << n) | (xd1 & m)
-
-    return x._cast_data(d0, d1)
-
-
-def pack(x: Bits | str, n: int = 1) -> Bits:
-    """Pack n-bit blocks in right to left order."""
-    if n < 1:
-        raise ValueError(f"Expected n < 1, got {n}")
-
-    x = _expect_type(x, Bits)
-    if x.size % n != 0:
-        raise ValueError("Expected x.size to be a multiple of n")
-
-    return _pack(x, n)
 
 
 _LIT_PREFIX_RE = re.compile(r"(?P<Size>[1-9][0-9]*)(?P<Base>[bdh])")
