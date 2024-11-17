@@ -41,18 +41,6 @@ Bits Data Type
     .. automethod:: seqlogic.bits.Bits.has_dc
     .. automethod:: seqlogic.bits.Bits.has_unknown
 
-.. automodule:: seqlogic._bits_enum
-    :members:
-    :show-inheritance:
-
-.. automodule:: seqlogic._bits_struct
-    :members:
-    :show-inheritance:
-
-.. automodule:: seqlogic._bits_union
-    :members:
-    :show-inheritance:
-
 Design Elements
 ===============
 
