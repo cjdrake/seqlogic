@@ -2,8 +2,11 @@
     Reference
 *****************
 
-Bits Data Type
-==============
+Combinational Logic
+===================
+
+Data Types
+----------
 
 .. autoclass:: seqlogic.bits.Bits
 
@@ -45,19 +48,22 @@ Bits Data Type
 
 .. autoclass:: seqlogic.bits.Scalar
 
-Design Elements
-===============
+Operators
+---------
 
-.. automodule:: seqlogic.design
-    :members:
-    :show-inheritance:
+.. autofunction:: seqlogic.bits.not_
+.. autofunction:: seqlogic.bits.nor
+.. autofunction:: seqlogic.bits.or_
+.. autofunction:: seqlogic.bits.nand
+.. autofunction:: seqlogic.bits.and_
+.. autofunction:: seqlogic.bits.xnor
+.. autofunction:: seqlogic.bits.xor
 
 Event Simulation
 ================
 
-.. automodule:: seqlogic.sim
-    :members:
-    :show-inheritance:
+Design Elements
+===============
 
 Utilities
 =========

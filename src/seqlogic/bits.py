@@ -852,61 +852,143 @@ def _xor_(x0: Bits, x1: Bits) -> Bits:
 
 
 def not_(x: Bits | str) -> Bits:
-    """Bitwise NOT.
+    """Unary bitwise logical NOT operator.
 
-    f(x) -> y:
-        X => X | 00 => 00
-        0 => 1 | 01 => 10
-        1 => 0 | 10 => 01
-        - => - | 11 => 11
+    Perform logical negation on each bit of the input:
+
+    +-------+--------+
+    |   x   | NOT(x) |
+    +=======+========+
+    | ``0`` |  ``1`` |
+    +-------+--------+
+    | ``1`` |  ``0`` |
+    +-------+--------+
+    | ``X`` |  ``X`` |
+    +-------+--------+
+    | ``-`` |  ``-`` |
+    +-------+--------+
+
+    For example:
+
+    >>> not_("4b-10X")
+    bits("4b-01X")
+
+    In expressions, you can use the unary ``~`` operator:
+
+    >>> a = bits("4b-10X")
+    >>> ~a
+    bits("4b-01X")
+
+    Args:
+        x: ``Bits`` or string literal.
 
     Returns:
-        Bits of equal size w/ inverted data.
+        ``Bits`` of same type and equal size
+
+    Raises:
+        TypeError: ``x0`` is not a valid ``Bits`` object.
+        ValueError: Error parsing string literal.
     """
     x = _expect_type(x, Bits)
     return _not_(x)
 
 
 def nor(x0: Bits | str, *xs: Bits | str) -> Bits:
-    """Bitwise NOR.
+    """N-ary bitwise logical NOR operator.
 
-    f(x0, x1) -> y:
-        0 0 => 1
-        1 - => 0
-        X - => X
-        - 0 => -
+    Perform logical NOR on each bit of the inputs:
+
+    +-------+-----------------------+-------------+-----------------------+
+    |   x0  |           x1          | NOR(x0, x1) |          Note         |
+    +=======+=======================+=============+=======================+
+    | ``0`` |                 ``0`` |       ``1`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``0`` |                 ``1`` |       ``0`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``1`` |                 ``0`` |       ``0`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``1`` |                 ``1`` |       ``0`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``X`` | {``0``, ``1``, ``-``} |       ``X`` |  ``X`` dominates all  |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``1`` |                 ``-`` |       ``0`` | ``1`` dominates ``-`` |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``-`` |        {``0``, ``-``} |       ``-`` | ``-`` dominates ``0`` |
+    +-------+-----------------------+-------------+-----------------------+
+
+    For example:
+
+    >>> nor("16b----_1111_0000_XXXX", "16b-10X_-10X_-10X_-10X")
+    bits("16b-0-X_000X_-01X_XXXX")
+
+    In expressions, you can use the unary ``~`` and binary ``|`` operators:
+
+    >>> a = bits("16b----_1111_0000_XXXX")
+    >>> b = bits("16b-10X_-10X_-10X_-10X")
+    >>> ~(a | b)
+    bits("16b-0-X_000X_-01X_XXXX")
 
     Args:
-        x0: Bits
-        x1: Bits of equal size.
+        x0: ``Bits`` or string literal.
+        xs: Sequence of ``Bits`` equal size to ``x0``.
 
     Returns:
-        Bits of equal size, w/ NOR result.
+        ``Bits`` equal size to ``x0``.
 
     Raises:
-        ValueError: Bits sizes do not match.
+        TypeError: ``x0`` is not a valid ``Bits`` object,
+                   or ``xs[i]`` not equal size to ``x0``.
+        ValueError: Error parsing string literal.
     """
     return _not_(or_(x0, *xs))
 
 
 def or_(x0: Bits | str, *xs: Bits | str) -> Bits:
-    """Bitwise OR.
+    """N-ary bitwise logical OR operator.
 
-    f(x0, x1) -> y:
-        0 0 => 0
-        1 - => 1
-        X - => X
-        - 0 => -
+    Perform logical OR on each bit of the inputs:
+
+    +-------+-----------------------+------------+-----------------------+
+    |   x0  |           x1          | OR(x0, x1) |          Note         |
+    +=======+=======================+============+=======================+
+    | ``0`` |                 ``0`` |      ``0`` |                       |
+    +-------+-----------------------+------------+-----------------------+
+    | ``0`` |                 ``1`` |      ``1`` |                       |
+    +-------+-----------------------+------------+-----------------------+
+    | ``1`` |                 ``0`` |      ``1`` |                       |
+    +-------+-----------------------+------------+-----------------------+
+    | ``1`` |                 ``1`` |      ``1`` |                       |
+    +-------+-----------------------+------------+-----------------------+
+    | ``X`` | {``0``, ``1``, ``-``} |      ``X`` |  ``X`` dominates all  |
+    +-------+-----------------------+------------+-----------------------+
+    | ``1`` |                 ``-`` |      ``1`` | ``1`` dominates ``-`` |
+    +-------+-----------------------+------------+-----------------------+
+    | ``-`` |        {``0``, ``-``} |      ``-`` | ``-`` dominates ``0`` |
+    +-------+-----------------------+------------+-----------------------+
+
+    For example:
+
+    >>> or_("16b----_1111_0000_XXXX", "16b-10X_-10X_-10X_-10X")
+    bits("16b-1-X_111X_-10X_XXXX")
+
+    In expressions, you can use the binary ``|`` operator:
+
+    >>> a = bits("16b----_1111_0000_XXXX")
+    >>> b = bits("16b-10X_-10X_-10X_-10X")
+    >>> a | b
+    bits("16b-1-X_111X_-10X_XXXX")
 
     Args:
-        x0: Bits
-        x1: Bits of equal size.
+        x0: ``Bits`` or string literal.
+        xs: Sequence of ``Bits`` equal size to ``x0``.
 
     Returns:
-        Bits of equal size, w/ OR result.
+        ``Bits`` equal size to ``x0``.
 
     Raises:
-        ValueError: Bits sizes do not match.
+        TypeError: ``x0`` is not a valid ``Bits`` object,
+                   or ``xs[i]`` not equal size to ``x0``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     y = x0
@@ -917,45 +999,101 @@ def or_(x0: Bits | str, *xs: Bits | str) -> Bits:
 
 
 def nand(x0: Bits | str, *xs: Bits | str) -> Bits:
-    """Bitwise NAND.
+    """N-ary bitwise logical NAND operator.
 
-    f(x0, x1) -> y:
-        1 1 => 0
-        0 - => 1
-        X - => X
-        - 1 => -
+    Perform logical NAND on each bit of the inputs:
+
+    +-------+-----------------------+--------------+-----------------------+
+    |   x0  |           x1          | NAND(x0, x1) |          Note         |
+    +=======+=======================+==============+=======================+
+    | ``0`` |                 ``0`` |        ``1`` |                       |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``0`` |                 ``1`` |        ``1`` |                       |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``1`` |                 ``0`` |        ``1`` |                       |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``1`` |                 ``1`` |        ``0`` |                       |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``X`` | {``0``, ``1``, ``-``} |        ``X`` |  ``X`` dominates all  |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``0`` |                 ``-`` |        ``1`` | ``0`` dominates ``-`` |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``-`` |        {``1``, ``-``} |        ``-`` | ``-`` dominates ``1`` |
+    +-------+-----------------------+--------------+-----------------------+
+
+    For example:
+
+    >>> nand("16b----_1111_0000_XXXX", "16b-10X_-10X_-10X_-10X")
+    bits("16b--1X_-01X_111X_XXXX")
+
+    In expressions, you can use the unary ``~`` and binary ``&`` operators:
+
+    >>> a = bits("16b----_1111_0000_XXXX")
+    >>> b = bits("16b-10X_-10X_-10X_-10X")
+    >>> ~(a & b)
+    bits("16b--1X_-01X_111X_XXXX")
 
     Args:
-        x0: Bits
-        x1: Bits of equal size.
+        x0: ``Bits`` or string literal.
+        xs: Sequence of ``Bits`` equal size to ``x0``.
 
     Returns:
-        Bits of equal size, w/ NAND result.
+        ``Bits`` equal size to ``x0``.
 
     Raises:
-        ValueError: Bits sizes do not match.
+        TypeError: ``x0`` is not a valid ``Bits`` object,
+                   or ``xs[i]`` not equal size to ``x0``.
+        ValueError: Error parsing string literal.
     """
     return _not_(and_(x0, *xs))
 
 
 def and_(x0: Bits | str, *xs: Bits | str) -> Bits:
-    """Bitwise AND.
+    """N-ary bitwise logical AND operator.
 
-    f(x0, x1) -> y:
-        1 1 => 1
-        0 - => 0
-        X - => X
-        - 1 => -
+    Perform logical AND on each bit of the inputs:
+
+    +-------+-----------------------+-------------+-----------------------+
+    |   x0  |           x1          | AND(x0, x1) |          Note         |
+    +=======+=======================+=============+=======================+
+    | ``0`` |                 ``0`` |       ``0`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``0`` |                 ``1`` |       ``0`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``1`` |                 ``0`` |       ``0`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``1`` |                 ``1`` |       ``1`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``X`` | {``0``, ``1``, ``-``} |       ``X`` |  ``X`` dominates all  |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``0`` |                 ``-`` |       ``0`` | ``0`` dominates ``-`` |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``-`` |        {``1``, ``-``} |       ``-`` | ``-`` dominates ``1`` |
+    +-------+-----------------------+-------------+-----------------------+
+
+    For example:
+
+    >>> and_("16b----_1111_0000_XXXX", "16b-10X_-10X_-10X_-10X")
+    bits("16b--0X_-10X_000X_XXXX")
+
+    In expressions, you can use the binary ``&`` operator:
+
+    >>> a = bits("16b----_1111_0000_XXXX")
+    >>> b = bits("16b-10X_-10X_-10X_-10X")
+    >>> a & b
+    bits("16b--0X_-10X_000X_XXXX")
 
     Args:
-        x0: Bits
-        x1: Bits of equal size.
+        x0: ``Bits`` or string literal.
+        xs: Sequence of ``Bits`` equal size to ``x0``.
 
     Returns:
-        Bits of equal size, w/ AND result.
+        ``Bits`` equal size to ``x0``.
 
     Raises:
-        ValueError: Bits sizes do not match.
+        TypeError: ``x0`` is not a valid ``Bits`` object,
+                   or ``xs[i]`` not equal size to ``x0``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     y = x0
@@ -966,51 +1104,97 @@ def and_(x0: Bits | str, *xs: Bits | str) -> Bits:
 
 
 def xnor(x0: Bits | str, *xs: Bits | str) -> Bits:
-    """Bitwise XNOR.
+    """N-ary bitwise logical XNOR operator.
 
-    f(x0, x1) -> y:
-        0 0 => 1
-        0 1 => 0
-        1 0 => 0
-        1 1 => 1
-        X - => X
-        - 0 => -
-        - 1 => -
+    Perform logical XNOR on each bit of the inputs:
+
+    +-------+-----------------------+--------------+-----------------------+
+    |   x0  |           x1          | XNOR(x0, x1) |          Note         |
+    +=======+=======================+==============+=======================+
+    | ``0`` |                 ``0`` |        ``1`` |                       |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``0`` |                 ``1`` |        ``0`` |                       |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``1`` |                 ``0`` |        ``0`` |                       |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``1`` |                 ``1`` |        ``1`` |                       |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``X`` | {``0``, ``1``, ``-``} |        ``X`` |  ``X`` dominates all  |
+    +-------+-----------------------+--------------+-----------------------+
+    | ``-`` | {``0``, ``1``. ``-``} |        ``-`` | ``-`` dominates known |
+    +-------+-----------------------+--------------+-----------------------+
+
+    For example:
+
+    >>> xnor("16b----_1111_0000_XXXX", "16b-10X_-10X_-10X_-10X")
+    bits("16b---X_-10X_-01X_XXXX")
+
+    In expressions, you can use the unary ``~`` and binary ``^`` operators:
+
+    >>> a = bits("16b----_1111_0000_XXXX")
+    >>> b = bits("16b-10X_-10X_-10X_-10X")
+    >>> ~(a ^ b)
+    bits("16b---X_-10X_-01X_XXXX")
 
     Args:
-        x0: Bits
-        x1: Bits of equal size.
+        x0: ``Bits`` or string literal.
+        xs: Sequence of ``Bits`` equal size to ``x0``.
 
     Returns:
-        Bits of equal size, w/ XNOR result.
+        ``Bits`` equal size to ``x0``.
 
     Raises:
-        ValueError: Bits sizes do not match.
+        TypeError: ``x0`` is not a valid ``Bits`` object,
+                   or ``xs[i]`` not equal size to ``x0``.
+        ValueError: Error parsing string literal.
     """
     return _not_(xor(x0, *xs))
 
 
 def xor(x0: Bits | str, *xs: Bits | str) -> Bits:
-    """Bitwise XOR.
+    """N-ary bitwise logical XOR operator.
 
-    f(x0, x1) -> y:
-       0 0 => 0
-        0 1 => 1
-        1 0 => 1
-        1 1 => 0
-        X - => X
-        - 0 => -
-        - 1 => -
+    Perform logical XOR on each bit of the inputs:
+
+    +-------+-----------------------+-------------+-----------------------+
+    |   x0  |           x1          | XOR(x0, x1) |          Note         |
+    +=======+=======================+=============+=======================+
+    | ``0`` |                 ``0`` |       ``0`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``0`` |                 ``1`` |       ``1`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``1`` |                 ``0`` |       ``1`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``1`` |                 ``1`` |       ``0`` |                       |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``X`` | {``0``, ``1``, ``-``} |       ``X`` |  ``X`` dominates all  |
+    +-------+-----------------------+-------------+-----------------------+
+    | ``-`` | {``0``, ``1``. ``-``} |       ``-`` | ``-`` dominates known |
+    +-------+-----------------------+-------------+-----------------------+
+
+    For example:
+
+    >>> xor("16b----_1111_0000_XXXX", "16b-10X_-10X_-10X_-10X")
+    bits("16b---X_-01X_-10X_XXXX")
+
+    In expressions, you can use the binary ``^`` operator:
+
+    >>> a = bits("16b----_1111_0000_XXXX")
+    >>> b = bits("16b-10X_-10X_-10X_-10X")
+    >>> a ^ b
+    bits("16b---X_-01X_-10X_XXXX")
 
     Args:
-        x0: Bits
-        x1: Bits of equal size.
+        x0: ``Bits`` or string literal.
+        xs: Sequence of ``Bits`` equal size to ``x0``.
 
     Returns:
-        Bits of equal size, w/ XOR result.
+        ``Bits`` equal size to ``x0``.
 
     Raises:
-        ValueError: Bits sizes do not match.
+        TypeError: ``x0`` is not a valid ``Bits`` object,
+                   or ``xs[i]`` not equal size to ``x0``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     y = x0
