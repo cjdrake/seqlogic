@@ -4,15 +4,11 @@
 # API version
 version: 2
 
-# Set OS, Python version and other tools
+# Set OS, Python version, and other tools
 build:
     os: ubuntu-22.04
     tools:
         python: "3.12"
-
-# Use Sphinx to build documentation
-sphinx:
-    configuration: doc/source/conf.py
 
 # Install Python requirements
 # See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
@@ -20,3 +16,7 @@ python:
     install:
     - requirements: requirements.txt
     - requirements: doc/requirements.txt
+
+# Use Sphinx to build documentation
+sphinx:
+    configuration: doc/source/conf.py
