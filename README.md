@@ -2,6 +2,8 @@
 
 SeqiLog (pronounced seh-kwi-log) is a Python library for logic design and verification.
 
+[Read the docs!](https://seqlogic.rtfd.org) (WIP)
+
 [![Documentation Status](https://readthedocs.org/projects/seqlogic/badge/?version=latest)](https://seqlogic.readthedocs.io/en/latest/?badge=latest)
 
 ## Features
