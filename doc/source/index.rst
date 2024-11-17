@@ -7,3 +7,4 @@
     :caption: Contents:
 
     reference
+    release_notes
