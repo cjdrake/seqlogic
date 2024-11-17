@@ -185,13 +185,15 @@ class AggrValue(Value):
 class TaskState(IntEnum):
     """Task State.
 
-               +--------------------------+
-               |                          |
-               v                          |
-    CREATED -> PENDING -> RUNNING -> WAIT_*
-                                  -> CANCELLED
-                                  -> EXCEPTED
-                                  -> RETURNED
+    Transitions::
+
+                   +--------------------------+
+                   |                          |
+                   v                          |
+        CREATED -> PENDING -> RUNNING -> WAIT_*
+                                      -> CANCELLED
+                                      -> EXCEPTED
+                                      -> RETURNED
     """
 
     # Default value after instantiation

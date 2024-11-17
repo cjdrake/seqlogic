@@ -124,19 +124,21 @@ class _ShapeIf:
 class Bits:
     """Base class for Bits
 
-    Bits[size]
-    |
-    +-- Empty[shape]
-    |
-    +-- Scalar[shape]
-    |
-    +-- Vector[shape] -- Enum
-    |
-    +-- Array[shape]
-    |
-    +-- Struct
-    |
-    +-- Union
+    Inheritance::
+
+        Bits[size]
+        |
+        +-- Empty[shape]
+        |
+        +-- Scalar[shape]
+        |
+        +-- Vector[shape] -- Enum
+        |
+        +-- Array[shape]
+        |
+        +-- Struct
+        |
+        +-- Union
 
     Do NOT construct a bit array directly.
     Use one of the factory functions:
@@ -859,11 +861,11 @@ _MUX_XN_RE = re.compile(r"x(\d+)")
 
 
 def mux(s: Bits | str, **xs: Bits | str) -> Bits:
-    """Mux operator.
+    r"""Mux operator.
 
     Args:
         s: Mux select
-        **xs: Mux inputs, e.g. x0="4b0001", x1="4b0010", ...
+        xs: Mux inputs, e.g. x0="4b0001", x1="4b0010", ...
 
     Mux input names are in the form xN,
     where N is a valid int.

@@ -32,6 +32,7 @@ release = proj_toml["project"]["version"]
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
 ]
 
 templates_path = ["_templates"]
