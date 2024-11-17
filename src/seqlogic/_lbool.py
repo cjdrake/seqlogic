@@ -1,5 +1,7 @@
 """Lifted Boolean constants."""
 
+type lbool = tuple[int, int]
+
 # Scalars
 _X = (0, 0)
 _0 = (1, 0)
@@ -7,21 +9,21 @@ _1 = (0, 1)
 _W = (1, 1)
 
 
-from_char: dict[str, tuple[int, int]] = {
+from_char: dict[str, lbool] = {
     "X": _X,
     "0": _0,
     "1": _1,
     "-": _W,
 }
 
-to_char: dict[tuple[int, int], str] = {
+to_char: dict[lbool, str] = {
     _X: "X",
     _0: "0",
     _1: "1",
     _W: "-",
 }
 
-to_vcd_char: dict[tuple[int, int], str] = {
+to_vcd_char: dict[lbool, str] = {
     _X: "x",
     _0: "0",
     _1: "1",
@@ -29,12 +31,12 @@ to_vcd_char: dict[tuple[int, int], str] = {
 }
 
 
-def lnot(d: tuple[int, int]) -> tuple[int, int]:
+def lnot(d: lbool) -> lbool:
     """Lifted NOT."""
     return d[1], d[0]
 
 
-def lor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
+def lor(d0: lbool, d1: lbool) -> lbool:
     """Lifted OR.
 
            x1
@@ -55,7 +57,7 @@ def lor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
     )
 
 
-def land(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
+def land(d0: lbool, d1: lbool) -> lbool:
     """Lifted AND.
 
            x1
@@ -76,7 +78,7 @@ def land(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
     )
 
 
-def lxnor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
+def lxnor(d0: lbool, d1: lbool) -> lbool:
     """Lifted XNOR.
 
            x1
@@ -97,7 +99,7 @@ def lxnor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
     )
 
 
-def lxor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
+def lxor(d0: lbool, d1: lbool) -> lbool:
     """Lifted XOR.
 
            x1
@@ -118,7 +120,7 @@ def lxor(d0: tuple[int, int], d1: tuple[int, int]) -> tuple[int, int]:
     )
 
 
-def lite(s: tuple[int, int], a: tuple[int, int], b: tuple[int, int]) -> tuple[int, int]:
+def lite(s: lbool, a: lbool, b: lbool) -> lbool:
     r"""Lifted If-Then-Else.
 
     s=00  b                             s=01  b
@@ -153,7 +155,7 @@ def lite(s: tuple[int, int], a: tuple[int, int], b: tuple[int, int]) -> tuple[in
     )
 
 
-def _lmux(s: tuple[int, int], x0: tuple[int, int], x1: tuple[int, int]) -> tuple[int, int]:
+def _lmux(s: lbool, x0: lbool, x1: lbool) -> lbool:
     """Lifted 2:1 Mux."""
     x0_01 = x0[0] | x0[1]
     x1_01 = x1[0] | x1[1]
@@ -163,11 +165,7 @@ def _lmux(s: tuple[int, int], x0: tuple[int, int], x1: tuple[int, int]) -> tuple
     )
 
 
-def lmux(
-    s: tuple[tuple[int, int], ...],
-    xs: dict[int, tuple[int, int]],
-    default: tuple[int, int],
-) -> tuple[int, int]:
+def lmux(s: tuple[lbool, ...], xs: dict[int, lbool], default: lbool) -> lbool:
     """Lifted N:1 Mux."""
     n = 1 << len(s)
 

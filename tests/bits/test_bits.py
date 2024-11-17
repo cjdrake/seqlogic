@@ -29,7 +29,7 @@ from seqlogic import (
     xor,
     xt,
 )
-from seqlogic.lbool import _W, _X, _0, _1
+from seqlogic._lbool import _W, _X, _0, _1
 
 E = Array[0](*_X)
 
