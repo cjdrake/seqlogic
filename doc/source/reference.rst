@@ -59,6 +59,13 @@ Operators
 .. autofunction:: seqlogic.bits.xnor
 .. autofunction:: seqlogic.bits.xor
 
+.. autofunction:: seqlogic.bits.ite
+
+.. autofunction:: seqlogic.bits.uor
+.. autofunction:: seqlogic.bits.uand
+.. autofunction:: seqlogic.bits.uxnor
+.. autofunction:: seqlogic.bits.uxor
+
 Event Simulation
 ================
 

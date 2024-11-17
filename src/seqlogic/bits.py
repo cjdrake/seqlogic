@@ -1213,15 +1213,55 @@ def _ite(s: Bits, x1: Bits, x0: Bits) -> Bits:
 
 
 def ite(s: Bits | str, x1: Bits | str, x0: Bits | str) -> Bits:
-    """If-Then-Else operator.
+    """Ternary bitwise logical if-then-else (ITE) operator.
+
+    Perform logical ITE on each bit of the inputs:
+
+    +-------+-----------------------+-----------------------+----------------+
+    |   s   |           x1          |           x0          | ITE(s, x1, x0) |
+    +=======+=======================+=======================+================+
+    | ``1`` | {``0``, ``1``, ``-``} |                       |         ``x1`` |
+    +-------+-----------------------+-----------------------+----------------+
+    | ``0`` |                       | {``0``, ``1``, ``-``} |         ``x0`` |
+    +-------+-----------------------+-----------------------+----------------+
+    | ``X`` |                       |                       |          ``X`` |
+    +-------+-----------------------+-----------------------+----------------+
+    |       |                 ``X`` |                       |          ``X`` |
+    +-------+-----------------------+-----------------------+----------------+
+    |       |                       |                 ``X`` |          ``X`` |
+    +-------+-----------------------+-----------------------+----------------+
+    | ``-`` |                 ``0`` |                 ``0`` |          ``0`` |
+    +-------+-----------------------+-----------------------+----------------+
+    | ``-`` |                 ``0`` |        {``1``, ``-``} |          ``-`` |
+    +-------+-----------------------+-----------------------+----------------+
+    | ``-`` |                 ``1`` |                 ``1`` |          ``1`` |
+    +-------+-----------------------+-----------------------+----------------+
+    | ``-`` |                 ``1`` |        {``0``, ``-``} |          ``-`` |
+    +-------+-----------------------+-----------------------+----------------+
+    | ``-`` |                 ``-`` | {``0``, ``1``, ``-``} |          ``-`` |
+    +-------+-----------------------+-----------------------+----------------+
+
+    For example:
+
+    >>> ite("1b0", "16b----_1111_0000_XXXX", "16b-10X_-10X_-10X_-10X")
+    bits("16b-10X_-10X_-10X_XXXX")
+    >>> ite("1b1", "16b----_1111_0000_XXXX", "16b-10X_-10X_-10X_-10X")
+    bits("16b---X_111X_000X_XXXX")
+    >>> ite("1b-", "16b----_1111_0000_XXXX", "16b-10X_-10X_-10X_-10X")
+    bits("16b---X_-1-X_--0X_XXXX")
 
     Args:
-        s: One-bit select
-        x1: Bits
-        x0: Bits of equal length.
+        s:
+        x1: ``Bits`` or string literal.
+        x0: ``Bits`` or string literal equal size to ``x1``.
 
     Returns:
-        If-Then-Else result s ? x1 : x0
+        ``Bits`` equal size to ``x1``.
+
+    Raises:
+        TypeError: ``s`` or ``x1`` are not valid ``Bits`` objects,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     s = _expect_size(s, 1)
     x1 = _expect_type(x1, Bits)
@@ -1292,10 +1332,30 @@ def _uor(x: Bits) -> Scalar:
 
 
 def uor(x: Bits | str) -> Scalar:
-    """Unary OR reduction.
+    """Unary OR reduction operator.
+
+    The identity of OR is ``0``.
+    Compute an OR-sum over all the bits of ``x``.
+
+    For example:
+
+    >>> uor("4b1000")
+    bits("1b1")
+
+    Empty input returns identity:
+
+    >>> uor(bits())
+    bits("1b0")
+
+    Args:
+        x: ``Bits`` or string literal.
 
     Returns:
-        Scalar w/ OR reduction.
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
+        ValueError: Error parsing string literal.
     """
     x = _expect_type(x, Bits)
     return _uor(x)
@@ -1309,10 +1369,30 @@ def _uand(x: Bits) -> Scalar:
 
 
 def uand(x: Bits | str) -> Scalar:
-    """Unary AND reduction.
+    """Unary AND reduction operator.
+
+    The identity of AND is ``1``.
+    Compute an AND-sum over all the bits of ``x``.
+
+    For example:
+
+    >>> uand("4b0111")
+    bits("1b0")
+
+    Empty input returns identity:
+
+    >>> uand(bits())
+    bits("1b1")
+
+    Args:
+        x: ``Bits`` or string literal.
 
     Returns:
-        Scalar w/ AND reduction.
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
+        ValueError: Error parsing string literal.
     """
     x = _expect_type(x, Bits)
     return _uand(x)
@@ -1326,10 +1406,30 @@ def _uxnor(x: Bits) -> Scalar:
 
 
 def uxnor(x: Bits | str) -> Scalar:
-    """Unary XNOR reduction.
+    """Unary XNOR reduction operator.
+
+    The identity of XOR is ``0``.
+    Compute an XNOR-sum (even parity) over all the bits of ``x``.
+
+    For example:
+
+    >>> uxnor("4b1010")
+    bits("1b1")
+
+    Empty input returns identity:
+
+    >>> uxnor(bits())
+    bits("1b1")
+
+    Args:
+        x: ``Bits`` or string literal.
 
     Returns:
-        Scalar w/ XNOR reduction.
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
+        ValueError: Error parsing string literal.
     """
     x = _expect_type(x, Bits)
     return _uxnor(x)
@@ -1343,10 +1443,30 @@ def _uxor(x: Bits) -> Scalar:
 
 
 def uxor(x: Bits | str) -> Scalar:
-    """Unary XOR reduction.
+    """Unary XOR reduction operator.
+
+    The identity of XOR is ``0``.
+    Compute an XOR-sum (odd parity) over all the bits of ``x``.
+
+    For example:
+
+    >>> uxor("4b1010")
+    bits("1b0")
+
+    Empty input returns identity:
+
+    >>> uxor(bits())
+    bits("1b0")
+
+    Args:
+        x: ``Bits`` or string literal.
 
     Returns:
-        Scalar w/ XOR reduction.
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
+        ValueError: Error parsing string literal.
     """
     x = _expect_type(x, Bits)
     return _uxor(x)
