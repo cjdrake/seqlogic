@@ -1,6 +1,6 @@
 """Lifted Boolean constants."""
 
-type lbool = tuple[int, int]
+type lbv = tuple[int, int]
 
 # Scalars
 _X = (0, 0)
@@ -9,21 +9,21 @@ _1 = (0, 1)
 _W = (1, 1)
 
 
-from_char: dict[str, lbool] = {
+from_char: dict[str, lbv] = {
     "X": _X,
     "0": _0,
     "1": _1,
     "-": _W,
 }
 
-to_char: dict[lbool, str] = {
+to_char: dict[lbv, str] = {
     _X: "X",
     _0: "0",
     _1: "1",
     _W: "-",
 }
 
-to_vcd_char: dict[lbool, str] = {
+to_vcd_char: dict[lbv, str] = {
     _X: "x",
     _0: "0",
     _1: "1",
@@ -31,12 +31,12 @@ to_vcd_char: dict[lbool, str] = {
 }
 
 
-def lnot(d: lbool) -> lbool:
+def lnot(d: lbv) -> lbv:
     """Lifted NOT."""
     return d[1], d[0]
 
 
-def lor(d0: lbool, d1: lbool) -> lbool:
+def lor(d0: lbv, d1: lbv) -> lbv:
     r"""Lifted OR.
 
     Karnaugh Map::
@@ -59,7 +59,7 @@ def lor(d0: lbool, d1: lbool) -> lbool:
     )
 
 
-def land(d0: lbool, d1: lbool) -> lbool:
+def land(d0: lbv, d1: lbv) -> lbv:
     r"""Lifted AND.
 
     Karnaugh Map::
@@ -82,7 +82,7 @@ def land(d0: lbool, d1: lbool) -> lbool:
     )
 
 
-def lxnor(d0: lbool, d1: lbool) -> lbool:
+def lxnor(d0: lbv, d1: lbv) -> lbv:
     r"""Lifted XNOR.
 
     Karnaugh Map::
@@ -105,7 +105,7 @@ def lxnor(d0: lbool, d1: lbool) -> lbool:
     )
 
 
-def lxor(d0: lbool, d1: lbool) -> lbool:
+def lxor(d0: lbv, d1: lbv) -> lbv:
     r"""Lifted XOR.
 
     Karnaugh Map::
@@ -128,7 +128,7 @@ def lxor(d0: lbool, d1: lbool) -> lbool:
     )
 
 
-def lite(s: lbool, a: lbool, b: lbool) -> lbool:
+def lite(s: lbv, a: lbv, b: lbv) -> lbv:
     r"""Lifted If-Then-Else.
 
     Karnaugh Map::
@@ -165,7 +165,7 @@ def lite(s: lbool, a: lbool, b: lbool) -> lbool:
     )
 
 
-def _lmux(s: lbool, x0: lbool, x1: lbool) -> lbool:
+def _lmux(s: lbv, x0: lbv, x1: lbv) -> lbv:
     """Lifted 2:1 Mux."""
     x0_01 = x0[0] | x0[1]
     x1_01 = x1[0] | x1[1]
@@ -175,7 +175,7 @@ def _lmux(s: lbool, x0: lbool, x1: lbool) -> lbool:
     )
 
 
-def lmux(s: tuple[lbool, ...], xs: dict[int, lbool], default: lbool) -> lbool:
+def lmux(s: tuple[lbv, ...], xs: dict[int, lbv], default: lbv) -> lbv:
     """Lifted N:1 Mux."""
     n = 1 << len(s)
 

@@ -26,7 +26,7 @@ from ._lbool import (
     _1,
     from_char,
     land,
-    lbool,
+    lbv,
     lite,
     lmux,
     lnot,
@@ -503,19 +503,19 @@ class Bits:
         """Return VCD variable value."""
         return "".join(to_vcd_char[self._get_index(i)] for i in range(self.size - 1, -1, -1))
 
-    def _get_index(self, i: int) -> lbool:
+    def _get_index(self, i: int) -> lbv:
         d0 = (self._data[0] >> i) & 1
         d1 = (self._data[1] >> i) & 1
         return d0, d1
 
-    def _get_slice(self, i: int, j: int) -> tuple[int, lbool]:
+    def _get_slice(self, i: int, j: int) -> tuple[int, lbv]:
         size = j - i
         m = mask(size)
         d0 = (self._data[0] >> i) & m
         d1 = (self._data[1] >> i) & m
         return size, (d0, d1)
 
-    def _get_key(self, key: int | slice | Bits | str) -> tuple[int, lbool]:
+    def _get_key(self, key: int | slice | Bits | str) -> tuple[int, lbv]:
         if isinstance(key, int):
             index = _norm_index(self.size, key)
             return 1, self._get_index(index)
@@ -2200,7 +2200,7 @@ def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
 _LIT_PREFIX_RE = re.compile(r"(?P<Size>[1-9][0-9]*)(?P<Base>[bdh])")
 
 
-def _parse_lit(lit: str) -> tuple[int, lbool]:
+def _parse_lit(lit: str) -> tuple[int, lbv]:
     if m := _LIT_PREFIX_RE.match(lit):
         size = int(m.group("Size"))
         base = m.group("Base")
@@ -2452,7 +2452,7 @@ def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
     return x
 
 
-def _chunk(data: lbool, base: int, size: int) -> lbool:
+def _chunk(data: lbv, base: int, size: int) -> lbv:
     m = mask(size)
     return (data[0] >> base) & m, (data[1] >> base) & m
 
