@@ -409,6 +409,9 @@ class Empty(Bits, _ShapeIf):
         assert d0 == d1 == 0
         return _Empty
 
+    def __reversed__(self):
+        yield self
+
     @classproperty
     def size(cls) -> int:
         return 0
