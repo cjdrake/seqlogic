@@ -3,8 +3,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :caption: Contents:
 
-    reference
+    reference/bits
+    reference/sim
+    reference/design
+    reference/util
     release_notes

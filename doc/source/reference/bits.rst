@@ -1,12 +1,9 @@
-*****************
-    Reference
-*****************
-
-Combinational Logic
-===================
+***************************
+    Combinational Logic
+***************************
 
 Data Types
-----------
+==========
 
 .. autoclass:: seqlogic.bits.Bits
 
@@ -55,10 +52,10 @@ Data Types
 .. TODO(cjdrake): seqlogic.bits.Union
 
 Operators
----------
+=========
 
 Bitwise
-^^^^^^^
+-------
 
 .. autofunction:: seqlogic.bits.not_
 .. autofunction:: seqlogic.bits.nor
@@ -71,7 +68,7 @@ Bitwise
 .. autofunction:: seqlogic.bits.ite
 
 Unary
-^^^^^
+-----
 
 .. autofunction:: seqlogic.bits.uor
 .. autofunction:: seqlogic.bits.uand
@@ -79,7 +76,7 @@ Unary
 .. autofunction:: seqlogic.bits.uxor
 
 Arithmetic
-^^^^^^^^^^
+----------
 
 .. TODO(cjdrake): seqlogic.bits.decode
 .. TODO(cjdrake): seqlogic.bits.add
@@ -94,7 +91,7 @@ Arithmetic
 .. TODO(cjdrake): seqlogic.bits.srsh
 
 Word
-^^^^
+----
 
 .. TODO(cjdrake): seqlogic.bits.xt
 .. TODO(cjdrake): seqlogic.bits.sxt
@@ -106,7 +103,7 @@ Word
 .. TODO(cjdrake): seqlogic.bits.clz
 
 Predicate
-^^^^^^^^^
+---------
 
 .. TODO(cjdrake): seqlogic.bits.match
 .. TODO(cjdrake): seqlogic.bits.eq
@@ -121,20 +118,9 @@ Predicate
 .. TODO(cjdrake): seqlogic.bits.sge
 
 Factory Functions
------------------
+=================
 
 .. TODO(cjdrake): seqlogic.bits.bits
 .. TODO(cjdrake): seqlogic.bits.stack
 .. TODO(cjdrake): seqlogic.bits.u2bv
 .. TODO(cjdrake): seqlogic.bits.i2bv
-
-Event Simulation
-================
-
-Design Elements
-===============
-
-Utilities
-=========
-
-.. autofunction:: seqlogic.util.clog2
