@@ -1996,14 +1996,30 @@ def _eq(x0: Bits, x1: Bits) -> Scalar:
 
 
 def eq(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Equal operator.
+    """Binary logical Equal (==) reduction operator.
+
+    Equivalent to ``uand(xnor(x0, x1))``.
+
+    For example:
+
+    >>> eq("2b01", "2b00")
+    bits("1b0")
+    >>> eq("2b01", "2b01")
+    bits("1b1")
+    >>> eq("2b01", "2b10")
+    bits("1b0")
 
     Args:
-        x1: Bits
-        x1: Bits of equal length.
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
 
     Returns:
-        Scalar result of self == other
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
@@ -2015,14 +2031,30 @@ def _ne(x0: Bits, x1: Bits) -> Scalar:
 
 
 def ne(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Not Equal operator.
+    """Binary logical NotEqual (!=) reduction operator.
+
+    Equivalent to ``uor(xor(x0, x1))``.
+
+    For example:
+
+    >>> ne("2b01", "2b00")
+    bits("1b1")
+    >>> ne("2b01", "2b01")
+    bits("1b0")
+    >>> ne("2b01", "2b10")
+    bits("1b1")
 
     Args:
-        x0: Bits
-        x1: Bits of equal length.
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
 
     Returns:
-        Scalar result of self != other
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
@@ -2039,14 +2071,32 @@ def _cmp(op: Callable, x0: Bits, x1: Bits) -> Scalar:
 
 
 def lt(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Unsigned less than operator.
+    """Binary logical Unsigned LessThan (<) reduction operator.
+
+    Returns ``Scalar`` result of ``x0.to_uint() < x1.to_uint()``.
+    For performance reasons, use simple ``X``/``-`` propagation:
+    ``X`` dominates {``-``, known}, and ``-`` dominates known.
+
+    For example:
+
+    >>> lt("2b01", "2b00")
+    bits("1b0")
+    >>> lt("2b01", "2b01")
+    bits("1b0")
+    >>> lt("2b01", "2b10")
+    bits("1b1")
 
     Args:
-        x0: Bits
-        x1: Bits of equal length.
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
 
     Returns:
-        Scalar result of unsigned(x0) < unsigned(x1)
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
@@ -2054,14 +2104,32 @@ def lt(x0: Bits | str, x1: Bits | str) -> Scalar:
 
 
 def le(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Unsigned less than or equal operator.
+    """Binary logical Unsigned LessThanOrEqual (≤) reduction operator.
+
+    Returns ``Scalar`` result of ``x0.to_uint() <= x1.to_uint()``.
+    For performance reasons, use simple ``X``/``-`` propagation:
+    ``X`` dominates {``-``, known}, and ``-`` dominates known.
+
+    For example:
+
+    >>> le("2b01", "2b00")
+    bits("1b0")
+    >>> le("2b01", "2b01")
+    bits("1b1")
+    >>> le("2b01", "2b10")
+    bits("1b1")
 
     Args:
-        x0: Bits
-        x1: Bits of equal length.
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
 
     Returns:
-        Scalar result of unsigned(x0) ≤ unsigned(x1)
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
@@ -2069,14 +2137,32 @@ def le(x0: Bits | str, x1: Bits | str) -> Scalar:
 
 
 def gt(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Unsigned greater than operator.
+    """Binary logical Unsigned GreaterThan (>) reduction operator.
+
+    Returns ``Scalar`` result of ``x0.to_uint() > x1.to_uint()``.
+    For performance reasons, use simple ``X``/``-`` propagation:
+    ``X`` dominates {``-``, known}, and ``-`` dominates known.
+
+    For example:
+
+    >>> gt("2b01", "2b00")
+    bits("1b1")
+    >>> gt("2b01", "2b01")
+    bits("1b0")
+    >>> gt("2b01", "2b10")
+    bits("1b0")
 
     Args:
-        x0: Bits
-        x1: Bits of equal length.
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
 
     Returns:
-        Scalar result of unsigned(x0) > unsigned(x1)
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
@@ -2084,14 +2170,32 @@ def gt(x0: Bits | str, x1: Bits | str) -> Scalar:
 
 
 def ge(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Unsigned greater than or equal operator.
+    """Binary logical Unsigned GreaterThanOrEqual (≥) reduction operator.
+
+    Returns ``Scalar`` result of ``x0.to_uint() >= x1.to_uint()``.
+    For performance reasons, use simple ``X``/``-`` propagation:
+    ``X`` dominates {``-``, known}, and ``-`` dominates known.
+
+    For example:
+
+    >>> ge("2b01", "2b00")
+    bits("1b1")
+    >>> ge("2b01", "2b01")
+    bits("1b1")
+    >>> ge("2b01", "2b10")
+    bits("1b0")
 
     Args:
-        x0: Bits
-        x1: Bits of equal length.
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
 
     Returns:
-        Scalar result of unsigned(x0) ≥ unsigned(x1)
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
@@ -2108,14 +2212,32 @@ def _scmp(op: Callable, x0: Bits, x1: Bits) -> Scalar:
 
 
 def slt(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Signed less than operator.
+    """Binary logical Signed LessThan (<) reduction operator.
+
+    Returns ``Scalar`` result of ``x0.to_int() < x1.to_int()``.
+    For performance reasons, use simple ``X``/``-`` propagation:
+    ``X`` dominates {``-``, known}, and ``-`` dominates known.
+
+    For example:
+
+    >>> slt("2b00", "2b11")
+    bits("1b0")
+    >>> slt("2b00", "2b00")
+    bits("1b0")
+    >>> slt("2b00", "2b01")
+    bits("1b1")
 
     Args:
-        x0: Bits
-        x1: Bits of equal length.
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
 
     Returns:
-        Scalar result of signed(x0) < signed(x1)
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
@@ -2123,14 +2245,32 @@ def slt(x0: Bits | str, x1: Bits | str) -> Scalar:
 
 
 def sle(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Signed less than or equal operator.
+    """Binary logical Signed LessThanOrEqual (≤) reduction operator.
+
+    Returns ``Scalar`` result of ``x0.to_int() <= x1.to_int()``.
+    For performance reasons, use simple ``X``/``-`` propagation:
+    ``X`` dominates {``-``, known}, and ``-`` dominates known.
+
+    For example:
+
+    >>> sle("2b00", "2b11")
+    bits("1b0")
+    >>> sle("2b00", "2b00")
+    bits("1b1")
+    >>> sle("2b00", "2b01")
+    bits("1b1")
 
     Args:
-        x0: Bits
-        x1: Bits of equal length.
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
 
     Returns:
-        Scalar result of signed(x0) ≤ signed(x1)
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
@@ -2138,14 +2278,32 @@ def sle(x0: Bits | str, x1: Bits | str) -> Scalar:
 
 
 def sgt(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Signed greater than operator.
+    """Binary logical Signed GreaterThan (>) reduction operator.
+
+    Returns ``Scalar`` result of ``x0.to_int() > x1.to_int()``.
+    For performance reasons, use simple ``X``/``-`` propagation:
+    ``X`` dominates {``-``, known}, and ``-`` dominates known.
+
+    For example:
+
+    >>> sgt("2b00", "2b11")
+    bits("1b1")
+    >>> sgt("2b00", "2b00")
+    bits("1b0")
+    >>> sgt("2b00", "2b01")
+    bits("1b0")
 
     Args:
-        x0: Bits
-        x1: Bits of equal length.
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
 
     Returns:
-        Scalar result of signed(x0) > signed(x1)
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
@@ -2153,14 +2311,32 @@ def sgt(x0: Bits | str, x1: Bits | str) -> Scalar:
 
 
 def sge(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Signed greater than or equal operator.
+    """Binary logical Signed GreaterThanOrEqual (≥) reduction operator.
+
+    Returns ``Scalar`` result of ``x0.to_int() >= x1.to_int()``.
+    For performance reasons, use simple ``X``/``-`` propagation:
+    ``X`` dominates {``-``, known}, and ``-`` dominates known.
+
+    For example:
+
+    >>> sge("2b00", "2b11")
+    bits("1b1")
+    >>> sge("2b00", "2b00")
+    bits("1b1")
+    >>> sge("2b00", "2b01")
+    bits("1b0")
 
     Args:
-        x0: Bits
-        x1: Bits of equal length.
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
 
     Returns:
-        Scalar result of signed(x0) ≥ signed(x1)
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
     """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)

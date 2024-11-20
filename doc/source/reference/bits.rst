@@ -105,16 +105,19 @@ Predicate
 ---------
 
 .. TODO(cjdrake): seqlogic.bits.match
-.. TODO(cjdrake): seqlogic.bits.eq
-.. TODO(cjdrake): seqlogic.bits.ne
-.. TODO(cjdrake): seqlogic.bits.lt
-.. TODO(cjdrake): seqlogic.bits.le
-.. TODO(cjdrake): seqlogic.bits.gt
-.. TODO(cjdrake): seqlogic.bits.ge
-.. TODO(cjdrake): seqlogic.bits.slt
-.. TODO(cjdrake): seqlogic.bits.sle
-.. TODO(cjdrake): seqlogic.bits.sgt
-.. TODO(cjdrake): seqlogic.bits.sge
+
+.. autofunction:: seqlogic.bits.eq
+.. autofunction:: seqlogic.bits.ne
+
+.. autofunction:: seqlogic.bits.lt
+.. autofunction:: seqlogic.bits.le
+.. autofunction:: seqlogic.bits.gt
+.. autofunction:: seqlogic.bits.ge
+
+.. autofunction:: seqlogic.bits.slt
+.. autofunction:: seqlogic.bits.sle
+.. autofunction:: seqlogic.bits.sgt
+.. autofunction:: seqlogic.bits.sge
 
 Factory Functions
 =================
