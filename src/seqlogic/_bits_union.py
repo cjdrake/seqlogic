@@ -4,7 +4,7 @@
 
 from functools import partial
 
-from .bits import Bits, Empty, Scalar, Vector, _lit2vec, _vec_size
+from .bits import Bits, Empty, Scalar, Vector, _lit2bv, _vec_size
 from .util import classproperty, mask
 
 
@@ -32,7 +32,7 @@ class _UnionMeta(type):
         # Override Bits.__init__ method
         def _init(self, arg: Bits | str):
             if isinstance(arg, str):
-                x = _lit2vec(arg)
+                x = _lit2bv(arg)
             else:
                 x = arg
             ts = []

@@ -17,7 +17,7 @@ from collections.abc import Callable, Coroutine, Sequence
 
 from vcd.writer import VCDWriter as VcdWriter
 
-from .bits import Bits, _lit2vec, stack
+from .bits import Bits, _lit2bv, i2bv, stack, u2bv
 from .expr import Expr, Variable
 from .hier import Branch, Leaf
 from .sim import (
@@ -582,7 +582,12 @@ class Packed(Logic, Singular, Variable):
     # Singular => State
     def _set_next(self, value):
         if isinstance(value, str):
-            value = _lit2vec(value)
+            value = _lit2bv(value)
+        elif isinstance(value, int):
+            if value < 0:
+                value = i2bv(value, size=self._dtype.size)
+            else:
+                value = u2bv(value, size=self._dtype.size)
         super()._set_next(self._dtype.cast(value))
 
     next = property(fset=_set_next)

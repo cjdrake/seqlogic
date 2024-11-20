@@ -9,7 +9,7 @@ from collections.abc import Callable
 
 from .bits import (
     Bits,
-    _lit2vec,
+    _lit2bv,
     adc,
     add,
     and_,
@@ -54,7 +54,7 @@ def _arg_xbs(obj: Expr | Bits | str) -> Expr:
     if isinstance(obj, Bits):
         return BitsConst(obj)
     if isinstance(obj, str):
-        v = _lit2vec(obj)
+        v = _lit2bv(obj)
         return BitsConst(v)
     raise TypeError(f"Invalid input: {obj}")
 
@@ -65,7 +65,7 @@ def _arg_xbsi(obj: Expr | Bits | str | int) -> Expr:
     if isinstance(obj, Bits):
         return BitsConst(obj)
     if isinstance(obj, str):
-        v = _lit2vec(obj)
+        v = _lit2bv(obj)
         return BitsConst(v)
     if isinstance(obj, int):
         return IntConst(obj)

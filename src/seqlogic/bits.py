@@ -84,7 +84,7 @@ def _get_array_shape(shape: tuple[int, ...]) -> type[Array]:
 
 def _expect_type(arg, t: type[Bits]):
     if isinstance(arg, str):
-        x = _lit2vec(arg)
+        x = _lit2bv(arg)
     else:
         x = arg
     if not isinstance(x, t):
@@ -96,7 +96,7 @@ def _expect_shift(arg, size: int) -> Bits:
     if isinstance(arg, int):
         return u2bv(arg, size)
     if isinstance(arg, str):
-        return _lit2vec(arg)
+        return _lit2bv(arg)
     if isinstance(arg, Bits):
         return arg
     raise TypeError("Expected arg to be Bits, str literal, or int")
@@ -1923,7 +1923,7 @@ def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
         elif obj in (0, 1):
             xs.append(_bool2scalar[obj])
         elif isinstance(obj, str):
-            x = _lit2vec(obj)
+            x = _lit2bv(obj)
             xs.append(x)
         else:
             raise TypeError(f"Invalid input: {obj}")
@@ -2211,7 +2211,7 @@ def _parse_lit(lit: str) -> tuple[int, lbv]:
     raise ValueError(f"Invalid lit: {lit}")
 
 
-def _lit2vec(lit: str) -> Scalar | Vector:
+def _lit2bv(lit: str) -> Scalar | Vector:
     """Convert a string literal to a vec.
 
     A string literal is in the form {width}{base}{characters},
@@ -2290,9 +2290,9 @@ def bits(obj=None) -> _ShapeIf:
         case [0 | 1 as fst, *rst]:
             return _bools2vec(fst, *rst)
         case str() as lit:
-            return _lit2vec(lit)
+            return _lit2bv(lit)
         case [str() as lit, *rst]:
-            x = _lit2vec(lit)
+            x = _lit2bv(lit)
             return _rank2(x, *rst)
         case [Scalar() as x, *rst]:
             return _rank2(x, *rst)
@@ -2327,7 +2327,7 @@ def stack(*objs: _ShapeIf | int | str) -> _ShapeIf:
         elif obj in (0, 1):
             xs.append(_bool2scalar[obj])
         elif isinstance(obj, str):
-            x = _lit2vec(obj)
+            x = _lit2bv(obj)
             xs.append(x)
         else:
             raise TypeError(f"Invalid input: {obj}")

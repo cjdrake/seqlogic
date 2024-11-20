@@ -193,7 +193,7 @@ DEC_LITS = {
 }
 
 
-def test_lit2vec_dec():
+def test_lit2bv_dec():
     # Valid inputs
     for lit, (n, d1) in DEC_LITS.items():
         v = bits(lit)
@@ -247,7 +247,7 @@ HEX_LITS = {
 }
 
 
-def test_lit2vec_hex():
+def test_lit2bv_hex():
     # Valid inputs
     for lit, (n, d1) in HEX_LITS.items():
         v = bits(lit)
