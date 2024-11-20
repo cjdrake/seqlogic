@@ -100,7 +100,6 @@ Word
 .. TODO(cjdrake): seqlogic.bits.cat
 .. TODO(cjdrake): seqlogic.bits.rep
 .. TODO(cjdrake): seqlogic.bits.pack
-.. TODO(cjdrake): seqlogic.bits.clz
 
 Predicate
 ---------
