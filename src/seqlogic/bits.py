@@ -537,7 +537,7 @@ class Empty(Bits, _ShapeIf):
     >>> Vector[0] is Empty
     True
 
-    To get a handle to the ``Empty`` singleton:
+    To get a handle to an ``Empty`` instance:
 
     >>> empty = bits()
 
@@ -554,14 +554,6 @@ class Empty(Bits, _ShapeIf):
     Traceback (most recent call last):
         ...
     TypeError: 'Empty' object is not subscriptable
-
-    Since ``Empty`` is a singleton;
-    all instances have the same ``id``:
-
-    >>> bits() is empty
-    True
-    >>> bits("4b1010")[0:0] is empty
-    True
     """
 
     def __new__(cls, d0: int, d1: int):
@@ -605,7 +597,7 @@ class Scalar(Bits, _ShapeIf):
     >>> Vector[1] is Scalar
     True
 
-    To get a handle to a ``Scalar`` singleton:
+    To get a handle to a ``Scalar`` instance:
 
     >>> f = bits("1b0")
     >>> t = bits("1b1")
@@ -628,16 +620,6 @@ class Scalar(Bits, _ShapeIf):
     1
     >>> t[0]
     bits("1b1")
-
-    ``Scalars`` are singletons;
-    all instances have the same ``id``:
-
-    >>> bits("1b0") is f
-    True
-    >>> bits("4b1010")[0] is f
-    True
-    >>> bits("4b1010")[1] is t
-    True
     """
 
     def __new__(cls, d0: int, d1: int):
