@@ -1991,18 +1991,6 @@ def pack(x: Bits | str, n: int = 1) -> Bits:
     return _pack(x, n)
 
 
-def clz(x: Bits | str) -> Empty | Scalar | Vector:
-    """Count leading zeros."""
-    x = _expect_type(x, Bits)
-    xr = pack(x)
-    # Decode: {0000: 10000, 0001: 01000, ..., 01--: 00010, 1---: 00001}
-    d = _cat(xr, _Scalar1) & -xr
-    # Encode {10000: 100, 01000: 011, 00100: 010, 00010: 001, 00001: 000}
-    n = clog2(d.size)
-    xs = [_and_(_rep(d[i], n), u2bv(i, n)) for i in range(d.size)]
-    return or_(*xs)
-
-
 def match(x0: Bits | str, x1: Bits | str) -> Scalar:
     """Pattern match operator."""
     x0 = _expect_type(x0, Bits)
