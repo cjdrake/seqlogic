@@ -65,13 +65,28 @@ class _TraceIf:
         """Dump design elements w/ names matching pattern to VCD file."""
 
 
-def _mod_init_source(params) -> str:
-    """Return source code for Module __init__ method w/ parameters."""
+_ModuleParams = defaultdict(dict)
+
+
+def _get_pmod(mod: type[Module], params) -> type[Module]:
+    """Return parameterized Module[p1=v1,p2=v2,...] type."""
+    key = tuple(sorted(params.items()))
+    try:
+        return _ModuleParams[mod][key]
+    except KeyError:
+        s = ",".join(f"{k}={v}" for k, v in key)
+        pmod = type(f"{mod.__name__}[{s}]", (mod,), params)
+        _ModuleParams[mod][key] = pmod
+        return pmod
+
+
+def _mod_parameterize_source(pntvs) -> str:
+    """Return source code for Module parameterize method."""
     lines = []
-    s = ", ".join(f"{pn}=None" for pn, _, _ in params)
-    lines.append(f"def init(self, name: str, parent: Module | None=None, {s}):\n")
-    s = ", ".join(pn for pn, _, _ in params)
-    lines.append(f"    _init_body(self, name, parent, {s})\n")
+    s = ", ".join(f"{pn}=None" for pn, _, _ in pntvs)
+    lines.append(f"def parameterize(cls, {s}):\n")
+    s = ", ".join(pn for pn, _, _ in pntvs)
+    lines.append(f"    return _parameterize_body(cls, {s})\n")
     return "".join(lines)
 
 
@@ -83,33 +98,26 @@ class _ModuleMeta(type):
         if name == "Module":
             return super().__new__(mcs, name, bases, attrs)
 
-        # Get parameters
-        params = []
+        # Get parameter names, types, default values
+        pntvs = []
         for pn, pt in attrs.get("__annotations__", {}).items():
             try:
                 pv = attrs[pn]
             except KeyError as e:
-                s = f"Module {name} param {pn} has no value"
+                s = f"Module {name} param {pn} has no default value"
                 raise ValueError(s) from e
             if not isinstance(pv, pt):
                 s = f"Module {name} param {pn} has invalid type"
                 raise TypeError(s)
-            params.append((pn, pt, pv))
+            pntvs.append((pn, pt, pv))
 
         # Create Module class
         mod = super().__new__(mcs, name, bases + (Branch, _ProcIf, _TraceIf), attrs)
 
         # Override Module.__init__ method
-        def _init_body(self, name: str, parent: Module, *args):
+        def _init(self, name: str, parent: Module | None = None):
             Branch.__init__(self, name, parent)
             _ProcIf.__init__(self)
-
-            for arg, (pn, _, pv) in zip(args, params):
-                if arg is not None:
-                    # TODO(cjdrake): Check input type?
-                    setattr(self, pn, arg)
-                else:
-                    setattr(self, pn, pv)
 
             # Ports: name => connected
             self._inputs = {}
@@ -117,11 +125,29 @@ class _ModuleMeta(type):
 
             self.build()
 
-        source = _mod_init_source(params)
-        globals_ = {"_init_body": _init_body}
+        mod.__init__ = _init
+
+        def _parameterize_body(cls, *args):
+            # No parameters
+            if not pntvs:
+                return cls
+
+            # For all parameters, use either default or override value
+            params = {}
+            for arg, (pn, _, pv) in zip(args, pntvs):
+                if arg is None:
+                    params[pn] = pv  # default
+                else:
+                    # TODO(cjdrake): Check input type?
+                    params[pn] = arg  # override
+
+            return _get_pmod(cls, params)
+
+        source = _mod_parameterize_source(pntvs)
+        globals_ = {"_parameterize_body": _parameterize_body}
         locals_ = {}
         exec(source, globals_, locals_)
-        mod.__init__ = locals_["init"]
+        mod.parameterize = classmethod(locals_["parameterize"])
 
         return mod
 
@@ -137,7 +163,7 @@ class Module(metaclass=_ModuleMeta):
     """
 
     def build(self):
-        raise NotImplementedError()
+        raise NotImplementedError("Module requires a build method")
 
     def elab(self) -> Coroutine:
         """Add design processes to the simulator."""
@@ -272,7 +298,8 @@ class Module(metaclass=_ModuleMeta):
         if hasattr(self, local_name):
             raise DesignError(f"Invalid submodule name: {name}")
         # Create submodule
-        node = mod(name, parent=self, **params)
+        pmod = mod.parameterize(**params)
+        node = pmod(name, parent=self)
         # Save submodule in module namespace
         setattr(self, local_name, node)
         return node

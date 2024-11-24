@@ -87,7 +87,8 @@ def test_structural():
             VCDWriter(f, timescale="1ns") as vcdw,
         ):
             # Instantiate top
-            top = Top(name="top", N=n)
+            top_n = Top.parameterize(N=n)
+            top = top_n(name="top", parent=None)
 
             # Dump all signals to VCD
             top.dump_vcd(vcdw, ".*")
