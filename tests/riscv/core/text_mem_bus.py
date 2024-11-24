@@ -29,8 +29,7 @@ class TextMemBus(Module):
         m, n = 2, 2 + word_addr_bits
         self.submod(
             name="text_mem",
-            mod=TextMem,
-            WORD_ADDR_BITS=word_addr_bits,
+            mod=TextMem.parameterize(WORD_ADDR_BITS=word_addr_bits),
         ).connect(
             rd_addr=GetItem(rd_addr, slice(m, n)),
             rd_data=text,

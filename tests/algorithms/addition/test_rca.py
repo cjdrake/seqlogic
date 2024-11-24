@@ -46,8 +46,7 @@ class Top(Module):
         # Design Under Test
         self.submod(
             name="dut",
-            mod=RCA,
-            N=self.N,
+            mod=RCA.parameterize(N=self.N),
         ).connect(
             s=s,
             ci=ci,

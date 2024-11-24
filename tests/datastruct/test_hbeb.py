@@ -40,8 +40,7 @@ class Top(Module):
 
         self.submod(
             name="dut",
-            mod=Hbeb,
-            T=self.T,
+            mod=Hbeb.parameterize(T=self.T),
         ).connect(
             rd_ready=rd_ready,
             rd_valid=rd_valid,

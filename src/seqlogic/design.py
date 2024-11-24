@@ -290,7 +290,7 @@ class Module(metaclass=_ModuleMeta):
         setattr(self, local_name, node)
         return node
 
-    def submod(self, name: str, mod: type[Module], **params) -> Module:
+    def submod(self, name: str, mod: type[Module]) -> Module:
         # Require valid submodule name
         self._check_name(name)
         local_name = f"_{name}"
@@ -298,8 +298,7 @@ class Module(metaclass=_ModuleMeta):
         if hasattr(self, local_name):
             raise DesignError(f"Invalid submodule name: {name}")
         # Create submodule
-        pmod = mod.parameterize(**params)
-        node = pmod(name, parent=self)
+        node = mod(name, parent=self)
         # Save submodule in module namespace
         setattr(self, local_name, node)
         return node
