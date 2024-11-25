@@ -5,6 +5,56 @@
 This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
+Version 0.37.0
+==============
+
+Add a ``Module.parameterize`` class method.
+For modules that have parameters,
+this creates a new class for the specific parameter values,
+which extends from the generic base class.
+
+For example::
+
+    >>> class RCA(Module):
+    ...     N: int = 8
+    ...     def build(self):
+    ...         ...
+
+    >>> RCA.N
+    8
+    >>> RCA_32 = RCA.parameterize(N=32)
+    >>> RCA_32.N
+    32
+
+This updates how submodules are instantiated.
+
+Previously::
+
+    self.submod(
+        name="rca32",
+        mod=RCA,
+        N=32,
+    ).connect(
+        s=s,
+        ci=ci,
+        a=a,
+        b=b,
+        co=co,
+    )
+
+Now this works::
+
+    self.submod(
+        name="rca32",
+        mod=RCA.parameterize(N=32),
+    ).connect(
+        s=s,
+        ci=ci,
+        a=a,
+        b=b,
+        co=co,
+    )
+
 Version 0.36.0
 ==============
 
