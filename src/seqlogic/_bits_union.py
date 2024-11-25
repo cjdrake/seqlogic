@@ -90,4 +90,36 @@ class _UnionMeta(type):
 
 
 class Union(metaclass=_UnionMeta):
-    """Union Base Class: Create union."""
+    """User defined union data type.
+
+    Compose a type from the union of other types.
+
+    Extend from ``Union`` to define a struct:
+
+    >>> from seqlogic import Vec
+    >>> class Response(Union):
+    ...     error: Vec[4]
+    ...     data: Vec[8]
+
+    Use the new type's constructor to create ``Union`` instances:
+
+    >>> rsp = Response("8h0f")
+
+    Access individual fields using attributes:
+
+    >>> rsp.error
+    bits("4b1111")
+    >>> rsp.data
+    bits("8b0000_1111")
+
+    ``Unions`` have a ``size``, but no ``shape``.
+    They do **NOT** implement a ``__len__`` method.
+
+    >>> Response.size
+    8
+
+    ``Union`` slicing behaves like a ``Vector``:
+
+    >>> rsp[3:5]
+    bits("2b01")
+    """
