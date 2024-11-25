@@ -56,23 +56,23 @@ Operators
 Bitwise
 -------
 
-.. autofunction:: seqlogic.bits.not_
-.. autofunction:: seqlogic.bits.nor
-.. autofunction:: seqlogic.bits.or_
-.. autofunction:: seqlogic.bits.nand
-.. autofunction:: seqlogic.bits.and_
-.. autofunction:: seqlogic.bits.xnor
-.. autofunction:: seqlogic.bits.xor
-.. TODO(cjdrake): seqlogic.bits.mux
-.. autofunction:: seqlogic.bits.ite
+.. autofunction:: seqlogic.not_
+.. autofunction:: seqlogic.nor
+.. autofunction:: seqlogic.or_
+.. autofunction:: seqlogic.nand
+.. autofunction:: seqlogic.and_
+.. autofunction:: seqlogic.xnor
+.. autofunction:: seqlogic.xor
+.. TODO(cjdrake): seqlogic.mux
+.. autofunction:: seqlogic.ite
 
 Unary
 -----
 
-.. autofunction:: seqlogic.bits.uor
-.. autofunction:: seqlogic.bits.uand
-.. autofunction:: seqlogic.bits.uxnor
-.. autofunction:: seqlogic.bits.uxor
+.. autofunction:: seqlogic.uor
+.. autofunction:: seqlogic.uand
+.. autofunction:: seqlogic.uxnor
+.. autofunction:: seqlogic.uxor
 
 Arithmetic
 ----------
@@ -105,18 +105,18 @@ Predicate
 
 .. TODO(cjdrake): seqlogic.bits.match
 
-.. autofunction:: seqlogic.bits.eq
-.. autofunction:: seqlogic.bits.ne
+.. autofunction:: seqlogic.eq
+.. autofunction:: seqlogic.ne
 
-.. autofunction:: seqlogic.bits.lt
-.. autofunction:: seqlogic.bits.le
-.. autofunction:: seqlogic.bits.gt
-.. autofunction:: seqlogic.bits.ge
+.. autofunction:: seqlogic.lt
+.. autofunction:: seqlogic.le
+.. autofunction:: seqlogic.gt
+.. autofunction:: seqlogic.ge
 
-.. autofunction:: seqlogic.bits.slt
-.. autofunction:: seqlogic.bits.sle
-.. autofunction:: seqlogic.bits.sgt
-.. autofunction:: seqlogic.bits.sge
+.. autofunction:: seqlogic.slt
+.. autofunction:: seqlogic.sle
+.. autofunction:: seqlogic.sgt
+.. autofunction:: seqlogic.sge
 
 Factory Functions
 =================
