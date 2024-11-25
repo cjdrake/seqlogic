@@ -47,7 +47,7 @@ Data Types
 .. autoclass:: seqlogic.Array
 
 .. autoclass:: seqlogic.Enum
-.. TODO(cjdrake): seqlogic.bits.Struct
+.. autoclass:: seqlogic.Struct
 .. TODO(cjdrake): seqlogic.bits.Union
 
 Operators

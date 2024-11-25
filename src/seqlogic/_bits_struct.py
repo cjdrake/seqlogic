@@ -107,4 +107,37 @@ class _StructMeta(type):
 
 
 class Struct(metaclass=_StructMeta):
-    """Struct Base Class: Create struct."""
+    """User defined struct data type.
+
+    Compose a type from a sequence of other types.
+
+    Extend from ``Struct`` to define a struct:
+
+    >>> from seqlogic import Vec
+    >>> class Pixel(Struct):
+    ...     red: Vec[8]
+    ...     green: Vec[8]
+    ...     blue: Vec[8]
+
+    Use the new type's constructor to create ``Struct`` instances:
+
+    >>> maize = Pixel(red="8hff", green="8hcb", blue="8h05")
+
+    Access individual fields using attributes:
+
+    >>> maize.red
+    bits("8b1111_1111")
+    >>> maize.green
+    bits("8b1100_1011")
+
+    ``Structs`` have a ``size``, but no ``shape``.
+    They do **NOT** implement a ``__len__`` method.
+
+    >>> Pixel.size
+    24
+
+    ``Struct`` slicing behaves like a ``Vector``:
+
+    >>> maize[8:16] == maize.green
+    True
+    """

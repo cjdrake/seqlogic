@@ -112,13 +112,15 @@ class _EnumMeta(type):
 class Enum(metaclass=_EnumMeta):
     """User-defined enumerated data type.
 
-    Extend from ``Enum`` to create a custom enumeration:
+    Define a type from a collection of unique constants.
+
+    Extend from ``Enum`` to define an enumeration:
 
     >>> from seqlogic import Enum
     >>> class Color(Enum):
-    ...     RED   = "2b00"
+    ...     RED = "2b00"
     ...     GREEN = "2b01"
-    ...     BLUE  = "2b10"
+    ...     BLUE = "2b10"
 
     ``Enums`` behave like ``Vectors``,
     but they have an extra ``name`` attribute:
