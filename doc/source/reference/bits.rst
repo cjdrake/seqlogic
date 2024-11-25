@@ -5,48 +5,48 @@
 Data Types
 ==========
 
-.. autoclass:: seqlogic.bits.Bits
+.. autoclass:: seqlogic.Bits
 
     .. py:property:: size
 
         Number of bits
 
-    .. automethod:: seqlogic.bits.Bits.cast
+    .. automethod:: seqlogic.Bits.cast
 
-    .. automethod:: seqlogic.bits.Bits.xes
-    .. automethod:: seqlogic.bits.Bits.zeros
-    .. automethod:: seqlogic.bits.Bits.ones
-    .. automethod:: seqlogic.bits.Bits.dcs
+    .. automethod:: seqlogic.Bits.xes
+    .. automethod:: seqlogic.Bits.zeros
+    .. automethod:: seqlogic.Bits.ones
+    .. automethod:: seqlogic.Bits.dcs
 
-    .. automethod:: seqlogic.bits.Bits.xprop
+    .. automethod:: seqlogic.Bits.xprop
 
-    .. autoproperty:: seqlogic.bits.Bits.data
+    .. autoproperty:: seqlogic.Bits.data
 
-    .. automethod:: seqlogic.bits.Bits.__bool__
-    .. automethod:: seqlogic.bits.Bits.__int__
+    .. automethod:: seqlogic.Bits.__bool__
+    .. automethod:: seqlogic.Bits.__int__
 
-    .. automethod:: seqlogic.bits.Bits.to_uint
-    .. automethod:: seqlogic.bits.Bits.to_int
+    .. automethod:: seqlogic.Bits.to_uint
+    .. automethod:: seqlogic.Bits.to_int
 
-    .. automethod:: seqlogic.bits.Bits.count_xes
-    .. automethod:: seqlogic.bits.Bits.count_zeros
-    .. automethod:: seqlogic.bits.Bits.count_ones
-    .. automethod:: seqlogic.bits.Bits.count_dcs
-    .. automethod:: seqlogic.bits.Bits.count_unknown
+    .. automethod:: seqlogic.Bits.count_xes
+    .. automethod:: seqlogic.Bits.count_zeros
+    .. automethod:: seqlogic.Bits.count_ones
+    .. automethod:: seqlogic.Bits.count_dcs
+    .. automethod:: seqlogic.Bits.count_unknown
 
-    .. automethod:: seqlogic.bits.Bits.onehot
-    .. automethod:: seqlogic.bits.Bits.onehot0
+    .. automethod:: seqlogic.Bits.onehot
+    .. automethod:: seqlogic.Bits.onehot0
 
-    .. automethod:: seqlogic.bits.Bits.has_x
-    .. automethod:: seqlogic.bits.Bits.has_dc
-    .. automethod:: seqlogic.bits.Bits.has_unknown
+    .. automethod:: seqlogic.Bits.has_x
+    .. automethod:: seqlogic.Bits.has_dc
+    .. automethod:: seqlogic.Bits.has_unknown
 
-.. autoclass:: seqlogic.bits.Empty
-.. autoclass:: seqlogic.bits.Scalar
-.. autoclass:: seqlogic.bits.Vector
-.. autoclass:: seqlogic.bits.Array
+.. autoclass:: seqlogic.Empty
+.. autoclass:: seqlogic.Scalar
+.. autoclass:: seqlogic.Vector
+.. autoclass:: seqlogic.Array
 
-.. TODO(cjdrake): seqlogic.bits.Enum
+.. autoclass:: seqlogic.Enum
 .. TODO(cjdrake): seqlogic.bits.Struct
 .. TODO(cjdrake): seqlogic.bits.Union
 

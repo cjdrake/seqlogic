@@ -110,4 +110,48 @@ class _EnumMeta(type):
 
 
 class Enum(metaclass=_EnumMeta):
-    """Enum Base Class: Create enums."""
+    """User-defined enumerated data type.
+
+    Extend from ``Enum`` to create a custom enumeration:
+
+    >>> from seqlogic import Enum
+    >>> class Color(Enum):
+    ...     RED   = "2b00"
+    ...     GREEN = "2b01"
+    ...     BLUE  = "2b10"
+
+    ``Enums`` behave like ``Vectors``,
+    but they have an extra ``name`` attribute:
+
+    >>> len(Color.RED)
+    2
+    >>> Color.RED[0]
+    bits("1b0")
+    >>> Color.RED == "2b00"
+    True
+    >>> Color.RED.name
+    'RED'
+
+    All ``Enums`` have ``X`` and ``DC`` attributes defined automatically:
+
+    >>> Color.X == "2bXX"
+    True
+    >>> Color.DC == "2b--"
+    True
+
+    To cast a ``Vec`` to an ``Enum``, use the constructor:
+
+    >>> Color("2b00")
+    Color.RED
+
+    Values not included in the enumeration are allowed:
+
+    >>> Color("2b11")
+    Color("2b11")
+
+    To cast an ``Enum`` to a ``Vec``, use the ``cast`` method:
+
+    >>> from seqlogic import Vec
+    >>> Vec[2].cast(Color.RED)
+    bits("2b00")
+    """

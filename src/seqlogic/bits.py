@@ -534,7 +534,8 @@ class Empty(Bits, _ShapeIf):
 
     Degenerate form of a ``Vector`` resulting from an empty slice.
 
-    >>> Vector[0] is Empty
+    >>> from seqlogic import Vec
+    >>> Vec[0] is Empty
     True
 
     To get a handle to an ``Empty`` instance:
@@ -594,7 +595,8 @@ class Scalar(Bits, _ShapeIf):
 
     Degenerate form of a ``Vector`` resulting from a one bit slice.
 
-    >>> Vector[1] is Scalar
+    >>> from seqlogic import Vec
+    >>> Vec[1] is Scalar
     True
 
     To get a handle to a ``Scalar`` instance:
