@@ -63,7 +63,7 @@ Bitwise
 .. autofunction:: seqlogic.and_
 .. autofunction:: seqlogic.xnor
 .. autofunction:: seqlogic.xor
-.. TODO(cjdrake): seqlogic.mux
+.. autofunction:: seqlogic.mux
 .. autofunction:: seqlogic.ite
 
 Unary

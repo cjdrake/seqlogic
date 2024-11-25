@@ -1306,7 +1306,7 @@ def ite(s: Bits | str, x1: Bits | str, x0: Bits | str) -> Bits:
     bits("16b---X_-1-X_--0X_XXXX")
 
     Args:
-        s:
+        s: ``Bits`` select
         x1: ``Bits`` or string literal.
         x0: ``Bits`` or string literal equal size to ``x1``.
 
@@ -1337,19 +1337,38 @@ _MUX_XN_RE = re.compile(r"x(\d+)")
 
 
 def mux(s: Bits | str, **xs: Bits | str) -> Bits:
-    r"""Mux operator.
+    r"""Bitwise logical multiplex (mux) operator.
 
     Args:
-        s: Mux select
-        xs: Mux inputs, e.g. x0="4b0001", x1="4b0010", ...
+        s: ``Bits`` select.
+        xs: ``Bits`` or string literal, all equal size.
 
     Mux input names are in the form xN,
     where N is a valid int.
     Muxes require at least one input.
     Any inputs not specified will default to "don't care".
 
+    For example:
+
+    >>> mux("2b00", x0="4b0001", x1="4b0010", x2="4b0100", x3="4b1000")
+    bits("4b0001")
+    >>> mux("2b10", x0="4b0001", x1="4b0010", x2="4b0100", x3="4b1000")
+    bits("4b0100")
+
+    Handles X and DC propagation:
+
+    >>> mux("2b1-", x0="4b0001", x1="4b0010", x2="4b0100", x3="4b1000")
+    bits("4b--00")
+    >>> mux("2b1X", x0="4b0001", x1="4b0010", x2="4b0100", x3="4b1000")
+    bits("4bXXXX")
+
     Returns:
-        Mux output, selected from inputs.
+        ``Bits`` equal size to ``xN`` inputs.
+
+    Raises:
+        TypeError: ``s`` or ``xN`` are not valid ``Bits`` objects,
+                   or ``xN`` mismatching size.
+        ValueError: Error parsing string literal.
     """
     s = _expect_type(s, Bits)
     n = 1 << s.size
