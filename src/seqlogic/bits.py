@@ -158,10 +158,10 @@ class Bits:
     Do **NOT** construct a Bits object directly.
     Use one of the factory functions:
 
-        * bits
-        * stack
-        * u2bv
-        * i2bv
+        * ``bits``
+        * ``stack``
+        * ``u2bv``
+        * ``i2bv``
     """
 
     @classproperty
@@ -665,7 +665,41 @@ _bool2scalar = (_Scalar0, _Scalar1)
 
 
 class Vector(Bits, _ShapeIf):
-    """One dimensional (vector) sequence of bits."""
+    """One dimensional sequence of bits.
+
+    To create a ``Vector`` instance,
+    use binary, decimal, or hexadecimal string literals:
+
+    >>> bits("4b1010")
+    bits("4b1010")
+    >>> bits("4d10")
+    bits("4b1010")
+    >>> bits("4ha")
+    bits("4b1010")
+
+    ``Vector`` implements ``size`` and ``shape`` attributes,
+    as well as ``__len__`` and ``__getitem__`` methods:
+
+    >>> x = bits("8b1111_0000")
+    >>> x.size
+    8
+    >>> x.shape
+    (8,)
+    >>> len(x)
+    8
+    >>> x[3]
+    bits("1b0")
+    >>> x[4]
+    bits("1b1")
+    >>> x[2:6]
+    bits("4b1100")
+
+    A ``Vector`` may be converted into an equal-size multi-dimensional ``Array``
+    using the ``reshape`` method:
+
+    >>> x.reshape((2,4))
+    bits(["4b0000", "4b1111"])
+    """
 
     _size: int
 
@@ -721,7 +755,39 @@ class Vector(Bits, _ShapeIf):
 
 
 class Array(Bits, _ShapeIf):
-    """N dimensional (array) sequence of bits."""
+    """Multi dimensional array of bits.
+
+    To create an ``Array`` instance, use the ``bits`` function:
+
+    >>> x = bits(["4b0100", "4b1110"])
+
+    ``Array`` implements ``size`` and ``shape`` attributes,
+    and the ``__getitem__`` method.
+    ``Array`` does **NOT** implement a ``__len__`` method.
+
+    >>> x.size
+    8
+    >>> x.shape
+    (2, 4)
+    >>> x[0]
+    bits("4b0100")
+    >>> x[1]
+    bits("4b1110")
+    >>> x[0,0]
+    bits("1b0")
+
+    An ``Array`` may be converted into an equal-size, multi-dimensional ``Array``
+    using the ``reshape`` method:
+
+    >>> x.reshape((4,2))
+    bits(["2b00", "2b01", "2b10", "2b11"])
+
+    An ``Array`` may be converted into an equal-size, one-dimensional ``Vector``
+    using the ``flatten`` method:
+
+    >>> x.flatten()
+    bits("8b1110_0100")
+    """
 
     _shape: tuple[int, ...]
     _size: int

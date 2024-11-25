@@ -42,11 +42,10 @@ Data Types
     .. automethod:: seqlogic.bits.Bits.has_unknown
 
 .. autoclass:: seqlogic.bits.Empty
-
 .. autoclass:: seqlogic.bits.Scalar
+.. autoclass:: seqlogic.bits.Vector
+.. autoclass:: seqlogic.bits.Array
 
-.. TODO(cjdrake): seqlogic.bits.Vector
-.. TODO(cjdrake): seqlogic.bits.Array
 .. TODO(cjdrake): seqlogic.bits.Enum
 .. TODO(cjdrake): seqlogic.bits.Struct
 .. TODO(cjdrake): seqlogic.bits.Union
