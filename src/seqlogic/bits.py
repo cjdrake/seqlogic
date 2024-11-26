@@ -1925,7 +1925,7 @@ def _srsh(x: Bits, n: Bits) -> Bits:
     return y
 
 
-def srsh(x: Bits | str, n: Bits | str | int) -> tuple[Bits, Empty | Scalar | Vector]:
+def srsh(x: Bits | str, n: Bits | str | int) -> Bits:
     """Arithmetic (signed) right shift by n bits.
 
     Fill bits with most significant bit (sign).
