@@ -82,9 +82,9 @@ Arithmetic
 .. autofunction:: seqlogic.adc
 .. autofunction:: seqlogic.sub
 .. autofunction:: seqlogic.sbc
-.. TODO(cjdrake): seqlogic.bits.neg
-.. TODO(cjdrake): seqlogic.bits.ngc
-.. TODO(cjdrake): seqlogic.bits.mul
+.. autofunction:: seqlogic.neg
+.. autofunction:: seqlogic.ngc
+.. autofunction:: seqlogic.mul
 .. TODO(cjdrake): seqlogic.bits.lsh
 .. TODO(cjdrake): seqlogic.bits.rsh
 .. TODO(cjdrake): seqlogic.bits.srsh

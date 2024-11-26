@@ -1611,6 +1611,14 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
 def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
     """Addition with carry-in, but NO carry-out.
 
+    For example:
+
+    >>> add("4d2", "4d2")
+    bits("4b0100")
+
+    >>> add("2d2", "2d2")
+    bits("2b00")
+
     Args:
         a: ``Bits`` or string literal
         b: ``Bits`` or string literal equal size to ``a``.
@@ -1634,6 +1642,14 @@ def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
 
 def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
     """Addition with carry-in, and carry-out.
+
+    For example:
+
+    >>> adc("4d2", "4d2")
+    bits("5b0_0100")
+
+    >>> adc("2d2", "2d2")
+    bits("3b100")
 
     Args:
         a: ``Bits`` or string literal
@@ -1709,12 +1725,17 @@ def _neg(x: Bits) -> tuple[Bits, Scalar]:
 
 
 def neg(x: Bits | str) -> Bits:
-    """Twos complement negation.
+    """Twos complement negation, with NO carry-out.
 
-    Computed using 0 - x.
+    Args:
+        x: ``Bits`` or string literal
 
     Returns:
-        2-tuple of (sum, carry-out).
+        ``Bits`` equal size to ``x``.
+
+    Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
+        ValueError: Error parsing string literal.
     """
     x = _expect_type(x, Bits)
     s, _ = _neg(x)
@@ -1724,10 +1745,16 @@ def neg(x: Bits | str) -> Bits:
 def ngc(x: Bits | str) -> Bits:
     """Twos complement negation, with carry-out.
 
-    Computed using 0 - x.
+    Args:
+        x: ``Bits`` or string literal
 
     Returns:
-        2-tuple of (sum, carry-out).
+        ``Bits`` w/ size one larger than ``x``.
+        The most significant bit is the carry-out.
+
+    Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
+        ValueError: Error parsing string literal.
     """
     x = _expect_type(x, Bits)
     s, co = _neg(x)
@@ -1752,15 +1779,25 @@ def _mul(a: Bits, b: Bits) -> Empty | Vector:
 def mul(a: Bits | str, b: Bits | str) -> Empty | Vector:
     """Unsigned multiply.
 
+    For example:
+
+    >>> mul("4d2", "4d2")
+    bits("8b0000_0100")
+
+    >>> add("2d2", "2d2")
+    bits("2b00")
+
     Args:
-        a: Bits
-        b: Bits of equal length.
+        a: ``Bits`` or string literal
+        b: ``Bits`` or string literal equal size to ``a``.
 
     Returns:
-        product w/ length 2 * a.size
+        ``Bits`` product w/ size 2 * ``a.size``
 
     Raises:
-        ValueError: Bits sizes are invalid/inconsistent.
+        TypeError: ``a`` or ``b`` are not valid ``Bits`` objects,
+                   or ``a`` not equal size to ``b``.
+        ValueError: Error parsing string literal.
     """
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)
