@@ -1792,7 +1792,7 @@ def mul(a: Bits | str, b: Bits | str) -> Empty | Vector:
         b: ``Bits`` or string literal equal size to ``a``.
 
     Returns:
-        ``Bits`` product w/ size 2 * ``a.size``
+        ``Vector`` product w/ size 2 * ``a.size``
 
     Raises:
         TypeError: ``a`` or ``b`` are not valid ``Bits`` objects,
