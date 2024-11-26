@@ -2738,15 +2738,21 @@ def stack(*objs: _ShapeIf | int | str) -> _ShapeIf:
 def u2bv(n: int, size: int | None = None) -> Empty | Scalar | Vector:
     """Convert nonnegative int to Vector.
 
+    For example:
+
+    >>> u2bv(42, size=8)
+    bits("8b0010_1010")
+
     Args:
-        n: A nonnegative integer.
-        size: Optional output length.
+        n: Nonnegative ``int`` to convert.
+        size: Optional ``int`` output size.
+              Defaults to minimum required size.
 
     Returns:
-        A Vector instance.
+        ``Vector``
 
     Raises:
-        ValueError: If n is negative or overflows the output length.
+        ValueError: ``n`` is negative or overflows the output size.
     """
     if n < 0:
         raise ValueError(f"Expected n ≥ 0, got {n}")
@@ -2765,15 +2771,23 @@ def u2bv(n: int, size: int | None = None) -> Empty | Scalar | Vector:
 def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
     """Convert int to Vector.
 
+    For example:
+
+    >>> i2bv(42, size=8)
+    bits("8b0010_1010")
+    >>> i2bv(-42, size=8)
+    bits("8b1101_0110")
+
     Args:
-        n: An integer.
-        size: Optional output length.
+        n: ``int`` to convert.
+        size: Optional ``int`` output size.
+              Defaults to minimum required size.
 
     Returns:
-        A Vec instance.
+        ``Vector``
 
     Raises:
-        ValueError: If n overflows the output length.
+        ValueError: ``n`` overflows the output size.
     """
     negative = n < 0
 
