@@ -94,8 +94,8 @@ Word
 
 .. TODO(cjdrake): seqlogic.bits.xt
 .. TODO(cjdrake): seqlogic.bits.sxt
-.. TODO(cjdrake): seqlogic.bits.lrot
-.. TODO(cjdrake): seqlogic.bits.rrot
+.. autofunction:: seqlogic.lrot
+.. autofunction:: seqlogic.rrot
 .. TODO(cjdrake): seqlogic.bits.cat
 .. TODO(cjdrake): seqlogic.bits.rep
 .. TODO(cjdrake): seqlogic.bits.pack

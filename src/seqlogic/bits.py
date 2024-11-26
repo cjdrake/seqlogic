@@ -2035,16 +2035,26 @@ def _lrot(x: Bits, n: Bits) -> Bits:
 
 
 def lrot(x: Bits | str, n: Bits | str | int) -> Bits:
-    """Left rotate by n bits.
+    """Rotate left by n bits.
+
+    For example:
+
+    >>> lrot("4b1011", 2)
+    bits("4b1110")
 
     Args:
-        n: Non-negative number of bits.
+        x: ``Bits`` or string literal.
+        n: ``Bits``, string literal, or ``int``
+           Non-negative bit rotate count.
 
     Returns:
-        Bits left-rotated by n bits.
+        ``Bits`` left-rotated by n bits.
 
     Raises:
-        ValueError: If n is invalid/inconsistent.
+        TypeError: ``x`` is not a valid ``Bits`` object,
+                   or ``n`` is not a valid bit rotate count.
+        ValueError: Error parsing string literal,
+                    or negative rotate amount.
     """
     x = _expect_type(x, Bits)
     n = _expect_shift(n, x.size)
@@ -2071,16 +2081,26 @@ def _rrot(x: Bits, n: Bits) -> Bits:
 
 
 def rrot(x: Bits | str, n: Bits | str | int) -> Bits:
-    """Right rotate by n bits.
+    """Rotate right by n bits.
+
+    For example:
+
+    >>> rrot("4b1101", 2)
+    bits("4b0111")
 
     Args:
-        n: Non-negative number of bits.
+        x: ``Bits`` or string literal.
+        n: ``Bits``, string literal, or ``int``
+           Non-negative bit rotate count.
 
     Returns:
-        Bits right-rotated by n bits.
+        ``Bits`` right-rotated by n bits.
 
     Raises:
-        ValueError: If n is invalid/inconsistent.
+        TypeError: ``x`` is not a valid ``Bits`` object,
+                   or ``n`` is not a valid bit rotate count.
+        ValueError: Error parsing string literal,
+                    or negative rotate amount.
     """
     x = _expect_type(x, Bits)
     n = _expect_shift(n, x.size)
