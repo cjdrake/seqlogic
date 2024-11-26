@@ -1609,18 +1609,21 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
 
 
 def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
-    """Addition with carry-in.
+    """Addition with carry-in, but NO carry-out.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
-        ci: Scalar carry-in.
+        a: ``Bits`` or string literal
+        b: ``Bits`` or string literal equal size to ``a``.
+        ci: ``Scalar`` carry-in, or ``None``.
+            ``None`` defaults to carry-in ``0``.
 
     Returns:
-        2-tuple of (sum, carry-out).
+        ``Bits`` sum equal size to ``a`` and ``b``.
 
     Raises:
-        ValueError: Bits sizes are invalid/inconsistent.
+        TypeError: ``a``, ``b``, or ``ci`` are not valid ``Bits`` objects,
+                   or ``a`` not equal size to ``b``.
+        ValueError: Error parsing string literal.
     """
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)
@@ -1633,15 +1636,19 @@ def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
     """Addition with carry-in, and carry-out.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
-        ci: Scalar carry-in.
+        a: ``Bits`` or string literal
+        b: ``Bits`` or string literal equal size to ``a``.
+        ci: ``Scalar`` carry-in, or ``None``.
+            ``None`` defaults to carry-in ``0``.
 
     Returns:
-        2-tuple of (sum, carry-out).
+        ``Bits`` sum w/ size one larger than ``a`` and ``b``.
+        The most significant bit is the carry-out.
 
     Raises:
-        ValueError: Bits sizes are invalid/inconsistent.
+        TypeError: ``a``, ``b``, or ``ci`` are not valid ``Bits`` objects,
+                   or ``a`` not equal size to ``b``.
+        ValueError: Error parsing string literal.
     """
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)
@@ -1655,17 +1662,19 @@ def _sub(a: Bits, b: Bits) -> tuple[Bits, Scalar]:
 
 
 def sub(a: Bits | str, b: Bits | str) -> Bits:
-    """Twos complement subtraction.
+    """Twos complement subtraction, with NO carry-out.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        a: ``Bits`` or string literal
+        b: ``Bits`` or string literal equal size to ``a``.
 
     Returns:
-        2-tuple of (sum, carry-out).
+        ``Bits`` sum equal size to ``a`` and ``b``.
 
     Raises:
-        ValueError: Bits sizes are invalid/inconsistent.
+        TypeError: ``a``, or ``b`` are not valid ``Bits`` objects,
+                   or ``a`` not equal size to ``b``.
+        ValueError: Error parsing string literal.
     """
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)
@@ -1677,14 +1686,17 @@ def sbc(a: Bits | str, b: Bits | str) -> Bits:
     """Twos complement subtraction, with carry-out.
 
     Args:
-        a: Bits
-        b: Bits of equal length.
+        a: ``Bits`` or string literal
+        b: ``Bits`` or string literal equal size to ``a``.
 
     Returns:
-        2-tuple of (sum, carry-out).
+        ``Bits`` sum w/ size one larger than ``a`` and ``b``.
+        The most significant bit is the carry-out.
 
     Raises:
-        ValueError: Bits sizes are invalid/inconsistent.
+        TypeError: ``a``, or ``b`` are not valid ``Bits`` objects,
+                   or ``a`` not equal size to ``b``.
+        ValueError: Error parsing string literal.
     """
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)

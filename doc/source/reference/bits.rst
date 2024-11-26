@@ -78,10 +78,10 @@ Arithmetic
 ----------
 
 .. autofunction:: seqlogic.decode
-.. TODO(cjdrake): seqlogic.bits.add
-.. TODO(cjdrake): seqlogic.bits.adc
-.. TODO(cjdrake): seqlogic.bits.sub
-.. TODO(cjdrake): seqlogic.bits.sbc
+.. autofunction:: seqlogic.add
+.. autofunction:: seqlogic.adc
+.. autofunction:: seqlogic.sub
+.. autofunction:: seqlogic.sbc
 .. TODO(cjdrake): seqlogic.bits.neg
 .. TODO(cjdrake): seqlogic.bits.ngc
 .. TODO(cjdrake): seqlogic.bits.mul
