@@ -77,7 +77,7 @@ Unary
 Arithmetic
 ----------
 
-.. TODO(cjdrake): seqlogic.bits.decode
+.. autofunction:: seqlogic.decode
 .. TODO(cjdrake): seqlogic.bits.add
 .. TODO(cjdrake): seqlogic.bits.adc
 .. TODO(cjdrake): seqlogic.bits.sub

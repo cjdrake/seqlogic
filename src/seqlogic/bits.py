@@ -1548,7 +1548,34 @@ def uxor(x: Bits | str) -> Scalar:
 
 # Arithmetic
 def decode(x: Bits | str) -> Scalar | Vector:
-    """Decode dense encoding to sparse, one-hot encoding."""
+    """Decode dense encoding to sparse, one-hot encoding.
+
+    For example:
+
+    >>> decode("2b00")
+    bits("4b0001")
+    >>> decode("2b01")
+    bits("4b0010")
+    >>> decode("2b10")
+    bits("4b0100")
+    >>> decode("2b11")
+    bits("4b1000")
+
+    Empty input returns 1b1:
+
+    >>> decode(bits())
+    bits("1b1")
+
+    Args:
+        x: ``Bits`` or string literal.
+
+    Returns:
+        One hot ``Scalar`` or ``Vector`` w/ ``size`` = ``2**x.size``
+
+    Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
+        ValueError: Error parsing string literal.
+    """
     x = _expect_type(x, Bits)
 
     # Output has 2^N bits
