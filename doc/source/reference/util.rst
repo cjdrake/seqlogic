@@ -2,4 +2,4 @@
     Utilities
 *****************
 
-.. autofunction:: seqlogic.util.clog2
+.. autofunction:: seqlogic.clog2
