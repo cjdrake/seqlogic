@@ -1825,16 +1825,28 @@ def _lsh(x: Bits, n: Bits) -> Bits:
 
 
 def lsh(x: Bits | str, n: Bits | str | int) -> Bits:
-    """Left shift by n bits.
+    """Logical left shift by n bits.
+
+    Fill bits with zeros.
+
+    For example:
+
+    >>> lsh("4b1011", 2)
+    bits("4b1100")
 
     Args:
-        n: Non-negative number of bits.
+        x: ``Bits`` or string literal.
+        n: ``Bits``, string literal, or ``int``
+           Non-negative bit shift count.
 
     Returns:
-        Bits left-shifted by n bits.
+        ``Bits`` left-shifted by n bits.
 
     Raises:
-        ValueError: If n is invalid.
+        TypeError: ``x`` is not a valid ``Bits`` object,
+                   or ``n`` is not a valid bit shift count.
+        ValueError: Error parsing string literal,
+                    or negative shift amount.
     """
     x = _expect_type(x, Bits)
     n = _expect_shift(n, x.size)
@@ -1862,16 +1874,28 @@ def _rsh(x: Bits, n: Bits) -> Bits:
 
 
 def rsh(x: Bits | str, n: Bits | str | int) -> Bits:
-    """Right shift by n bits.
+    """Logical right shift by n bits.
+
+    Fill bits with zeros.
+
+    For example:
+
+    >>> rsh("4b1101", 2)
+    bits("4b0011")
 
     Args:
-        n: Non-negative number of bits.
+        x: ``Bits`` or string literal.
+        n: ``Bits``, string literal, or ``int``
+           Non-negative bit shift count.
 
     Returns:
-        Bits right-shifted by n bits.
+        ``Bits`` right-shifted by n bits.
 
     Raises:
-        ValueError: If n is invalid.
+        TypeError: ``x`` is not a valid ``Bits`` object,
+                   or ``n`` is not a valid bit shift count.
+        ValueError: Error parsing string literal,
+                    or negative shift amount.
     """
     x = _expect_type(x, Bits)
     n = _expect_shift(n, x.size)
@@ -1902,16 +1926,28 @@ def _srsh(x: Bits, n: Bits) -> Bits:
 
 
 def srsh(x: Bits | str, n: Bits | str | int) -> tuple[Bits, Empty | Scalar | Vector]:
-    """Signed (arithmetic) right shift by n bits.
+    """Arithmetic (signed) right shift by n bits.
+
+    Fill bits with most significant bit (sign).
+
+    For example:
+
+    >>> srsh("4b1101", 2)
+    bits("4b1111")
 
     Args:
-        n: Non-negative number of bits.
+        x: ``Bits`` or string literal.
+        n: ``Bits``, string literal, or ``int``
+           Non-negative bit shift count.
 
     Returns:
-        Bits arithmetically right-shifted by n bits.
+        ``Bits`` right-shifted by n bits.
 
     Raises:
-        ValueError: If n is invalid.
+        TypeError: ``x`` is not a valid ``Bits`` object,
+                   or ``n`` is not a valid bit shift count.
+        ValueError: Error parsing string literal,
+                    or negative shift amount.
     """
     x = _expect_type(x, Bits)
     n = _expect_shift(n, x.size)
