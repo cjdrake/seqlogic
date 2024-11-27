@@ -2702,19 +2702,39 @@ def _rank2(fst: Scalar | Vector, *rst: Scalar | Vector | str) -> Vector | Array:
     return _get_array_shape(shape)(d0, d1)
 
 
-def bits(obj=None) -> _ShapeIf:
-    """Create a Bits object using standard input formats.
+def bits(obj=None) -> Empty | Scalar | Vector | Array:
+    """Create a shaped Bits object using standard input formats.
 
-    bits() or bits(None) will return the empty vec
-    bits(False | True) will return a length 1 vec
-    bits([False | True, ...]) will return a length n vec
-    bits(str) will parse a string literal and return an arbitrary vec
+    For example, empty input returns an ``Empty`` instance.
+
+    >>> bits()
+    bits([])
+    >>> bits(None)
+    bits([])
+
+    ``bool``, ``int``, and string literal inputs:
+
+    >>> bits(False)
+    bits("1b0")
+    >>> bits([False, True, False, True])
+    bits("4b1010")
+    >>> bits("8d42")
+    bits("8b0010_1010")
+
+    Use a ``list`` of inputs to create arbitrary shaped inputs:
+
+    >>> x = bits([["2b00", "2b01"], ["2b10", "2b11"]])
+    >>> x
+    bits([["2b00", "2b01"],
+          ["2b10", "2b11"]])
+    >>> x.shape
+    (2, 2, 2)
 
     Args:
         obj: Object that can be converted to a Bits instance.
 
     Returns:
-        A Bits instance.
+        Shaped ``Bits`` instance.
 
     Raises:
         TypeError: If input obj is invalid.

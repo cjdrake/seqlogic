@@ -121,7 +121,7 @@ Predicate
 Factory Functions
 =================
 
-.. TODO(cjdrake): seqlogic.bits.bits
+.. autofunction:: seqlogic.bits
 .. TODO(cjdrake): seqlogic.bits.stack
 .. autofunction:: seqlogic.u2bv
 .. autofunction:: seqlogic.i2bv
