@@ -2211,7 +2211,31 @@ def pack(x: Bits | str, n: int = 1) -> Bits:
 
 
 def match(x0: Bits | str, x1: Bits | str) -> Scalar:
-    """Pattern match operator."""
+    """Pattern match operator.
+
+    Similar to ``eq`` operator, but with support for ``-`` wildcards.
+
+    For example:
+
+    >>> match("2b01", "2b0-")
+    bits("1b1")
+    >>> match("2b--", "2b10")
+    bits("1b1")
+    >>> match("2b01", "2b10")
+    bits("1b0")
+
+    Args:
+        x0: ``Bits`` or string literal.
+        x1: ``Bits`` or string literal equal size to ``x0``.
+
+    Returns:
+        ``Scalar``
+
+    Raises:
+        TypeError: ``x0`` or ``x1`` is not a valid ``Bits`` object,
+                   or ``x0`` not equal size to ``x1``.
+        ValueError: Error parsing string literal.
+    """
     x0 = _expect_type(x0, Bits)
     x1 = _expect_size(x1, x0.size)
 

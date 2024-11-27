@@ -103,7 +103,7 @@ Word
 Predicate
 ---------
 
-.. TODO(cjdrake): seqlogic.bits.match
+.. autofunction:: seqlogic.match
 
 .. autofunction:: seqlogic.eq
 .. autofunction:: seqlogic.ne
