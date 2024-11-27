@@ -96,9 +96,9 @@ Word
 .. autofunction:: seqlogic.sxt
 .. autofunction:: seqlogic.lrot
 .. autofunction:: seqlogic.rrot
-.. TODO(cjdrake): seqlogic.bits.cat
-.. TODO(cjdrake): seqlogic.bits.rep
-.. TODO(cjdrake): seqlogic.bits.pack
+.. autofunction:: seqlogic.cat
+.. autofunction:: seqlogic.rep
+.. autofunction:: seqlogic.pack
 
 Predicate
 ---------
