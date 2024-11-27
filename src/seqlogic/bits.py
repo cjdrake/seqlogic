@@ -1965,13 +1965,22 @@ def _xt(x: Bits, n: int) -> Vector:
 def xt(x: Bits | str, n: int) -> Bits:
     """Unsigned extend by n bits.
 
+    Fill high order bits with zero.
+
+    For example:
+
+    >>> xt("2b11", 2)
+    bits("4b0011")
+
     Args:
+        x: ``Bits`` or string literal.
         n: Non-negative number of bits.
 
     Returns:
-        Vector zero-extended by n bits.
+        ``Bits`` zero-extended by n bits.
 
     Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
         ValueError: If n is negative.
     """
     x = _expect_type(x, Bits)
@@ -1996,13 +2005,22 @@ def _sxt(x: Bits, n: int) -> Vector:
 def sxt(x: Bits | str, n: int) -> Bits:
     """Sign extend by n bits.
 
+    Fill high order bits with sign.
+
+    For example:
+
+    >>> sxt("2b11", 2)
+    bits("4b1111")
+
     Args:
+        x: ``Bits`` or string literal.
         n: Non-negative number of bits.
 
     Returns:
-        Vector sign-extended by n bits.
+        ``Bits`` sign-extended by n bits.
 
     Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
         ValueError: If n is negative.
     """
     x = _expect_type(x, Bits)

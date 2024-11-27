@@ -92,8 +92,8 @@ Arithmetic
 Word
 ----
 
-.. TODO(cjdrake): seqlogic.bits.xt
-.. TODO(cjdrake): seqlogic.bits.sxt
+.. autofunction:: seqlogic.xt
+.. autofunction:: seqlogic.sxt
 .. autofunction:: seqlogic.lrot
 .. autofunction:: seqlogic.rrot
 .. TODO(cjdrake): seqlogic.bits.cat
