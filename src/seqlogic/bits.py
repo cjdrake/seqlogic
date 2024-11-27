@@ -794,7 +794,10 @@ class Array(Bits, _ShapeIf):
     _shape: tuple[int, ...]
     _size: int
 
-    def __class_getitem__(cls, shape: int | tuple[int, ...]) -> type[_ShapeIf]:
+    def __class_getitem__(
+        cls,
+        shape: int | tuple[int, ...],
+    ) -> type[Empty | Scalar | Vector | Array]:
         if isinstance(shape, int):
             return _vec_size(shape)
         if isinstance(shape, tuple) and all(isinstance(n, int) and n > 1 for n in shape):
@@ -821,7 +824,10 @@ class Array(Bits, _ShapeIf):
         indent = " "
         return f"{_array_str(indent, self)}"
 
-    def __getitem__(self, key: int | slice | Bits | tuple[int | slice | Bits, ...]) -> _ShapeIf:
+    def __getitem__(
+        self,
+        key: int | slice | Bits | tuple[int | slice | Bits, ...],
+    ) -> Empty | Scalar | Vector | Array:
         if isinstance(key, (int, slice, Bits)):
             nkey = self._norm_key([key])
             return _sel(self, nkey)
@@ -831,7 +837,7 @@ class Array(Bits, _ShapeIf):
         s = "Expected key to be int, slice, or tuple[int | slice, ...]"
         raise TypeError(s)
 
-    def __iter__(self) -> Generator[_ShapeIf, None, None]:
+    def __iter__(self) -> Generator[Empty | Scalar | Vector | Array, None, None]:
         for i in range(self._shape[0]):
             yield self[i]
 
@@ -2761,14 +2767,33 @@ def bits(obj=None) -> Empty | Scalar | Vector | Array:
             raise TypeError(f"Invalid input: {obj}")
 
 
-def stack(*objs: _ShapeIf | int | str) -> _ShapeIf:
-    """Stack a sequence of Vec/Bits.
+def stack(*objs: Empty | Scalar | Vector | Array | int | str) -> Empty | Scalar | Vector | Array:
+    """Stack a sequence of Bits w/ same shape into a higher dimensional shape.
+
+    For a sequence length N with shape M,
+    the output shape will be M x N.
+
+    For example, a sequence of scalars stacked to a vector:
+
+    >>> stack(0, 1, 0, 1)
+    bits("4b1010")
+
+    Or a sequence of vectors stacked to an array:
+
+    >>> x0 = stack("2b00", "2b01")
+    >>> x1 = stack("2b10", "2b11")
+    >>> y = stack(x0, x1)
+    >>> y
+    bits([["2b00", "2b01"],
+          ["2b10", "2b11"]])
+    >>> y.shape
+    (2, 2, 2)
 
     Args:
         objs: a sequence of vec/bits/bool/lit objects.
 
     Returns:
-        A Vec/Bits instance.
+        Shaped ``Bits`` instance.
 
     Raises:
         TypeError: If input obj is invalid.
@@ -2779,7 +2804,7 @@ def stack(*objs: _ShapeIf | int | str) -> _ShapeIf:
     # Convert inputs
     xs = []
     for obj in objs:
-        if isinstance(obj, _ShapeIf):
+        if isinstance(obj, (Empty, Scalar, Vector, Array)):
             xs.append(obj)
         elif obj in (0, 1):
             xs.append(_bool2scalar[obj])

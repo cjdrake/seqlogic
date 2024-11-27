@@ -122,6 +122,6 @@ Factory Functions
 =================
 
 .. autofunction:: seqlogic.bits
-.. TODO(cjdrake): seqlogic.bits.stack
+.. autofunction:: seqlogic.stack
 .. autofunction:: seqlogic.u2bv
 .. autofunction:: seqlogic.i2bv
