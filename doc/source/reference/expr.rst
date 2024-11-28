@@ -1,6 +1,6 @@
-*********************
-  Logic Expressions
-*********************
+*************************
+    Logic Expressions
+*************************
 
 .. autoclass:: seqlogic.Expr
 
