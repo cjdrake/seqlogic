@@ -69,6 +69,7 @@ from .expr import (
     Add,
     And,
     Cat,
+    Expr,
     GetAttr,
     GetItem,
     Lrot,
@@ -204,6 +205,7 @@ __all__ = [
     "Packed",
     "Unpacked",
     # expr
+    "Expr",
     "Not",
     "Nor",
     "Or",

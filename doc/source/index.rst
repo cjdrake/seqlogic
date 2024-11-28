@@ -7,7 +7,8 @@
     :caption: Contents:
 
     reference/bits
-    reference/sim
+    reference/expr
     reference/design
+    reference/sim
     reference/util
     release_notes
