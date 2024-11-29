@@ -118,13 +118,19 @@ def _resolve_type(t0: type[Bits], t1: type[Bits]) -> type[Bits]:
     return _vec_size(t0.size)
 
 
-class _ShapeIf:
+class _SizedIf:
+    @classproperty
+    def size(cls) -> int:
+        raise NotImplementedError()  # pragma: no cover
+
+
+class _ShapedIf:
     @classproperty
     def shape(cls) -> tuple[int, ...]:
         raise NotImplementedError()  # pragma: no cover
 
 
-class Bits:
+class Bits(_SizedIf):
     r"""Sequence of bits.
 
     A bit is a 4-state logical value in the set {``0``, ``1``, ``X``, ``-``}:
@@ -163,11 +169,6 @@ class Bits:
         * ``u2bv``
         * ``i2bv``
     """
-
-    @classproperty
-    def size(cls) -> int:
-        """Number of bits."""
-        raise NotImplementedError()  # pragma: no cover
 
     @classmethod
     def cast(cls, x: Bits) -> Bits:
@@ -388,23 +389,23 @@ class Bits:
         return _rsh(other, self)
 
     # Note: Keep carry-out
-    def __add__(self, other: Bits | str) -> Scalar | Vector:
+    def __add__(self, other: Bits | str) -> Vector:
         other = _expect_size(other, self.size)
         s, co = _add(self, other, _Scalar0)
         return _cat(s, co)
 
-    def __radd__(self, other: Bits | str) -> Scalar | Vector:
+    def __radd__(self, other: Bits | str) -> Vector:
         other = _expect_size(other, self.size)
         s, co = _add(other, self, _Scalar0)
         return _cat(s, co)
 
     # Note: Keep carry-out
-    def __sub__(self, other: Bits | str) -> Scalar | Vector:
+    def __sub__(self, other: Bits | str) -> Vector:
         other = _expect_size(other, self.size)
         s, co = _sub(self, other)
         return _cat(s, co)
 
-    def __rsub__(self, other: Bits | str) -> Scalar | Vector:
+    def __rsub__(self, other: Bits | str) -> Vector:
         other = _expect_size(other, self.size)
         s, co = _sub(other, self)
         return _cat(s, co)
@@ -529,7 +530,7 @@ class Bits:
         return 1, self._get_index(index)
 
 
-class Empty(Bits, _ShapeIf):
+class Empty(Bits, _ShapedIf):
     """Null dimensional sequence of bits.
 
     Degenerate form of a ``Vector`` resulting from an empty slice.
@@ -590,7 +591,7 @@ class Empty(Bits, _ShapeIf):
 _Empty = Empty._cast_data(0, 0)
 
 
-class Scalar(Bits, _ShapeIf):
+class Scalar(Bits, _ShapedIf):
     """Zero dimensional (scalar) sequence of bits.
 
     Degenerate form of a ``Vector`` resulting from a one bit slice.
@@ -644,7 +645,7 @@ class Scalar(Bits, _ShapeIf):
     def __len__(self) -> int:
         return 1
 
-    def __getitem__(self, key: int | slice | Bits | str) -> Empty | Scalar:
+    def __getitem__(self, key: int | slice | Bits | str) -> Scalar:
         size, (d0, d1) = self._get_key(key)
         return _vec_size(size)(d0, d1)
 
@@ -666,7 +667,7 @@ _scalars = {
 _bool2scalar = (_Scalar0, _Scalar1)
 
 
-class Vector(Bits, _ShapeIf):
+class Vector(Bits, _ShapedIf):
     """One dimensional sequence of bits.
 
     To create a ``Vector`` instance,
@@ -744,7 +745,7 @@ class Vector(Bits, _ShapeIf):
         for i in range(self._size):
             yield _scalars[self._get_index(i)]
 
-    def reshape(self, shape: tuple[int, ...]) -> Vector | Array:
+    def reshape(self, shape: tuple[int, ...]) -> Array:
         if shape == self.shape:
             return self
         if math.prod(shape) != self.size:
@@ -756,7 +757,7 @@ class Vector(Bits, _ShapeIf):
         return self
 
 
-class Array(Bits, _ShapeIf):
+class Array(Bits, _ShapedIf):
     """Multi dimensional array of bits.
 
     To create an ``Array`` instance, use the ``bits`` function:
@@ -794,10 +795,7 @@ class Array(Bits, _ShapeIf):
     _shape: tuple[int, ...]
     _size: int
 
-    def __class_getitem__(
-        cls,
-        shape: int | tuple[int, ...],
-    ) -> type[Empty | Scalar | Vector | Array]:
+    def __class_getitem__(cls, shape: int | tuple[int, ...]) -> type[Array]:
         if isinstance(shape, int):
             return _vec_size(shape)
         if isinstance(shape, tuple) and all(isinstance(n, int) and n > 1 for n in shape):
@@ -824,10 +822,7 @@ class Array(Bits, _ShapeIf):
         indent = " "
         return f"{_array_str(indent, self)}"
 
-    def __getitem__(
-        self,
-        key: int | slice | Bits | tuple[int | slice | Bits, ...],
-    ) -> Empty | Scalar | Vector | Array:
+    def __getitem__(self, key: int | slice | Bits | tuple[int | slice | Bits, ...]) -> Array:
         if isinstance(key, (int, slice, Bits)):
             nkey = self._norm_key([key])
             return _sel(self, nkey)
@@ -837,11 +832,11 @@ class Array(Bits, _ShapeIf):
         s = "Expected key to be int, slice, or tuple[int | slice, ...]"
         raise TypeError(s)
 
-    def __iter__(self) -> Generator[Empty | Scalar | Vector | Array, None, None]:
+    def __iter__(self) -> Generator[Array, None, None]:
         for i in range(self._shape[0]):
             yield self[i]
 
-    def reshape(self, shape: tuple[int, ...]) -> Vector | Array:
+    def reshape(self, shape: tuple[int, ...]) -> Array:
         if shape == self.shape:
             return self
         if math.prod(shape) != self._size:
@@ -1553,7 +1548,7 @@ def uxor(x: Bits | str) -> Scalar:
 
 
 # Arithmetic
-def decode(x: Bits | str) -> Scalar | Vector:
+def decode(x: Bits | str) -> Vector:
     """Decode dense encoding to sparse, one-hot encoding.
 
     For example:
@@ -1767,7 +1762,7 @@ def ngc(x: Bits | str) -> Bits:
     return cat(s, co)
 
 
-def _mul(a: Bits, b: Bits) -> Empty | Vector:
+def _mul(a: Bits, b: Bits) -> Vector:
     n = 2 * a.size
 
     # X/DC propagation
@@ -1782,7 +1777,7 @@ def _mul(a: Bits, b: Bits) -> Empty | Vector:
     return _vec_size(n)(p ^ dmax, p)
 
 
-def mul(a: Bits | str, b: Bits | str) -> Empty | Vector:
+def mul(a: Bits | str, b: Bits | str) -> Vector:
     """Unsigned multiply.
 
     For example:
@@ -2654,7 +2649,7 @@ def _parse_lit(lit: str) -> tuple[int, lbv]:
     raise ValueError(f"Invalid lit: {lit}")
 
 
-def _lit2bv(lit: str) -> Scalar | Vector:
+def _lit2bv(lit: str) -> Vector:
     """Convert a string literal to a vec.
 
     A string literal is in the form {width}{base}{characters},
@@ -2695,7 +2690,7 @@ def _bools2vec(x0: int, *xs: int) -> Vector:
     return _vec_size(size)(d1 ^ mask(size), d1)
 
 
-def _rank2(fst: Scalar | Vector, *rst: Scalar | Vector | str) -> Vector | Array:
+def _rank2(fst: Vector, *rst: Vector | str) -> Array:
     d0, d1 = fst.data
     for i, x in enumerate(rst, start=1):
         x = _expect_type(x, Vector[fst.size])
@@ -2708,7 +2703,7 @@ def _rank2(fst: Scalar | Vector, *rst: Scalar | Vector | str) -> Vector | Array:
     return _get_array_shape(shape)(d0, d1)
 
 
-def bits(obj=None) -> Empty | Scalar | Vector | Array:
+def bits(obj=None) -> Array:
     """Create a shaped Bits object using standard input formats.
 
     For example, empty input returns an ``Empty`` instance.
@@ -2767,7 +2762,7 @@ def bits(obj=None) -> Empty | Scalar | Vector | Array:
             raise TypeError(f"Invalid input: {obj}")
 
 
-def stack(*objs: Empty | Scalar | Vector | Array | int | str) -> Empty | Scalar | Vector | Array:
+def stack(*objs: Array | int | str) -> Array:
     """Stack a sequence of Bits w/ same shape into a higher dimensional shape.
 
     For a sequence length N with shape M,
@@ -2875,7 +2870,7 @@ def u2bv(n: int, size: int | None = None) -> Vector:
     return _vec_size(size)(n ^ mask(size), n)
 
 
-def i2bv(n: int, size: int | None = None) -> Scalar | Vector:
+def i2bv(n: int, size: int | None = None) -> Vector:
     """Convert int to Vector.
 
     For example:
@@ -2923,7 +2918,7 @@ def _chunk(data: lbv, base: int, size: int) -> lbv:
     return (data[0] >> base) & m, (data[1] >> base) & m
 
 
-def _sel(x: _ShapeIf, key: tuple[tuple[int, int], ...]) -> _ShapeIf:
+def _sel(x: Array, key: tuple[tuple[int, int], ...]) -> Array:
     assert len(x.shape) == len(key)
 
     (start, stop), key_r = key[0], key[1:]
@@ -2989,7 +2984,7 @@ def _norm_slice(n: int, sl: slice) -> tuple[int, int]:
     return start, stop
 
 
-def _get_sep(indent: str, x: Vector | Array) -> str:
+def _get_sep(indent: str, x: Array) -> str:
     # 2-D Matrix
     if len(x.shape) == 2:
         return ", "
@@ -3000,7 +2995,7 @@ def _get_sep(indent: str, x: Vector | Array) -> str:
     return ",\n\n" + indent
 
 
-def _array_repr(indent: str, x: Vector | Array) -> str:
+def _array_repr(indent: str, x: Array) -> str:
     # 1-D Vector
     if len(x.shape) == 1:
         return f'"{x}"'
@@ -3009,7 +3004,7 @@ def _array_repr(indent: str, x: Vector | Array) -> str:
     return "[" + sep.join(map(f, x)) + "]"
 
 
-def _array_str(indent: str, x: Vector | Array) -> str:
+def _array_str(indent: str, x: Array) -> str:
     # 1-D Vector
     if len(x.shape) == 1:
         return f"{x}"
