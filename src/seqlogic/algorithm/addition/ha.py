@@ -1,7 +1,6 @@
 """Half Adder Module."""
 
-from ...bits import Vector as Vec
-from ...design import Module
+from seqlogic import Module, Vec
 
 
 class HalfAdd(Module):

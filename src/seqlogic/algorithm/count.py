@@ -1,10 +1,9 @@
 """Bit Manipulation / Count."""
 
-from ..bits import Bits, Empty, Scalar, Vector, and_, cat, or_, pack, rep, u2bv
-from ..util import clog2
+from seqlogic import Bits, Empty, Scalar, Vec, and_, cat, clog2, or_, pack, rep, u2bv
 
 
-def clz(x: Bits) -> Empty | Scalar | Vector:
+def clz(x: Bits) -> Empty | Scalar | Vec:
     """Count leading zeros."""
     xr = pack(x)
     # Decode: {0000: 10000, 0001: 01000, ..., 01--: 00010, 1---: 00001}

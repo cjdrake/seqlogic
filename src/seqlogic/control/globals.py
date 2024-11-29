@@ -1,7 +1,6 @@
 """Globals: clocks and resets."""
 
-from ..design import Packed
-from ..sim import sleep
+from seqlogic import Packed, sleep
 
 
 async def drv_reset(

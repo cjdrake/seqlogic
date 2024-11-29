@@ -1,8 +1,6 @@
 """Kogge Stone Addition (KSA)."""
 
-from ...bits import Vector as Vec
-from ...bits import cat
-from ...util import clog2
+from seqlogic import Vec, cat, clog2
 
 
 def adc(a: Vec, b: Vec, ci: Vec[1]) -> Vec:

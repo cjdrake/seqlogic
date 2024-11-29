@@ -3,11 +3,11 @@
 See https://csrc.nist.gov/pubs/fips/197/final for details.
 """
 
-from ...bits import Array, Vector, bits, ite, rep, stack
+from seqlogic import Array, Vec, bits, ite, rep, stack
 
 NB = 4
 
-Text = Vector[4 * 4 * 8]
+Text = Vec[4 * 4 * 8]
 
 # Nk = {4, 6, 8}
 Key4 = Array[4, 4, 8]
@@ -18,7 +18,7 @@ Key = Key4 | Key6 | Key8
 # Nr = {10, 12, 14}
 RoundKeys = Array[11, 4, 4, 8] | Array[13, 4, 4, 8] | Array[15, 4, 4, 8]
 
-Byte = Vector[8]
+Byte = Vec[8]
 Word = Array[4, 8]
 State = Array[4, 4, 8]
 Polynomial = Array[4, 4]

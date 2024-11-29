@@ -1,9 +1,7 @@
 """Ripple Carry Addition (RCA)."""
 
-from ...bits import Vector as Vec
-from ...bits import cat
-from ...design import Module
-from ...expr import GetItem
+from seqlogic import GetItem, Module, Vec, cat
+
 from .fa import FullAdd
 
 
