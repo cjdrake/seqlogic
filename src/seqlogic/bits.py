@@ -544,7 +544,7 @@ class Empty(Bits, _ShapedIf):
     >>> empty = bits()
 
     ``Empty`` implements ``Vector`` methods,
-    except for ``__getitem__``:
+    but __getitem__ will always raise an exception:
 
     >>> empty.size
     0
@@ -555,7 +555,7 @@ class Empty(Bits, _ShapedIf):
     >>> empty[0]
     Traceback (most recent call last):
         ...
-    TypeError: 'Empty' object is not subscriptable
+    IndexError: Expected index in [0, 0), got 0
     """
 
     def __new__(cls, d0: int, d1: int):
@@ -582,7 +582,9 @@ class Empty(Bits, _ShapedIf):
     def __len__(self) -> int:
         return 0
 
-    # __getitem__ is NOT defined on Empty
+    def __getitem__(self, key: int | slice | Bits | str) -> Empty:
+        # This will always raise an exception
+        _ = self._get_key(key)
 
     def __iter__(self) -> Generator[Scalar, None, None]:
         yield from ()

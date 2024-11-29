@@ -42,7 +42,7 @@ W = Array[1](*_W)
 def test_basic():
     # empty len, getitem, iter
     assert len(E) == 0
-    with pytest.raises(TypeError):
+    with pytest.raises(IndexError):
         E[0]
     assert not list(E)
 
