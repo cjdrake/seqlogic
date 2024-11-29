@@ -53,7 +53,7 @@ def _get_vec_size(size: int) -> type[Vector]:
         return vec
 
 
-def _vec_size(size: int) -> type[Empty | Scalar | Vector]:
+def _vec_size(size: int) -> type[Vector]:
     """Vector[size] class factory."""
     assert size >= 0
     # Degenerate case: Null
@@ -705,7 +705,7 @@ class Vector(Bits, _ShapeIf):
 
     _size: int
 
-    def __class_getitem__(cls, size: int) -> type[Empty | Scalar | Vector]:
+    def __class_getitem__(cls, size: int) -> type[Vector]:
         if isinstance(size, int) and size >= 0:
             return _vec_size(size)
         raise TypeError(f"Invalid size parameter: {size}")
@@ -736,7 +736,7 @@ class Vector(Bits, _ShapeIf):
     def __len__(self) -> int:
         return self._size
 
-    def __getitem__(self, key: int | slice | Bits | str) -> Empty | Scalar | Vector:
+    def __getitem__(self, key: int | slice | Bits | str) -> Vector:
         size, (d0, d1) = self._get_key(key)
         return _vec_size(size)(d0, d1)
 
@@ -2131,7 +2131,7 @@ def rrot(x: Bits | str, n: Bits | str | int) -> Bits:
     return _rrot(x, n)
 
 
-def _cat(*xs: Bits) -> Empty | Scalar | Vector:
+def _cat(*xs: Bits) -> Vector:
     if len(xs) == 0:
         return _Empty
     if len(xs) == 1:
@@ -2146,7 +2146,7 @@ def _cat(*xs: Bits) -> Empty | Scalar | Vector:
     return _vec_size(size)(d0, d1)
 
 
-def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
+def cat(*objs: Bits | int | str) -> Vector:
     """Concatenate a sequence of Vectors.
 
     Args:
@@ -2173,12 +2173,12 @@ def cat(*objs: Bits | int | str) -> Empty | Scalar | Vector:
     return _cat(*xs)
 
 
-def _rep(x: Bits, n: int) -> Empty | Scalar | Vector:
+def _rep(x: Bits, n: int) -> Vector:
     xs = [x] * n
     return _cat(*xs)
 
 
-def rep(obj: Bits | int | str, n: int) -> Empty | Scalar | Vector:
+def rep(obj: Bits | int | str, n: int) -> Vector:
     """Repeat a Vector n times."""
     objs = [obj] * n
     return cat(*objs)
@@ -2677,7 +2677,7 @@ def _lit2bv(lit: str) -> Scalar | Vector:
     return _vec_size(size)(d0, d1)
 
 
-def _bools2vec(x0: int, *xs: int) -> Empty | Scalar | Vector:
+def _bools2vec(x0: int, *xs: int) -> Vector:
     """Convert an iterable of bools to a vec.
 
     This is a convenience function.
@@ -2842,7 +2842,7 @@ def stack(*objs: Empty | Scalar | Vector | Array | int | str) -> Empty | Scalar 
     return _get_array_shape(shape)(d0, d1)
 
 
-def u2bv(n: int, size: int | None = None) -> Empty | Scalar | Vector:
+def u2bv(n: int, size: int | None = None) -> Vector:
     """Convert nonnegative int to Vector.
 
     For example:

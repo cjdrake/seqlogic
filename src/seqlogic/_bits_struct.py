@@ -5,7 +5,7 @@
 
 from functools import partial
 
-from .bits import Bits, Empty, Scalar, Vector, _expect_size, _vec_size
+from .bits import Bits, Vector, _expect_size, _vec_size
 from .util import classproperty, mask
 
 
@@ -65,7 +65,7 @@ class _StructMeta(type):
         struct.__init__ = locals_["init"]
 
         # Override Bits.__getitem__ method
-        def _getitem(self, key: int | slice | Bits | str) -> Empty | Scalar | Vector:
+        def _getitem(self, key: int | slice | Bits | str) -> Vector:
             size, (d0, d1) = self._get_key(key)
             return _vec_size(size)(d0, d1)
 
