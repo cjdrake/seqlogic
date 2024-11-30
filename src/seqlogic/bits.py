@@ -516,7 +516,7 @@ class Bits(_SizedIf):
         d1 = (self._data[1] >> i) & m
         return size, (d0, d1)
 
-    def _get_key(self, key: int | slice | Bits | str) -> tuple[int, lbv]:
+    def _get_key(self, key: Key) -> tuple[int, lbv]:
         if isinstance(key, int):
             index = _norm_index(self.size, key)
             return 1, self._get_index(index)
@@ -528,6 +528,9 @@ class Bits(_SizedIf):
         key = _expect_type(key, Bits)
         index = _norm_index(self.size, key.to_uint())
         return 1, self._get_index(index)
+
+
+type Key = int | slice | Bits | str
 
 
 class Empty(Bits, _ShapedIf):
@@ -582,7 +585,7 @@ class Empty(Bits, _ShapedIf):
     def __len__(self) -> int:
         return 0
 
-    def __getitem__(self, key: int | slice | Bits | str) -> Empty:
+    def __getitem__(self, key: Key) -> Empty:
         # This will always raise an exception
         _ = self._get_key(key)
 
@@ -647,7 +650,7 @@ class Scalar(Bits, _ShapedIf):
     def __len__(self) -> int:
         return 1
 
-    def __getitem__(self, key: int | slice | Bits | str) -> Scalar:
+    def __getitem__(self, key: Key) -> Scalar:
         size, (d0, d1) = self._get_key(key)
         return _vec_size(size)(d0, d1)
 
@@ -739,7 +742,7 @@ class Vector(Bits, _ShapedIf):
     def __len__(self) -> int:
         return self._size
 
-    def __getitem__(self, key: int | slice | Bits | str) -> Vector:
+    def __getitem__(self, key: Key) -> Vector:
         size, (d0, d1) = self._get_key(key)
         return _vec_size(size)(d0, d1)
 
@@ -824,8 +827,8 @@ class Array(Bits, _ShapedIf):
         indent = " "
         return f"{_array_str(indent, self)}"
 
-    def __getitem__(self, key: int | slice | Bits | tuple[int | slice | Bits, ...]) -> Array:
-        if isinstance(key, (int, slice, Bits)):
+    def __getitem__(self, key: Key | tuple[Key, ...]) -> Array:
+        if isinstance(key, (int, slice, Bits, str)):
             nkey = self._norm_key([key])
             return _sel(self, nkey)
         if isinstance(key, tuple):
@@ -852,7 +855,7 @@ class Array(Bits, _ShapedIf):
         return _get_vec_size(self._size)(self._data[0], self._data[1])
 
     @classmethod
-    def _norm_key(cls, keys: list[int | slice | Bits]) -> tuple[tuple[int, int], ...]:
+    def _norm_key(cls, keys: list[Key]) -> tuple[tuple[int, int], ...]:
         ndim = len(cls._shape)
         klen = len(keys)
 
@@ -865,16 +868,15 @@ class Array(Bits, _ShapedIf):
             keys.append(slice(None))
 
         # Normalize key dimensions
-        def f(n: int, key: int | slice | Bits) -> tuple[int, int]:
+        def f(n: int, key: Key) -> tuple[int, int]:
             if isinstance(key, int):
                 i = _norm_index(n, key)
                 return (i, i + 1)
             if isinstance(key, slice):
                 return _norm_slice(n, key)
-            if isinstance(key, Bits):
-                i = _norm_index(n, key.to_uint())
-                return (i, i + 1)
-            assert False  # pragma: no cover
+            key = _expect_type(key, Bits)
+            i = _norm_index(n, key.to_uint())
+            return (i, i + 1)
 
         return tuple(f(n, key) for n, key in zip(cls._shape, keys))
 

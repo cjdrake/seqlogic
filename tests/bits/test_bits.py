@@ -261,7 +261,7 @@ def test_slicing():
 
     with pytest.raises(IndexError):
         b[-5]
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         b["invalid"]
     # Slice step not supported
     with pytest.raises(ValueError):
@@ -314,8 +314,6 @@ def test_slicing():
 
     with pytest.raises(ValueError):
         b[0, 0, 0, 0]
-    with pytest.raises(TypeError):
-        b["invalid"]
 
 
 def test_bits():
