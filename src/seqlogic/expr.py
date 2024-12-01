@@ -14,6 +14,7 @@ from .bits import (
     add,
     and_,
     cat,
+    div,
     eq,
     ge,
     gt,
@@ -22,6 +23,7 @@ from .bits import (
     lrot,
     lsh,
     lt,
+    mod,
     mul,
     mux,
     nand,
@@ -146,6 +148,8 @@ class Expr(ABC):
             "neg": neg,
             "ngc": ngc,
             "mul": mul,
+            "div": div,
+            "mod": mod,
             "lsh": lsh,
             "rsh": rsh,
             "srsh": srsh,
@@ -423,6 +427,18 @@ class Mul(_BinaryOp):
     """Multiply operator node."""
 
     name = "mul"
+
+
+class Div(_BinaryOp):
+    """Divide operator node."""
+
+    name = "div"
+
+
+class Mod(_BinaryOp):
+    """Modulo operator node."""
+
+    name = "mod"
 
 
 class _ShOp(_PrefixOp):

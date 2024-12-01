@@ -85,6 +85,8 @@ Arithmetic
 .. autofunction:: seqlogic.neg
 .. autofunction:: seqlogic.ngc
 .. autofunction:: seqlogic.mul
+.. autofunction:: seqlogic.div
+.. autofunction:: seqlogic.mod
 .. autofunction:: seqlogic.lsh
 .. autofunction:: seqlogic.rsh
 .. autofunction:: seqlogic.srsh

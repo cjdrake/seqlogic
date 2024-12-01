@@ -415,12 +415,26 @@ class Bits(_SizedIf):
         s, co = _neg(self)
         return _cat(s, co)
 
-    def __mul__(self, other: Bits | str) -> Bits:
+    def __mul__(self, other: Bits | str) -> Vector:
         return mul(self, other)
 
-    def __rmul__(self, other: Bits | str) -> Bits:
-        other = _expect_size(other, self.size)
+    def __rmul__(self, other: Bits | str) -> Vector:
+        other = _expect_type(other, Bits)
         return mul(other, self)
+
+    def __div__(self, other: Bits | str) -> Vector:
+        return div(self, other)
+
+    def __rdiv__(self, other: Bits | str) -> Vector:
+        other = _expect_type(other, Bits)
+        return div(other, self)
+
+    def __mod__(self, other: Bits | str) -> Vector:
+        return mod(self, other)
+
+    def __rmod__(self, other: Bits | str) -> Vector:
+        other = _expect_type(other, Bits)
+        return mod(other, self)
 
     def to_uint(self) -> int:
         """Convert to unsigned integer.
@@ -1811,19 +1825,86 @@ def mul(a: Bits | str, b: Bits | str) -> Vector:
 
     Args:
         a: ``Bits`` or string literal
-        b: ``Bits`` or string literal equal size to ``a``.
+        b: ``Bits`` or string literal
 
     Returns:
-        ``Vector`` product w/ size 2 * ``a.size``
+        ``Vector`` product w/ size ``a.size + b.size``
 
     Raises:
-        TypeError: ``a`` or ``b`` are not valid ``Bits`` objects,
-                   or ``a`` not equal size to ``b``.
+        TypeError: ``a`` or ``b`` are not valid ``Bits`` objects.
         ValueError: Error parsing string literal.
     """
     a = _expect_type(a, Bits)
     b = _expect_type(b, Bits)
     return _mul(a, b)
+
+
+def _div(a: Bits, b: Bits) -> Vector:
+    # X/DC propagation
+    if a.has_x() or b.has_x():
+        return a.xes()
+    if a.has_dc() or b.has_dc():
+        return a.dcs()
+
+    dmax = mask(a.size)
+    q = a.data[1] // b.data[1]
+
+    return a._cast_data(q ^ dmax, q)
+
+
+def div(a: Bits | str, b: Bits | str) -> Vector:
+    """Unsigned divide.
+
+    Args:
+        a: ``Bits`` or string literal
+        b: ``Bits`` or string literal
+
+    Returns:
+        ``Vector`` quotient w/ size ``a.size``
+
+    Raises:
+        TypeError: ``a`` or ``b`` are not valid ``Bits`` objects.
+        ValueError: Error parsing string literal.
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_type(b, Bits)
+    if not a.size >= b.size > 0:
+        raise ValueError("Expected a.size ≥ b.size > 0")
+    return _div(a, b)
+
+
+def _mod(a: Bits, b: Bits) -> Vector:
+    # X/DC propagation
+    if a.has_x() or b.has_x():
+        return b.xes()
+    if a.has_dc() or b.has_dc():
+        return b.dcs()
+
+    dmax = mask(b.size)
+    r = a.data[1] % b.data[1]
+
+    return b._cast_data(r ^ dmax, r)
+
+
+def mod(a: Bits | str, b: Bits | str) -> Vector:
+    """Unsigned modulo.
+
+    Args:
+        a: ``Bits`` or string literal
+        b: ``Bits`` or string literal
+
+    Returns:
+        ``Vector`` remainder w/ size ``b.size``
+
+    Raises:
+        TypeError: ``a`` or ``b`` are not valid ``Bits`` objects.
+        ValueError: Error parsing string literal.
+    """
+    a = _expect_type(a, Bits)
+    b = _expect_type(b, Bits)
+    if not a.size >= b.size > 0:
+        raise ValueError("Expected a.size ≥ b.size > 0")
+    return _mod(a, b)
 
 
 def _lsh(x: Bits, n: Bits) -> Bits:
