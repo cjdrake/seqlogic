@@ -425,7 +425,7 @@ class Bits(_SizedIf):
     def __floordiv__(self, other: Bits | str) -> Bits:
         return div(self, other)
 
-    def __rdiv__(self, other: Bits | str) -> Bits:
+    def __rfloordiv__(self, other: Bits | str) -> Bits:
         other = _expect_type(other, Bits)
         return div(other, self)
 
