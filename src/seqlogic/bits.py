@@ -1607,7 +1607,7 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     if a.size == b.size:
         t = _resolve_type(type(a), type(b))
     else:
-        t = Vector[max(a.size, b.size)]
+        t = _vec_size(max(a.size, b.size))
 
     dmax = mask(t.size)
     s = a.data[1] + b.data[1] + ci.data[1]
@@ -1784,18 +1784,18 @@ def ngc(x: Bits | str) -> Vector:
 
 
 def _mul(a: Bits, b: Bits) -> Vector:
-    n = 2 * a.size
+    t = _vec_size(a.size + b.size)
 
     # X/DC propagation
     if a.has_x() or b.has_x():
-        return Vector[n].xes()
+        return t.xes()
     if a.has_dc() or b.has_dc():
-        return Vector[n].dcs()
+        return t.dcs()
 
-    dmax = mask(n)
+    dmax = mask(t.size)
     p = a.data[1] * b.data[1]
 
-    return _vec_size(n)(p ^ dmax, p)
+    return t(p ^ dmax, p)
 
 
 def mul(a: Bits | str, b: Bits | str) -> Vector:
@@ -1822,7 +1822,7 @@ def mul(a: Bits | str, b: Bits | str) -> Vector:
         ValueError: Error parsing string literal.
     """
     a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
+    b = _expect_type(b, Bits)
     return _mul(a, b)
 
 
