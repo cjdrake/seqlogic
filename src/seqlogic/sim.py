@@ -87,6 +87,7 @@ class Singular(State, Value):
     """Model state organized as a single unit."""
 
     def __init__(self, value):
+        State.__init__(self)
         self._value = value
         self._next_value = value
         self._changed = False
