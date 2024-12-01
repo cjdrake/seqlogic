@@ -411,7 +411,7 @@ class Bits(_SizedIf):
         return _cat(s, co)
 
     # Note: Keep carry-out
-    def __neg__(self) -> Bits:
+    def __neg__(self) -> Vector:
         s, co = _neg(self)
         return _cat(s, co)
 
@@ -1617,6 +1617,21 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     return t._cast_data(s ^ dmax, s), co
 
 
+def _inc(a: Bits) -> tuple[Bits, Scalar]:
+    # X/DC propagation
+    if a.has_x():
+        return a.xes(), _ScalarX
+    if a.has_dc():
+        return a.dcs(), _ScalarW
+
+    dmax = mask(a.size)
+    s = a.data[1] + 1
+    co = _bool2scalar[s > dmax]
+    s &= dmax
+
+    return a._cast_data(s ^ dmax, s), co
+
+
 def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
     """Addition with carry-in, but NO carry-out.
 
@@ -1705,7 +1720,7 @@ def sub(a: Bits | str, b: Bits | str) -> Bits:
     return s
 
 
-def sbc(a: Bits | str, b: Bits | str) -> Bits:
+def sbc(a: Bits | str, b: Bits | str) -> Vector:
     """Twos complement subtraction, with carry-out.
 
     Args:
@@ -1728,7 +1743,7 @@ def sbc(a: Bits | str, b: Bits | str) -> Bits:
 
 
 def _neg(x: Bits) -> tuple[Bits, Scalar]:
-    return _add(x.zeros(), _not_(x), ci=_Scalar1)
+    return _inc(_not_(x))
 
 
 def neg(x: Bits | str) -> Bits:
@@ -1749,7 +1764,7 @@ def neg(x: Bits | str) -> Bits:
     return s
 
 
-def ngc(x: Bits | str) -> Bits:
+def ngc(x: Bits | str) -> Vector:
     """Twos complement negation, with carry-out.
 
     Args:
