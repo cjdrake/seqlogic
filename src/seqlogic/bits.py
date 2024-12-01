@@ -422,17 +422,17 @@ class Bits(_SizedIf):
         other = _expect_type(other, Bits)
         return mul(other, self)
 
-    def __div__(self, other: Bits | str) -> Vector:
+    def __div__(self, other: Bits | str) -> Bits:
         return div(self, other)
 
-    def __rdiv__(self, other: Bits | str) -> Vector:
+    def __rdiv__(self, other: Bits | str) -> Bits:
         other = _expect_type(other, Bits)
         return div(other, self)
 
-    def __mod__(self, other: Bits | str) -> Vector:
+    def __mod__(self, other: Bits | str) -> Bits:
         return mod(self, other)
 
-    def __rmod__(self, other: Bits | str) -> Vector:
+    def __rmod__(self, other: Bits | str) -> Bits:
         other = _expect_type(other, Bits)
         return mod(other, self)
 
