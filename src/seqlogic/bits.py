@@ -1598,16 +1598,16 @@ def decode(x: Bits | str) -> Vector:
 
 
 def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
-    # X/DC propagation
-    if a.has_x() or b.has_x() or ci.has_x():
-        return a.xes(), _ScalarX
-    if a.has_dc() or b.has_dc() or ci.has_dc():
-        return a.dcs(), _ScalarW
-
     if a.size == b.size:
         t = _resolve_type(type(a), type(b))
     else:
         t = _vec_size(max(a.size, b.size))
+
+    # X/DC propagation
+    if a.has_x() or b.has_x() or ci.has_x():
+        return t.xes(), _ScalarX
+    if a.has_dc() or b.has_dc() or ci.has_dc():
+        return t.dcs(), _ScalarW
 
     dmax = mask(t.size)
     s = a.data[1] + b.data[1] + ci.data[1]
