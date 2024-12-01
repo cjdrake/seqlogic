@@ -1839,7 +1839,7 @@ def mul(a: Bits | str, b: Bits | str) -> Vector:
     return _mul(a, b)
 
 
-def _div(a: Bits, b: Bits) -> Vector:
+def _div(a: Bits, b: Bits) -> Bits:
     # X/DC propagation
     if a.has_x() or b.has_x():
         return a.xes()
@@ -1852,7 +1852,7 @@ def _div(a: Bits, b: Bits) -> Vector:
     return a._cast_data(q ^ dmax, q)
 
 
-def div(a: Bits | str, b: Bits | str) -> Vector:
+def div(a: Bits | str, b: Bits | str) -> Bits:
     """Unsigned divide.
 
     Args:
@@ -1873,7 +1873,7 @@ def div(a: Bits | str, b: Bits | str) -> Vector:
     return _div(a, b)
 
 
-def _mod(a: Bits, b: Bits) -> Vector:
+def _mod(a: Bits, b: Bits) -> Bits:
     # X/DC propagation
     if a.has_x() or b.has_x():
         return b.xes()
@@ -1886,7 +1886,7 @@ def _mod(a: Bits, b: Bits) -> Vector:
     return b._cast_data(r ^ dmax, r)
 
 
-def mod(a: Bits | str, b: Bits | str) -> Vector:
+def mod(a: Bits | str, b: Bits | str) -> Bits:
     """Unsigned modulo.
 
     Args:
