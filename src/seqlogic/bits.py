@@ -422,7 +422,7 @@ class Bits(_SizedIf):
         other = _expect_type(other, Bits)
         return mul(other, self)
 
-    def __div__(self, other: Bits | str) -> Bits:
+    def __floordiv__(self, other: Bits | str) -> Bits:
         return div(self, other)
 
     def __rdiv__(self, other: Bits | str) -> Bits:
