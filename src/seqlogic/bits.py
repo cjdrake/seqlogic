@@ -1604,12 +1604,16 @@ def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     if a.has_dc() or b.has_dc() or ci.has_dc():
         return a.dcs(), _ScalarW
 
-    dmax = mask(a.size)
+    if a.size == b.size:
+        t = _resolve_type(type(a), type(b))
+    else:
+        t = Vector[max(a.size, b.size)]
+
+    dmax = mask(t.size)
     s = a.data[1] + b.data[1] + ci.data[1]
     co = _bool2scalar[s > dmax]
     s &= dmax
 
-    t = _resolve_type(type(a), type(b))
     return t._cast_data(s ^ dmax, s), co
 
 
@@ -1626,26 +1630,25 @@ def add(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
 
     Args:
         a: ``Bits`` or string literal
-        b: ``Bits`` or string literal equal size to ``a``.
+        b: ``Bits`` or string literal
         ci: ``Scalar`` carry-in, or ``None``.
             ``None`` defaults to carry-in ``0``.
 
     Returns:
-        ``Bits`` sum equal size to ``a`` and ``b``.
+        ``Bits`` sum w/ size equal to ``max(a.size, b.size)``.
 
     Raises:
-        TypeError: ``a``, ``b``, or ``ci`` are not valid ``Bits`` objects,
-                   or ``a`` not equal size to ``b``.
+        TypeError: ``a``, ``b``, or ``ci`` are not valid ``Bits`` objects.
         ValueError: Error parsing string literal.
     """
     a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
+    b = _expect_type(b, Bits)
     ci = _Scalar0 if ci is None else _expect_type(ci, Scalar)
     s, _ = _add(a, b, ci)
     return s
 
 
-def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
+def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Vector:
     """Addition with carry-in, and carry-out.
 
     For example:
@@ -1658,21 +1661,20 @@ def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Bits:
 
     Args:
         a: ``Bits`` or string literal
-        b: ``Bits`` or string literal equal size to ``a``.
+        b: ``Bits`` or string literal
         ci: ``Scalar`` carry-in, or ``None``.
             ``None`` defaults to carry-in ``0``.
 
     Returns:
-        ``Bits`` sum w/ size one larger than ``a`` and ``b``.
+        ``Vector`` sum w/ size equal to ``max(a.size, b.size) + 1``.
         The most significant bit is the carry-out.
 
     Raises:
-        TypeError: ``a``, ``b``, or ``ci`` are not valid ``Bits`` objects,
-                   or ``a`` not equal size to ``b``.
+        TypeError: ``a``, ``b``, or ``ci`` are not valid ``Bits`` objects.
         ValueError: Error parsing string literal.
     """
     a = _expect_type(a, Bits)
-    b = _expect_size(b, a.size)
+    b = _expect_type(b, Bits)
     ci = _Scalar0 if ci is None else _expect_type(ci, Scalar)
     s, co = _add(a, b, ci)
     return cat(s, co)
