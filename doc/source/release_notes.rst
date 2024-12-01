@@ -5,6 +5,22 @@
 This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
+Version 0.38.0
+==============
+
+Lots of new documentation, and improved type hints.
+
+Implemented ``Empty.__getitem__`` for consistency with ``Scalar``,
+``Vector``, and ``Array``.
+
+Allow ``Array`` slice operator to take string literals as indices.
+
+Relax ``Bits`` ``add`` and ``mul`` operators.
+Input sizes no longer need to match.
+
+Implement new ``div`` and ``mod`` operators for basic unsigned
+division and modulus.
+
 Version 0.37.0
 ==============
 
