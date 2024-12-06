@@ -2270,11 +2270,6 @@ def cat(*objs: Bits | int | str) -> Vector:
     return _cat(*xs)
 
 
-def _rep(x: Bits, n: int) -> Vector:
-    xs = [x] * n
-    return _cat(*xs)
-
-
 def rep(obj: Bits | int | str, n: int) -> Vector:
     """Repeat a Vector n times."""
     objs = [obj] * n
