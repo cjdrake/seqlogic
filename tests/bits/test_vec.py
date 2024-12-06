@@ -21,6 +21,7 @@ from seqlogic import (
     lrot,
     lsh,
     lt,
+    mod,
     mul,
     mux,
     nand,
@@ -1331,6 +1332,7 @@ def test_vec_mul():
 
 
 DIV_VALS = [
+    ("0b1", "1b1", "0b1"),
     ("1b1", "1b1", "1b1"),
     ("8d42", "8d7", "8d6"),
     ("8d42", "8d6", "8d7"),
@@ -1356,6 +1358,35 @@ def test_vec_div():
 
     for a, b, q in DIV_VALS:
         assert div(a, b) == q
+
+
+MOD_VALS = [
+    ("1b0", "1b1", "1b0"),
+    ("1b1", "1b1", "1b0"),
+    ("8d42", "8d7", "8d0"),
+    ("8d42", "8d6", "8d0"),
+    ("8d42", "4d6", "4d0"),
+    ("8d42", "8d8", "8d2"),
+    ("8d42", "8d9", "8d6"),
+    ("8d42", "8d10", "8d2"),
+    ("8d42", "4bXXXX", "4bXXXX"),
+    ("8d42", "4b----", "4b----"),
+]
+
+
+def test_vec_mod():
+    # Cannot divide by empty
+    with pytest.raises(ValueError):
+        mod("2b00", bits())
+    # Cannot divide by zero
+    with pytest.raises(ZeroDivisionError):
+        mod("8d42", "8d0")
+    # Divisor cannot be wider than dividend
+    with pytest.raises(ValueError):
+        mod("2b00", "8d42")
+
+    for a, b, r in MOD_VALS:
+        assert mod(a, b) == r
 
 
 def test_count():
