@@ -11,6 +11,7 @@ from seqlogic import (
     bits,
     cat,
     decode,
+    div,
     eq,
     ge,
     gt,
@@ -1320,7 +1321,6 @@ MUL_VALS = [
 
 
 def test_vec_mul():
-    """Test bits add method."""
     # Empty X Empty = Empty
     assert mul(bits(), bits()) == bits()
 
@@ -1328,6 +1328,34 @@ def test_vec_mul():
         assert mul(a, b) == p
         assert bits(a) * b == p
         assert a * bits(b) == p
+
+
+DIV_VALS = [
+    ("1b1", "1b1", "1b1"),
+    ("8d42", "8d7", "8d6"),
+    ("8d42", "8d6", "8d7"),
+    ("8d42", "4d6", "8d7"),
+    ("8d42", "8d8", "8d5"),
+    ("8d42", "8d9", "8d4"),
+    ("8d42", "8d10", "8d4"),
+    ("8d42", "4bXXXX", "8bXXXX_XXXX"),
+    ("8d42", "4b----", "8b----_----"),
+]
+
+
+def test_vec_div():
+    # Cannot divide by empty
+    with pytest.raises(ValueError):
+        div("2b00", bits())
+    # Cannot divide by zero
+    with pytest.raises(ZeroDivisionError):
+        div("8d42", "8d0")
+    # Divisor cannot be wider than dividend
+    with pytest.raises(ValueError):
+        div("2b00", "8d42")
+
+    for a, b, q in DIV_VALS:
+        assert div(a, b) == q
 
 
 def test_count():
