@@ -119,12 +119,18 @@ def _resolve_type(t0: type[Bits], t1: type[Bits]) -> type[Bits]:
 
 
 class _SizedIf:
+
+    _size: int
+
     @classproperty
     def size(cls) -> int:
         raise NotImplementedError()  # pragma: no cover
 
 
 class _ShapedIf:
+
+    _shape: tuple[int, ...]
+
     @classproperty
     def shape(cls) -> tuple[int, ...]:
         raise NotImplementedError()  # pragma: no cover
@@ -723,8 +729,6 @@ class Vector(Bits, _ShapedIf):
     bits(["4b0000", "4b1111"])
     """
 
-    _size: int
-
     def __class_getitem__(cls, size: int) -> type[Vector]:
         if isinstance(size, int) and size >= 0:
             return _vec_size(size)
@@ -810,9 +814,6 @@ class Array(Bits, _ShapedIf):
     >>> x.flatten()
     bits("8b1110_0100")
     """
-
-    _shape: tuple[int, ...]
-    _size: int
 
     def __class_getitem__(cls, shape: int | tuple[int, ...]) -> type[Array]:
         if isinstance(shape, int):
