@@ -1102,6 +1102,8 @@ def test_vec_lsh():
         lsh(v, -1)
     with pytest.raises(ValueError):
         lsh(v, 5)
+    with pytest.raises(TypeError):
+        lsh(v, 0.5)
 
     assert lsh("2b01", "1bX") == bits("2bXX")
     assert lsh("2b01", "1b-") == bits("2b--")
