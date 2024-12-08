@@ -78,6 +78,7 @@ Arithmetic
 ----------
 
 .. autofunction:: seqlogic.decode
+.. autofunction:: seqlogic.encode_onehot
 .. autofunction:: seqlogic.add
 .. autofunction:: seqlogic.adc
 .. autofunction:: seqlogic.sub

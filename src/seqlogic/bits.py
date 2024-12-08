@@ -1612,6 +1612,50 @@ def decode(x: Bits | str) -> Vector:
     return vec(d1 ^ mask(n), d1)
 
 
+def encode_onehot(x: Bits | str) -> Vector:
+    """Encode sparse, one-hot encoding to dense encoding.
+
+    For example:
+
+    >>> encode_onehot("1b1")
+    bits([])
+    >>> encode_onehot("2b01")
+    bits("1b0")
+    >>> encode_onehot("2b10")
+    bits("1b1")
+    >>> encode_onehot("3b010")
+    bits("2b01")
+
+    Args:
+        x: ``Bits`` or string literal.
+
+    Returns:
+        ``Vector`` w/ ``size`` = ``clog2(x.size)``
+
+    Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
+        ValueError: ``x`` is not one-hot encoded.
+    """
+    x = _expect_type(x, Bits)
+
+    n = clog2(x.size)
+    vec = Vector[n]
+
+    # X/DC propagation
+    if x.has_x():
+        return vec.xes()
+    if x.has_dc():
+        return vec.dcs()
+
+    d1 = x.data[1]
+    is_onehot = d1 != 0 and d1 & (d1 - 1) == 0
+    if not is_onehot:
+        raise ValueError(f"Expected x to be one-hot encoded, got {x}")
+
+    y = clog2(d1)
+    return vec(y ^ mask(n), y)
+
+
 def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:
     if a.size == b.size:
         t = _resolve_type(type(a), type(b))

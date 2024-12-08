@@ -16,6 +16,7 @@ from .bits import (
     cat,
     decode,
     div,
+    encode_onehot,
     eq,
     ge,
     gt,
@@ -166,6 +167,7 @@ __all__ = [
     "uxor",
     # bits: arithmetic
     "decode",
+    "encode_onehot",
     "add",
     "adc",
     "sub",

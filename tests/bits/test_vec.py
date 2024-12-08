@@ -12,6 +12,7 @@ from seqlogic import (
     cat,
     decode,
     div,
+    encode_onehot,
     eq,
     ge,
     gt,
@@ -1188,18 +1189,45 @@ DEC_VALS = [
     (bits(), "1b1"),
     ("1b0", "2b01"),
     ("1b1", "2b10"),
-    ("1b-", "2b--"),
-    ("1bX", "2bXX"),
     ("2b00", "4b0001"),
     ("2b01", "4b0010"),
     ("2b10", "4b0100"),
     ("2b11", "4b1000"),
+    ("1b-", "2b--"),
+    ("1bX", "2bXX"),
 ]
 
 
 def test_decode():
     for x, y in DEC_VALS:
         assert y == decode(x)
+
+
+ENC_OH_VALS = [
+    ("1b1", bits()),
+    ("2b01", "1b0"),
+    ("2b10", "1b1"),
+    ("3b001", "2b00"),
+    ("3b010", "2b01"),
+    ("3b100", "2b10"),
+    ("4b0001", "2b00"),
+    ("4b0010", "2b01"),
+    ("4b0100", "2b10"),
+    ("4b1000", "2b11"),
+    ("2b--", "1b-"),
+    ("2bXX", "1bX"),
+]
+
+
+def test_encode_onehot():
+    # Not a valid one-hot encoding
+    with pytest.raises(ValueError):
+        encode_onehot("1b0")
+    with pytest.raises(ValueError):
+        encode_onehot("2b00")
+
+    for x, y in ENC_OH_VALS:
+        assert y == encode_onehot(x)
 
 
 ADD_VALS = [
