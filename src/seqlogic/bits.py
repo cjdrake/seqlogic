@@ -1613,12 +1613,12 @@ def decode(x: Bits | str) -> Vector:
 
 
 def encode_onehot(x: Bits | str) -> Vector:
-    """Encode sparse, one-hot encoding to dense encoding.
+    """Compress one-hot encoding to an index.
+
+    The index is the highest bit set in the input.
 
     For example:
 
-    >>> encode_onehot("1b1")
-    bits([])
     >>> encode_onehot("2b01")
     bits("1b0")
     >>> encode_onehot("2b10")
@@ -1654,6 +1654,60 @@ def encode_onehot(x: Bits | str) -> Vector:
 
     y = clog2(d1)
     return vec(y ^ mask(n), y)
+
+
+def encode_priority(x: Bits | str) -> tuple[Vector, Scalar]:
+    """Compress priority encoding to (index, valid) tuple.
+
+    The index is the highest bit set in the input.
+
+    For example:
+
+    >>> encode_priority("2b01")
+    (bits("1b0"), bits("1b1"))
+    >>> encode_priority("2b10")
+    (bits("1b1"), bits("1b1"))
+    >>> encode_priority("3b1--")
+    (bits("2b10"), bits("1b1"))
+
+    Args:
+        x: ``Bits`` or string literal.
+
+    Returns:
+        Tuple of ``Vector`` and ``Scalar``:
+            ``Vector`` w/ ``size`` = ``clog2(x.size)``
+            ``Scalar`` valid bit
+
+    Raises:
+        TypeError: ``x`` is not a valid ``Bits`` object.
+    """
+    x = _expect_type(x, Bits)
+
+    n = clog2(x.size)
+    vec = Vector[n]
+
+    # X propagation
+    if x.has_x():
+        return vec.xes(), _ScalarX
+
+    # Handle DC
+    if x.has_dc():
+        for i in range(x.size - 1, -1, -1):
+            x_i = x._get_index(i)
+            # 0*1{0,1,-}*
+            if x_i == _1:
+                return vec(i ^ mask(n), i), _Scalar1
+            # 0*-{0,1,-}* => DC
+            if x_i == _W:
+                return vec.dcs(), _ScalarW
+
+    d1 = x.data[1]
+
+    if d1 == 0:
+        return vec.dcs(), _Scalar0
+
+    y = clog2(d1 + 1) - 1
+    return vec(y ^ mask(n), y), _Scalar1
 
 
 def _add(a: Bits, b: Bits, ci: Scalar) -> tuple[Bits, Scalar]:

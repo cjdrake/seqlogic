@@ -17,6 +17,7 @@ from .bits import (
     decode,
     div,
     encode_onehot,
+    encode_priority,
     eq,
     ge,
     gt,
@@ -168,6 +169,7 @@ __all__ = [
     # bits: arithmetic
     "decode",
     "encode_onehot",
+    "encode_priority",
     "add",
     "adc",
     "sub",
