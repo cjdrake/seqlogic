@@ -27,6 +27,10 @@ from .expr import Expr, Variable
 from .hier import Branch, Leaf
 
 
+class WtfError(Exception):
+    pass
+
+
 class Region(IntEnum):
     # Coroutines that react to changes from Active region.
     # Used by combinational logic.
@@ -520,6 +524,78 @@ class Module(metaclass=_ModuleMeta):
 
         self._initial.append((cf(), Region.ACTIVE))
         # fmt: on
+
+    async def foo(self, q):
+        """If ON: Q"""
+
+        def clk_pred():
+            return self.clock.is_posedge() and self.reset.is_neg()
+
+        on = False
+
+        while True:
+            x = await touched({self.reset: self.reset.is_posedge, self.clock: clk_pred})
+            if x is self.reset:
+                on = True
+            elif x is self.clock:
+                if on and not q():
+                    raise WtfError("WTF")
+            else:
+                assert False  # pragma: no cover
+
+    async def bar(self, p, q):
+        """If ON: P |-> Q"""
+
+        def clk_pred():
+            return self.clock.is_posedge() and self.reset.is_neg()
+
+        on = False
+
+        while True:
+            x = await touched({self.reset: self.reset.is_posedge, self.clock: clk_pred})
+            if x is self.reset:
+                on = True
+            elif x is self.clock:
+                if on and p() and not q():
+                    raise WtfError("WTF")
+            else:
+                assert False  # pragma: no cover
+
+    async def fiz(self, q):
+        """If ON: Q0 => Q1 => ..."""
+
+        def clk_pred():
+            return self.clock.is_posedge() and self.reset.is_neg()
+
+        on = False
+
+        while True:
+            x = await touched({self.reset: self.reset.is_posedge, self.clock: clk_pred})
+            if x is self.reset:
+                on = True
+            elif x is self.clock:
+                if on:
+                    create_task(q(), Region.INACTIVE)
+            else:
+                assert False  # pragma: no cover
+
+    async def buz(self, p, q):
+        """If ON: P |=> Q0 |=> Q1 => ..."""
+
+        def clk_pred():
+            return self.clock.is_posedge() and self.reset.is_neg()
+
+        on = False
+
+        while True:
+            x = await touched({self.reset: self.reset.is_posedge, self.clock: clk_pred})
+            if x is self.reset:
+                on = True
+            elif x is self.clock:
+                if on and p():
+                    create_task(q(), Region.INACTIVE)
+            else:
+                assert False  # pragma: no cover
 
 
 class Logic(Leaf, _ProcIf, _TraceIf):
