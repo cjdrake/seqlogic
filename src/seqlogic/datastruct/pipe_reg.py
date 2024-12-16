@@ -3,6 +3,7 @@
 from bvwx import Vec
 
 from seqlogic import Module
+from seqlogic.check.ready_valid import CheckValid
 
 
 class PipeReg(Module):
@@ -26,3 +27,29 @@ class PipeReg(Module):
 
         # Data
         self.dff(rd_data, wr_data, clock, en=wr_valid)
+
+        self.submod(
+            name="rv_check_tx",
+            mod=CheckValid(
+                T=self.T,
+                TX=True,
+            ),
+        ).connect(
+            valid=rd_valid,
+            data=rd_data,
+            clock=clock,
+            reset=reset,
+        )
+
+        self.submod(
+            name="rv_check_rx",
+            mod=CheckValid(
+                T=self.T,
+                RX=True,
+            ),
+        ).connect(
+            valid=wr_valid,
+            data=wr_data,
+            clock=clock,
+            reset=reset,
+        )

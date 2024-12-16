@@ -6,13 +6,14 @@ straightforward API for creating a digital design.
 
 from __future__ import annotations
 
+import logging
 import re
 from collections import defaultdict
 from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from deltacycle import Aggregate, Loop, Singular, TaskGroup, any_var, now
+from deltacycle import Aggregate, Loop, Singular, TaskGroup, any_var, get_current_task_group, now
 from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
 from vcd.writer import VCDWriter as VcdWriter
@@ -20,6 +21,8 @@ from vcd.writer import VCDWriter as VcdWriter
 from .expr import Expr
 from .expr import Variable as ExprVar
 from .hier import Branch, Leaf
+
+logger = logging.getLogger("deltacycle")
 
 
 class Region(IntEnum):
@@ -37,6 +40,10 @@ class Region(IntEnum):
 
 class DesignError(Exception):
     """Design Error."""
+
+
+class WtfError(Exception):
+    pass
 
 
 class _ProcIf:
@@ -621,6 +628,151 @@ class Module(metaclass=_ModuleMeta):
         self._active.append(coro)
         # fmt: on
 
+    def _check_immed(
+        self,
+        T: type[Checker],
+        name: str,
+        f,
+        xs: Sequence[SimVar],
+        clk: Packed,
+        rst: Packed,
+    ) -> Checker:
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
+        # Require valid and unique name
+        self._check_name(name)
+        if hasattr(self, name):
+            raise DesignError(f"Invalid assume name: {name}")
+
+        node = T(name, parent=self)
+
+        def clk_pred() -> bool:
+            return clk.is_posedge() and rst.is_neg()
+
+        def _check():
+            ret = f(*[x.value for x in xs])
+            if not ret:
+                raise WtfError("WTF")
+
+        async def cf():
+            on = False
+            vps = {rst: rst.is_posedge, clk: clk_pred}
+
+            while True:
+                x = await any_var(vps)
+                if x is rst:
+                    on = True
+                elif x is clk:
+                    if on:
+                        _check()
+                else:
+                    assert False  # pragma: no cover
+
+        coro = cf()
+        node._inactive.append(coro)
+
+        # Save in module namespace
+        setattr(self, name, node)
+        return node
+
+    def assume_immed(
+        self,
+        name: str,
+        f,
+        xs: Sequence[Logic],
+        clk: Packed,
+        rst: Packed,
+    ) -> Assumption:
+        return self._check_immed(Assumption, name, f, xs, clk, rst)
+
+    def assert_immed(
+        self,
+        name: str,
+        f,
+        xs: Sequence[Logic],
+        clk: Packed,
+        rst: Packed,
+    ) -> Assertion:
+        return self._check_immed(Assertion, name, f, xs, clk, rst)
+
+    def _check_seq(
+        self,
+        cls: type[Checker],
+        name: str,
+        p,
+        p_xs: Sequence[SimVar],
+        q,
+        q_xs: Sequence[SimVar],
+        clk: Packed,
+        rst: Packed,
+    ) -> Checker:
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
+        # Require valid and unique name
+        self._check_name(name)
+        if hasattr(self, name):
+            raise DesignError(f"Invalid assume name: {name}")
+
+        node = cls(name, parent=self)
+
+        def clk_pred() -> bool:
+            return clk.is_posedge() and rst.is_neg()
+
+        async def _check():
+            ret = await q(*q_xs)
+            if not ret:
+                raise WtfError("WTF")
+
+        async def cf():
+            on = False
+            vps = {rst: rst.is_posedge, clk: clk_pred}
+            tg = get_current_task_group()
+
+            while True:
+                x = await any_var(vps)
+                if x is rst:
+                    on = True
+                elif x is clk:
+                    if on:
+                        en = p(*[x.value for x in p_xs])
+                        if en:
+                            tg.create_task(_check(), priority=Region.INACTIVE)
+                else:
+                    assert False  # pragma: no cover
+
+        coro = cf()
+        node._inactive.append(coro)
+
+        # Save in module namespace
+        setattr(self, name, node)
+        return node
+
+    def assume_seq(
+        self,
+        name: str,
+        p,
+        p_xs: Sequence[Logic],
+        q,
+        q_xs,
+        clk: Packed,
+        rst: Packed,
+    ) -> Assumption:
+        return self._check_seq(Assumption, name, p, p_xs, q, q_xs, clk, rst)
+
+    def assert_seq(
+        self,
+        name: str,
+        p,
+        p_xs: Sequence[Logic],
+        q,
+        q_xs,
+        clk: Packed,
+        rst: Packed,
+    ) -> Assertion:
+        return self._check_seq(Assertion, name, p, p_xs, q, q_xs, clk, rst)
+
 
 class Logic(Leaf, _ProcIf, _TraceIf):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
@@ -753,6 +905,20 @@ class Unpacked(Logic, Aggregate):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Logic.__init__(self, name, parent, dtype)
         Aggregate.__init__(self, dtype.xes())
+
+
+class Checker(Leaf, _ProcIf, _TraceIf):
+    def __init__(self, name: str, parent: Module):
+        Leaf.__init__(self, name, parent)
+        _ProcIf.__init__(self)
+
+
+class Assumption(Checker):
+    pass
+
+
+class Assertion(Checker):
+    pass
 
 
 class Float(Leaf, _ProcIf, _TraceIf, Singular):
