@@ -3,6 +3,7 @@
 from bvwx import Vec
 
 from seqlogic import ITE, Module
+from seqlogic.check.ready_valid import CheckReadyValid
 
 
 class Hbeb(Module):
@@ -49,3 +50,35 @@ class Hbeb(Module):
 
         # Write Port
         self.dff(data, wr_data, clock, en=wr_en)
+
+        # Check TX ready/valid
+        self.submod(
+            name="rv_check_tx",
+            mod=CheckReadyValid(
+                T=self.T,
+                TX=True,
+                TX_READY_STABLE=True,
+            ),
+        ).connect(
+            ready=rd_ready,
+            valid=rd_valid,
+            data=rd_data,
+            clock=clock,
+            reset=reset,
+        )
+
+        # Check RX ready/valid
+        self.submod(
+            name="rv_check_rx",
+            mod=CheckReadyValid(
+                T=self.T,
+                RX=True,
+                RX_READY_STABLE=True,
+            ),
+        ).connect(
+            ready=wr_ready,
+            valid=wr_valid,
+            data=wr_data,
+            clock=clock,
+            reset=reset,
+        )
