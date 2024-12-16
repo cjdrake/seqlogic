@@ -6,13 +6,14 @@ straightforward API for creating a digital design.
 
 from __future__ import annotations
 
+import logging
 import re
 from collections import defaultdict
 from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from deltacycle import Aggregate, Loop, Singular, TaskGroup, any_var, now
+from deltacycle import Aggregate, Loop, Singular, TaskGroup, any_var, get_running_loop, now
 from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
 from vcd.writer import VCDWriter as VcdWriter
@@ -20,6 +21,8 @@ from vcd.writer import VCDWriter as VcdWriter
 from .expr import Expr
 from .expr import Variable as ExprVar
 from .hier import Branch, Leaf
+
+logger = logging.getLogger("deltacycle")
 
 
 class Region(IntEnum):
@@ -621,6 +624,240 @@ class Module(metaclass=_ModuleMeta):
         self._active.append(coro)
         # fmt: on
 
+    def _check_impl(
+        self,
+        C: type[Checker],
+        E: type[CheckerError],
+        name: str,
+        p: Expr,
+        f,
+        xs: Sequence[SimVar],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None,
+    ) -> Checker:
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
+        # Require valid and unique name
+        self._check_name(name)
+        if hasattr(self, name):
+            raise DesignError(f"Invalid assume name: {name}")
+
+        node = C(name, parent=self)
+
+        def _check():
+            y = f(*[x.value for x in xs])
+            if not y:
+                args = () if msg is None else (msg,)
+                raise E(*args)
+
+        async def cf():
+            def clk_pred() -> bool:
+                return clk.is_posedge() and rst.is_neg()
+
+            vps = {rst: rst.is_posedge, clk: clk_pred}
+            p_f, p_xs = p.to_func()
+
+            on = False
+            while True:
+                x = await any_var(vps)
+                if x is rst:
+                    on = True
+                elif x is clk:
+                    if on:
+                        en = p_f(*[x.value for x in p_xs])
+                        if en:
+                            _check()
+                else:
+                    assert False  # pragma: no cover
+
+        coro = cf()
+        node._inactive.append(coro)
+
+        # Save in module namespace
+        setattr(self, name, node)
+        return node
+
+    def assume_impl(
+        self,
+        name: str,
+        p: Expr,
+        f,
+        xs: Sequence[Logic],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None = None,
+    ) -> Assumption:
+        return self._check_impl(Assumption, AssumeError, name, p, f, xs, clk, rst, msg)
+
+    def assert_impl(
+        self,
+        name: str,
+        p: Expr,
+        f,
+        xs: Sequence[Logic],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None = None,
+    ) -> Assertion:
+        return self._check_impl(Assertion, AssertError, name, p, f, xs, clk, rst, msg)
+
+    def _check_immed(
+        self,
+        C: type[Checker],
+        E: type[CheckerError],
+        name: str,
+        f,
+        xs: Sequence[SimVar],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None,
+    ) -> Checker:
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
+        # Require valid and unique name
+        self._check_name(name)
+        if hasattr(self, name):
+            raise DesignError(f"Invalid assume name: {name}")
+
+        node = C(name, parent=self)
+
+        def _check():
+            y = f(*[x.value for x in xs])
+            if not y:
+                args = () if msg is None else (msg,)
+                raise E(*args)
+
+        async def cf():
+            def clk_pred() -> bool:
+                return clk.is_posedge() and rst.is_neg()
+
+            vps = {rst: rst.is_posedge, clk: clk_pred}
+
+            on = False
+            while True:
+                x = await any_var(vps)
+                if x is rst:
+                    on = True
+                elif x is clk:
+                    if on:
+                        _check()
+                else:
+                    assert False  # pragma: no cover
+
+        coro = cf()
+        node._inactive.append(coro)
+
+        # Save in module namespace
+        setattr(self, name, node)
+        return node
+
+    def assume_immed(
+        self,
+        name: str,
+        f,
+        xs: Sequence[Logic],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None = None,
+    ) -> Assumption:
+        return self._check_immed(Assumption, AssumeError, name, f, xs, clk, rst, msg)
+
+    def assert_immed(
+        self,
+        name: str,
+        f,
+        xs: Sequence[Logic],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None = None,
+    ) -> Assertion:
+        return self._check_immed(Assertion, AssertError, name, f, xs, clk, rst, msg)
+
+    def _check_seq(
+        self,
+        C: type[Checker],
+        E: type[CheckerError],
+        name: str,
+        p: Expr,
+        s,
+        xs: Sequence[SimVar],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None,
+    ) -> Checker:
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
+        # Require valid and unique name
+        self._check_name(name)
+        if hasattr(self, name):
+            raise DesignError(f"Invalid assume name: {name}")
+
+        node = C(name, parent=self)
+
+        async def _check():
+            y = await s(*xs)
+            if not y:
+                args = () if msg is None else (msg,)
+                raise E(*args)
+
+        async def cf():
+            loop = get_running_loop()
+            task = loop.task()
+
+            def clk_pred() -> bool:
+                return clk.is_posedge() and rst.is_neg()
+
+            vps = {rst: rst.is_posedge, clk: clk_pred}
+            p_f, p_xs = p.to_func()
+
+            on = False
+            while True:
+                x = await any_var(vps)
+                if x is rst:
+                    on = True
+                elif x is clk:
+                    if on:
+                        en = p_f(*[x.value for x in p_xs])
+                        if en:
+                            task.group.create_task(_check(), priority=Region.INACTIVE)
+                else:
+                    assert False  # pragma: no cover
+
+        coro = cf()
+        node._inactive.append(coro)
+
+        # Save in module namespace
+        setattr(self, name, node)
+        return node
+
+    def assume_seq(
+        self,
+        name: str,
+        p: Expr,
+        s,
+        xs: Sequence[SimVar],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None = None,
+    ) -> Assumption:
+        return self._check_seq(Assumption, AssumeError, name, p, s, xs, clk, rst, msg)
+
+    def assert_seq(
+        self,
+        name: str,
+        p: Expr,
+        s,
+        xs: Sequence[SimVar],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None = None,
+    ) -> Assertion:
+        return self._check_seq(Assertion, AssertError, name, p, s, xs, clk, rst, msg)
+
 
 class Logic(Leaf, _ProcIf, _TraceIf):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
@@ -753,6 +990,32 @@ class Unpacked(Logic, Aggregate):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Logic.__init__(self, name, parent, dtype)
         Aggregate.__init__(self, dtype.xes())
+
+
+class Checker(Leaf, _ProcIf, _TraceIf):
+    def __init__(self, name: str, parent: Module):
+        Leaf.__init__(self, name, parent)
+        _ProcIf.__init__(self)
+
+
+class Assumption(Checker):
+    pass
+
+
+class Assertion(Checker):
+    pass
+
+
+class CheckerError(Exception):
+    pass
+
+
+class AssumeError(CheckerError):
+    pass
+
+
+class AssertError(CheckerError):
+    pass
 
 
 class Float(Leaf, _ProcIf, _TraceIf, Singular):
