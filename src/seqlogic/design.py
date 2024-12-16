@@ -39,6 +39,14 @@ class DesignError(Exception):
     """Design Error."""
 
 
+class AssumeError(Exception):
+    pass
+
+
+class AssertError(Exception):
+    pass
+
+
 class _ProcIf:
     """Process interface.
 
@@ -527,6 +535,125 @@ class Module(metaclass=_ModuleMeta):
         self._initial.append((cf(), Region.ACTIVE))
         # fmt: on
 
+    def _check_1(
+        self,
+        cls1: type[Assumption | Assertion],
+        cls2: type[AssumeError | AssertError],
+        name: str,
+        f: Callable,
+        xs: Sequence[SimVar],
+        clk: Packed,
+        rst: Packed,
+    ) -> Assumption | Assertion:
+        # Require valid name
+        self._check_name(name)
+        # Require unique name
+        if hasattr(self, name):
+            raise DesignError(f"Invalid assume name: {name}")
+
+        node = cls1(name, parent=self)
+
+        def clk_pred() -> bool:
+            return clk.is_posedge() and rst.is_neg()
+
+        async def cf():
+            on = False
+
+            while True:
+                x = await touched({rst: rst.is_posedge, clk: clk_pred})
+                if x is rst:
+                    on = True
+                elif x is clk:
+                    if on and not f(*[x.value for x in xs]):
+                        raise cls2("WTF")
+                else:
+                    assert False  # pragma: no cover
+
+        node._initial.append((cf(), Region.INACTIVE))
+
+        # Save in module namespace
+        setattr(self, name, node)
+        return node
+
+    def assume_1(
+        self,
+        name: str,
+        f: Callable,
+        xs: Packed | Unpacked,
+        clk: Packed,
+        rst: Packed,
+    ) -> Assumption:
+        return self._check_1(Assumption, AssumeError, name, f, xs, clk, rst)
+
+    def assert_1(
+        self,
+        name: str,
+        f: Callable,
+        xs: Packed | Unpacked,
+        clk: Packed,
+        rst: Packed,
+    ) -> Assertion:
+        return self._check_1(Assertion, AssertError, name, f, xs, clk, rst)
+
+    def _check_2(
+        self,
+        cls: type[Assumption | Assertion],
+        name: str,
+        p: Callable[[], bool],
+        q,
+        clk: Packed,
+        rst: Packed,
+    ) -> Assumption | Assertion:
+        # Require valid name
+        self._check_name(name)
+        # Require unique name
+        if hasattr(self, name):
+            raise DesignError(f"Invalid assume name: {name}")
+
+        node = cls(name, parent=self)
+
+        def clk_pred() -> bool:
+            return clk.is_posedge() and rst.is_neg()
+
+        async def cf():
+            on = False
+
+            while True:
+                x = await touched({rst: rst.is_posedge, clk: clk_pred})
+                if x is rst:
+                    on = True
+                elif x is clk:
+                    if on and p():
+                        create_task(q(), Region.INACTIVE)
+                else:
+                    assert False  # pragma: no cover
+
+        node._initial.append((cf(), Region.INACTIVE))
+
+        # Save in module namespace
+        setattr(self, name, node)
+        return node
+
+    def assume_2(
+        self,
+        name: str,
+        p: Callable[[], bool],
+        q,
+        clk: Packed,
+        rst: Packed,
+    ) -> Assumption:
+        return self._check_2(Assumption, name, p, q, clk, rst)
+
+    def assert_2(
+        self,
+        name: str,
+        p: Callable[[], bool],
+        q,
+        clk: Packed,
+        rst: Packed,
+    ) -> Assertion:
+        return self._check_2(Assertion, name, p, q, clk, rst)
+
 
 class Logic(Leaf, _ProcIf, _TraceIf):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
@@ -654,6 +781,18 @@ class Unpacked(Logic, Aggregate):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Logic.__init__(self, name, parent, dtype)
         Aggregate.__init__(self, dtype.xes())
+
+
+class Assumption(Leaf, _ProcIf, _TraceIf):
+    def __init__(self, name: str, parent: Module):
+        Leaf.__init__(self, name, parent)
+        _ProcIf.__init__(self)
+
+
+class Assertion(Leaf, _ProcIf, _TraceIf):
+    def __init__(self, name: str, parent: Module):
+        Leaf.__init__(self, name, parent)
+        _ProcIf.__init__(self)
 
 
 class Float(Leaf, _ProcIf, _TraceIf, Singular):
