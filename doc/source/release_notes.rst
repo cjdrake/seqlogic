@@ -5,6 +5,11 @@
 This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
+Version 0.39.0
+==============
+
+Add ``encode_onehot`` and ``encode_priority`` functions to the bits module.
+
 Version 0.38.0
 ==============
 
