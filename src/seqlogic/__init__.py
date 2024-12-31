@@ -60,7 +60,7 @@ from .bits import (
     xor,
     xt,
 )
-from .design import DesignError, Module, Packed, Unpacked
+from .design import DesignError, Float, Module, Packed, Unpacked
 from .expr import (
     EQ,
     GE,
@@ -212,6 +212,7 @@ __all__ = [
     "Module",
     "Packed",
     "Unpacked",
+    "Float",
     # expr
     "Expr",
     "Not",

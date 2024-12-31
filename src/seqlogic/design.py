@@ -290,6 +290,19 @@ class Module(metaclass=_ModuleMeta):
         setattr(self, local_name, node)
         return node
 
+    def float(self, name: str) -> Float:
+        # Require valid logic name
+        self._check_name(name)
+        local_name = f"_{name}"
+        # Require logic to have unique name
+        if hasattr(self, local_name):
+            raise DesignError(f"Invalid float name: {name}")
+        # Create logic
+        node = Float(name, parent=self)
+        # Save logic in module namespace
+        setattr(self, local_name, node)
+        return node
+
     def submod(self, name: str, mod: type[Module]) -> Module:
         # Require valid submodule name
         self._check_name(name)
@@ -710,3 +723,51 @@ class Unpacked(Logic, Aggregate):
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Logic.__init__(self, name, parent, dtype)
         Aggregate.__init__(self, dtype.xes())
+
+
+class Float(Leaf, _ProcIf, _TraceIf, Singular):
+    """Leaf-level float design component."""
+
+    def __init__(self, name: str, parent: Module):
+        Leaf.__init__(self, name, parent)
+        _ProcIf.__init__(self)
+        Singular.__init__(self, float())
+        self._waves_change = None
+        self._vcd_change = None
+
+    def update(self):
+        if self._waves_change and self.dirty():
+            self._waves_change()
+        if self._vcd_change and self.dirty():
+            self._vcd_change()
+        super().update()
+
+    # TraceIf
+    def dump_waves(self, waves: defaultdict, pattern: str):
+        if re.fullmatch(pattern, self.qualname):
+            # Initial time
+            waves[INIT_TIME][self] = self._value
+
+            def change():
+                t = now()
+                waves[t][self] = self._next_value
+
+            self._waves_change = change
+
+    def dump_vcd(self, vcdw: VcdWriter, pattern: str):
+        assert isinstance(self._parent, Module)
+
+        if re.fullmatch(pattern, self.qualname):
+            var = vcdw.register_var(
+                scope=self._parent.scope,
+                name=self.name,
+                var_type="real",
+                init=float(),
+            )
+
+            def change():
+                t = now()
+                value = self._next_value
+                return vcdw.change(var, t, value)
+
+            self._vcd_change = change
