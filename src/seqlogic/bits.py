@@ -27,6 +27,7 @@ from ._lbool import (
     from_char,
     land,
     lbv,
+    limpl,
     lite,
     lmux,
     lnot,
@@ -926,6 +927,12 @@ def _xor_(x0: Bits, x1: Bits) -> Bits:
     return t._cast_data(d0, d1)
 
 
+def _impl(p: Bits, q: Bits) -> Bits:
+    d0, d1 = limpl(p.data, q.data)
+    t = _resolve_type(type(p), type(q))
+    return t._cast_data(d0, d1)
+
+
 def not_(x: Bits | str) -> Bits:
     """Unary bitwise logical NOT operator.
 
@@ -1277,6 +1284,35 @@ def xor(x0: Bits | str, *xs: Bits | str) -> Bits:
         x = _expect_size(x, x0.size)
         y = _xor_(y, x)
     return y
+
+
+def impl(p: Bits | str, q: Bits | str) -> Bits:
+    """Binary bitwise logical IMPL (implies) operator.
+
+    Perform logical IMPL on each bit of the inputs:
+
+    Functionally equivalent to ``~p | q``.
+
+    For example:
+
+    >>> impl("16b----_1111_0000_XXXX", "16b-10X_-10X_-10X_-10X")
+    bits("16b-1-X_-10X_111X_XXXX")
+
+    Args:
+        p: ``Bits`` or string literal.
+        q: ``Bits`` equal size to ``p``.
+
+    Returns:
+        ``Bits`` equal size to ``p``.
+
+    Raises:
+        TypeError: ``p`` is not a valid ``Bits`` object,
+                   or ``q`` not equal size to ``p``.
+        ValueError: Error parsing string literal.
+    """
+    p = _expect_type(p, Bits)
+    q = _expect_size(q, p.size)
+    return _impl(p, q)
 
 
 def _ite(s: Bits, x1: Bits, x0: Bits) -> Bits:

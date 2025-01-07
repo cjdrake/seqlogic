@@ -128,6 +128,29 @@ def lxor(d0: lbv, d1: lbv) -> lbv:
     )
 
 
+def limpl(p: lbv, q: lbv) -> lbv:
+    r"""Lifted IMPL.
+
+    Karnaugh Map::
+
+             q
+           \ 00 01 11 10
+            +--+--+--+--+
+       p 00 |00|00|00|00|  y1 = p[0] & q[0]
+            +--+--+--+--+     | p[0] & q[1]
+         01 |00|10|10|10|     | p[1] & q[1]
+            +--+--+--+--+
+         11 |00|11|11|10|  y0 = p[1] & q[0]
+            +--+--+--+--+
+         10 |00|01|11|10|
+            +--+--+--+--+
+    """
+    return (
+        p[1] & q[0],
+        p[0] & q[0] | p[0] & q[1] | p[1] & q[1],
+    )
+
+
 def lite(s: lbv, a: lbv, b: lbv) -> lbv:
     r"""Lifted If-Then-Else.
 

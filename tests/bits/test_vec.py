@@ -18,6 +18,7 @@ from seqlogic import (
     ge,
     gt,
     i2bv,
+    impl,
     ite,
     le,
     lrot,
@@ -656,6 +657,21 @@ def test_vec_xor():
     #    xor(v0, 1.0e42)
     with pytest.raises(TypeError):
         xor(v0, "1b0")
+
+
+def test_vec_impl():
+    x0 = "16b----_1111_0000_XXXX"
+    x1 = "16b-10X_-10X_-10X_-10X"
+    yy = "16b-1-X_-10X_111X_XXXX"
+    v0 = bits(x0)
+    v1 = bits(x1)
+
+    assert impl(v0, x1) == yy
+    assert impl(v0, v1) == yy
+
+    # Invalid rhs
+    with pytest.raises(TypeError):
+        impl(v0, "1b0")
 
 
 ITE = (

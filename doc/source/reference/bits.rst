@@ -63,8 +63,9 @@ Bitwise
 .. autofunction:: seqlogic.and_
 .. autofunction:: seqlogic.xnor
 .. autofunction:: seqlogic.xor
-.. autofunction:: seqlogic.mux
+.. autofunction:: seqlogic.impl
 .. autofunction:: seqlogic.ite
+.. autofunction:: seqlogic.mux
 
 Unary
 -----

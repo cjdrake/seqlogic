@@ -22,6 +22,7 @@ from .bits import (
     ge,
     gt,
     i2bv,
+    impl,
     ite,
     le,
     lrot,
@@ -159,6 +160,7 @@ __all__ = [
     "and_",
     "xnor",
     "xor",
+    "impl",
     "ite",
     "mux",
     # bits: unary
