@@ -1,7 +1,7 @@
 """Test bit counting algorithms."""
 
 from seqlogic import bits
-from seqlogic.algorithm.count import clz
+from seqlogic.algorithm.count import clz, ctz
 
 CLZ = [
     ("1b0", "1b1"),
@@ -44,3 +44,46 @@ def test_clz():
     assert clz(empty) == empty
     for x, y in CLZ:
         assert clz(x) == y
+
+
+CTZ = [
+    ("1b0", "1b1"),
+    ("1b1", "1b0"),
+    ("2b00", "2b10"),
+    ("2b01", "2b00"),
+    ("2b10", "2b01"),
+    ("2b11", "2b00"),
+    ("3b000", "2b11"),
+    ("3b001", "2b00"),
+    ("3b010", "2b01"),
+    ("3b011", "2b00"),
+    ("3b100", "2b10"),
+    ("3b101", "2b00"),
+    ("3b110", "2b01"),
+    ("3b111", "2b00"),
+    ("4b0000", "3b100"),
+    ("4b0001", "3b000"),
+    ("4b0010", "3b001"),
+    ("4b0011", "3b000"),
+    ("4b0100", "3b010"),
+    ("4b0101", "3b000"),
+    ("4b0110", "3b001"),
+    ("4b0111", "3b000"),
+    ("4b1000", "3b011"),
+    ("4b1001", "3b000"),
+    ("4b1010", "3b001"),
+    ("4b1011", "3b000"),
+    ("4b1100", "3b010"),
+    ("4b1101", "3b000"),
+    ("4b1110", "3b001"),
+    ("4b1111", "3b000"),
+    ("4b-000", "3b---"),
+    ("4bX000", "3bXXX"),
+]
+
+
+def test_ctz():
+    empty = bits()
+    assert ctz(empty) == empty
+    for x, y in CTZ:
+        assert ctz(x) == y
