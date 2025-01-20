@@ -18,6 +18,7 @@ from .bits import (
     eq,
     ge,
     gt,
+    impl,
     ite,
     le,
     lrot,
@@ -135,6 +136,7 @@ class Expr(ABC):
             "and_": and_,
             "xnor": xnor,
             "xor": xor,
+            "impl": impl,
             "ite": ite,
             "mux": mux,
             "uor": uor,
@@ -316,6 +318,12 @@ class Xor(_NaryOp):
     """XOR operator node."""
 
     name = "xor"
+
+
+class Impl(_BinaryOp):
+    """Implies operator node."""
+
+    name = "impl"
 
 
 class ITE(_TernaryOp):
