@@ -2992,7 +2992,7 @@ def bits(obj=None) -> Array:
         case [Vector() as x, *rst]:
             return _rank2(x, *rst)
         case [*objs]:
-            return stack(*[bits(obj) for obj in objs])
+            return _stack(*[bits(obj) for obj in objs])
         case _:
             raise TypeError(f"Invalid input: {obj}")
 
@@ -3176,18 +3176,18 @@ def _sel(x: Array, key: tuple[tuple[int, int], ...]) -> Array:
             for i in range(start, stop):
                 d0, d1 = _chunk(x.data, vec.size * i, vec.size)
                 xs.append(vec(d0, d1))
-            return stack(*[_sel(x, key_r) for x in xs])
+            return _stack(*[_sel(x, key_r) for x in xs])
 
         array = _get_array_shape(x.shape[1:])
         xs = []
         for i in range(start, stop):
             d0, d1 = _chunk(x.data, array.size * i, array.size)
             xs.append(array(d0, d1))
-        return stack(*[_sel(x, key_r) for x in xs])
+        return _stack(*[_sel(x, key_r) for x in xs])
 
     # Full select 0:n
     if key_r:
-        return stack(*[_sel(xx, key_r) for xx in x])
+        return _stack(*[_sel(xx, key_r) for xx in x])
 
     return x
 
