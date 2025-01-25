@@ -2997,6 +2997,37 @@ def bits(obj=None) -> Array:
             raise TypeError(f"Invalid input: {obj}")
 
 
+def _stack(*xs: Array) -> Array:
+    if len(xs) == 0:
+        return _Empty
+    if len(xs) == 1:
+        return xs[0]
+
+    fst, rst = xs[0], xs[1:]
+
+    size = fst.size
+    d0, d1 = fst.data
+    for x in rst:
+        if x.shape != fst.shape:
+            s = f"Expected shape {fst.shape}, got {x.shape}"
+            raise TypeError(s)
+        d0 |= x.data[0] << size
+        d1 |= x.data[1] << size
+        size += x.size
+
+    # {Empty, Empty, ...} => Empty
+    if fst.shape == (0,):
+        return _Empty
+    # {Scalar, Scalar, ...} => Vector[K]
+    if fst.shape == (1,):
+        size = len(xs)
+        return _vec_size(size)(d0, d1)
+    # {Vector[K], Vector[K], ...} => Array[J,K]
+    # {Array[J,K], Array[J,K], ...} => Array[I,J,K]
+    shape = (len(xs),) + fst.shape
+    return _get_array_shape(shape)(d0, d1)
+
+
 def stack(*objs: Array | int | str) -> Array:
     """Stack a sequence of Bits w/ same shape into a higher dimensional shape.
 
@@ -3028,9 +3059,6 @@ def stack(*objs: Array | int | str) -> Array:
     Raises:
         TypeError: If input obj is invalid.
     """
-    if len(objs) == 0:
-        return _Empty
-
     # Convert inputs
     xs = []
     for obj in objs:
@@ -3044,32 +3072,7 @@ def stack(*objs: Array | int | str) -> Array:
         else:
             raise TypeError(f"Invalid input: {obj}")
 
-    if len(xs) == 1:
-        return xs[0]
-
-    fst, rst = xs[0], xs[1:]
-
-    size = fst.size
-    d0, d1 = fst.data
-    for x in rst:
-        if x.shape != fst.shape:
-            s = f"Expected shape {fst.shape}, got {x.shape}"
-            raise TypeError(s)
-        d0 |= x.data[0] << size
-        d1 |= x.data[1] << size
-        size += x.size
-
-    # {Empty, Empty, ...} => Empty
-    if fst.shape == (0,):
-        return _Empty
-    # {Scalar, Scalar, ...} => Vector[K]
-    if fst.shape == (1,):
-        size = len(xs)
-        return _vec_size(size)(d0, d1)
-    # {Vector[K], Vector[K], ...} => Array[J,K]
-    # {Array[J,K], Array[J,K], ...} => Array[I,J,K]
-    shape = (len(xs),) + fst.shape
-    return _get_array_shape(shape)(d0, d1)
+    return _stack(*xs)
 
 
 def u2bv(n: int, size: int | None = None) -> Vector:
