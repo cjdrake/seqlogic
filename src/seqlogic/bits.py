@@ -423,25 +423,28 @@ class Bits(_SizedIf):
         return _cat(s, co)
 
     def __mul__(self, other: Bits | str) -> Vector:
-        return mul(self, other)
+        other = _expect_type(other, Bits)
+        return _mul(self, other)
 
     def __rmul__(self, other: Bits | str) -> Vector:
         other = _expect_type(other, Bits)
-        return mul(other, self)
+        return _mul(other, self)
 
     def __floordiv__(self, other: Bits | str) -> Bits:
-        return div(self, other)
+        other = _expect_type(other, Bits)
+        return _div(self, other)
 
     def __rfloordiv__(self, other: Bits | str) -> Bits:
         other = _expect_type(other, Bits)
-        return div(other, self)
+        return _div(other, self)
 
     def __mod__(self, other: Bits | str) -> Bits:
-        return mod(self, other)
+        other = _expect_type(other, Bits)
+        return _mod(self, other)
 
     def __rmod__(self, other: Bits | str) -> Bits:
         other = _expect_type(other, Bits)
-        return mod(other, self)
+        return _mod(other, self)
 
     def to_uint(self) -> int:
         """Convert to unsigned integer.
