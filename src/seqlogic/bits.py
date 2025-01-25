@@ -1844,7 +1844,7 @@ def adc(a: Bits | str, b: Bits | str, ci: Scalar | str | None = None) -> Vector:
     b = _expect_type(b, Bits)
     ci = _Scalar0 if ci is None else _expect_type(ci, Scalar)
     s, co = _add(a, b, ci)
-    return cat(s, co)
+    return _cat(s, co)
 
 
 def _sub(a: Bits, b: Bits) -> tuple[Bits, Scalar]:
@@ -1891,7 +1891,7 @@ def sbc(a: Bits | str, b: Bits | str) -> Vector:
     a = _expect_type(a, Bits)
     b = _expect_size(b, a.size)
     s, co = _sub(a, b)
-    return cat(s, co)
+    return _cat(s, co)
 
 
 def _neg(x: Bits) -> tuple[Bits, Scalar]:
@@ -1932,7 +1932,7 @@ def ngc(x: Bits | str) -> Vector:
     """
     x = _expect_type(x, Bits)
     s, co = _neg(x)
-    return cat(s, co)
+    return _cat(s, co)
 
 
 def _mul(a: Bits, b: Bits) -> Vector:
