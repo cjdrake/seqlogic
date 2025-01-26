@@ -7,9 +7,8 @@ from __future__ import annotations
 from abc import ABC
 from collections.abc import Callable
 
-from .bits import (
+from bvwx import (
     Bits,
-    _lit2bv,
     adc,
     add,
     and_,
@@ -49,6 +48,7 @@ from .bits import (
     xor,
     xt,
 )
+from bvwx._bits import _lit2bv
 
 
 def _arg_xbs(obj: Expr | Bits | str) -> Expr:

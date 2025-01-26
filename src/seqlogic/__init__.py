@@ -1,13 +1,13 @@
 """Sequential Logic."""
 
-from ._bits_enum import Enum
-from ._bits_struct import Struct
-from ._bits_union import Union
-from .bits import (
+from bvwx import (
     Array,
     Bits,
     Empty,
+    Enum,
     Scalar,
+    Struct,
+    Union,
     Vector,
     adc,
     add,
@@ -61,6 +61,7 @@ from .bits import (
     xor,
     xt,
 )
+
 from .design import DesignError, Float, Module, Packed, Unpacked
 from .expr import (
     EQ,

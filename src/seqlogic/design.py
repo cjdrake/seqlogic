@@ -15,9 +15,10 @@ import re
 from collections import defaultdict
 from collections.abc import Callable, Coroutine, Sequence
 
+from bvwx import Bits, i2bv, stack, u2bv
+from bvwx._bits import _lit2bv
 from vcd.writer import VCDWriter as VcdWriter
 
-from .bits import Bits, _lit2bv, i2bv, stack, u2bv
 from .expr import Expr, Variable
 from .hier import Branch, Leaf
 from .sim import (
