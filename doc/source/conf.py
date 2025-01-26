@@ -13,7 +13,7 @@ WORKSPACE = Path(__file__).parents[2]
 PYPROJECT_TOML = WORKSPACE / "pyproject.toml"
 SRC_DIR = WORKSPACE / "src"
 
-# Make it possible to import from seqlogic package
+# Enable import from seqlogic package
 sys.path.insert(0, str(SRC_DIR))
 
 with open(PYPROJECT_TOML, mode="rb") as f:
