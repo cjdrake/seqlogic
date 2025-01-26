@@ -5,6 +5,18 @@
 This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
+Version 0.40.0
+==============
+
+Added a `float` design component.
+Experimental. Not yet documented or tested.
+
+Migrated ``bits`` data type from local to external library, ``bvwx``.
+Latest version added ``impl`` operator,
+and implemented a few miscellaneous bug fixes and improvements.
+
+Added a ``ctz`` (count trailing zeros) function to ``algorithms.count`` module.
+
 Version 0.39.0
 ==============
 

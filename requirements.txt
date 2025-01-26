@@ -1,7 +1,7 @@
 # Runtime Requirements
 
-# https://github.com/cjdrake/bvwx
+# https://bvwx.rtfd.org
 bvwx
 
-# https://pyvcd.readthedocs.io
+# https://pyvcd.rtfd.org
 pyvcd
