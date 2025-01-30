@@ -61,6 +61,7 @@ from bvwx import (
     xor,
     xt,
 )
+from bvwx._util import clog2
 
 from .design import DesignError, Float, Module, Packed, Unpacked
 from .expr import (
@@ -138,7 +139,6 @@ from .sim import (
     sleep,
     wait,
 )
-from .util import clog2
 
 # Alias Vector to Vec for brevity
 Vec = Vector
