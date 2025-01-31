@@ -71,7 +71,7 @@ def test_fsm():
     x = Packed(name="x", parent=top, dtype=Vec[1])
 
     top.combi(ns, f, ps, x)
-    top.dff_r(ps, ns, clock, reset_n, rval=SeqDetect.A, rneg=True)
+    top.dff(ps, ns, clock, rst=reset_n, rval=SeqDetect.A, rneg=True)
 
     waves = defaultdict(dict)
     top.dump_waves(waves, r"/top/x")

@@ -26,7 +26,7 @@ class Top(Module):
         d = self.logic(name="d", dtype=Vec[3])
 
         self.combi(d, lfsr, q)
-        self.dff_r(q, d, clock, reset_n, "3b100", rneg=True)
+        self.dff(q, d, clock, rst=reset_n, rval="3b100", rneg=True)
 
 
 def test_lfsr():

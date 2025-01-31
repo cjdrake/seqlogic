@@ -20,7 +20,7 @@ class PipeReg(Module):
         reset = self.input(name="reset", dtype=Vec[1])
 
         # Valid
-        self.dff_r(rd_valid, wr_valid, clock, reset, rval="1b0")
+        self.dff(rd_valid, wr_valid, clock, rst=reset, rval="1b0")
 
         # Data
-        self.dff_en(rd_data, wr_data, wr_valid, clock)
+        self.dff(rd_data, wr_data, clock, en=wr_valid)

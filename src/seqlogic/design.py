@@ -384,111 +384,14 @@ class Module(metaclass=_ModuleMeta):
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
 
-    def dff(self, q: Packed, d: Packed, clk: Packed):
-        """D Flip Flop.
-
-        Args:
-            q: output
-            d: input
-            clk: clock w/ positive edge trigger
-        """
-
-        async def cf():
-            while True:
-                state = await resume((clk, clk.is_posedge))
-                if state is clk:
-                    q.next = d.value
-                else:
-                    assert False  # pragma: no cover
-
-        self._initial.append((cf(), Region.ACTIVE))
-
-    def dff_r(
+    def dff(
         self,
         q: Packed,
         d: Packed,
         clk: Packed,
-        rst: Packed,
-        rval: Bits | str,
-        rsync: bool = False,
-        rneg: bool = False,
-    ):
-        """D Flip Flop with reset.
-
-        Args:
-            q: output
-            d: output
-            clk: clock w/ positive edge trigger
-            rst: reset
-            rval: reset value
-            rsync: reset is edge triggered
-            rneg: reset is active negative
-        """
-
-        # fmt: off
-        if rneg:
-            def clk_pred():
-                return clk.is_posedge() and rst.is_pos()
-        else:
-            def clk_pred():
-                return clk.is_posedge() and rst.is_neg()
-
-        if rsync:
-            async def cf():
-                while True:
-                    state = await resume((clk, clk_pred))
-                    if state is clk:
-                        ractive = (not rst.value) if rneg else bool(rst.value)
-                        q.next = rval if ractive else d.value
-                    else:
-                        assert False  # pragma: no cover
-        else:
-            rst_pred = rst.is_negedge if rneg else rst.is_posedge
-
-            async def cf():
-                while True:
-                    state = await resume((rst, rst_pred), (clk, clk_pred))
-                    if state is rst:
-                        q.next = rval
-                    elif state is clk:
-                        q.next = d.value
-                    else:
-                        assert False  # pragma: no cover
-
-        self._initial.append((cf(), Region.ACTIVE))
-        # fmt: on
-
-    def dff_en(self, q: Packed, d: Packed, en: Packed, clk: Packed):
-        """D Flip Flop with enable.
-
-        Args:
-            q: output
-            d: input
-            en: enable
-            clk: clock w/ positive edge trigger
-        """
-
-        def clk_pred():
-            return clk.is_posedge() and en.value == "1b1"
-
-        async def cf():
-            while True:
-                state = await resume((clk, clk_pred))
-                if state is clk:
-                    q.next = d.value
-                else:
-                    assert False  # pragma: no cover
-
-        self._initial.append((cf(), Region.ACTIVE))
-
-    def dff_en_r(
-        self,
-        q: Packed,
-        d: Packed,
-        en: Packed,
-        clk: Packed,
-        rst: Packed,
-        rval: Bits | str,
+        en: Packed | None = None,
+        rst: Packed | None = None,
+        rval: Bits | str | None = None,
         rsync: bool = False,
         rneg: bool = False,
     ):
@@ -497,42 +400,72 @@ class Module(metaclass=_ModuleMeta):
         Args:
             q: output
             d: input
-            en: enable
             clk: clock w/ positive edge trigger
+            en: enable
             rst: reset
             rval: reset value
             rsync: reset is edge triggered
             rneg: reset is active negative
         """
-
         # fmt: off
-        if rneg:
-            def clk_pred():
-                return clk.is_posedge() and rst.is_pos() and en.value == "1b1"
+        if en is None:
+            clk_en = clk.is_posedge
         else:
-            def clk_pred():
-                return clk.is_posedge() and rst.is_neg() and en.value == "1b1"
+            def clk_en():
+                return clk.is_posedge() and en.value == "1b1"
 
-        if rsync:
-            async def cf():
-                state = await resume((clk, clk_pred))
-                if state is clk:
-                    ractive = not rst.value if rneg else bool(rst.value)
-                    q.next = rval if ractive else d.value
-                else:
-                    assert False  # pragma: no cover
-        else:
-            rst_pred = rst.is_negedge if rneg else rst.is_posedge
-
+        # No Reset
+        if rst is None:
             async def cf():
                 while True:
-                    state = await resume((rst, rst_pred), (clk, clk_pred))
-                    if state is rst:
-                        q.next = rval
-                    elif state is clk:
+                    state = await resume((clk, clk_en))
+                    if state is clk:
                         q.next = d.value
                     else:
                         assert False  # pragma: no cover
+
+        # Reset
+        else:
+            if rval is None:
+                rval = q.dtype.zeros()
+
+            # Synchronous Reset
+            if rsync:
+                if rneg:
+                    async def cf():
+                        state = await resume((clk, clk_en))
+                        if state is clk:
+                            q.next = rval if not rst.value else d.value
+                        else:
+                            assert False  # pragma: no cover
+                else:
+                    async def cf():
+                        state = await resume((clk, clk_en))
+                        if state is clk:
+                            q.next = rval if rst.value else d.value
+                        else:
+                            assert False  # pragma: no cover
+
+            # Asynchronous Reset
+            else:
+                if rneg:
+                    rst_pred = rst.is_negedge
+                    def clk_pred():  # noqa
+                        return clk_en() and rst.is_pos()
+                else:
+                    rst_pred = rst.is_posedge
+                    def clk_pred():  # noqa
+                        return clk_en() and rst.is_neg()
+
+                async def cf():
+                    while True:
+                        state = await resume((rst, rst_pred), (clk, clk_pred))
+                        if state is rst:
+                            q.next = rval
+                        elif state is clk:
+                            q.next = d.value
+                        else:
+                            assert False  # pragma: no cover
 
         self._initial.append((cf(), Region.ACTIVE))
         # fmt: on

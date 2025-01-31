@@ -41,7 +41,7 @@ class Hbeb(Module):
         # Control
         full_next = self.logic(name="full_next", dtype=Vec[1])
         self.expr(full_next, ITE(full, ~rd_en, wr_en))
-        self.dff_r(full, full_next, clock, reset, rval="1b0")
+        self.dff(full, full_next, clock, rst=reset, rval="1b0")
 
         # Data
         data = self.logic(name="data", dtype=self.T)
@@ -50,4 +50,4 @@ class Hbeb(Module):
         self.assign(rd_data, data)
 
         # Write Port
-        self.dff_en(data, wr_data, wr_en, clock)
+        self.dff(data, wr_data, clock, en=wr_en)

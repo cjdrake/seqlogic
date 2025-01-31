@@ -69,7 +69,7 @@ class Top(Module):
         self.expr(d, ~q)
 
         # DFF w/ async positive (active high) reset, reset to 0
-        self.dff_r(q, d, clk, rst, rval="1b0")
+        self.dff(q, d, clk, rst=rst, rval="1b0")
 
         # Clock/Reset
         self.drv(drv_clock(clk))

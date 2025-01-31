@@ -196,4 +196,4 @@ class DataPath(Module):
         self.combi(wr_data, f_wr_data, *xs)
 
         # Sequential Logic
-        self.dff_en_r(pc, pc_next, pc_wr_en, clock, reset, rval=f"32d{TEXT_BASE}")
+        self.dff(pc, pc_next, clock, en=pc_wr_en, rst=reset, rval=f"32d{TEXT_BASE}")
