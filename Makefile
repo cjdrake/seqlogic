@@ -16,7 +16,7 @@ PYTEST := pytest
 .PHONY: lint
 lint:
 	@$(PYLINT) src/seqlogic tests
-	@$(FLAKE8)
+	@$(FLAKE8) src/seqlogic tests
 
 .PHONY: test
 test:
