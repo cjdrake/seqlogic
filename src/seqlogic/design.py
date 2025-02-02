@@ -330,7 +330,7 @@ class Module(metaclass=_ModuleMeta):
                 await changed(*xs)
 
                 # Apply f to inputs
-                values = f(*[x.state for x in xs])
+                values = f(*[x.present for x in xs])
 
                 # Pack outputs
                 if not isinstance(values, (list, tuple)):
@@ -378,7 +378,7 @@ class Module(metaclass=_ModuleMeta):
             async def cf():
                 while True:
                     await x
-                    y.next = x.value
+                    y.next = x.present
             self._initial.append((cf(), Region.REACTIVE))
         else:
             raise TypeError("Expected x to be Packed or str")

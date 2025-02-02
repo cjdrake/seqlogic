@@ -60,7 +60,7 @@ class State(Awaitable):
         # Resume
         return state
 
-    state = property(fget=NotImplemented)
+    present = property(fget=NotImplemented)
 
     def changed(self) -> bool:
         raise NotImplementedError()  # pragma: no cover
@@ -92,14 +92,11 @@ class Singular(State, Value):
         self._next_value = value
         self._changed = False
 
+    # Value
     def _get_value(self):
-        task = _loop.task()
-        if task is not None and task.region == Region.REACTIVE:
-            return self._next_value
         return self._value
 
     value = property(fget=_get_value)
-    state = property(fget=_get_value)
 
     def _set_next(self, value):
         self._changed = value != self._next_value
@@ -109,6 +106,12 @@ class Singular(State, Value):
         _loop.state_touch(self)
 
     next = property(fset=_set_next)
+
+    # State
+    def _get_next(self):
+        return self._next_value
+
+    present = property(fget=_get_next)
 
     def changed(self) -> bool:
         return self._changed
@@ -127,42 +130,46 @@ class Aggregate(State):
     def __init__(self, value):
         super().__init__()
         self._values = defaultdict(lambda: value)
-        self._next_values = defaultdict(lambda: value)
-        self._changed: set[Hashable] = set()
+        self._next_values = dict()
 
+    # [key] => Value
     def __getitem__(self, key: Hashable) -> AggrValue:
         def fget():
-            values = self._get_values()
-            return values[key]
+            return self._get_value(key)
 
         def fset(value):
             self._set_next(key, value)
 
         return AggrValue(fget, fset)
 
-    def _get_values(self):
-        task = _loop.task()
-        if task is not None and task.region == Region.REACTIVE:
-            return self._next_values.copy()
-        return self._values.copy()
-
-    state = property(fget=_get_values)
+    def _get_value(self, key: Hashable):
+        return self._values[key]
 
     def _set_next(self, key: Hashable, value):
-        if value != self._next_values[key]:
-            self._changed.add(key)
-        self._next_values[key] = value
+        try:
+            next_value = self._next_values[key]
+        except KeyError:
+            next_value = self._values[key]
+
+        if value != next_value:
+            self._next_values[key] = value
 
         # Notify the event loop
         _loop.state_touch(self)
 
+    # State
+    def _get_next_values(self):
+        return self._values | self._next_values
+
+    present = property(fget=_get_next_values)
+
     def changed(self) -> bool:
-        return bool(self._changed)
+        return bool(self._next_values)
 
     def update(self):
-        for key in self._changed:
-            self._values[key] = self._next_values[key]
-        self._changed.clear()
+        while self._next_values:
+            key, value = self._next_values.popitem()
+            self._values[key] = value
 
 
 class AggrValue(Value):
