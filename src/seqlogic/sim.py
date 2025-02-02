@@ -573,13 +573,13 @@ class EventLoop:
         self.call_soon(task)
         return task
 
-    def _task_return(self, ptask: Task, result):
+    def _task_return(self, ptask: Task, e: StopIteration):
         waiting = self._wait_fifos[ptask]
         while waiting:
             ctask = waiting.popleft()
             self.call_soon(ctask, value=ptask)
         ptask.set_state(TaskState.RETURNED)
-        ptask.set_result(result)
+        ptask.set_result(e.value)
 
     def _task_cancel(self, ptask: Task, e: CancelledError):
         waiting = self._wait_fifos[ptask]
@@ -680,8 +680,7 @@ class EventLoop:
                 try:
                     task.run(value)
                 except StopIteration as e:
-                    result = e.value
-                    self._task_return(task, result)
+                    self._task_return(task, e)
                 except CancelledError as e:
                     self._task_cancel(task, e)
                 except Exception as e:
@@ -727,8 +726,7 @@ class EventLoop:
                 try:
                     task.run(value)
                 except StopIteration as e:
-                    result = e.value
-                    self._task_return(task, result)
+                    self._task_return(task, e)
                 except CancelledError as e:
                     self._task_cancel(task, e)
                 except Exception as e:
