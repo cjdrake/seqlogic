@@ -172,8 +172,5 @@ def test_hbeb():
         # Dump all signals to VCD
         top.dump_vcd(vcdw, ".*")
 
-        # Register design w/ event loop
-        main = top.elab()
-
         # Do the damn thing
-        run(main)
+        run(top.main())

@@ -166,7 +166,7 @@ class Module(metaclass=_ModuleMeta):
     def build(self):
         raise NotImplementedError("Module requires a build method")
 
-    def elab(self) -> Coroutine:
+    def main(self) -> Coroutine:
         """Add design processes to the simulator."""
 
         async def cf():

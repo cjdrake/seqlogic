@@ -67,5 +67,4 @@ def test_ha():
     ):
         top = Top(name="top")
         top.dump_vcd(vcdw, ".*")
-        main = top.elab()
-        run(main)
+        run(top.main())

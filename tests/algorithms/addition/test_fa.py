@@ -75,5 +75,4 @@ def test_fa():
     ):
         top = Top(name="top")
         top.dump_vcd(vcdw, ".*")
-        main = top.elab()
-        run(main)
+        run(top.main())

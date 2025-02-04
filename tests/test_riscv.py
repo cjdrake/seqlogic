@@ -73,7 +73,7 @@ def test_dump():
 
     # Initialize instruction memory
     async def main():
-        await top.elab()
+        await top.main()
 
         text = get_mem("tests/riscv/tests/add.text")
         for i, d in enumerate(text):
@@ -736,7 +736,7 @@ def run_riscv_test(name: str) -> int:
     top = Top(name="top")
 
     async def main():
-        await top.elab()
+        await top.main()
 
         # Initialize instruction memory
         text = get_mem(f"tests/riscv/tests/{name}.text")

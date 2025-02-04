@@ -83,7 +83,7 @@ with (
 ):
     top = Top(name="top")
     top.dump_vcd(vcdw, ".*")
-    run(top.elab(), ticks=20)
+    run(top.main(), ticks=20)
 ```
 
 Use [GTKWave](https://gtkwave.sourceforge.net)
