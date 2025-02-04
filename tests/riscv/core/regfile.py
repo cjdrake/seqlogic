@@ -37,7 +37,7 @@ class RegFile(Module):
         self.expr(en, wr_en & NE(wr_addr, a0))
 
         # Write Port
-        self.mem_wr_en(regs, wr_addr, wr_data, en, clock)
+        self.mem_wr(regs, wr_addr, wr_data, clock, en)
 
         # Read Ports
         self.combi(rs1_data, operator.getitem, regs, rs1_addr)

@@ -31,8 +31,7 @@
     .. automethod:: seqlogic.Module.dff_r
     .. automethod:: seqlogic.Module.dff_en
     .. automethod:: seqlogic.Module.dff_en_r
-    .. automethod:: seqlogic.Module.mem_wr_en
-    .. automethod:: seqlogic.Module.mem_wr_be
+    .. automethod:: seqlogic.Module.mem_wr
 
 .. autoclass:: seqlogic.Packed
 

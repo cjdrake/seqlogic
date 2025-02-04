@@ -66,4 +66,4 @@ class Fbeb(Module):
         self.combi(rd_data, operator.getitem, data, rd_addr)
 
         # Write Port
-        self.mem_wr_en(data, wr_addr, wr_data, wr_en, clock)
+        self.mem_wr(data, wr_addr, wr_data, clock, wr_en)

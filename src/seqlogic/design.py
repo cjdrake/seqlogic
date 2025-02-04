@@ -470,65 +470,53 @@ class Module(metaclass=_ModuleMeta):
         self._initial.append((cf(), Region.ACTIVE))
         # fmt: on
 
-    def mem_wr_en(
+    def mem_wr(
         self,
         mem: Unpacked,
         addr: Packed,
         data: Packed,
-        en: Packed,
         clk: Packed,
+        en: Packed,
+        be: Packed | None = None,
     ):
         """Memory with write enable."""
 
         def clk_pred():
             return clk.is_posedge() and en.value == "1b1"
 
-        async def cf():
-            while True:
-                state = await resume((clk, clk_pred))
-                assert not addr.value.has_unknown()
-                if state is clk:
-                    mem[addr.value].next = data.value
-                else:
-                    assert False  # pragma: no cover
+        # fmt: off
+        if be is None:
+            async def cf():
+                while True:
+                    state = await resume((clk, clk_pred))
+                    assert not addr.value.has_unknown()
+                    if state is clk:
+                        mem[addr.value].next = data.value
+                    else:
+                        assert False  # pragma: no cover
+        else:
+            # Require mem/data to be Array[N,8]
+            assert len(mem.dtype.shape) == 2 and mem.dtype.shape[1] == 8
+            assert len(data.dtype.shape) == 2 and data.dtype.shape[1] == 8
+
+            async def cf():
+                while True:
+                    state = await resume((clk, clk_pred))
+                    assert not addr.value.has_unknown()
+                    assert not be.value.has_unknown()
+                    if state is clk:
+                        xs = []
+                        for i, data_en in enumerate(be.value):
+                            if data_en:
+                                xs.append(data.value[i])
+                            else:
+                                xs.append(mem[addr.value].value[i])
+                        mem[addr.value].next = stack(*xs)
+                    else:
+                        assert False  # pragma: no cover
 
         self._initial.append((cf(), Region.ACTIVE))
-
-    def mem_wr_be(
-        self,
-        mem: Unpacked,
-        addr: Packed,
-        data: Packed,
-        en: Packed,
-        be: Packed,
-        clk: Packed,
-    ):
-        """Memory with write byte enable."""
-
-        def clk_pred():
-            return clk.is_posedge() and en.value == "1b1"
-
-        # Require mem/data to be Array[N,8]
-        assert len(mem.dtype.shape) == 2 and mem.dtype.shape[1] == 8
-        assert len(data.dtype.shape) == 2 and data.dtype.shape[1] == 8
-
-        async def cf():
-            while True:
-                state = await resume((clk, clk_pred))
-                assert not addr.value.has_unknown()
-                assert not be.value.has_unknown()
-                if state is clk:
-                    xs = []
-                    for i, data_en in enumerate(be.value):
-                        if data_en:
-                            xs.append(data.value[i])
-                        else:
-                            xs.append(mem[addr.value].value[i])
-                    mem[addr.value].next = stack(*xs)
-                else:
-                    assert False  # pragma: no cover
-
-        self._initial.append((cf(), Region.ACTIVE))
+        # fmt: on
 
 
 class Logic(Leaf, _ProcIf, _TraceIf):

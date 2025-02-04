@@ -23,7 +23,7 @@ class DataMem(Module):
         mem = self.logic(name="mem", dtype=Array[4, 8], shape=(1024,))
 
         # Write Port
-        self.mem_wr_be(mem, addr, wr_data, wr_en, wr_be, clock)
+        self.mem_wr(mem, addr, wr_data, clock, wr_en, be=wr_be)
 
         # Read Port
         self.combi(rd_data, operator.getitem, mem, addr)
