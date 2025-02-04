@@ -55,7 +55,6 @@ from bvwx import (
     u2bv,
     uand,
     uor,
-    uxnor,
     uxor,
     xnor,
     xor,
@@ -99,7 +98,6 @@ from .expr import (
     Sxt,
     Uand,
     Uor,
-    Uxnor,
     Uxor,
     Xnor,
     Xor,
@@ -167,7 +165,6 @@ __all__ = [
     # bits: unary
     "uor",
     "uand",
-    "uxnor",
     "uxor",
     # bits: arithmetic
     "decode",
@@ -230,7 +227,6 @@ __all__ = [
     "Mux",
     "Uor",
     "Uand",
-    "Uxnor",
     "Uxor",
     "Add",
     "Adc",

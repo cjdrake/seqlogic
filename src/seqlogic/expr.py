@@ -42,7 +42,6 @@ from bvwx import (
     sxt,
     uand,
     uor,
-    uxnor,
     uxor,
     xnor,
     xor,
@@ -141,7 +140,6 @@ class Expr(ABC):
             "mux": mux,
             "uor": uor,
             "uand": uand,
-            "uxnor": uxnor,
             "uxor": uxor,
             "add": add,
             "adc": adc,
@@ -359,12 +357,6 @@ class Uand(_UnaryOp):
     """Unary AND reduction operator node."""
 
     name = "uand"
-
-
-class Uxnor(_UnaryOp):
-    """Unary XNOR reduction operator node."""
-
-    name = "uxnor"
 
 
 class Uxor(_UnaryOp):
