@@ -36,19 +36,6 @@ class InvalidStateError(Exception):
     """Task has an invalid state."""
 
 
-class Region(IntEnum):
-    # Coroutines that react to changes from Active region.
-    # Used by combinational logic.
-    REACTIVE = auto()
-
-    # Coroutines that drive changes to model state.
-    # Used by 1) testbench, and 2) sequential logic.
-    ACTIVE = auto()
-
-    # Coroutines that monitor model state.
-    INACTIVE = auto()
-
-
 class State(Awaitable):
     """Model component."""
 
@@ -237,7 +224,7 @@ class TaskState(IntEnum):
 class Task(Awaitable):
     """Coroutine wrapper."""
 
-    def __init__(self, coro: Coroutine, region: Region = Region.ACTIVE):
+    def __init__(self, coro: Coroutine, region: int = 0):
         self._coro = coro
         self._region = region
 
@@ -335,7 +322,7 @@ class Task(Awaitable):
         _loop.call_soon(self)
 
 
-def create_task(coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
+def create_task(coro: Coroutine, region: int = 0) -> Task:
     return _loop.task_create(coro, region)
 
 
@@ -345,7 +332,7 @@ class TaskGroup:
     def __init__(self):
         self._tasks = deque()
 
-    def create_task(self, coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
+    def create_task(self, coro: Coroutine, region: int = 0) -> Task:
         task = _loop.task_create(coro, region)
         self._tasks.append(task)
         return task
@@ -573,7 +560,7 @@ class EventLoop:
         self._wait_fifos[aw].remove(task)
 
     # Task await / done callbacks
-    def task_create(self, coro: Coroutine, region: Region = Region.ACTIVE) -> Task:
+    def task_create(self, coro: Coroutine, region: int = 0) -> Task:
         # Cannot call task_create before the simulation starts
         assert self._time >= 0
         task = Task(coro, region)
@@ -800,7 +787,7 @@ def now() -> int:
 
 def run(
     coro: Coroutine | None = None,
-    region: Region = Region.ACTIVE,
+    region: int = 0,
     loop: EventLoop | None = None,
     ticks: int | None = None,
     until: int | None = None,
@@ -821,7 +808,7 @@ def run(
 
 def irun(
     coro: Coroutine | None = None,
-    region: Region = Region.ACTIVE,
+    region: int = 0,
     loop: EventLoop | None = None,
     ticks: int | None = None,
     until: int | None = None,

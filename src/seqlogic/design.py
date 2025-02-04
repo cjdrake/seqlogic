@@ -14,6 +14,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from collections.abc import Callable, Coroutine, Sequence
+from enum import IntEnum, auto
 
 from bvwx import Bits, i2bv, stack, u2bv
 from bvwx._bits import _lit2bv
@@ -21,18 +22,20 @@ from vcd.writer import VCDWriter as VcdWriter
 
 from .expr import Expr, Variable
 from .hier import Branch, Leaf
-from .sim import (
-    INIT_TIME,
-    Aggregate,
-    Region,
-    Singular,
-    State,
-    Value,
-    changed,
-    create_task,
-    now,
-    resume,
-)
+from .sim import INIT_TIME, Aggregate, Singular, State, Value, changed, create_task, now, resume
+
+
+class Region(IntEnum):
+    # Coroutines that react to changes from Active region.
+    # Used by combinational logic.
+    REACTIVE = auto()
+
+    # Coroutines that drive changes to model state.
+    # Used by 1) testbench, and 2) sequential logic.
+    ACTIVE = auto()
+
+    # Coroutines that monitor model state.
+    INACTIVE = auto()
 
 
 class DesignError(Exception):
