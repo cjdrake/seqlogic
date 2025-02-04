@@ -7,6 +7,8 @@ Credit to David Beazley's "Build Your Own Async" tutorial for inspiration:
 https://www.youtube.com/watch?v=Y4Gt3Xjd7G8
 """
 
+# pylint: disable=protected-access
+
 from __future__ import annotations
 
 import heapq
@@ -108,10 +110,10 @@ class Singular(State, Value):
     next = property(fset=_set_next)
 
     # State
-    def _get_next(self):
+    def _get_present(self):
         return self._next_value
 
-    present = property(fget=_get_next)
+    present = property(fget=_get_present)
 
     def changed(self) -> bool:
         return self._changed
@@ -134,34 +136,29 @@ class Aggregate(State):
 
     # [key] => Value
     def __getitem__(self, key: Hashable) -> AggrValue:
-        def fget():
-            return self._get_value(key)
-
-        def fset(value):
-            self._set_next(key, value)
-
-        return AggrValue(fget, fset)
+        return AggrValue(self, key)
 
     def _get_value(self, key: Hashable):
         return self._values[key]
 
-    def _set_next(self, key: Hashable, value):
+    def _get_next_value(self, key: Hashable):
         try:
-            next_value = self._next_values[key]
+            return self._next_values[key]
         except KeyError:
-            next_value = self._values[key]
+            return self._values[key]
 
-        if value != next_value:
+    def _set_next(self, key: Hashable, value):
+        if value != self._get_next_value(key):
             self._next_values[key] = value
 
         # Notify the event loop
         _loop.state_touch(self)
 
     # State
-    def _get_next_values(self):
-        return self._values | self._next_values
+    def _get_present(self) -> AggrPresent:
+        return AggrPresent(self)
 
-    present = property(fget=_get_next_values)
+    present = property(fget=_get_present)
 
     def changed(self) -> bool:
         return bool(self._next_values)
@@ -172,20 +169,30 @@ class Aggregate(State):
             self._values[key] = value
 
 
+class AggrPresent:
+    """Wrap Aggregate present value."""
+
+    def __init__(self, aggr: Aggregate):
+        self._aggr = aggr
+
+    def __getitem__(self, key: Hashable):
+        return self._aggr._get_next_value(key)
+
+
 class AggrValue(Value):
     """Wrap Aggregate value getter/setter."""
 
-    def __init__(self, fget, fset):
-        self._fget = fget
-        self._fset = fset
+    def __init__(self, aggr: Aggregate, key: Hashable):
+        self._aggr = aggr
+        self._key = key
 
     def _get_value(self):
-        return self._fget()
+        return self._aggr._get_value(self._key)
 
     value = property(fget=_get_value)
 
     def _set_next(self, value):
-        self._fset(value)
+        self._aggr._set_next(self._key, value)
 
     next = property(fset=_set_next)
 
