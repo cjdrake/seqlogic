@@ -37,7 +37,7 @@ class Top(Module):
 
         self.submod(
             name="dut",
-            mod=PipeReg.parameterize(T=self.T),
+            mod=PipeReg.paramz(T=self.T),
         ).connect(
             rd_valid=rd_valid,
             rd_data=rd_data,

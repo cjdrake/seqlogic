@@ -31,7 +31,7 @@ class Top(Module):
         # 16K Instruction Memory
         self.submod(
             name="text_mem_bus",
-            mod=TextMemBus.parameterize(DEPTH=1024),
+            mod=TextMemBus.paramz(DEPTH=1024),
         ).connect(
             rd_addr=pc,
             rd_data=(
@@ -50,7 +50,7 @@ class Top(Module):
         # 32K Data Memory
         self.submod(
             name="data_mem_bus",
-            mod=DataMemBus.parameterize(DEPTH=1024),
+            mod=DataMemBus.paramz(DEPTH=1024),
         ).connect(
             addr=bus_addr,
             wr_en=bus_wr_en,

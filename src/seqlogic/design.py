@@ -22,7 +22,17 @@ from vcd.writer import VCDWriter as VcdWriter
 
 from .expr import Expr, Variable
 from .hier import Branch, Leaf
-from .sim import INIT_TIME, Aggregate, Singular, State, Value, changed, create_task, now, resume
+from .sim import (
+    INIT_TIME,
+    Aggregate,
+    Singular,
+    State,
+    Value,
+    changed,
+    create_task,
+    now,
+    resume,
+)
 
 
 class Region(IntEnum):
@@ -84,13 +94,13 @@ def _get_pmod(mod: type[Module], params) -> type[Module]:
         return pmod
 
 
-def _mod_parameterize_source(pntvs) -> str:
-    """Return source code for Module parameterize method."""
+def _mod_paramz_source(pntvs) -> str:
+    """Return source code for Module paramz method."""
     lines = []
     s = ", ".join(f"{pn}=None" for pn, _, _ in pntvs)
-    lines.append(f"def parameterize(cls, {s}):\n")
+    lines.append(f"def paramz(cls, {s}):\n")
     s = ", ".join(pn for pn, _, _ in pntvs)
-    lines.append(f"    return _parameterize_body(cls, {s})\n")
+    lines.append(f"    return _paramz_body(cls, {s})\n")
     return "".join(lines)
 
 
@@ -131,7 +141,7 @@ class _ModuleMeta(type):
 
         mod.__init__ = _init
 
-        def _parameterize_body(cls, *args):
+        def _paramz_body(cls, *args):
             # No parameters
             if not pntvs:
                 return cls
@@ -147,11 +157,12 @@ class _ModuleMeta(type):
 
             return _get_pmod(cls, params)
 
-        source = _mod_parameterize_source(pntvs)
-        globals_ = {"_parameterize_body": _parameterize_body}
+        source = _mod_paramz_source(pntvs)
+        globals_ = {"_paramz_body": _paramz_body}
         locals_ = {}
         exec(source, globals_, locals_)
-        mod.parameterize = classmethod(locals_["parameterize"])
+        mod.paramz = classmethod(locals_["paramz"])
+        mod.parameterize = mod.paramz
 
         return mod
 
