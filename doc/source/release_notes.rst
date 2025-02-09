@@ -5,6 +5,34 @@
 This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
+Version 0.41.0
+==============
+
+Lots of breaking changes in this release.
+
+Breaking changes to design constructs:
+* Replaced ``dff_*`` with a single ``dff`` method
+* Replaced ``mem_wr_*`` with a single ``mem_wr`` method
+
+Some minor, but important fixes to simulator internals.
+The ``Region`` class is now in design module.
+The simulator kernel no longer has to choose whether to use next state or
+present state; this is now left to the implementation.
+Now that concerns are better separated,
+it might be valuable to break out the sim.py module into a separate package.
+
+Renamed the ``Module.elab`` method to ``Module.main``.
+
+Shorted the ``Module.parameterize`` method name to just ``Module.paramz``.
+(Though the old name is still usable as an alias).
+
+Got rid of the opinionated requirement for module internals to prefix all
+names with ``_`` character.
+Simpler, more explicit, cleaner. Obviously better.
+
+The ``bvwx`` version 0.5 dependency introduces "logical" operators,
+which can make certain expressions easier to implement.
+
 Version 0.40.0
 ==============
 
