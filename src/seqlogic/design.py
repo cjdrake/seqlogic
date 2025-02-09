@@ -290,9 +290,8 @@ class Module(metaclass=_ModuleMeta):
     ) -> Packed | Unpacked:
         # Require valid logic name
         self._check_name(name)
-        local_name = f"_{name}"
         # Require logic to have unique name
-        if hasattr(self, local_name):
+        if hasattr(self, name):
             raise DesignError(f"Invalid logic name: {name}")
         # Create logic
         if shape is None:
@@ -302,33 +301,31 @@ class Module(metaclass=_ModuleMeta):
             assert len(shape) == 1
             node = Unpacked(name, parent=self, dtype=dtype)
         # Save logic in module namespace
-        setattr(self, local_name, node)
+        setattr(self, name, node)
         return node
 
     def float(self, name: str) -> Float:
         # Require valid logic name
         self._check_name(name)
-        local_name = f"_{name}"
         # Require logic to have unique name
-        if hasattr(self, local_name):
+        if hasattr(self, name):
             raise DesignError(f"Invalid float name: {name}")
         # Create logic
         node = Float(name, parent=self)
         # Save logic in module namespace
-        setattr(self, local_name, node)
+        setattr(self, name, node)
         return node
 
     def submod(self, name: str, mod: type[Module]) -> Module:
         # Require valid submodule name
         self._check_name(name)
-        local_name = f"_{name}"
         # Require submodule to have unique name
-        if hasattr(self, local_name):
+        if hasattr(self, name):
             raise DesignError(f"Invalid submodule name: {name}")
         # Create submodule
         node = mod(name, parent=self)
         # Save submodule in module namespace
-        setattr(self, local_name, node)
+        setattr(self, name, node)
         return node
 
     def drv(self, coro: Coroutine):

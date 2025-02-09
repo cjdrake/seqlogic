@@ -59,52 +59,44 @@ class Top(Module):
 
     async def drv_inputs(self):
         # reset: __/‾‾
-        await self._reset.posedge()
-        self._wr_valid.next = "1b0"
+        await self.reset.posedge()
+        self.wr_valid.next = "1b0"
 
         # reset: ‾‾\__
-        await self._reset.negedge()
+        await self.reset.negedge()
 
         # Delay a couple cycles
         for _ in range(2):
-            await self._clock.posedge()
+            await self.clock.posedge()
 
         for _ in range(self.N):
-            self._wr_valid.next = "1b1"
-            self._wr_data.next = self.T.rand()
-            await self._clock.posedge()
+            self.wr_valid.next = "1b1"
+            self.wr_data.next = self.T.rand()
+            await self.clock.posedge()
 
             for _ in range(randint(0, 2)):
-                self._wr_valid.next = "1b0"
-                self._wr_data.next = self.T.xes()
-                await self._clock.posedge()
+                self.wr_valid.next = "1b0"
+                self.wr_data.next = self.T.xes()
+                await self.clock.posedge()
 
         await sleep(8)
         finish()
 
     async def mon_wr(self):
-        clk, rst = self._clock, self._reset
-        en = self._wr_valid
-        data = self._wr_data
-
         def pred():
-            return clk.is_posedge() and rst.is_neg() and en.value == "1b1"
+            return self.clock.is_posedge() and self.reset.is_neg() and self.wr_valid.value == "1b1"
 
         while True:
-            await resume((clk, pred))
-            self.wdata.append(data.value)
+            await resume((self.clock, pred))
+            self.wdata.append(self.wr_data.value)
 
     async def mon_rd(self):
-        clk, rst = self._clock, self._reset
-        en = self._rd_valid
-        data = self._rd_data
-
         def pred():
-            return clk.is_posedge() and rst.is_neg() and en.value == "1b1"
+            return self.clock.is_posedge() and self.reset.is_neg() and self.rd_valid.value == "1b1"
 
         while True:
-            await resume((clk, pred))
-            self.rdata.append(data.value)
+            await resume((self.clock, pred))
+            self.rdata.append(self.rd_data.value)
 
             exp = self.wdata.popleft()
             got = self.rdata.popleft()

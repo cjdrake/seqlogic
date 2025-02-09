@@ -64,96 +64,81 @@ class Top(Module):
         self.rdata = deque()
 
     async def drv_wr(self):
-        clk, rst = self._clock, self._reset
-        wr_ready, wr_valid = self._wr_ready, self._wr_valid
-        wr_data = self._wr_data
-
         # reset: __/‾‾
-        await rst.posedge()
-        wr_valid.next = "1b0"
+        await self.reset.posedge()
+        self.wr_valid.next = "1b0"
 
         # reset: ‾‾\__
-        await rst.negedge()
+        await self.reset.negedge()
 
         # Delay a few cycles
         for _ in range(5):
-            await clk.posedge()
+            await self.clock.posedge()
 
         def pred():
-            return clk.is_posedge() and wr_ready.value == "1b1"
+            return self.clock.is_posedge() and self.wr_ready.value == "1b1"
 
         for _ in range(self.N):
-            wr_valid.next = "1b1"
-            wr_data.next = self.T.rand()
-            await resume((clk, pred))
+            self.wr_valid.next = "1b1"
+            self.wr_data.next = self.T.rand()
+            await resume((self.clock, pred))
 
             for _ in range(randint(0, 5)):
-                wr_valid.next = "1b0"
-                wr_data.next = self.T.xes()
-                await clk.posedge()
+                self.wr_valid.next = "1b0"
+                self.wr_data.next = self.T.xes()
+                await self.clock.posedge()
 
         await sleep(10)
         finish()
 
     async def drv_rd(self):
-        clk, rst = self._clock, self._reset
-        rd_ready, rd_valid = self._rd_ready, self._rd_valid
-
         # reset: __/‾‾
-        await rst.posedge()
-        rd_ready.next = "1b0"
+        await self.reset.posedge()
+        self.rd_ready.next = "1b0"
 
         # reset: ‾‾\__
-        await rst.negedge()
+        await self.reset.negedge()
 
         # Delay a few cycles
         for _ in range(5):
-            await clk.posedge()
+            await self.clock.posedge()
 
         def pred():
-            return clk.is_posedge() and rd_valid.value == "1b1"
+            return self.clock.is_posedge() and self.rd_valid.value == "1b1"
 
         while True:
-            rd_ready.next = "1b1"
-            await resume((clk, pred))
+            self.rd_ready.next = "1b1"
+            await resume((self.clock, pred))
 
             for _ in range(randint(0, 5)):
-                rd_ready.next = "1b0"
-                await clk.posedge()
+                self.rd_ready.next = "1b0"
+                await self.clock.posedge()
 
     async def mon_wr(self):
-        clk, rst = self._clock, self._reset
-        wr_ready, wr_valid = self._wr_ready, self._wr_valid
-        data = self._wr_data
-
         def pred():
             return (
-                clk.is_posedge()
-                and rst.is_neg()  # noqa: W503
-                and wr_ready.value == "1b1"  # noqa: W503
-                and wr_valid.value == "1b1"  # noqa: W503
+                self.clock.is_posedge()
+                and self.reset.is_neg()  # noqa: W503
+                and self.wr_ready.value == "1b1"  # noqa: W503
+                and self.wr_valid.value == "1b1"  # noqa: W503
             )
 
         while True:
-            await resume((clk, pred))
-            self.wdata.append(data.value)
+            await resume((self.clock, pred))
+            self.wdata.append(self.wr_data.value)
 
     async def mon_rd(self):
-        clk, rst = self._clock, self._reset
-        rd_ready, rd_valid = self._rd_ready, self._rd_valid
-        data = self._rd_data
-
         def pred():
             return (
-                clk.is_posedge()
-                and rst.is_neg()  # noqa: W503
-                and rd_ready.value == "1b1"  # noqa: W503
-                and rd_valid.value == "1b1"  # noqa: W503
+                self.clock.is_posedge()
+                and self.reset.is_neg()  # noqa: W503
+                and self.rd_ready.value == "1b1"  # noqa: W503
+                and self.rd_valid.value == "1b1"  # noqa: W503
             )
 
         while True:
-            await resume((clk, pred))
-            self.rdata.append(data.value)
+            await resume((self.clock, pred))
+            self.rdata.append(self.rd_data.value)
 
             exp = self.wdata.popleft()
             got = self.rdata.popleft()

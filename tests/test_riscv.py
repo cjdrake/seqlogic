@@ -79,7 +79,7 @@ def test_dump():
         for i, d in enumerate(text):
             addr = u2bv(i, 10)
             data = u2bv(d, 32)
-            top._text_mem_bus._text_mem._mem[addr].next = data
+            top.text_mem_bus.text_mem.mem[addr].next = data
 
     run(main(), until=50)
 
@@ -87,43 +87,43 @@ def test_dump():
         # Initialize everything to X'es
         -1: {
             # Top
-            top._pc: X32,
-            top._inst: Inst(),
+            top.pc: X32,
+            top.inst: Inst(),
             top.bus_addr: X32,
             top.bus_wr_en: "1bX",
             top.bus_wr_data: X32,
             top.bus_rd_en: "1bX",
             # Decode
-            top._core._datapath._immediate: X32,
+            top.core.datapath.immediate: X32,
             # Control
-            top._core._datapath.alu_op_a_sel: CtlAluA.X,
-            top._core._datapath.alu_op_b_sel: CtlAluB.X,
-            top._core._datapath.reg_wr_sel: CtlWriteBack.X,
+            top.core.datapath.alu_op_a_sel: CtlAluA.X,
+            top.core.datapath.alu_op_b_sel: CtlAluB.X,
+            top.core.datapath.reg_wr_sel: CtlWriteBack.X,
             # ALU
-            top._core._datapath._alu_result: X32,
-            top._core._datapath.alu_result_eq_zero: "1bX",
-            top._core._datapath.alu_op: AluOp.X,
-            top._core._datapath._alu_op_a: X32,
-            top._core._datapath._alu_op_b: X32,
+            top.core.datapath.alu_result: X32,
+            top.core.datapath.alu_result_eq_zero: "1bX",
+            top.core.datapath.alu_op: AluOp.X,
+            top.core.datapath.alu_op_a: X32,
+            top.core.datapath.alu_op_b: X32,
             # PC
-            top._core._datapath._pc_next: X32,
-            top._core._datapath.next_pc_sel: CtlPc.X,
-            top._core._datapath._pc_plus_4: X32,
-            top._core._datapath._pc_plus_immediate: X32,
-            top._core._datapath.pc_wr_en: "1bX",
+            top.core.datapath.pc_next: X32,
+            top.core.datapath.next_pc_sel: CtlPc.X,
+            top.core.datapath.pc_plus_4: X32,
+            top.core.datapath.pc_plus_immediate: X32,
+            top.core.datapath.pc_wr_en: "1bX",
             # Regfile
-            top._core._datapath.reg_wr_en: "1bX",
-            top._core._datapath._wr_data: X32,
-            top._core._datapath._rs1_data: X32,
-            top._core._datapath._rs2_data: X32,
+            top.core.datapath.reg_wr_en: "1bX",
+            top.core.datapath.wr_data: X32,
+            top.core.datapath.rs1_data: X32,
+            top.core.datapath.rs2_data: X32,
             # Data Mem
-            top._core._datapath.data_mem_addr: X32,
-            top._core._datapath.data_mem_wr_data: X32,
+            top.core.datapath.data_mem_addr: X32,
+            top.core.datapath.data_mem_wr_data: X32,
         },
         # @(posedge reset)
         5: {
-            top._pc: "32h0040_0000",
-            top._inst: Inst(
+            top.pc: "32h0040_0000",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -136,36 +136,36 @@ def test_dump():
             top.bus_wr_data: "32h0000_0000",
             top.bus_rd_en: "1b0",
             # Decode
-            top._core._datapath._immediate: "32h0000_0000",
+            top.core.datapath.immediate: "32h0000_0000",
             # Control
-            top._core._datapath.alu_op_a_sel: CtlAluA.RS1,
-            top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
-            top._core._datapath.reg_wr_sel: CtlWriteBack.ALU,
+            top.core.datapath.alu_op_a_sel: CtlAluA.RS1,
+            top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
+            top.core.datapath.reg_wr_sel: CtlWriteBack.ALU,
             # ALU
-            top._core._datapath._alu_result: "32h0000_0000",
-            top._core._datapath.alu_result_eq_zero: "1b1",
-            top._core._datapath.alu_op: AluOp.ADD,
-            top._core._datapath._alu_op_a: "32h0000_0000",
-            top._core._datapath._alu_op_b: "32h0000_0000",
+            top.core.datapath.alu_result: "32h0000_0000",
+            top.core.datapath.alu_result_eq_zero: "1b1",
+            top.core.datapath.alu_op: AluOp.ADD,
+            top.core.datapath.alu_op_a: "32h0000_0000",
+            top.core.datapath.alu_op_b: "32h0000_0000",
             # PC
-            top._core._datapath._pc_next: "32h0040_0004",
-            top._core._datapath.next_pc_sel: CtlPc.PC4,
-            top._core._datapath._pc_plus_4: "32h0040_0004",
-            top._core._datapath._pc_plus_immediate: "32h0040_0000",
-            top._core._datapath.pc_wr_en: "1b1",
+            top.core.datapath.pc_next: "32h0040_0004",
+            top.core.datapath.next_pc_sel: CtlPc.PC4,
+            top.core.datapath.pc_plus_4: "32h0040_0004",
+            top.core.datapath.pc_plus_immediate: "32h0040_0000",
+            top.core.datapath.pc_wr_en: "1b1",
             # Regfile
-            top._core._datapath.reg_wr_en: "1b1",
-            top._core._datapath._wr_data: "32h0000_0000",
-            top._core._datapath._rs1_data: "32h0000_0000",
-            top._core._datapath._rs2_data: "32h0000_0000",
+            top.core.datapath.reg_wr_en: "1b1",
+            top.core.datapath.wr_data: "32h0000_0000",
+            top.core.datapath.rs1_data: "32h0000_0000",
+            top.core.datapath.rs2_data: "32h0000_0000",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0000",
-            top._core._datapath.data_mem_wr_data: "32h0000_0000",
+            top.core.datapath.data_mem_addr: "32h0000_0000",
+            top.core.datapath.data_mem_wr_data: "32h0000_0000",
         },
         # @(posedge clock)
         11: {
-            top._pc: "32h0040_0004",
-            top._inst: Inst(
+            top.pc: "32h0040_0004",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00010",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -174,14 +174,14 @@ def test_dump():
                 funct7="7b0000000",
             ),
             # PC
-            top._core._datapath._pc_next: "32h0040_0008",
-            top._core._datapath._pc_plus_4: "32h0040_0008",
-            top._core._datapath._pc_plus_immediate: "32h0040_0004",
+            top.core.datapath.pc_next: "32h0040_0008",
+            top.core.datapath.pc_plus_4: "32h0040_0008",
+            top.core.datapath.pc_plus_immediate: "32h0040_0004",
         },
         # @(posedge clock)
         13: {
-            top._pc: "32h0040_0008",
-            top._inst: Inst(
+            top.pc: "32h0040_0008",
+            top.inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -190,18 +190,18 @@ def test_dump():
                 funct7="7b0000000",
             ),
             # Decode
-            top._core._datapath._immediate: W32,
+            top.core.datapath.immediate: W32,
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
+            top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # PC
-            top._core._datapath._pc_next: "32h0040_000C",
-            top._core._datapath._pc_plus_4: "32h0040_000C",
-            top._core._datapath._pc_plus_immediate: W32,
+            top.core.datapath.pc_next: "32h0040_000C",
+            top.core.datapath.pc_plus_4: "32h0040_000C",
+            top.core.datapath.pc_plus_immediate: W32,
         },
         # @(posedge clock)
         15: {
-            top._pc: "32h0040_000C",
-            top._inst: Inst(
+            top.pc: "32h0040_000C",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11101",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -210,18 +210,18 @@ def test_dump():
                 funct7="7b0000000",
             ),
             # Decode
-            top._core._datapath._immediate: "32h0000_0000",
+            top.core.datapath.immediate: "32h0000_0000",
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
+            top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # PC
-            top._core._datapath._pc_next: "32h0040_0010",
-            top._core._datapath._pc_plus_4: "32h0040_0010",
-            top._core._datapath._pc_plus_immediate: "32h0040_000C",
+            top.core.datapath.pc_next: "32h0040_0010",
+            top.core.datapath.pc_plus_4: "32h0040_0010",
+            top.core.datapath.pc_plus_immediate: "32h0040_000C",
         },
         # @(posedge clock)
         17: {
-            top._pc: "32h0040_0010",
-            top._inst: Inst(
+            top.pc: "32h0040_0010",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11100",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -231,24 +231,24 @@ def test_dump():
             ),
             top.bus_addr: "32h0000_0002",
             # Decode
-            top._core._datapath._immediate: "32h0000_0002",
+            top.core.datapath.immediate: "32h0000_0002",
             # ALU
-            top._core._datapath._alu_result: "32h0000_0002",
-            top._core._datapath.alu_result_eq_zero: "1b0",
-            top._core._datapath._alu_op_b: "32h0000_0002",
+            top.core.datapath.alu_result: "32h0000_0002",
+            top.core.datapath.alu_result_eq_zero: "1b0",
+            top.core.datapath.alu_op_b: "32h0000_0002",
             # PC
-            top._core._datapath._pc_next: "32h0040_0014",
-            top._core._datapath._pc_plus_4: "32h0040_0014",
-            top._core._datapath._pc_plus_immediate: "32h0040_0012",
+            top.core.datapath.pc_next: "32h0040_0014",
+            top.core.datapath.pc_plus_4: "32h0040_0014",
+            top.core.datapath.pc_plus_immediate: "32h0040_0012",
             # Regfile
-            top._core._datapath._wr_data: "32h0000_0002",
+            top.core.datapath.wr_data: "32h0000_0002",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0002",
+            top.core.datapath.data_mem_addr: "32h0000_0002",
         },
         # @(posedge clock)
         19: {
-            top._pc: "32h0040_0014",
-            top._inst: Inst(
+            top.pc: "32h0040_0014",
+            top.inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd="5b01100",
                 funct3=Funct3Branch.NE,
@@ -258,27 +258,27 @@ def test_dump():
             ),
             top.bus_addr: "32h0000_0001",
             # Decode
-            top._core._datapath._immediate: "32h0000_04CC",
+            top.core.datapath.immediate: "32h0000_04CC",
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
+            top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
-            top._core._datapath._alu_result: "32h0000_0001",
-            top._core._datapath.alu_op: AluOp.SEQ,
-            top._core._datapath._alu_op_b: "32h0000_0000",
+            top.core.datapath.alu_result: "32h0000_0001",
+            top.core.datapath.alu_op: AluOp.SEQ,
+            top.core.datapath.alu_op_b: "32h0000_0000",
             # PC
-            top._core._datapath._pc_next: "32h0040_0018",
-            top._core._datapath._pc_plus_4: "32h0040_0018",
-            top._core._datapath._pc_plus_immediate: "32h0040_04E0",
+            top.core.datapath.pc_next: "32h0040_0018",
+            top.core.datapath.pc_plus_4: "32h0040_0018",
+            top.core.datapath.pc_plus_immediate: "32h0040_04E0",
             # Regfile
-            top._core._datapath.reg_wr_en: "1b0",
-            top._core._datapath._wr_data: "32h0000_0001",
+            top.core.datapath.reg_wr_en: "1b0",
+            top.core.datapath.wr_data: "32h0000_0001",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0001",
+            top.core.datapath.data_mem_addr: "32h0000_0001",
         },
         # @(posedge clock)
         21: {
-            top._pc: "32h0040_0018",
-            top._inst: Inst(
+            top.pc: "32h0040_0018",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -287,23 +287,23 @@ def test_dump():
                 funct7="7b0000000",
             ),
             # Decode
-            top._core._datapath._immediate: "32h0000_0001",
+            top.core.datapath.immediate: "32h0000_0001",
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
+            top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
-            top._core._datapath.alu_op: AluOp.ADD,
-            top._core._datapath._alu_op_b: "32h0000_0001",
+            top.core.datapath.alu_op: AluOp.ADD,
+            top.core.datapath.alu_op_b: "32h0000_0001",
             # PC
-            top._core._datapath._pc_next: "32h0040_001C",
-            top._core._datapath._pc_plus_4: "32h0040_001C",
-            top._core._datapath._pc_plus_immediate: "32h0040_0019",
+            top.core.datapath.pc_next: "32h0040_001C",
+            top.core.datapath.pc_plus_4: "32h0040_001C",
+            top.core.datapath.pc_plus_immediate: "32h0040_0019",
             # Regfile
-            top._core._datapath.reg_wr_en: "1b1",
+            top.core.datapath.reg_wr_en: "1b1",
         },
         # @(posedge clock)
         23: {
-            top._pc: "32h0040_001C",
-            top._inst: Inst(
+            top.pc: "32h0040_001C",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00010",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -313,18 +313,18 @@ def test_dump():
             ),
             top.bus_wr_data: "32h0000_0100",
             # PC
-            top._core._datapath._pc_next: "32h0040_0020",
-            top._core._datapath._pc_plus_4: "32h0040_0020",
-            top._core._datapath._pc_plus_immediate: "32h0040_001D",
+            top.core.datapath.pc_next: "32h0040_0020",
+            top.core.datapath.pc_plus_4: "32h0040_0020",
+            top.core.datapath.pc_plus_immediate: "32h0040_001D",
             # Regfile
-            top._core._datapath._rs2_data: "32h0000_0001",
+            top.core.datapath.rs2_data: "32h0000_0001",
             # Data Mem
-            top._core._datapath.data_mem_wr_data: "32h0000_0001",
+            top.core.datapath.data_mem_wr_data: "32h0000_0001",
         },
         # @(posedge clock)
         25: {
-            top._pc: "32h0040_0020",
-            top._inst: Inst(
+            top.pc: "32h0040_0020",
+            top.inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -335,26 +335,26 @@ def test_dump():
             top.bus_addr: "32h0000_0002",
             top.bus_wr_data: "32h0001_0000",
             # Decode
-            top._core._datapath._immediate: W32,
+            top.core.datapath.immediate: W32,
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
+            top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
-            top._core._datapath._alu_result: "32h0000_0002",
-            top._core._datapath._alu_op_a: "32h0000_0001",
+            top.core.datapath.alu_result: "32h0000_0002",
+            top.core.datapath.alu_op_a: "32h0000_0001",
             # PC
-            top._core._datapath._pc_next: "32h0040_0024",
-            top._core._datapath._pc_plus_4: "32h0040_0024",
-            top._core._datapath._pc_plus_immediate: W32,
+            top.core.datapath.pc_next: "32h0040_0024",
+            top.core.datapath.pc_plus_4: "32h0040_0024",
+            top.core.datapath.pc_plus_immediate: W32,
             # Regfile
-            top._core._datapath._wr_data: "32h0000_0002",
-            top._core._datapath._rs1_data: "32h0000_0001",
+            top.core.datapath.wr_data: "32h0000_0002",
+            top.core.datapath.rs1_data: "32h0000_0001",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0002",
+            top.core.datapath.data_mem_addr: "32h0000_0002",
         },
         # @(posedge clock)
         27: {
-            top._pc: "32h0040_0024",
-            top._inst: Inst(
+            top.pc: "32h0040_0024",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11101",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -363,23 +363,23 @@ def test_dump():
                 funct7="7b0000000",
             ),
             # Decode
-            top._core._datapath._immediate: "32h0000_0002",
+            top.core.datapath.immediate: "32h0000_0002",
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
+            top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
-            top._core._datapath._alu_op_a: "32h0000_0000",
-            top._core._datapath._alu_op_b: "32h0000_0002",
+            top.core.datapath.alu_op_a: "32h0000_0000",
+            top.core.datapath.alu_op_b: "32h0000_0002",
             # PC
-            top._core._datapath._pc_next: "32h0040_0028",
-            top._core._datapath._pc_plus_4: "32h0040_0028",
-            top._core._datapath._pc_plus_immediate: "32h0040_0026",
+            top.core.datapath.pc_next: "32h0040_0028",
+            top.core.datapath.pc_plus_4: "32h0040_0028",
+            top.core.datapath.pc_plus_immediate: "32h0040_0026",
             # Regfile
-            top._core._datapath._rs1_data: "32h0000_0000",
+            top.core.datapath.rs1_data: "32h0000_0000",
         },
         # @(posedge clock)
         29: {
-            top._pc: "32h0040_0028",
-            top._inst: Inst(
+            top.pc: "32h0040_0028",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11100",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -390,25 +390,25 @@ def test_dump():
             top.bus_addr: "32h0000_0003",
             top.bus_wr_data: "32h0200_0000",
             # Decode
-            top._core._datapath._immediate: "32h0000_0003",
+            top.core.datapath.immediate: "32h0000_0003",
             # ALU
-            top._core._datapath._alu_result: "32h0000_0003",
-            top._core._datapath._alu_op_b: "32h0000_0003",
+            top.core.datapath.alu_result: "32h0000_0003",
+            top.core.datapath.alu_op_b: "32h0000_0003",
             # PC
-            top._core._datapath._pc_next: "32h0040_002C",
-            top._core._datapath._pc_plus_4: "32h0040_002C",
-            top._core._datapath._pc_plus_immediate: "32h0040_002B",
+            top.core.datapath.pc_next: "32h0040_002C",
+            top.core.datapath.pc_plus_4: "32h0040_002C",
+            top.core.datapath.pc_plus_immediate: "32h0040_002B",
             # Regfile
-            top._core._datapath._wr_data: "32h0000_0003",
-            top._core._datapath._rs2_data: "32h0000_0002",
+            top.core.datapath.wr_data: "32h0000_0003",
+            top.core.datapath.rs2_data: "32h0000_0002",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0003",
-            top._core._datapath.data_mem_wr_data: "32h0000_0002",
+            top.core.datapath.data_mem_addr: "32h0000_0003",
+            top.core.datapath.data_mem_wr_data: "32h0000_0002",
         },
         # @(posedge clock)
         31: {
-            top._pc: "32h0040_002C",
-            top._inst: Inst(
+            top.pc: "32h0040_002C",
+            top.inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd="5b10100",
                 funct3=Funct3Branch.NE,
@@ -419,29 +419,29 @@ def test_dump():
             top.bus_addr: "32h0000_0001",
             top.bus_wr_data: "32h0000_0200",
             # Decode
-            top._core._datapath._immediate: "32h0000_04B4",
+            top.core.datapath.immediate: "32h0000_04B4",
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
+            top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
-            top._core._datapath._alu_result: "32h0000_0001",
-            top._core._datapath.alu_op: AluOp.SEQ,
-            top._core._datapath._alu_op_a: "32h0000_0002",
-            top._core._datapath._alu_op_b: "32h0000_0002",
+            top.core.datapath.alu_result: "32h0000_0001",
+            top.core.datapath.alu_op: AluOp.SEQ,
+            top.core.datapath.alu_op_a: "32h0000_0002",
+            top.core.datapath.alu_op_b: "32h0000_0002",
             # PC
-            top._core._datapath._pc_next: "32h0040_0030",
-            top._core._datapath._pc_plus_4: "32h0040_0030",
-            top._core._datapath._pc_plus_immediate: "32h0040_04E0",
+            top.core.datapath.pc_next: "32h0040_0030",
+            top.core.datapath.pc_plus_4: "32h0040_0030",
+            top.core.datapath.pc_plus_immediate: "32h0040_04E0",
             # Regfile
-            top._core._datapath.reg_wr_en: "1b0",
-            top._core._datapath._wr_data: "32h0000_0001",
-            top._core._datapath._rs1_data: "32h0000_0002",
+            top.core.datapath.reg_wr_en: "1b0",
+            top.core.datapath.wr_data: "32h0000_0001",
+            top.core.datapath.rs1_data: "32h0000_0002",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0001",
+            top.core.datapath.data_mem_addr: "32h0000_0001",
         },
         # @(posedge clock)
         33: {
-            top._pc: "32h0040_0030",
-            top._inst: Inst(
+            top.pc: "32h0040_0030",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -452,29 +452,29 @@ def test_dump():
             top.bus_addr: "32h0000_0003",
             top.bus_wr_data: "32h0200_0000",
             # Decode
-            top._core._datapath._immediate: "32h0000_0003",
+            top.core.datapath.immediate: "32h0000_0003",
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
+            top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
-            top._core._datapath._alu_result: "32h0000_0003",
-            top._core._datapath.alu_op: AluOp.ADD,
-            top._core._datapath._alu_op_a: "32h0000_0000",
-            top._core._datapath._alu_op_b: "32h0000_0003",
+            top.core.datapath.alu_result: "32h0000_0003",
+            top.core.datapath.alu_op: AluOp.ADD,
+            top.core.datapath.alu_op_a: "32h0000_0000",
+            top.core.datapath.alu_op_b: "32h0000_0003",
             # PC
-            top._core._datapath._pc_next: "32h0040_0034",
-            top._core._datapath._pc_plus_4: "32h0040_0034",
-            top._core._datapath._pc_plus_immediate: "32h0040_0033",
+            top.core.datapath.pc_next: "32h0040_0034",
+            top.core.datapath.pc_plus_4: "32h0040_0034",
+            top.core.datapath.pc_plus_immediate: "32h0040_0033",
             # Regfile
-            top._core._datapath.reg_wr_en: "1b1",
-            top._core._datapath._wr_data: "32h0000_0003",
-            top._core._datapath._rs1_data: "32h0000_0000",
+            top.core.datapath.reg_wr_en: "1b1",
+            top.core.datapath.wr_data: "32h0000_0003",
+            top.core.datapath.rs1_data: "32h0000_0000",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0003",
+            top.core.datapath.data_mem_addr: "32h0000_0003",
         },
         # @(posedge clock)
         35: {
-            top._pc: "32h0040_0034",
-            top._inst: Inst(
+            top.pc: "32h0040_0034",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00010",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -485,25 +485,25 @@ def test_dump():
             top.bus_addr: "32h0000_0007",
             top.bus_wr_data: "32bXXXXXXXX_00000000_00000000_00000000",
             # Decode
-            top._core._datapath._immediate: "32h0000_0007",
+            top.core.datapath.immediate: "32h0000_0007",
             # ALU
-            top._core._datapath._alu_result: "32h0000_0007",
-            top._core._datapath._alu_op_b: "32h0000_0007",
+            top.core.datapath.alu_result: "32h0000_0007",
+            top.core.datapath.alu_op_b: "32h0000_0007",
             # PC
-            top._core._datapath._pc_next: "32h0040_0038",
-            top._core._datapath._pc_plus_4: "32h0040_0038",
-            top._core._datapath._pc_plus_immediate: "32h0040_003B",
+            top.core.datapath.pc_next: "32h0040_0038",
+            top.core.datapath.pc_plus_4: "32h0040_0038",
+            top.core.datapath.pc_plus_immediate: "32h0040_003B",
             # Regfile
-            top._core._datapath._wr_data: "32h0000_0007",
-            top._core._datapath._rs2_data: X32,
+            top.core.datapath.wr_data: "32h0000_0007",
+            top.core.datapath.rs2_data: X32,
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0007",
-            top._core._datapath.data_mem_wr_data: X32,
+            top.core.datapath.data_mem_addr: "32h0000_0007",
+            top.core.datapath.data_mem_wr_data: X32,
         },
         # @(posedge clock)
         37: {
-            top._pc: "32h0040_0038",
-            top._inst: Inst(
+            top.pc: "32h0040_0038",
+            top.inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -514,28 +514,28 @@ def test_dump():
             top.bus_addr: "32h0000_000A",
             top.bus_wr_data: "32h0007_0000",
             # Decode
-            top._core._datapath._immediate: W32,
+            top.core.datapath.immediate: W32,
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
+            top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
-            top._core._datapath._alu_result: "32h0000_000A",
-            top._core._datapath._alu_op_a: "32h0000_0003",
+            top.core.datapath.alu_result: "32h0000_000A",
+            top.core.datapath.alu_op_a: "32h0000_0003",
             # PC
-            top._core._datapath._pc_next: "32h0040_003C",
-            top._core._datapath._pc_plus_4: "32h0040_003C",
-            top._core._datapath._pc_plus_immediate: W32,
+            top.core.datapath.pc_next: "32h0040_003C",
+            top.core.datapath.pc_plus_4: "32h0040_003C",
+            top.core.datapath.pc_plus_immediate: W32,
             # Regfile
-            top._core._datapath._wr_data: "32h0000_000A",
-            top._core._datapath._rs1_data: "32h0000_0003",
-            top._core._datapath._rs2_data: "32h0000_0007",
+            top.core.datapath.wr_data: "32h0000_000A",
+            top.core.datapath.rs1_data: "32h0000_0003",
+            top.core.datapath.rs2_data: "32h0000_0007",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_000A",
-            top._core._datapath.data_mem_wr_data: "32h0000_0007",
+            top.core.datapath.data_mem_addr: "32h0000_000A",
+            top.core.datapath.data_mem_wr_data: "32h0000_0007",
         },
         # @(posedge clock)
         39: {
-            top._pc: "32h0040_003C",
-            top._inst: Inst(
+            top.pc: "32h0040_003C",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11101",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -545,26 +545,26 @@ def test_dump():
             ),
             top.bus_wr_data: "32bXXXXXXXX_XXXXXXXX_00000000_00000000",
             # Decode
-            top._core._datapath._immediate: "32h0000_000A",
+            top.core.datapath.immediate: "32h0000_000A",
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
+            top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
-            top._core._datapath._alu_op_a: "32h0000_0000",
-            top._core._datapath._alu_op_b: "32h0000_000A",
+            top.core.datapath.alu_op_a: "32h0000_0000",
+            top.core.datapath.alu_op_b: "32h0000_000A",
             # PC
-            top._core._datapath._pc_next: "32h0040_0040",
-            top._core._datapath._pc_plus_4: "32h0040_0040",
-            top._core._datapath._pc_plus_immediate: "32h0040_0046",
+            top.core.datapath.pc_next: "32h0040_0040",
+            top.core.datapath.pc_plus_4: "32h0040_0040",
+            top.core.datapath.pc_plus_immediate: "32h0040_0046",
             # Regfile
-            top._core._datapath._rs1_data: "32h0000_0000",
-            top._core._datapath._rs2_data: X32,
+            top.core.datapath.rs1_data: "32h0000_0000",
+            top.core.datapath.rs2_data: X32,
             # Data Mem
-            top._core._datapath.data_mem_wr_data: X32,
+            top.core.datapath.data_mem_wr_data: X32,
         },
         # @(posedge clock)
         41: {
-            top._pc: "32h0040_0040",
-            top._inst: Inst(
+            top.pc: "32h0040_0040",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b11100",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -575,23 +575,23 @@ def test_dump():
             top.bus_addr: "32h0000_0004",
             top.bus_wr_data: X32,
             # Decode
-            top._core._datapath._immediate: "32h0000_0004",
+            top.core.datapath.immediate: "32h0000_0004",
             # ALU
-            top._core._datapath._alu_result: "32h0000_0004",
-            top._core._datapath._alu_op_b: "32h0000_0004",
+            top.core.datapath.alu_result: "32h0000_0004",
+            top.core.datapath.alu_op_b: "32h0000_0004",
             # PC
-            top._core._datapath._pc_next: "32h0040_0044",
-            top._core._datapath._pc_plus_4: "32h0040_0044",
-            top._core._datapath._pc_plus_immediate: "32h0040_0044",
+            top.core.datapath.pc_next: "32h0040_0044",
+            top.core.datapath.pc_plus_4: "32h0040_0044",
+            top.core.datapath.pc_plus_immediate: "32h0040_0044",
             # Regfile
-            top._core._datapath._wr_data: "32h0000_0004",
+            top.core.datapath.wr_data: "32h0000_0004",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0004",
+            top.core.datapath.data_mem_addr: "32h0000_0004",
         },
         # @(posedge clock)
         43: {
-            top._pc: "32h0040_0044",
-            top._inst: Inst(
+            top.pc: "32h0040_0044",
+            top.inst: Inst(
                 opcode=Opcode.BRANCH,
                 rd="5b11100",
                 funct3=Funct3Branch.NE,
@@ -602,31 +602,31 @@ def test_dump():
             top.bus_addr: "32h0000_0001",
             top.bus_wr_data: "32h0000_0A00",
             # Decode
-            top._core._datapath._immediate: "32h0000_049C",
+            top.core.datapath.immediate: "32h0000_049C",
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
+            top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
             # ALU
-            top._core._datapath._alu_result: "32h0000_0001",
-            top._core._datapath.alu_op: AluOp.SEQ,
-            top._core._datapath._alu_op_a: "32h0000_000A",
-            top._core._datapath._alu_op_b: "32h0000_000A",
+            top.core.datapath.alu_result: "32h0000_0001",
+            top.core.datapath.alu_op: AluOp.SEQ,
+            top.core.datapath.alu_op_a: "32h0000_000A",
+            top.core.datapath.alu_op_b: "32h0000_000A",
             # PC
-            top._core._datapath._pc_next: "32h0040_0048",
-            top._core._datapath._pc_plus_4: "32h0040_0048",
-            top._core._datapath._pc_plus_immediate: "32h0040_04E0",
+            top.core.datapath.pc_next: "32h0040_0048",
+            top.core.datapath.pc_plus_4: "32h0040_0048",
+            top.core.datapath.pc_plus_immediate: "32h0040_04E0",
             # Regfile
-            top._core._datapath.reg_wr_en: "1b0",
-            top._core._datapath._wr_data: "32h0000_0001",
-            top._core._datapath._rs1_data: "32h0000_000A",
-            top._core._datapath._rs2_data: "32h0000_000A",
+            top.core.datapath.reg_wr_en: "1b0",
+            top.core.datapath.wr_data: "32h0000_0001",
+            top.core.datapath.rs1_data: "32h0000_000A",
+            top.core.datapath.rs2_data: "32h0000_000A",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0001",
-            top._core._datapath.data_mem_wr_data: "32h0000_000A",
+            top.core.datapath.data_mem_addr: "32h0000_0001",
+            top.core.datapath.data_mem_wr_data: "32h0000_000A",
         },
         # @(posedge clock)
         45: {
-            top._pc: "32h0040_0048",
-            top._inst: Inst(
+            top.pc: "32h0040_0048",
+            top.inst: Inst(
                 opcode=Opcode.OP_IMM,
                 rd="5b00001",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -637,32 +637,32 @@ def test_dump():
             top.bus_addr: "32h0000_0000",
             top.bus_wr_data: "32h0000_0000",
             # Decode
-            top._core._datapath._immediate: "32h0000_0000",
+            top.core.datapath.immediate: "32h0000_0000",
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.IMM,
+            top.core.datapath.alu_op_b_sel: CtlAluB.IMM,
             # ALU
-            top._core._datapath._alu_result: "32h0000_0000",
-            top._core._datapath.alu_result_eq_zero: "1b1",
-            top._core._datapath.alu_op: AluOp.ADD,
-            top._core._datapath._alu_op_a: "32h0000_0000",
-            top._core._datapath._alu_op_b: "32h0000_0000",
+            top.core.datapath.alu_result: "32h0000_0000",
+            top.core.datapath.alu_result_eq_zero: "1b1",
+            top.core.datapath.alu_op: AluOp.ADD,
+            top.core.datapath.alu_op_a: "32h0000_0000",
+            top.core.datapath.alu_op_b: "32h0000_0000",
             # PC
-            top._core._datapath._pc_next: "32h0040_004C",
-            top._core._datapath._pc_plus_4: "32h0040_004C",
-            top._core._datapath._pc_plus_immediate: "32h0040_0048",
+            top.core.datapath.pc_next: "32h0040_004C",
+            top.core.datapath.pc_plus_4: "32h0040_004C",
+            top.core.datapath.pc_plus_immediate: "32h0040_0048",
             # Regfile
-            top._core._datapath.reg_wr_en: "1b1",
-            top._core._datapath._wr_data: "32h0000_0000",
-            top._core._datapath._rs1_data: "32h0000_0000",
-            top._core._datapath._rs2_data: "32h0000_0000",
+            top.core.datapath.reg_wr_en: "1b1",
+            top.core.datapath.wr_data: "32h0000_0000",
+            top.core.datapath.rs1_data: "32h0000_0000",
+            top.core.datapath.rs2_data: "32h0000_0000",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32h0000_0000",
-            top._core._datapath.data_mem_wr_data: "32h0000_0000",
+            top.core.datapath.data_mem_addr: "32h0000_0000",
+            top.core.datapath.data_mem_wr_data: "32h0000_0000",
         },
         # @(posedge clock)
         47: {
-            top._pc: "32h0040_004C",
-            top._inst: Inst(
+            top.pc: "32h0040_004C",
+            top.inst: Inst(
                 opcode=Opcode.LUI,
                 rd="5b00010",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -673,31 +673,31 @@ def test_dump():
             top.bus_addr: X32,
             top.bus_wr_data: X32,
             # Decode
-            top._core._datapath._immediate: "32hFFFF_8000",
+            top.core.datapath.immediate: "32hFFFF_8000",
             # Control
-            top._core._datapath.alu_op_b_sel: CtlAluB.RS2,
-            top._core._datapath.reg_wr_sel: CtlWriteBack.IMM,
+            top.core.datapath.alu_op_b_sel: CtlAluB.RS2,
+            top.core.datapath.reg_wr_sel: CtlWriteBack.IMM,
             # ALU
-            top._core._datapath._alu_result: X32,
-            top._core._datapath.alu_result_eq_zero: "1bX",
-            top._core._datapath._alu_op_a: X32,
-            top._core._datapath._alu_op_b: X32,
+            top.core.datapath.alu_result: X32,
+            top.core.datapath.alu_result_eq_zero: "1bX",
+            top.core.datapath.alu_op_a: X32,
+            top.core.datapath.alu_op_b: X32,
             # PC
-            top._core._datapath._pc_next: "32h0040_0050",
-            top._core._datapath._pc_plus_4: "32h0040_0050",
-            top._core._datapath._pc_plus_immediate: "32h003F_804C",
+            top.core.datapath.pc_next: "32h0040_0050",
+            top.core.datapath.pc_plus_4: "32h0040_0050",
+            top.core.datapath.pc_plus_immediate: "32h003F_804C",
             # Regfile
-            top._core._datapath._wr_data: "32hFFFF_8000",
-            top._core._datapath._rs1_data: X32,
-            top._core._datapath._rs2_data: X32,
+            top.core.datapath.wr_data: "32hFFFF_8000",
+            top.core.datapath.rs1_data: X32,
+            top.core.datapath.rs2_data: X32,
             # Data Mem
-            top._core._datapath.data_mem_addr: X32,
-            top._core._datapath.data_mem_wr_data: X32,
+            top.core.datapath.data_mem_addr: X32,
+            top.core.datapath.data_mem_wr_data: X32,
         },
         # @(posedge clock)
         49: {
-            top._pc: "32h0040_0050",
-            top._inst: Inst(
+            top.pc: "32h0040_0050",
+            top.inst: Inst(
                 opcode=Opcode.OP,
                 rd="5b00011",
                 funct3=Funct3AluLogic.ADD_SUB,
@@ -708,24 +708,24 @@ def test_dump():
             top.bus_addr: "32hFFFF_8000",
             top.bus_wr_data: "32hFFFF_8000",
             # Decode
-            top._core._datapath._immediate: W32,
+            top.core.datapath.immediate: W32,
             # Control
-            top._core._datapath.reg_wr_sel: CtlWriteBack.ALU,
+            top.core.datapath.reg_wr_sel: CtlWriteBack.ALU,
             # ALU
-            top._core._datapath._alu_result: "32hFFFF_8000",
-            top._core._datapath.alu_result_eq_zero: "1b0",
-            top._core._datapath._alu_op_a: "32h0000_0000",
-            top._core._datapath._alu_op_b: "32hFFFF_8000",
+            top.core.datapath.alu_result: "32hFFFF_8000",
+            top.core.datapath.alu_result_eq_zero: "1b0",
+            top.core.datapath.alu_op_a: "32h0000_0000",
+            top.core.datapath.alu_op_b: "32hFFFF_8000",
             # Next PC
-            top._core._datapath._pc_next: "32h0040_0054",
-            top._core._datapath._pc_plus_4: "32h0040_0054",
-            top._core._datapath._pc_plus_immediate: W32,
+            top.core.datapath.pc_next: "32h0040_0054",
+            top.core.datapath.pc_plus_4: "32h0040_0054",
+            top.core.datapath.pc_plus_immediate: W32,
             # Regfile
-            top._core._datapath._rs1_data: "32h0000_0000",
-            top._core._datapath._rs2_data: "32hFFFF_8000",
+            top.core.datapath.rs1_data: "32h0000_0000",
+            top.core.datapath.rs2_data: "32hFFFF_8000",
             # Data Mem
-            top._core._datapath.data_mem_addr: "32hFFFF_8000",
-            top._core._datapath.data_mem_wr_data: "32hFFFF_8000",
+            top.core.datapath.data_mem_addr: "32hFFFF_8000",
+            top.core.datapath.data_mem_wr_data: "32hFFFF_8000",
         },
     }
     assert waves == exp
@@ -743,14 +743,14 @@ def run_riscv_test(name: str) -> int:
         for i, d in enumerate(text):
             addr = u2bv(i, 10)
             data = u2bv(d, 32)
-            top._text_mem_bus._text_mem._mem[addr].next = data
+            top.text_mem_bus.text_mem.mem[addr].next = data
 
         # Initialize data memory
         data = get_mem(f"tests/riscv/tests/{name}.data")
         for i, d in enumerate(data):
             addr = u2bv(i, 10)
             data = u2bv(d, 32).reshape((4, 8))
-            top._data_mem_bus._data_mem._mem[addr].next = data
+            top.data_mem_bus.data_mem.mem[addr].next = data
 
     # Run the simulation
     for _ in irun(main(), until=10000):

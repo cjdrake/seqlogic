@@ -53,7 +53,7 @@ class Hierarchy:
 
     @staticmethod
     def _check_name(name: str):
-        valid = name.isidentifier() and not name.startswith("_")
+        valid = name.isidentifier()
         if not valid:
             raise ValueError(f"Expected public identifier, got {name}")
 

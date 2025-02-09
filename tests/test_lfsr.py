@@ -36,8 +36,8 @@ def test_lfsr():
     waves = defaultdict(dict)
     top.dump_waves(waves, r"/top/q")
 
-    assert top._q.name == "q"
-    assert top._q.qualname == "/top/q"
+    assert top.q.name == "q"
+    assert top.q.qualname == "/top/q"
 
     async def main():
         await top.main()
@@ -51,19 +51,19 @@ def test_lfsr():
 
     exp = {
         # Initialize everything to X'es
-        -1: {top._q: "3bXXX"},
+        -1: {top.q: "3bXXX"},
         # reset_n.negedge
-        6: {top._q: "3b100"},
+        6: {top.q: "3b100"},
         # clock.posedge; reset_n = 1
-        25: {top._q: "3b001"},
-        35: {top._q: "3b011"},
-        45: {top._q: "3b111"},
-        55: {top._q: "3b110"},
-        65: {top._q: "3b101"},
-        75: {top._q: "3b010"},
+        25: {top.q: "3b001"},
+        35: {top.q: "3b011"},
+        45: {top.q: "3b111"},
+        55: {top.q: "3b110"},
+        65: {top.q: "3b101"},
+        75: {top.q: "3b010"},
         # Repeat cycle
-        85: {top._q: "3b100"},
-        95: {top._q: "3b001"},
+        85: {top.q: "3b100"},
+        95: {top.q: "3b001"},
     }
 
     assert waves == exp
