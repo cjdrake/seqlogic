@@ -7,7 +7,7 @@ from random import randint
 from vcd import VCDWriter
 
 from seqlogic import Module, Struct, Vec, finish, resume, run, sleep
-from seqlogic.control.globals import drv_clock, drv_reset
+from seqlogic.control.sync import drv_clock, drv_reset
 from seqlogic.datastruct.hbeb import Hbeb
 
 DIR = os.path.dirname(__file__)

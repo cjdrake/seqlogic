@@ -6,7 +6,7 @@ Demonstrate usage of an enum.
 from collections import defaultdict
 
 from seqlogic import Enum, Module, Packed, Vec, create_task, ite, run
-from seqlogic.control.globals import drv_clock, drv_reset
+from seqlogic.control.sync import drv_clock, drv_reset
 
 
 class SeqDetect(Enum):

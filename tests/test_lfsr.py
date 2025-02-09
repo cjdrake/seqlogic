@@ -6,7 +6,7 @@
 from collections import defaultdict
 
 from seqlogic import Module, Vec, cat, create_task, run
-from seqlogic.control.globals import drv_clock, drv_reset
+from seqlogic.control.sync import drv_clock, drv_reset
 
 
 def lfsr(x: Vec[3]) -> Vec[3]:

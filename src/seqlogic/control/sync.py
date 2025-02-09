@@ -1,4 +1,4 @@
-"""Globals: clocks and resets."""
+"""Sync: clocks and resets."""
 
 from seqlogic import Packed, sleep
 
