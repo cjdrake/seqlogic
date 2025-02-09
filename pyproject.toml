@@ -5,7 +5,10 @@ description = "Sequential Logic"
 readme = "README.md"
 
 requires-python = ">=3.12"
-dependencies = ["bvwx", "pyvcd"]
+dependencies = [
+    "bvwx >= 0.5.0",
+    "pyvcd",
+]
 
 [project.urls]
 Repository = "https://github.com/cjdrake/seqlogic.git"
