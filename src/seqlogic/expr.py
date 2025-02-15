@@ -20,6 +20,7 @@ from bvwx import (
     impl,
     ite,
     le,
+    lit2bv,
     lrot,
     lsh,
     lt,
@@ -47,7 +48,6 @@ from bvwx import (
     xor,
     xt,
 )
-from bvwx._bits import _lit2bv
 
 
 def _arg_xbs(obj: Expr | Bits | str) -> Expr:
@@ -56,7 +56,7 @@ def _arg_xbs(obj: Expr | Bits | str) -> Expr:
     if isinstance(obj, Bits):
         return BitsConst(obj)
     if isinstance(obj, str):
-        v = _lit2bv(obj)
+        v = lit2bv(obj)
         return BitsConst(v)
     raise TypeError(f"Invalid input: {obj}")
 
@@ -67,7 +67,7 @@ def _arg_xbsi(obj: Expr | Bits | str | int) -> Expr:
     if isinstance(obj, Bits):
         return BitsConst(obj)
     if isinstance(obj, str):
-        v = _lit2bv(obj)
+        v = lit2bv(obj)
         return BitsConst(v)
     if isinstance(obj, int):
         return IntConst(obj)

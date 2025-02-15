@@ -1,7 +1,7 @@
 # Runtime Requirements
 
 # https://bvwx.rtfd.org
-bvwx
+bvwx >= 0.6.0
 
 # https://pyvcd.rtfd.org
 pyvcd

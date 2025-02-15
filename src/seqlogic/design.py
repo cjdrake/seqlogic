@@ -16,8 +16,7 @@ from collections import defaultdict
 from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum, auto
 
-from bvwx import Bits, i2bv, stack, u2bv
-from bvwx._bits import _lit2bv
+from bvwx import Bits, i2bv, lit2bv, stack, u2bv
 from vcd.writer import VCDWriter as VcdWriter
 
 from .expr import Expr, Variable
@@ -554,7 +553,7 @@ class Packed(Logic, Singular, Variable):
     # Singular => State
     def _set_next(self, value):
         if isinstance(value, str):
-            value = _lit2bv(value)
+            value = lit2bv(value)
         elif isinstance(value, int):
             if value < 0:
                 value = i2bv(value, size=self._dtype.size)
