@@ -1,4 +1,4 @@
-# Runtime Requirements
+# Runtime Dependencies
 
 # https://bvwx.rtfd.org
 bvwx >= 0.6.0

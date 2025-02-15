@@ -1,4 +1,4 @@
-# Documentation Requirements
+# Documentation Dependencies
 
 sphinx
 sphinx-autobuild

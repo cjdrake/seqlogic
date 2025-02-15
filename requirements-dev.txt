@@ -1,4 +1,4 @@
-# Development Requirements
+# Development Dependencies
 
 # Runtime
 -r requirements.txt
