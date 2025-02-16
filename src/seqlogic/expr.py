@@ -258,6 +258,13 @@ class _BinaryOp(_NaryOp):
         super().__init__(x0, x1)
 
 
+class _BitwiseOp(_NaryOp):
+    """Binary operator: f(x0, x1)"""
+
+    def __init__(self, x0: Expr | Bits | str, *xs: Expr | Bits | str):
+        super().__init__(x0, *xs)
+
+
 class _TernaryOp(_NaryOp):
     """Ternary operator: f(x0, x1, x2)"""
 
@@ -276,19 +283,19 @@ class Not(_UnaryOp):
     name = "not_"
 
 
-class Or(_NaryOp):
+class Or(_BitwiseOp):
     """OR operator node."""
 
     name = "or_"
 
 
-class And(_NaryOp):
+class And(_BitwiseOp):
     """AND operator node."""
 
     name = "and_"
 
 
-class Xor(_NaryOp):
+class Xor(_BitwiseOp):
     """XOR operator node."""
 
     name = "xor"
