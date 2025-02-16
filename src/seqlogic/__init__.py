@@ -57,7 +57,6 @@ from bvwx import (
     uand,
     uor,
     uxor,
-    xnor,
     xor,
     xt,
 )
@@ -98,7 +97,6 @@ from .expr import (
     Uand,
     Uor,
     Uxor,
-    Xnor,
     Xor,
     Xt,
 )
@@ -154,7 +152,6 @@ __all__ = [
     "not_",
     "or_",
     "and_",
-    "xnor",
     "xor",
     "impl",
     "ite",
@@ -219,7 +216,6 @@ __all__ = [
     "Not",
     "Or",
     "And",
-    "Xnor",
     "Xor",
     "Impl",
     "ITE",

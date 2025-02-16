@@ -42,7 +42,6 @@ from bvwx import (
     uand,
     uor,
     uxor,
-    xnor,
     xor,
     xt,
 )
@@ -129,7 +128,6 @@ class Expr(ABC):
             "not_": not_,
             "or_": or_,
             "and_": and_,
-            "xnor": xnor,
             "xor": xor,
             "impl": impl,
             "ite": ite,
@@ -288,12 +286,6 @@ class And(_NaryOp):
     """AND operator node."""
 
     name = "and_"
-
-
-class Xnor(_NaryOp):
-    """XNOR operator node."""
-
-    name = "xnor"
 
 
 class Xor(_NaryOp):

@@ -10,7 +10,6 @@
 .. autoclass:: seqlogic.Not
 .. autoclass:: seqlogic.Or
 .. autoclass:: seqlogic.And
-.. autoclass:: seqlogic.Xnor
 .. autoclass:: seqlogic.Xor
 
 .. autoclass:: seqlogic.ITE
