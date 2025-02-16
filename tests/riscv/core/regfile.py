@@ -2,8 +2,7 @@
 
 import operator
 
-from bvwx import Vec, u2bv
-from bvwx._util import clog2
+from bvwx import Vec, clog2, u2bv
 
 from seqlogic import NE, Module
 

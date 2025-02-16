@@ -1,7 +1,7 @@
 # Runtime Dependencies
 
 # https://bvwx.rtfd.org
-bvwx >= 0.6.0
+bvwx >= 0.7.0
 
 # https://pyvcd.rtfd.org
 pyvcd
