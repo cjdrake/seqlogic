@@ -17,7 +17,6 @@
 
 .. autoclass:: seqlogic.Uor
 .. autoclass:: seqlogic.Uand
-.. autoclass:: seqlogic.Uxnor
 .. autoclass:: seqlogic.Uxor
 
 .. autoclass:: seqlogic.Add
