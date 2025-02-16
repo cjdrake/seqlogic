@@ -31,7 +31,6 @@ from bvwx import (
     ne,
     neg,
     ngc,
-    nor,
     not_,
     or_,
     rep,
@@ -129,7 +128,6 @@ class Expr(ABC):
         source = f"def f({args}):\n    return {self}\n"
         globals_ = {
             "not_": not_,
-            "nor": nor,
             "or_": or_,
             "nand": nand,
             "and_": and_,
@@ -280,12 +278,6 @@ class Not(_UnaryOp):
     """NOT operator node."""
 
     name = "not_"
-
-
-class Nor(_NaryOp):
-    """NOR operator node."""
-
-    name = "nor"
 
 
 class Or(_NaryOp):

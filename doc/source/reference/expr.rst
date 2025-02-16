@@ -8,7 +8,6 @@
     .. automethod:: seqlogic.Expr.to_func
 
 .. autoclass:: seqlogic.Not
-.. autoclass:: seqlogic.Nor
 .. autoclass:: seqlogic.Or
 .. autoclass:: seqlogic.Nand
 .. autoclass:: seqlogic.And

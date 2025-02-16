@@ -39,7 +39,6 @@ from bvwx import (
     ne,
     neg,
     ngc,
-    nor,
     not_,
     or_,
     pack,
@@ -89,7 +88,6 @@ from .expr import (
     Nand,
     Neg,
     Ngc,
-    Nor,
     Not,
     Or,
     Rep,
@@ -156,7 +154,6 @@ __all__ = [
     "Union",
     # bits: bitwise
     "not_",
-    "nor",
     "or_",
     "nand",
     "and_",
@@ -223,7 +220,6 @@ __all__ = [
     # expr
     "Expr",
     "Not",
-    "Nor",
     "Or",
     "Nand",
     "And",
