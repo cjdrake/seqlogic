@@ -2,7 +2,8 @@
 
 import os
 
-from seqlogic import u2bv
+from bvwx import u2bv
+
 from seqlogic.algorithm.addition.ksa import adc
 
 DIR = os.path.dirname(__file__)

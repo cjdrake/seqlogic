@@ -1,8 +1,9 @@
 """Test seqlogic.design module."""
 
 import pytest
+from bvwx import Vec
 
-from seqlogic import DesignError, Module, Vec
+from seqlogic import DesignError, Module
 
 
 def test_duplicate_input():

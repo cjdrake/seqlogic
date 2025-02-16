@@ -3,7 +3,7 @@
 See https://csrc.nist.gov/pubs/fips/197/final for details.
 """
 
-from seqlogic import Array, Vec, bits, ite, rep, stack
+from bvwx import Array, Vec, bits, ite, rep, stack
 
 NB = 4
 

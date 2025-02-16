@@ -1,6 +1,8 @@
 """Top Level Module."""
 
-from seqlogic import Module, Vec
+from bvwx import Vec
+
+from seqlogic import Module
 from seqlogic.control.sync import drv_clock, drv_reset
 
 from . import Addr, Inst, Opcode

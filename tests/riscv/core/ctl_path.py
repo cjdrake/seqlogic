@@ -1,6 +1,8 @@
 """Control Path."""
 
-from seqlogic import Module, Vec, eq, ite
+from bvwx import Vec, eq, ite
+
+from seqlogic import Module
 
 from . import (
     AluOp,

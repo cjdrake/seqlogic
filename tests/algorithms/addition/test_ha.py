@@ -2,9 +2,10 @@
 
 import os
 
+from bvwx import Vec
 from vcd import VCDWriter
 
-from seqlogic import Module, Vec, run, sleep
+from seqlogic import Module, run, sleep
 from seqlogic.algorithm.addition.ha import HalfAdd
 
 DIR = os.path.dirname(__file__)

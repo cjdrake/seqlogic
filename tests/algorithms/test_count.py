@@ -1,6 +1,7 @@
 """Test bit counting algorithms."""
 
-from seqlogic import bits
+from bvwx import bits
+
 from seqlogic.algorithm.count import clz, ctz
 
 CLZ = [

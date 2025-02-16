@@ -2,7 +2,9 @@
 Full Bandwidth Elastic Buffer (FBEB) Control
 """
 
-from seqlogic import ITE, Module, Vec
+from bvwx import Vec
+
+from seqlogic import ITE, Module
 
 
 class FbebCtl(Module):

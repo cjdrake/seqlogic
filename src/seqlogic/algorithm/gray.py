@@ -1,6 +1,6 @@
 """Gray Code."""
 
-from seqlogic import Vec, cat, uxor
+from bvwx import Vec, cat, uxor
 
 
 def bin2gray(b: Vec) -> Vec:

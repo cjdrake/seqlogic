@@ -2,7 +2,10 @@
 
 import operator
 
-from seqlogic import NE, Module, Vec, clog2, u2bv
+from bvwx import Vec, u2bv
+from bvwx._util import clog2
+
+from seqlogic import NE, Module
 
 N = 32
 Addr = Vec[clog2(N)]

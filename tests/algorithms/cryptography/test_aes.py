@@ -1,6 +1,7 @@
 """Test AES Algorithm."""
 
-from seqlogic import Vector, u2bv
+from bvwx import Vector, u2bv
+
 from seqlogic.algorithm.cryptography.aes import (
     Key4,
     Key6,

@@ -1,6 +1,8 @@
 """Full Adder Module."""
 
-from seqlogic import Module, Vec
+from bvwx import Vec
+
+from seqlogic import Module
 
 
 class FullAdd(Module):

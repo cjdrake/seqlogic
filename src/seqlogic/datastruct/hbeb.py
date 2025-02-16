@@ -4,7 +4,9 @@
 # pylint: disable=invalid-unary-operand-type
 
 
-from seqlogic import ITE, Module, Vec
+from bvwx import Vec
+
+from seqlogic import ITE, Module
 
 
 class Hbeb(Module):

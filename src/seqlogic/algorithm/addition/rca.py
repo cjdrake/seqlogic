@@ -1,6 +1,8 @@
 """Ripple Carry Addition (RCA)."""
 
-from seqlogic import GetItem, Module, Vec, cat
+from bvwx import Vec, cat
+
+from seqlogic import GetItem, Module
 
 from .fa import FullAdd
 

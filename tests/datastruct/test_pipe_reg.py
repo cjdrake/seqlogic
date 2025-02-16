@@ -4,9 +4,10 @@ import os
 from collections import deque
 from random import randint
 
+from bvwx import Struct, Vec
 from vcd import VCDWriter
 
-from seqlogic import Module, Struct, Vec, finish, resume, run, sleep
+from seqlogic import Module, finish, resume, run, sleep
 from seqlogic.control.sync import drv_clock, drv_reset
 from seqlogic.datastruct.pipe_reg import PipeReg
 

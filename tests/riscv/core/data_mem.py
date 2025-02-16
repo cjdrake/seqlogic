@@ -2,7 +2,9 @@
 
 import operator
 
-from seqlogic import Array, Module, Vec
+from bvwx import Array, Vec
+
+from seqlogic import Module
 
 
 class DataMem(Module):

@@ -1,6 +1,9 @@
 """Text Memory Bus."""
 
-from seqlogic import GE, LT, GetItem, Module, Mux, Vec, clog2, u2bv
+from bvwx import Vec, u2bv
+from bvwx._util import clog2
+
+from seqlogic import GE, LT, GetItem, Module, Mux
 
 from . import TEXT_BASE, TEXT_SIZE, Addr
 from .text_mem import TextMem

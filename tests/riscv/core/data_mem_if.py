@@ -1,6 +1,8 @@
 """Data Memory Interface."""
 
-from seqlogic import Cat, GetItem, Module, Mux, Vec, cat, rep
+from bvwx import Vec, cat, rep
+
+from seqlogic import Cat, GetItem, Module, Mux
 
 from . import Addr
 

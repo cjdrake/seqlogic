@@ -1,6 +1,6 @@
 """Bit Manipulation / Count."""
 
-from seqlogic import Bits, Vec, cat, encode_onehot, ngc, pack
+from bvwx import Bits, Vec, cat, encode_onehot, ngc, pack
 
 
 def clz(x: Bits) -> Vec:

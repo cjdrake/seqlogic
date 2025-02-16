@@ -1,8 +1,20 @@
 """Data Path."""
 
-from seqlogic import EQ, Add, GetAttr, Module, Vec, cat, rep
+from bvwx import Vec, cat, rep
 
-from . import TEXT_BASE, Addr, AluOp, CtlAluA, CtlAluB, CtlPc, CtlWriteBack, Inst, Opcode
+from seqlogic import EQ, Add, GetAttr, Module
+
+from . import (
+    TEXT_BASE,
+    Addr,
+    AluOp,
+    CtlAluA,
+    CtlAluB,
+    CtlPc,
+    CtlWriteBack,
+    Inst,
+    Opcode,
+)
 from .alu import Alu
 from .regfile import RegFile
 
