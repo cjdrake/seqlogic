@@ -27,7 +27,6 @@ from bvwx import (
     mod,
     mul,
     mux,
-    nand,
     ne,
     neg,
     ngc,
@@ -129,7 +128,6 @@ class Expr(ABC):
         globals_ = {
             "not_": not_,
             "or_": or_,
-            "nand": nand,
             "and_": and_,
             "xnor": xnor,
             "xor": xor,
@@ -284,12 +282,6 @@ class Or(_NaryOp):
     """OR operator node."""
 
     name = "or_"
-
-
-class Nand(_NaryOp):
-    """NAND operator node."""
-
-    name = "nand"
 
 
 class And(_NaryOp):
