@@ -34,8 +34,9 @@ The following code implements a D flip flop (DFF) with the D input connected
 to the inverted Q output.
 
 ```python
+from bvwx import Vec
 from vcd import VCDWriter
-from seqlogic import Module, Vec, run, sleep
+from seqlogic import Module, run, sleep
 
 
 async def drv_clock(y):
