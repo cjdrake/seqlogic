@@ -6,8 +6,9 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
 
 import sys
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 WORKSPACE = Path(__file__).parents[2]
 PYPROJECT_TOML = WORKSPACE / "pyproject.toml"
