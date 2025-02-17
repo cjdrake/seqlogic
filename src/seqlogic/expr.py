@@ -46,6 +46,46 @@ from bvwx import (
     xt,
 )
 
+FNS = {
+    f.__name__: f
+    for f in [
+        not_,
+        or_,
+        and_,
+        xor,
+        impl,
+        ite,
+        mux,
+        uor,
+        uand,
+        uxor,
+        add,
+        adc,
+        sub,
+        sbc,
+        neg,
+        ngc,
+        mul,
+        div,
+        mod,
+        lsh,
+        rsh,
+        srsh,
+        xt,
+        sxt,
+        lrot,
+        rrot,
+        cat,
+        rep,
+        lt,
+        le,
+        eq,
+        ne,
+        gt,
+        ge,
+    ]
+}
+
 
 def _arg_xbs(obj: Expr | Bits | str) -> Expr:
     if isinstance(obj, Expr):
@@ -124,44 +164,8 @@ class Expr(ABC):
         vs = sorted(self.support, key=lambda v: v.name)
         args = ", ".join(v.name for v in vs)
         source = f"def f({args}):\n    return {self}\n"
-        globals_ = {
-            "not_": not_,
-            "or_": or_,
-            "and_": and_,
-            "xor": xor,
-            "impl": impl,
-            "ite": ite,
-            "mux": mux,
-            "uor": uor,
-            "uand": uand,
-            "uxor": uxor,
-            "add": add,
-            "adc": adc,
-            "sub": sub,
-            "sbc": sbc,
-            "neg": neg,
-            "ngc": ngc,
-            "mul": mul,
-            "div": div,
-            "mod": mod,
-            "lsh": lsh,
-            "rsh": rsh,
-            "srsh": srsh,
-            "xt": xt,
-            "sxt": sxt,
-            "lrot": lrot,
-            "rrot": rrot,
-            "cat": cat,
-            "rep": rep,
-            "lt": lt,
-            "le": le,
-            "eq": eq,
-            "ne": ne,
-            "gt": gt,
-            "ge": ge,
-        }
         locals_ = {}
-        exec(source, globals_, locals_)
+        exec(source, FNS, locals_)
         return locals_["f"], vs
 
 
