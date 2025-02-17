@@ -1,5 +1,7 @@
 """Test seqlogic.hier module."""
 
+import pytest
+
 from seqlogic.hier import Branch, Leaf
 
 
@@ -10,6 +12,11 @@ def test_basic():
     b = Branch(name="b", parent=a)
     x = Leaf(name="x", parent=b)
     y = Leaf(name="y", parent=b)
+
+    with pytest.raises(ValueError):
+        _ = Leaf(name="42", parent=a)
+
+    assert a.is_root()
 
     assert a.name == "a"
     assert a.qualname == "/a"

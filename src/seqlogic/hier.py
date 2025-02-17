@@ -41,15 +41,15 @@ class Hierarchy:
 
     def iter_bfs(self) -> Generator[Hierarchy, None, None]:
         """Iterate through the design hierarchy in BFS order."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     def iter_dfs(self) -> Generator[Hierarchy, None, None]:
         """Iterate through the design hierarchy in DFS order."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     def iter_leaves(self) -> Generator[Leaf, None, None]:
         """Iterate through design leaves, left to right."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     @staticmethod
     def _check_name(name: str):
