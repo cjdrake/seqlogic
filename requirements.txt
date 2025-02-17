@@ -1,7 +1,7 @@
 # Runtime Dependencies
 
 # https://bvwx.rtfd.org
-bvwx >= 0.7.0
+bvwx >= 0.9.0
 
 # https://deltacycle.rtfd.org
 deltacycle >= 0.1.0
