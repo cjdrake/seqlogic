@@ -6,8 +6,9 @@ Demonstrate usage of an enum.
 from collections import defaultdict
 
 from bvwx import Enum, Vec, ite
+from deltacycle import create_task, run
 
-from seqlogic import Module, Packed, create_task, run
+from seqlogic import Module, Packed
 from seqlogic.control.sync import drv_clock, drv_reset
 
 

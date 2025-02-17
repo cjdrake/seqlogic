@@ -3,9 +3,10 @@
 import os
 
 from bvwx import Vec, u2bv
+from deltacycle import run, sleep
 from vcd import VCDWriter
 
-from seqlogic import Module, run, sleep
+from seqlogic import Module
 from seqlogic.algorithm.addition.rca import RCA, adc
 
 DIR = os.path.dirname(__file__)

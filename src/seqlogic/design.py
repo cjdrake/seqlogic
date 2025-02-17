@@ -17,12 +17,7 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum, auto
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from vcd.writer import VCDWriter as VcdWriter
-
-from .expr import Expr, Variable
-from .hier import Branch, Leaf
-from .sim import (
-    INIT_TIME,
+from deltacycle import (
     Aggregate,
     Singular,
     State,
@@ -32,6 +27,13 @@ from .sim import (
     now,
     resume,
 )
+from vcd.writer import VCDWriter as VcdWriter
+
+from .expr import Expr, Variable
+from .hier import Branch, Leaf
+
+# TODO(cjdrake): Get this from deltacycle
+INIT_TIME = -1
 
 
 class Region(IntEnum):

@@ -15,8 +15,7 @@ It merely serves as a non-trivial example design.
 from collections import defaultdict
 
 from bvwx import u2bv
-
-from seqlogic import irun, run
+from deltacycle import irun, run
 
 from .riscv.core import (
     AluOp,

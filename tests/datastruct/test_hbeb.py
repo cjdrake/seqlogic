@@ -5,9 +5,10 @@ from collections import deque
 from random import randint
 
 from bvwx import Struct, Vec
+from deltacycle import finish, resume, run, sleep
 from vcd import VCDWriter
 
-from seqlogic import Module, finish, resume, run, sleep
+from seqlogic import Module
 from seqlogic.control.sync import drv_clock, drv_reset
 from seqlogic.datastruct.hbeb import Hbeb
 

@@ -6,8 +6,9 @@
 from collections import defaultdict
 
 from bvwx import Vec, cat
+from deltacycle import create_task, run
 
-from seqlogic import Module, create_task, run
+from seqlogic import Module
 from seqlogic.control.sync import drv_clock, drv_reset
 
 

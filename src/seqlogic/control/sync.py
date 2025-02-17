@@ -1,6 +1,8 @@
 """Sync: clocks and resets."""
 
-from seqlogic import Packed, sleep
+from deltacycle import sleep
+
+from seqlogic import Packed
 
 
 async def drv_reset(

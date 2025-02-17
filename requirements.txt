@@ -3,5 +3,8 @@
 # https://bvwx.rtfd.org
 bvwx >= 0.7.0
 
+# https://deltacycle.rtfd.org
+deltacycle >= 0.1.0
+
 # https://pyvcd.rtfd.org
 pyvcd
