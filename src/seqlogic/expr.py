@@ -5,13 +5,15 @@
 from __future__ import annotations
 
 from abc import ABC
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 
 from bvwx import (
     Bits,
+    Scalar,
     adc,
     add,
     and_,
+    bits,
     cat,
     div,
     eq,
@@ -19,11 +21,13 @@ from bvwx import (
     gt,
     impl,
     ite,
+    land,
     le,
-    lit2bv,
+    lor,
     lrot,
     lsh,
     lt,
+    lxor,
     mod,
     mul,
     mux,
@@ -56,6 +60,9 @@ FNS = {
         impl,
         ite,
         mux,
+        lor,
+        land,
+        lxor,
         uor,
         uand,
         uxor,
@@ -87,28 +94,52 @@ FNS = {
 }
 
 
-def _arg_xbs(obj: Expr | Bits | str) -> Expr:
-    if isinstance(obj, Expr):
-        return obj
-    if isinstance(obj, Bits):
-        return BitsConst(obj)
-    if isinstance(obj, str):
-        v = lit2bv(obj)
-        return BitsConst(v)
-    raise TypeError(f"Invalid input: {obj}")
+def _expect_bits(arg: ExprLike) -> Expr:
+    """Any Bits-like object that defines its own size"""
+    if arg in (0, 1) or isinstance(arg, str):
+        return BitsConst(bits(arg))
+    if isinstance(arg, Bits):
+        return BitsConst(arg)
+    if isinstance(arg, Expr):
+        return arg
+    raise TypeError("Expected arg to be: Expr, Bits, or str literal, or {0, 1}")
 
 
-def _arg_xbsi(obj: Expr | Bits | str | int) -> Expr:
-    if isinstance(obj, Expr):
-        return obj
-    if isinstance(obj, Bits):
-        return BitsConst(obj)
-    if isinstance(obj, str):
-        v = lit2bv(obj)
-        return BitsConst(v)
-    if isinstance(obj, int):
-        return IntConst(obj)
-    raise TypeError(f"Invalid input: {obj}")
+def _expect_scalar(arg: ScalarLike) -> Expr:
+    """Any Scalar-like object"""
+    if arg in (0, 1) or isinstance(arg, str):
+        return BitsConst(bits(arg))
+    if isinstance(arg, Scalar):
+        return BitsConst(arg)
+    if isinstance(arg, Expr):
+        return arg
+    raise TypeError("Expected arg to be: Expr, Scalar, str literal, or {0, 1}")
+
+
+def _expect_bits_size(arg: ExprLike) -> Expr:
+    """Any Bits-Like object that may or may not define its own size"""
+    if isinstance(arg, int):
+        return IntConst(arg)
+    if isinstance(arg, str):
+        return BitsConst(bits(arg))
+    if isinstance(arg, Bits):
+        return BitsConst(arg)
+    if isinstance(arg, Expr):
+        return arg
+    raise TypeError("Expected arg to be: Expr, Scalar, or str literal, or int")
+
+
+def _expect_uint(arg: UintLike) -> Expr:
+    """Any Bits-Like object that may or may not define its own size"""
+    if isinstance(arg, int):
+        return IntConst(arg)
+    if isinstance(arg, str):
+        return BitsConst(bits(arg))
+    if isinstance(arg, Bits):
+        return BitsConst(arg)
+    if isinstance(arg, Expr):
+        return arg
+    raise TypeError("Expected arg to be: Expr, Scalar, or str literal, or int")
 
 
 class Expr(ABC):
@@ -118,43 +149,43 @@ class Expr(ABC):
         return self.__str__()
 
     def __str__(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     def __invert__(self) -> Not:
         return Not(self)
 
-    def __or__(self, other: Expr | Bits | str) -> Or:
+    def __or__(self, other: ExprLike) -> Or:
         return Or(self, other)
 
-    def __ror__(self, other: Bits | str) -> Or:
+    def __ror__(self, other: ConstLike) -> Or:
         return Or(other, self)
 
-    def __and__(self, other: Expr | Bits | str) -> And:
+    def __and__(self, other: ExprLike) -> And:
         return And(self, other)
 
-    def __rand__(self, other: Bits | str) -> And:
+    def __rand__(self, other: ConstLike) -> And:
         return And(other, self)
 
-    def __xor__(self, other: Expr | Bits | str) -> Xor:
+    def __xor__(self, other: ExprLike) -> Xor:
         return Xor(self, other)
 
-    def __rxor__(self, other: Bits | str) -> Xor:
+    def __rxor__(self, other: ConstLike) -> Xor:
         return Xor(other, self)
 
-    def __lshift__(self, other: Expr | Bits | str) -> Lsh:
+    def __lshift__(self, other: UintLike) -> Lsh:
         return Lsh(self, other)
 
-    def __rlshift__(self, other: Bits | str) -> Lsh:
+    def __rlshift__(self, other: ConstLike) -> Lsh:
         return Lsh(other, self)
 
-    def __rshift__(self, other: Expr | Bits | str) -> Rsh:
+    def __rshift__(self, other: UintLike) -> Rsh:
         return Rsh(self, other)
 
-    def __rrshift__(self, other: Bits | str) -> Rsh:
+    def __rrshift__(self, other: ConstLike) -> Rsh:
         return Rsh(other, self)
 
-    def iter_vars(self):
-        raise NotImplementedError()
+    def iter_vars(self) -> Generator[Variable, None, None]:
+        raise NotImplementedError()  # pragma: no cover
 
     @property
     def support(self) -> set[Variable]:
@@ -167,6 +198,13 @@ class Expr(ABC):
         locals_ = {}
         exec(source, FNS, locals_)
         return locals_["f"], vs
+
+
+# Type Aliases
+type ConstLike = str | int
+type ExprLike = Expr | Bits | str | int
+type ScalarLike = Expr | Scalar | str | int
+type UintLike = Expr | Bits | str | int
 
 
 class _Atom(Expr):
@@ -183,7 +221,7 @@ class Const(Expr):
     def value(self):
         return self._value
 
-    def iter_vars(self):
+    def iter_vars(self) -> Generator[Variable, None, None]:
         yield from ()
 
 
@@ -212,10 +250,10 @@ class Variable(_Atom):
         return self._name
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
-    def iter_vars(self):
+    def iter_vars(self) -> Generator[Variable, None, None]:
         yield self
 
 
@@ -225,7 +263,11 @@ class _Op(Expr):
     def __init__(self, *xs: Expr):
         self._xs = xs
 
-    def iter_vars(self):
+    @property
+    def xs(self) -> tuple[Expr, ...]:
+        return self._xs
+
+    def iter_vars(self) -> Generator[Variable, None, None]:
         for x in self._xs:
             yield from x.iter_vars()
 
@@ -240,45 +282,64 @@ class _PrefixOp(_Op):
         return f"{self.name}({s})"
 
 
-class _NaryOp(_PrefixOp):
-    """N-ary operator: f(x0, x1, ..., x[n-1])"""
-
-    def __init__(self, *objs: Expr | Bits | str):
-        xs = tuple(_arg_xbs(obj) for obj in objs)
-        super().__init__(*xs)
-
-
-class _UnaryOp(_NaryOp):
+class _UnaryOp(_PrefixOp):
     """Unary operator: f(x)"""
 
-    def __init__(self, x: Expr | Bits | str):
+    def __init__(self, x: ExprLike):
+        x = _expect_bits(x)
         super().__init__(x)
 
 
-class _BinaryOp(_NaryOp):
+class _BinOp1(_PrefixOp):
     """Binary operator: f(x0, x1)"""
 
-    def __init__(self, x0: Expr | Bits | str, x1: Expr | Bits | str):
+    def __init__(self, x0: ExprLike, x1: ExprLike):
+        x0 = _expect_bits(x0)
+        x1 = _expect_bits_size(x1)
         super().__init__(x0, x1)
 
 
-class _BitwiseOp(_NaryOp):
-    """Binary operator: f(x0, x1)"""
+class _BinOp2(_PrefixOp):
+    """Add or Adc operator node."""
 
-    def __init__(self, x0: Expr | Bits | str, *xs: Expr | Bits | str):
-        super().__init__(x0, *xs)
+    def __init__(self, a: ExprLike, b: ExprLike):
+        a = _expect_bits(a)
+        b = _expect_bits(b)
+        super().__init__(a, b)
 
 
-class _TernaryOp(_NaryOp):
-    """Ternary operator: f(x0, x1, x2)"""
+class _BinOp3(_PrefixOp):
+    """Shift operator node."""
 
-    def __init__(
-        self,
-        x0: Expr | Bits | str,
-        x1: Expr | Bits | str,
-        x2: Expr | Bits | str,
-    ):
-        super().__init__(x0, x1, x2)
+    def __init__(self, x: ExprLike, n: UintLike):
+        x = _expect_bits(x)
+        n = _expect_uint(n)
+        super().__init__(x, n)
+
+
+class _NaryOp1(_PrefixOp):
+    """Nary operator: f(x0, ...)"""
+
+    def __init__(self, x0: ExprLike, *xs: ExprLike):
+        x0 = _expect_bits(x0)
+        xs_ = [_expect_bits_size(x) for x in xs]
+        super().__init__(x0, *xs_)
+
+
+class _NaryOp2(_PrefixOp):
+    """Nary operator: f(...)"""
+
+    def __init__(self, *xs: ScalarLike):
+        xs_ = [_expect_scalar(x) for x in xs]
+        super().__init__(*xs_)
+
+
+class _NaryOp3(_PrefixOp):
+    """Nary operator: f(...)"""
+
+    def __init__(self, *xs: ExprLike):
+        xs_ = [_expect_bits(x) for x in xs]
+        super().__init__(*xs_)
 
 
 class Not(_UnaryOp):
@@ -287,51 +348,75 @@ class Not(_UnaryOp):
     name = "not_"
 
 
-class Or(_BitwiseOp):
+class Or(_NaryOp1):
     """OR operator node."""
 
     name = "or_"
 
 
-class And(_BitwiseOp):
+class And(_NaryOp1):
     """AND operator node."""
 
     name = "and_"
 
 
-class Xor(_BitwiseOp):
+class Xor(_NaryOp1):
     """XOR operator node."""
 
     name = "xor"
 
 
-class Impl(_BinaryOp):
+class Impl(_BinOp1):
     """Implies operator node."""
 
     name = "impl"
 
 
-class ITE(_TernaryOp):
+class ITE(_PrefixOp):
     """If-Then-Else operator node."""
 
     name = "ite"
+
+    def __init__(self, s: ScalarLike, x1: ExprLike, x0: ExprLike):
+        s = _expect_scalar(s)
+        x1 = _expect_bits(x1)
+        x0 = _expect_bits_size(x0)
+        super().__init__(s, x1, x0)
 
 
 class Mux(Expr):
     """Multiplexer operator node."""
 
-    def __init__(self, s: Expr | Bits | str, **xs: Expr | Bits | str):
-        self._s = _arg_xbs(s)
-        self._xs = {name: _arg_xbs(value) for name, value in xs.items()}
+    def __init__(self, s: ExprLike, **xs: ExprLike):
+        self._s = _expect_bits(s)
+        self._xs = {k: _expect_bits_size(v) for k, v in xs.items()}
 
     def __str__(self) -> str:
-        kwargs = ", ".join(f"{name}={value}" for name, value in self._xs.items())
+        kwargs = ", ".join(f"{k}={v}" for k, v in self._xs.items())
         return f"mux({self._s}, {kwargs})"
 
-    def iter_vars(self):
+    def iter_vars(self) -> Generator[Variable, None, None]:
         yield from self._s.iter_vars()
         for x in self._xs.values():
             yield from x.iter_vars()
+
+
+class Lor(_NaryOp2):
+    """Logical OR"""
+
+    name = "lor"
+
+
+class Land(_NaryOp2):
+    """Logical AND"""
+
+    name = "land"
+
+
+class Lxor(_NaryOp2):
+    """Logical XOR"""
+
+    name = "lxor"
 
 
 class Uor(_UnaryOp):
@@ -357,13 +442,15 @@ class _AddOp(_PrefixOp):
 
     def __init__(
         self,
-        a: Expr | Bits | str,
-        b: Expr | Bits | str,
-        ci: Expr | Bits | str | None = None,
+        a: ExprLike,
+        b: ExprLike,
+        ci: ScalarLike | None = None,
     ):
-        xs = [_arg_xbs(a), _arg_xbs(b)]
+        xs = []
+        xs.append(_expect_bits(a))
+        xs.append(_expect_bits(b))
         if ci is not None:
-            xs.append(_arg_xbs(ci))
+            xs.append(_expect_scalar(ci))
         super().__init__(*xs)
 
 
@@ -382,8 +469,10 @@ class Adc(_AddOp):
 class _SubOp(_PrefixOp):
     """Sub or Sbc operator node."""
 
-    def __init__(self, a: Expr | Bits | str, b: Expr | Bits | str):
-        super().__init__(_arg_xbs(a), _arg_xbs(b))
+    def __init__(self, a: ExprLike, b: ExprLike):
+        a = _expect_bits(a)
+        b = _expect_bits_size(b)
+        super().__init__(a, b)
 
 
 class Sub(_SubOp):
@@ -410,88 +499,67 @@ class Ngc(_UnaryOp):
     name = "ngc"
 
 
-class Mul(_BinaryOp):
+class Mul(_BinOp2):
     """Multiply operator node."""
 
     name = "mul"
 
 
-class Div(_BinaryOp):
+class Div(_BinOp2):
     """Divide operator node."""
 
     name = "div"
 
 
-class Mod(_BinaryOp):
+class Mod(_BinOp2):
     """Modulo operator node."""
 
     name = "mod"
 
 
-class _ShOp(_PrefixOp):
-    """Shift operator node."""
-
-    def __init__(self, x: Expr | Bits | str, n: Expr | Bits | str | int):
-        super().__init__(_arg_xbs(x), _arg_xbsi(n))
-
-
-class Lsh(_ShOp):
+class Lsh(_BinOp3):
     """Left shift operator node."""
 
     name = "lsh"
 
 
-class Rsh(_ShOp):
+class Rsh(_BinOp3):
     """Right shift operator node."""
 
     name = "rsh"
 
 
-class Srsh(_ShOp):
+class Srsh(_BinOp3):
     """Signed right shift operator node."""
 
     name = "srsh"
 
 
-class Xt(_PrefixOp):
+class Xt(_BinOp3):
     """Zero extend operator node."""
 
     name = "xt"
 
-    def __init__(self, x: Expr | Bits | str, n: int):
-        if isinstance(n, int):
-            n = IntConst(n)
-        else:
-            raise TypeError(f"Invalid input: {n}")
-        super().__init__(_arg_xbs(x), n)
 
-
-class Sxt(_PrefixOp):
+class Sxt(_BinOp3):
     """Sign extend operator node."""
 
     name = "sxt"
 
-    def __init__(self, x: Expr | Bits | str, n: int):
-        if isinstance(n, int):
-            n = IntConst(n)
-        else:
-            raise TypeError(f"Invalid input: {n}")
-        super().__init__(_arg_xbs(x), n)
 
-
-class Lrot(_ShOp):
+class Lrot(_BinOp3):
     """Left rotate operator node."""
 
     name = "lrot"
 
 
-class Rrot(_ShOp):
+class Rrot(_BinOp3):
     """Right rotate operator node."""
 
     name = "rrot"
 
 
-class Cat(_NaryOp):
+class Cat(_NaryOp3):
     """Concatenate operator node."""
 
     name = "cat"
@@ -502,45 +570,46 @@ class Rep(_PrefixOp):
 
     name = "rep"
 
-    def __init__(self, x: Expr | Bits | str, n: int):
+    def __init__(self, x: ExprLike, n: int):
         if isinstance(n, int):
-            n = IntConst(n)
+            n_ = IntConst(n)
         else:
             raise TypeError(f"Invalid input: {n}")
-        super().__init__(_arg_xbs(x), n)
+        x = _expect_bits(x)
+        super().__init__(x, n_)
 
 
-class EQ(_BinaryOp):
+class EQ(_BinOp1):
     """Equal (==) operator node."""
 
     name = "eq"
 
 
-class NE(_BinaryOp):
+class NE(_BinOp1):
     """NotEqual (!=) operator node."""
 
     name = "ne"
 
 
-class LT(_BinaryOp):
+class LT(_BinOp1):
     """LessThan (<) operator node."""
 
     name = "lt"
 
 
-class LE(_BinaryOp):
+class LE(_BinOp1):
     """Less Than Or Equal (≤) operator node."""
 
     name = "le"
 
 
-class GT(_BinaryOp):
+class GT(_BinOp1):
     """GreaterThan (>) operator node."""
 
     name = "gt"
 
 
-class GE(_BinaryOp):
+class GE(_BinOp1):
     """Greater Than Or Equal (≥) operator node."""
 
     name = "ge"
@@ -549,41 +618,37 @@ class GE(_BinaryOp):
 class GetItem(_Op):
     """GetItem operator node."""
 
-    def __init__(self, x: Expr, obj: int | slice):
-        if isinstance(obj, (int, slice)):
-            key = Const(obj)
-        else:
-            raise TypeError(f"Invalid input: {obj}")
-        super().__init__(x, key)
+    def __init__(self, v: Variable, key: int | slice):
+        if not isinstance(key, (int, slice)):
+            raise TypeError(f"Invalid key: {key}")
+        super().__init__(v, Const(key))
 
     def __str__(self) -> str:
-        x = self._xs[0]
-        key = self._xs[1].value
+        v = self._xs[0]
+        key = self._xs[1].value  # pyright: ignore[reportAttributeAccessIssue]
         match key:
             case int() as i:
-                return f"{x}[{i}]"
+                return f"{v}[{i}]"
             case slice() as sl:
                 assert not (sl.start is None and sl.stop is None)
                 if sl.start is None:
-                    return f"{x}[:{sl.stop}]"
+                    return f"{v}[:{sl.stop}]"
                 if sl.stop is None:
-                    return f"{x}[{sl.start}:]"
-                return f"{x}[{sl.start}:{sl.stop}]"
-            case _:
+                    return f"{v}[{sl.start}:]"
+                return f"{v}[{sl.start}:{sl.stop}]"
+            case _:  # pragma: no cover
                 assert False
 
 
 class GetAttr(_Op):
     """GetAttr operator node."""
 
-    def __init__(self, v: Variable, obj: str):
-        if isinstance(obj, str):
-            name = Const(obj)
-        else:
-            raise TypeError(f"Invalid input: {obj}")
-        super().__init__(v, name)
+    def __init__(self, v: Variable, key: str):
+        if not isinstance(key, str):
+            raise TypeError(f"Invalid key: {key}")
+        super().__init__(v, Const(key))
 
     def __str__(self) -> str:
         v = self._xs[0]
-        name = self._xs[1].value
-        return f"{v}.{name}"
+        key = self._xs[1].value  # pyright: ignore[reportAttributeAccessIssue]
+        return f"{v}.{key}"
