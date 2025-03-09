@@ -17,7 +17,7 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum, auto
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from deltacycle import Aggregate, EventLoop, Singular
+from deltacycle import Aggregate, Loop, Singular
 from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
 from deltacycle import changed, create_task, now, resume
@@ -567,7 +567,7 @@ class Packed(Logic, Singular, Variable):
     def dump_waves(self, waves: defaultdict, pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
-            waves[EventLoop.init_time][self] = self._value
+            waves[Loop.init_time][self] = self._value
 
             def change():
                 t = now()
@@ -671,7 +671,7 @@ class Float(Leaf, _ProcIf, _TraceIf, Singular):
     def dump_waves(self, waves: defaultdict, pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
-            waves[EventLoop.init_time][self] = self._value
+            waves[Loop.init_time][self] = self._value
 
             def change():
                 t = now()
