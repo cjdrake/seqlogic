@@ -17,7 +17,7 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum, auto
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from deltacycle import Aggregate, Singular
+from deltacycle import Aggregate, EventLoop, Singular
 from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
 from deltacycle import changed, create_task, now, resume
@@ -25,9 +25,6 @@ from vcd.writer import VCDWriter as VcdWriter
 
 from .expr import Expr, Variable
 from .hier import Branch, Leaf
-
-# TODO(cjdrake): Get this from deltacycle
-INIT_TIME = -1
 
 
 class Region(IntEnum):
@@ -570,7 +567,7 @@ class Packed(Logic, Singular, Variable):
     def dump_waves(self, waves: defaultdict, pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
-            waves[INIT_TIME][self] = self._value
+            waves[EventLoop.init_time][self] = self._value
 
             def change():
                 t = now()
@@ -674,7 +671,7 @@ class Float(Leaf, _ProcIf, _TraceIf, Singular):
     def dump_waves(self, waves: defaultdict, pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
-            waves[INIT_TIME][self] = self._value
+            waves[EventLoop.init_time][self] = self._value
 
             def change():
                 t = now()
