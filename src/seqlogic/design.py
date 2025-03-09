@@ -17,16 +17,10 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum, auto
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from deltacycle import (
-    Aggregate,
-    Singular,
-    State,
-    Value,
-    changed,
-    create_task,
-    now,
-    resume,
-)
+from deltacycle import Aggregate, Singular
+from deltacycle import Value as SimVal
+from deltacycle import Variable as SimVar
+from deltacycle import changed, create_task, now, resume
 from vcd.writer import VCDWriter as VcdWriter
 
 from .expr import Expr, Variable
@@ -335,7 +329,7 @@ class Module(metaclass=_ModuleMeta):
     def mon(self, coro: Coroutine):
         self._initial.append((coro, Region.INACTIVE))
 
-    def _combi(self, ys: Sequence[Value], f: Callable, xs: Sequence[State]):
+    def _combi(self, ys: Sequence[SimVal], f: Callable, xs: Sequence[SimVar]):
 
         async def cf():
             while True:
@@ -357,7 +351,7 @@ class Module(metaclass=_ModuleMeta):
 
     def combi(
         self,
-        ys: Value | list[Value] | tuple[Value, ...],
+        ys: SimVal | list[SimVal] | tuple[SimVal, ...],
         f: Callable,
         *xs: Packed | Unpacked,
     ):
@@ -369,7 +363,7 @@ class Module(metaclass=_ModuleMeta):
 
         self._combi(ys, f, xs)
 
-    def expr(self, ys: Value | list[Value] | tuple[Value, ...], ex: Expr):
+    def expr(self, ys: SimVal | list[SimVal] | tuple[SimVal, ...], ex: Expr):
         """Expression logic."""
 
         # Pack outputs
@@ -379,7 +373,7 @@ class Module(metaclass=_ModuleMeta):
         f, xs = ex.to_func()
         self._combi(ys, f, xs)
 
-    def assign(self, y: Value, x: Packed | str):
+    def assign(self, y: SimVal, x: Packed | str):
         """Assign input to output."""
         # fmt: off
         if isinstance(x, str):
@@ -430,8 +424,8 @@ class Module(metaclass=_ModuleMeta):
         if rst is None:
             async def cf():
                 while True:
-                    state = await resume((clk, clk_en))
-                    if state is clk:
+                    x = await resume((clk, clk_en))
+                    if x is clk:
                         q.next = d.value
                     else:
                         assert False  # pragma: no cover
@@ -445,15 +439,15 @@ class Module(metaclass=_ModuleMeta):
             if rsync:
                 if rneg:
                     async def cf():
-                        state = await resume((clk, clk_en))
-                        if state is clk:
+                        x = await resume((clk, clk_en))
+                        if x is clk:
                             q.next = rval if not rst.value else d.value
                         else:
                             assert False  # pragma: no cover
                 else:
                     async def cf():
-                        state = await resume((clk, clk_en))
-                        if state is clk:
+                        x = await resume((clk, clk_en))
+                        if x is clk:
                             q.next = rval if rst.value else d.value
                         else:
                             assert False  # pragma: no cover
@@ -471,10 +465,10 @@ class Module(metaclass=_ModuleMeta):
 
                 async def cf():
                     while True:
-                        state = await resume((rst, rst_pred), (clk, clk_pred))
-                        if state is rst:
+                        x = await resume((rst, rst_pred), (clk, clk_pred))
+                        if x is rst:
                             q.next = rval
-                        elif state is clk:
+                        elif x is clk:
                             q.next = d.value
                         else:
                             assert False  # pragma: no cover
@@ -500,9 +494,9 @@ class Module(metaclass=_ModuleMeta):
         if be is None:
             async def cf():
                 while True:
-                    state = await resume((clk, clk_pred))
+                    x = await resume((clk, clk_pred))
                     assert not addr.value.has_unknown()
-                    if state is clk:
+                    if x is clk:
                         mem[addr.value].next = data.value
                     else:
                         assert False  # pragma: no cover
@@ -513,10 +507,10 @@ class Module(metaclass=_ModuleMeta):
 
             async def cf():
                 while True:
-                    state = await resume((clk, clk_pred))
+                    x = await resume((clk, clk_pred))
                     assert not addr.value.has_unknown()
                     assert not be.value.has_unknown()
-                    if state is clk:
+                    if x is clk:
                         xs = []
                         for i, data_en in enumerate(be.value):
                             if data_en:
@@ -552,7 +546,7 @@ class Packed(Logic, Singular, Variable):
         self._waves_change = None
         self._vcd_change = None
 
-    # Singular => State
+    # Singular => Variable
     def _set_next(self, value):
         if isinstance(value, str):
             value = lit2bv(value)
