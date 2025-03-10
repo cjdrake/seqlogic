@@ -74,8 +74,8 @@ class Top(Module):
 
                     # Check outputs
                     q, r = divmod(i + j + k, 2**self.N)
-                    assert self.s.value.to_uint() == r
-                    assert self.co.value.to_uint() == q
+                    assert self.s.prev.to_uint() == r
+                    assert self.co.prev.to_uint() == q
 
         await sleep(10)
 

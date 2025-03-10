@@ -78,7 +78,7 @@ class Top(Module):
             await self.clock.posedge()
 
         def pred():
-            return self.clock.is_posedge() and self.wr_ready.value == "1b1"
+            return self.clock.is_posedge() and self.wr_ready.prev == "1b1"
 
         for _ in range(self.N):
             self.wr_valid.next = "1b1"
@@ -106,7 +106,7 @@ class Top(Module):
             await self.clock.posedge()
 
         def pred():
-            return self.clock.is_posedge() and self.rd_valid.value == "1b1"
+            return self.clock.is_posedge() and self.rd_valid.prev == "1b1"
 
         while True:
             self.rd_ready.next = "1b1"
@@ -121,26 +121,26 @@ class Top(Module):
             return (
                 self.clock.is_posedge()
                 and self.reset.is_neg()  # noqa: W503
-                and self.wr_ready.value == "1b1"  # noqa: W503
-                and self.wr_valid.value == "1b1"  # noqa: W503
+                and self.wr_ready.prev == "1b1"  # noqa: W503
+                and self.wr_valid.prev == "1b1"  # noqa: W503
             )
 
         while True:
             await resume((self.clock, pred))
-            self.wdata.append(self.wr_data.value)
+            self.wdata.append(self.wr_data.prev)
 
     async def mon_rd(self):
         def pred():
             return (
                 self.clock.is_posedge()
                 and self.reset.is_neg()  # noqa: W503
-                and self.rd_ready.value == "1b1"  # noqa: W503
-                and self.rd_valid.value == "1b1"  # noqa: W503
+                and self.rd_ready.prev == "1b1"  # noqa: W503
+                and self.rd_valid.prev == "1b1"  # noqa: W503
             )
 
         while True:
             await resume((self.clock, pred))
-            self.rdata.append(self.rd_data.value)
+            self.rdata.append(self.rd_data.prev)
 
             exp = self.wdata.popleft()
             got = self.rdata.popleft()

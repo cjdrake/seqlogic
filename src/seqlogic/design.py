@@ -333,7 +333,7 @@ class Module(metaclass=_ModuleMeta):
                 await changed(*xs)
 
                 # Apply f to inputs
-                values = f(*[x.present for x in xs])
+                values = f(*[x.value for x in xs])
 
                 # Pack outputs
                 if not isinstance(values, (list, tuple)):
@@ -381,7 +381,7 @@ class Module(metaclass=_ModuleMeta):
             async def cf():
                 while True:
                     await x
-                    y.next = x.present
+                    y.next = x.value
             self._initial.append((cf(), Region.REACTIVE))
         else:
             raise TypeError("Expected x to be Packed or str")
@@ -415,7 +415,7 @@ class Module(metaclass=_ModuleMeta):
             clk_en = clk.is_posedge
         else:
             def clk_en():
-                return clk.is_posedge() and en.value == "1b1"
+                return clk.is_posedge() and en.prev == "1b1"
 
         # No Reset
         if rst is None:
@@ -423,7 +423,7 @@ class Module(metaclass=_ModuleMeta):
                 while True:
                     x = await resume((clk, clk_en))
                     if x is clk:
-                        q.next = d.value
+                        q.next = d.prev
                     else:
                         assert False  # pragma: no cover
 
@@ -438,14 +438,14 @@ class Module(metaclass=_ModuleMeta):
                     async def cf():
                         x = await resume((clk, clk_en))
                         if x is clk:
-                            q.next = rval if not rst.value else d.value
+                            q.next = rval if not rst.prev else d.prev
                         else:
                             assert False  # pragma: no cover
                 else:
                     async def cf():
                         x = await resume((clk, clk_en))
                         if x is clk:
-                            q.next = rval if rst.value else d.value
+                            q.next = rval if rst.prev else d.prev
                         else:
                             assert False  # pragma: no cover
 
@@ -466,7 +466,7 @@ class Module(metaclass=_ModuleMeta):
                         if x is rst:
                             q.next = rval
                         elif x is clk:
-                            q.next = d.value
+                            q.next = d.prev
                         else:
                             assert False  # pragma: no cover
 
@@ -485,16 +485,16 @@ class Module(metaclass=_ModuleMeta):
         """Memory with write enable."""
 
         def clk_pred():
-            return clk.is_posedge() and en.value == "1b1"
+            return clk.is_posedge() and en.prev == "1b1"
 
         # fmt: off
         if be is None:
             async def cf():
                 while True:
                     x = await resume((clk, clk_pred))
-                    assert not addr.value.has_unknown()
+                    assert not addr.prev.has_unknown()
                     if x is clk:
-                        mem[addr.value].next = data.value
+                        mem[addr.prev].next = data.prev
                     else:
                         assert False  # pragma: no cover
         else:
@@ -505,16 +505,16 @@ class Module(metaclass=_ModuleMeta):
             async def cf():
                 while True:
                     x = await resume((clk, clk_pred))
-                    assert not addr.value.has_unknown()
-                    assert not be.value.has_unknown()
+                    assert not addr.prev.has_unknown()
+                    assert not be.prev.has_unknown()
                     if x is clk:
                         xs = []
-                        for i, data_en in enumerate(be.value):
+                        for i, data_en in enumerate(be.prev):
                             if data_en:
-                                xs.append(data.value[i])
+                                xs.append(data.prev[i])
                             else:
-                                xs.append(mem[addr.value].value[i])
-                        mem[addr.value].next = stack(*xs)
+                                xs.append(mem[addr.prev].prev[i])
+                        mem[addr.prev].next = stack(*xs)
                     else:
                         assert False  # pragma: no cover
 
@@ -567,11 +567,11 @@ class Packed(Logic, Singular, Variable):
     def dump_waves(self, waves: defaultdict, pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
-            waves[Loop.init_time][self] = self._value
+            waves[Loop.init_time][self] = self._prev
 
             def change():
                 t = now()
-                waves[t][self] = self._next_value
+                waves[t][self] = self._next
 
             self._waves_change = change
 
@@ -582,14 +582,14 @@ class Packed(Logic, Singular, Variable):
             var = vcdw.register_var(
                 scope=self._parent.scope,
                 name=self.name,
-                var_type=self._value.vcd_var(),
-                size=self._value.size,
-                init=self._value.vcd_val(),
+                var_type=self._prev.vcd_var(),
+                size=self._prev.size,
+                init=self._prev.vcd_val(),
             )
 
             def change():
                 t = now()
-                value = self._next_value.vcd_val()
+                value = self._next.vcd_val()
                 return vcdw.change(var, t, value)
 
             self._vcd_change = change
@@ -597,35 +597,35 @@ class Packed(Logic, Singular, Variable):
     def is_neg(self) -> bool:
         """Return True when bit is stable 0 => 0."""
         try:
-            return not self._value and not self._next_value
+            return not self._prev and not self._next
         except ValueError:
             return False
 
     def is_posedge(self) -> bool:
         """Return True when bit transitions 0 => 1."""
         try:
-            return not self._value and self._next_value
+            return not self._prev and self._next
         except ValueError:
             return False
 
     def is_negedge(self) -> bool:
         """Return True when bit transitions 1 => 0."""
         try:
-            return self._value and not self._next_value
+            return self._prev and not self._next
         except ValueError:
             return False
 
     def is_pos(self) -> bool:
         """Return True when bit is stable 1 => 1."""
         try:
-            return self._value and self._next_value
+            return self._prev and self._next
         except ValueError:
             return False
 
     def is_edge(self) -> bool:
         """Return True when bit transitions 0 => 1 or 1 => 0."""
         try:
-            return (not self._value and self._next_value) or (self._value and not self._next_value)
+            return (not self._prev and self._next) or (self._prev and not self._next)
         except ValueError:
             return False
 
@@ -671,11 +671,11 @@ class Float(Leaf, _ProcIf, _TraceIf, Singular):
     def dump_waves(self, waves: defaultdict, pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
-            waves[Loop.init_time][self] = self._value
+            waves[Loop.init_time][self] = self._prev
 
             def change():
                 t = now()
-                waves[t][self] = self._next_value
+                waves[t][self] = self._next
 
             self._waves_change = change
 
@@ -692,7 +692,7 @@ class Float(Leaf, _ProcIf, _TraceIf, Singular):
 
             def change():
                 t = now()
-                value = self._next_value
+                value = self._next
                 return vcdw.change(var, t, value)
 
             self._vcd_change = change

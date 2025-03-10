@@ -755,8 +755,8 @@ def run_riscv_test(name: str) -> int:
 
     # Run the simulation
     for _ in irun(main(), until=10000):
-        if top.bus_wr_en.value == "1b1" and top.bus_addr.value == DEBUG_REG:
-            if top.bus_wr_data.value == "32h0000_0001":
+        if top.bus_wr_en.prev == "1b1" and top.bus_addr.prev == DEBUG_REG:
+            if top.bus_wr_data.prev == "32h0000_0001":
                 return PASS
             else:
                 return FAIL

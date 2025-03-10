@@ -59,8 +59,8 @@ class Top(Module):
 
             await sleep(1)
 
-            assert self.s.value == s
-            assert self.co.value == co
+            assert self.s.prev == s
+            assert self.co.prev == co
 
         # This helps w/ VCD visualization
         self.a.next = "1b0"
