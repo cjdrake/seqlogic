@@ -754,7 +754,9 @@ def run_riscv_test(name: str) -> int:
             top.data_mem_bus.data_mem.mem[addr].next = data
 
     # Run the simulation
-    for _ in irun(main(), until=10000):
+    for t in irun(main()):
+        if t >= 10_000:
+            break
         if top.bus_wr_en.prev == "1b1" and top.bus_addr.prev == DEBUG_REG:
             if top.bus_wr_data.prev == "32h0000_0001":
                 return PASS
