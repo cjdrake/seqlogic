@@ -380,7 +380,7 @@ class Module(metaclass=_ModuleMeta):
         elif isinstance(x, Packed):
             async def cf():
                 while True:
-                    await x
+                    await changed(x)
                     y.next = x.value
             self._initial.append((cf(), Region.REACTIVE))
         else:
@@ -557,9 +557,9 @@ class Packed(Logic, Singular, Variable):
     next = property(fset=_set_next)
 
     def update(self):
-        if self._waves_change and self.dirty():
+        if self._waves_change and (self._next != self._prev):
             self._waves_change()
-        if self._vcd_change and self.dirty():
+        if self._vcd_change and (self._next != self._prev):
             self._vcd_change()
         super().update()
 
@@ -661,9 +661,9 @@ class Float(Leaf, _ProcIf, _TraceIf, Singular):
         self._vcd_change = None
 
     def update(self):
-        if self._waves_change and self.dirty():
+        if self._waves_change and (self._next != self._prev):
             self._waves_change()
-        if self._vcd_change and self.dirty():
+        if self._vcd_change and (self._next != self._prev):
             self._vcd_change()
         super().update()
 
