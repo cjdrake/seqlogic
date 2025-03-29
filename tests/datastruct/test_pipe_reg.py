@@ -5,7 +5,7 @@ from collections import deque
 from random import randint
 
 from bvwx import Struct, Vec
-from deltacycle import finish, resume, run, sleep
+from deltacycle import finish, run, sleep, touched
 from vcd import VCDWriter
 
 from seqlogic import Module
@@ -89,7 +89,7 @@ class Top(Module):
             return self.clock.is_posedge() and self.reset.is_neg() and self.wr_valid.prev == "1b1"
 
         while True:
-            await resume((self.clock, pred))
+            await touched({self.clock: pred})
             self.wdata.append(self.wr_data.prev)
 
     async def mon_rd(self):
@@ -97,7 +97,7 @@ class Top(Module):
             return self.clock.is_posedge() and self.reset.is_neg() and self.rd_valid.prev == "1b1"
 
         while True:
-            await resume((self.clock, pred))
+            await touched({self.clock: pred})
             self.rdata.append(self.rd_data.prev)
 
             exp = self.wdata.popleft()
