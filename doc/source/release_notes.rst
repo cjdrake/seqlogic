@@ -5,6 +5,16 @@
 This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
+Version 0.43.0
+==============
+
+Minor changes required for ``deltacycle`` 0.3.0.
+
+Version 0.42.0
+==============
+
+Minor changes related to ``bvwx`` and ``deltacycle`` dependencies.
+
 Version 0.41.0
 ==============
 
