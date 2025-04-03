@@ -178,7 +178,7 @@ class Module(metaclass=_ModuleMeta):
         async def cf():
             for node in self.iter_bfs():
                 for coro, region in node.initial:
-                    create_task(coro, region)
+                    create_task(coro, priority=region)
 
         return cf()
 
