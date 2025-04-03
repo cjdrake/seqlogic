@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from collections.abc import Callable, Coroutine, Sequence
-from enum import IntEnum, auto
+from enum import IntEnum
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
 from deltacycle import Aggregate, Loop, Singular
@@ -30,14 +30,14 @@ from .hier import Branch, Leaf
 class Region(IntEnum):
     # Coroutines that react to changes from Active region.
     # Used by combinational logic.
-    REACTIVE = auto()
+    REACTIVE = -1
 
     # Coroutines that drive changes to model state.
     # Used by 1) testbench, and 2) sequential logic.
-    ACTIVE = auto()
+    ACTIVE = 0
 
     # Coroutines that monitor model state.
-    INACTIVE = auto()
+    INACTIVE = 1
 
 
 class DesignError(Exception):
