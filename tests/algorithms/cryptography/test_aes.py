@@ -1,6 +1,6 @@
 """Test AES Algorithm."""
 
-from bvwx import Vector, u2bv
+from bvwx import Vec, u2bv
 
 from seqlogic.algorithm.cryptography.aes import (
     Key4,
@@ -13,7 +13,7 @@ from seqlogic.algorithm.cryptography.aes import (
 )
 
 
-def _s2v(s: str) -> Vector:
+def _s2v(s: str) -> Vec:
     a = bytearray.fromhex(s)
     return u2bv(int.from_bytes(a, byteorder="little"), 4 * len(s))
 
