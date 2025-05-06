@@ -2,27 +2,27 @@
 
 import pytest
 
-from seqlogic import GetAttr, GetItem
+from seqlogic import GetAttr
 from seqlogic.expr import Variable
 
 a = Variable(name="a")
 
 
 def test_getitem():
-    y = GetItem(a, 0)
+    y = a[0]
     assert str(y) == "a[0]"
 
-    y = GetItem(a, slice(None, 4))
+    y = a[:4]
     assert str(y) == "a[:4]"
 
-    y = GetItem(a, slice(0, None))
+    y = a[0:]
     assert str(y) == "a[0:]"
 
-    y = GetItem(a, slice(1, 3))
+    y = a[1:3]
     assert str(y) == "a[1:3]"
 
     with pytest.raises(TypeError):
-        GetItem(a, 4.2)  # pyright: ignore[reportArgumentType]
+        _ = a[4.2]  # pyright: ignore[reportArgumentType]
 
 
 def test_getattr():

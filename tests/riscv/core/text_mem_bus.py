@@ -2,7 +2,7 @@
 
 from bvwx import Vec, clog2, u2bv
 
-from seqlogic import GE, LT, GetItem, Module, Mux
+from seqlogic import GE, LT, Module, Mux
 
 from . import TEXT_BASE, TEXT_SIZE, Addr
 from .text_mem import TextMem
@@ -33,7 +33,7 @@ class TextMemBus(Module):
             name="text_mem",
             mod=TextMem(WORD_ADDR_BITS=word_addr_bits),
         ).connect(
-            rd_addr=GetItem(rd_addr, slice(m, n)),
+            rd_addr=rd_addr[m:n],
             rd_data=text,
         )
 

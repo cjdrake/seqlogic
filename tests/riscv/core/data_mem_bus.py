@@ -2,7 +2,7 @@
 
 from bvwx import Vec, clog2, u2bv
 
-from seqlogic import GE, LT, GetItem, Module, Mux
+from seqlogic import GE, LT, Module, Mux
 
 from . import DATA_BASE, DATA_SIZE, Addr
 from .data_mem import DataMem
@@ -38,7 +38,7 @@ class DataMemBus(Module):
             name="data_mem",
             mod=DataMem(WORD_ADDR_BITS=word_addr_bits),
         ).connect(
-            addr=GetItem(addr, slice(m, n)),
+            addr=addr[m:n],
             wr_en=(wr_en & is_data),
             wr_be=wr_be,
             wr_data=wr_data,

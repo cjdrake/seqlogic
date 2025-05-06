@@ -182,6 +182,9 @@ class Expr(ABC):
     def __rrshift__(self, other: ConstLike) -> Rsh:
         return Rsh(other, self)
 
+    def __getitem__(self, key: int | slice):
+        return GetItem(self, key)
+
     def iter_vars(self) -> Generator[Variable, None, None]:
         raise NotImplementedError()  # pragma: no cover
 

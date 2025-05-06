@@ -2,7 +2,7 @@
 
 from bvwx import Vec, cat
 
-from seqlogic import GetItem, Module
+from seqlogic import Module
 
 from .fa import FullAdd
 
@@ -55,7 +55,7 @@ class RCA(Module):
             ).connect(
                 s=ss[i],
                 co=(co if i == (self.N - 1) else cs[i]),
-                a=GetItem(a, i),
-                b=GetItem(b, i),
+                a=a[i],
+                b=b[i],
                 ci=(ci if i == 0 else cs[i - 1]),
             )
