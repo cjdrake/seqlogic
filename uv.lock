@@ -826,6 +826,7 @@ dev = [
     { name = "pytest-cov" },
     { name = "pytest-profiling" },
     { name = "sphinx" },
+    { name = "sphinx-autobuild" },
 ]
 
 [package.metadata]
@@ -842,6 +843,7 @@ dev = [
     { name = "pytest-cov", specifier = ">=6.1.1" },
     { name = "pytest-profiling", specifier = ">=1.8.1" },
     { name = "sphinx", specifier = ">=8.2.3" },
+    { name = "sphinx-autobuild", specifier = ">=2024.10.3" },
 ]
 
 [[package]]
