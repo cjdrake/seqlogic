@@ -4,11 +4,6 @@ Combine hierarchy, bit vectors, and simulation semantics into a
 straightforward API for creating a digital design.
 """
 
-# pylint: disable=exec-used
-
-# PyLint is confused by metaclass implementation
-# pylint: disable=protected-access
-
 from __future__ import annotations
 
 import re
@@ -17,10 +12,9 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from deltacycle import Aggregate, Loop, Singular
+from deltacycle import Aggregate, Loop, Singular, changed, create_task, now, touched
 from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
-from deltacycle import changed, create_task, now, touched
 from vcd.writer import VCDWriter as VcdWriter
 
 from .expr import Expr, Variable
@@ -452,11 +446,11 @@ class Module(metaclass=_ModuleMeta):
             else:
                 if rneg:
                     rst_pred = rst.is_negedge
-                    def clk_pred():  # noqa
+                    def clk_pred():
                         return clk_en() and rst.is_pos()
                 else:
                     rst_pred = rst.is_posedge
-                    def clk_pred():  # noqa
+                    def clk_pred():
                         return clk_en() and rst.is_neg()
 
                 async def cf():

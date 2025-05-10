@@ -1,8 +1,5 @@
 """Example LFSR implementation."""
 
-# This tracing method requires cross module references to _protected logic
-# pylint: disable=protected-access
-
 from collections import defaultdict
 
 from bvwx import Vec, cat

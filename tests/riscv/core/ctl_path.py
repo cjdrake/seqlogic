@@ -99,12 +99,12 @@ def f_next_pc_sel(opcode: Opcode, take_branch: Vec[1]):
     match opcode:
         case (
             Opcode.LOAD
-            | Opcode.MISC_MEM  # noqa
-            | Opcode.OP_IMM  # noqa
-            | Opcode.AUIPC  # noqa
-            | Opcode.STORE  # noqa
-            | Opcode.OP  # noqa
-            | Opcode.LUI  # noqa
+            | Opcode.MISC_MEM
+            | Opcode.OP_IMM
+            | Opcode.AUIPC
+            | Opcode.STORE
+            | Opcode.OP
+            | Opcode.LUI
         ):
             return CtlPc.PC4
         case Opcode.BRANCH:

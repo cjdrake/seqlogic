@@ -1,7 +1,5 @@
 """Expression Symbolic Logic."""
 
-# pylint: disable=exec-used
-
 from __future__ import annotations
 
 from abc import ABC

@@ -120,9 +120,9 @@ class Top(Module):
         def pred():
             return (
                 self.clock.is_posedge()
-                and self.reset.is_neg()  # noqa: W503
-                and self.wr_ready.prev == "1b1"  # noqa: W503
-                and self.wr_valid.prev == "1b1"  # noqa: W503
+                and self.reset.is_neg()
+                and self.wr_ready.prev == "1b1"
+                and self.wr_valid.prev == "1b1"
             )
 
         while True:
@@ -133,9 +133,9 @@ class Top(Module):
         def pred():
             return (
                 self.clock.is_posedge()
-                and self.reset.is_neg()  # noqa: W503
-                and self.rd_ready.prev == "1b1"  # noqa: W503
-                and self.rd_valid.prev == "1b1"  # noqa: W503
+                and self.reset.is_neg()
+                and self.rd_ready.prev == "1b1"
+                and self.rd_valid.prev == "1b1"
             )
 
         while True:

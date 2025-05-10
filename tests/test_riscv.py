@@ -9,9 +9,6 @@ We are not presently interested in the details of RISC-V.
 It merely serves as a non-trivial example design.
 """
 
-# This tracing method requires cross module references to _protected logic
-# pylint: disable=protected-access
-
 from collections import defaultdict
 
 from bvwx import u2bv
