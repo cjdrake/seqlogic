@@ -1,3 +1,6 @@
+PKG := seqlogic
+PYTEST := pytest
+
 .PHONY: help
 help:
 	@echo Usage: make [options] [target] ...
@@ -5,9 +8,6 @@ help:
 	@echo     test  - PyTest
 	@echo     prof  - PyTest with profile report
 	@echo     cov   - PyTest with HTML coverage report
-
-PKG := seqlogic
-PYTEST := pytest
 
 .PHONY: test
 test:
