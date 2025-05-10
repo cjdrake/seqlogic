@@ -823,6 +823,7 @@ dependencies = [
 dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytest-profiling" },
 ]
 
 [package.metadata]
@@ -836,6 +837,7 @@ requires-dist = [
 dev = [
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-cov", specifier = ">=6.1.1" },
+    { name = "pytest-profiling", specifier = ">=1.8.1" },
 ]
 
 [[package]]
