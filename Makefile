@@ -2,21 +2,12 @@
 help:
 	@echo Usage: make [options] [target] ...
 	@echo Valid targets:
-	@echo     lint  - PyLint
 	@echo     test  - PyTest
 	@echo     prof  - PyTest with profile report
 	@echo     cov   - PyTest with HTML coverage report
-	@echo     build - Build source/binary distributions
 
-PYTHON := python
-PYLINT := pylint
-FLAKE8 := flake8
+PKG := seqlogic
 PYTEST := pytest
-
-.PHONY: lint
-lint:
-	@$(PYLINT) src/seqlogic tests
-	@$(FLAKE8) src/seqlogic tests
 
 .PHONY: test
 test:
@@ -28,8 +19,4 @@ prof:
 
 .PHONY: cov
 cov:
-	@$(PYTEST) --doctest-modules --cov=src/seqlogic --cov-report=html
-
-.PHONY: build
-build:
-	@$(PYTHON) -m build
+	@$(PYTEST) --doctest-modules --cov=src/$(PKG) --cov-report=html
