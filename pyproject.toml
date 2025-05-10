@@ -19,6 +19,7 @@ line-length = 100
 
 [dependency-groups]
 dev = [
+    "ipykernel>=6.29.5",
     "pytest>=8.3.5",
     "pytest-cov>=6.1.1",
     "pytest-profiling>=1.8.1",
