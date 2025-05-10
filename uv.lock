@@ -827,6 +827,7 @@ dev = [
     { name = "pytest-profiling" },
     { name = "sphinx" },
     { name = "sphinx-autobuild" },
+    { name = "sphinx-book-theme" },
 ]
 
 [package.metadata]
@@ -844,6 +845,7 @@ dev = [
     { name = "pytest-profiling", specifier = ">=1.8.1" },
     { name = "sphinx", specifier = ">=8.2.3" },
     { name = "sphinx-autobuild", specifier = ">=2024.10.3" },
+    { name = "sphinx-book-theme", specifier = ">=1.1.4" },
 ]
 
 [[package]]
