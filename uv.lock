@@ -819,12 +819,20 @@ dependencies = [
     { name = "pyvcd" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "bvwx", specifier = ">=0.9.0" },
     { name = "deltacycle", specifier = ">=0.3.0" },
     { name = "pyvcd" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.3.5" }]
 
 [[package]]
 name = "six"

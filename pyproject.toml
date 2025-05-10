@@ -16,3 +16,8 @@ Repository = "https://github.com/cjdrake/seqlogic.git"
 
 [tool.black]
 line-length = 100
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+]
