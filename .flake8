@@ -1,6 +1,0 @@
-[flake8]
-
-max-line-length = 100
-
-# D105: Missing docstring in magic method
-ignore = D105
