@@ -5,15 +5,24 @@
 This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
+
+Version 0.44.0
+==============
+
+Updated tooling to use ``uv`` and ``ruff`.
+
+
 Version 0.43.0
 ==============
 
 Minor changes required for ``deltacycle`` 0.3.0.
 
+
 Version 0.42.0
 ==============
 
 Minor changes related to ``bvwx`` and ``deltacycle`` dependencies.
+
 
 Version 0.41.0
 ==============
@@ -43,6 +52,7 @@ Simpler, more explicit, cleaner. Obviously better.
 The ``bvwx`` version 0.5 dependency introduces "logical" operators,
 which can make certain expressions easier to implement.
 
+
 Version 0.40.0
 ==============
 
@@ -55,10 +65,12 @@ and implemented a few miscellaneous bug fixes and improvements.
 
 Added a ``ctz`` (count trailing zeros) function to ``algorithms.count`` module.
 
+
 Version 0.39.0
 ==============
 
 Add ``encode_onehot`` and ``encode_priority`` functions to the bits module.
+
 
 Version 0.38.0
 ==============
@@ -75,6 +87,7 @@ Input sizes no longer need to match.
 
 Implement new ``div`` and ``mod`` operators for basic unsigned
 division and modulus.
+
 
 Version 0.37.0
 ==============
@@ -126,6 +139,7 @@ Now this works::
         co=co,
     )
 
+
 Version 0.36.0
 ==============
 
@@ -150,6 +164,7 @@ Now this works::
     async def drive(valid: Vec[1], data: Vec[8]):
         valid.next = 1
         data.next = 42
+
 
 Version 0.35.0
 ==============
