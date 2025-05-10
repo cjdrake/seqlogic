@@ -27,7 +27,6 @@ def test_duplicate_output():
 
 
 def test_duplicate_logic():
-
     # Duplicate names
     class Top1(Module):
         def build(self):

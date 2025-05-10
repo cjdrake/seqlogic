@@ -327,7 +327,6 @@ class Module(metaclass=_ModuleMeta):
         self._initial.append((coro, Region.INACTIVE))
 
     def _combi(self, ys: Sequence[SimVal], f: Callable, xs: Sequence[SimVar]):
-
         async def cf():
             while True:
                 await changed(*xs)

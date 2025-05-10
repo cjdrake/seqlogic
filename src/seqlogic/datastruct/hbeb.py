@@ -3,7 +3,6 @@
 # PyLint thinks some Packed types are Unpacked for some reason
 # pylint: disable=invalid-unary-operand-type
 
-
 from bvwx import Vec
 
 from seqlogic import ITE, Module
