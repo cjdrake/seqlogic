@@ -165,14 +165,14 @@ wheels = [
 
 [[package]]
 name = "click"
-version = "8.1.8"
+version = "8.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b9/2e/0090cbf739cee7d23781ad4b89a9894a41538e4fcf4c31dcdd705b78eb8b/click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a", size = 226593, upload-time = "2024-12-21T18:38:44.339Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cd/0f/62ca20172d4f87d93cf89665fbaedcd560ac48b465bd1d92bfc7ea6b0a41/click-8.2.0.tar.gz", hash = "sha256:f5452aeddd9988eefa20f90f05ab66f17fce1ee2a36907fd30b05bbb5953814d", size = 235857, upload-time = "2025-05-10T22:21:03.111Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7e/d4/7ebdbd03970677812aac39c869717059dbb71a4cfc033ca6e5221787892c/click-8.1.8-py3-none-any.whl", hash = "sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2", size = 98188, upload-time = "2024-12-21T18:38:41.666Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/58/1f37bf81e3c689cc74ffa42102fa8915b59085f54a6e4a80bc6265c0f6bf/click-8.2.0-py3-none-any.whl", hash = "sha256:6b303f0b2aa85f1cb4e5303078fadcbcd4e476f114fab9b5007005711839325c", size = 102156, upload-time = "2025-05-10T22:21:01.352Z" },
 ]
 
 [[package]]
@@ -263,21 +263,11 @@ wheels = [
 
 [[package]]
 name = "deltacycle"
-version = "0.5.0"
+version = "0.5.1"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "ipykernel" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-profiling" },
-    { name = "ruff" },
-    { name = "sphinx" },
-    { name = "sphinx-autobuild" },
-    { name = "sphinx-book-theme" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/cd/3f/b0011ced592a2f36e0720b0c431f736ef8a178f737699cf1ced8d005e950/deltacycle-0.5.0.tar.gz", hash = "sha256:4b4fe9ea098ec022573dc64e0f90ece3eaccf227a54514b89c21c1af747d65d3", size = 17019, upload-time = "2025-05-10T20:45:00.933Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/76/c7/9c327141292bf3bc943d2d9979210dcdfb4c34855249948735df8ed23fc6/deltacycle-0.5.1.tar.gz", hash = "sha256:8f1b601aaa8cbf248c2016d057f4ba6d7ae8a8590bf6041df38da6d440f943c9", size = 16810, upload-time = "2025-05-11T02:45:18.041Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/93/f1/8ef28b7326807c3dc051087832682aeebf21f62762b560c66bc7687677cc/deltacycle-0.5.0-py3-none-any.whl", hash = "sha256:9dce0e3880f6e88b4c33766523493f702d207f27b51cc17b2f48d1b1d220973b", size = 12891, upload-time = "2025-05-10T20:44:59.956Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/cc/86bed5a00155ac352e70c21859fe87d31efbddb7042ad06c8dd7e2fa4cc1/deltacycle-0.5.1-py3-none-any.whl", hash = "sha256:8435b0e6e15776b117e8237f4af621e1e4df8184e8204828619f356e744932fa", size = 12783, upload-time = "2025-05-11T02:45:16.94Z" },
 ]
 
 [[package]]
