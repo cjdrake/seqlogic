@@ -274,9 +274,9 @@ class Module(metaclass=_ModuleMeta):
         dtype: type[Bits],
         shape: tuple[int, ...] | None = None,
     ) -> Packed | Unpacked:
-        # Require valid logic name
+        # Require valid name
         self._check_name(name)
-        # Require logic to have unique name
+        # Require unique name
         if hasattr(self, name):
             raise DesignError(f"Invalid logic name: {name}")
         # Create logic
@@ -286,31 +286,31 @@ class Module(metaclass=_ModuleMeta):
             # TODO(cjdrake): Support > 1 unpacked dimensions
             assert len(shape) == 1
             node = Unpacked(name, parent=self, dtype=dtype)
-        # Save logic in module namespace
+        # Save in module namespace
         setattr(self, name, node)
         return node
 
     def float(self, name: str) -> Float:
-        # Require valid logic name
+        # Require valid name
         self._check_name(name)
-        # Require logic to have unique name
+        # Require unique name
         if hasattr(self, name):
             raise DesignError(f"Invalid float name: {name}")
-        # Create logic
+        # Create float
         node = Float(name, parent=self)
-        # Save logic in module namespace
+        # Save in module namespace
         setattr(self, name, node)
         return node
 
     def submod(self, name: str, mod: type[Module]) -> Module:
-        # Require valid submodule name
+        # Require valid name
         self._check_name(name)
-        # Require submodule to have unique name
+        # Require unique name
         if hasattr(self, name):
             raise DesignError(f"Invalid submodule name: {name}")
         # Create submodule
         node = mod(name, parent=self)
-        # Save submodule in module namespace
+        # Save in module namespace
         setattr(self, name, node)
         return node
 
