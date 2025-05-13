@@ -48,7 +48,7 @@ class _ProcIf:
         self._initial: list[tuple[Coroutine, Region]] = []
 
     @property
-    def initial(self):
+    def initial(self) -> list[tuple[Coroutine, Region]]:
         return self._initial
 
 
@@ -407,7 +407,7 @@ class Module(metaclass=_ModuleMeta):
         if en is None:
             clk_en = clk.is_posedge
         else:
-            def clk_en():
+            def clk_en() -> bool:
                 return clk.is_posedge() and en.prev == "1b1"
 
         # No Reset
@@ -446,11 +446,11 @@ class Module(metaclass=_ModuleMeta):
             else:
                 if rneg:
                     rst_pred = rst.is_negedge
-                    def clk_pred():
+                    def clk_pred() -> bool:
                         return clk_en() and rst.is_pos()
                 else:
                     rst_pred = rst.is_posedge
-                    def clk_pred():
+                    def clk_pred() -> bool:
                         return clk_en() and rst.is_neg()
 
                 async def cf():
@@ -477,7 +477,7 @@ class Module(metaclass=_ModuleMeta):
     ):
         """Memory with write enable."""
 
-        def clk_pred():
+        def clk_pred() -> bool:
             return clk.is_posedge() and en.prev == "1b1"
 
         # fmt: off
@@ -522,7 +522,7 @@ class Logic(Leaf, _ProcIf, _TraceIf):
         self._dtype = dtype
 
     @property
-    def dtype(self):
+    def dtype(self) -> tuple[Bits]:
         return self._dtype
 
 
