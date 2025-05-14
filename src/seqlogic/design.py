@@ -17,7 +17,8 @@ from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
 from vcd.writer import VCDWriter as VcdWriter
 
-from .expr import Expr, Variable
+from .expr import Expr
+from .expr import Variable as ExprVar
 from .hier import Branch, Leaf
 
 
@@ -526,13 +527,13 @@ class Logic(Leaf, _ProcIf, _TraceIf):
         return self._dtype
 
 
-class Packed(Logic, Singular, Variable):
+class Packed(Logic, Singular, ExprVar):
     """Leaf-level bitvector design component."""
 
     def __init__(self, name: str, parent: Module, dtype: type[Bits]):
         Logic.__init__(self, name, parent, dtype)
         Singular.__init__(self, dtype.xes())
-        Variable.__init__(self, name)
+        ExprVar.__init__(self, name)
         self._waves_change = None
         self._vcd_change = None
 
