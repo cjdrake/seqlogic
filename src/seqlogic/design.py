@@ -39,11 +39,15 @@ class DesignError(Exception):
     """Design Error."""
 
 
-class AssumeError(Exception):
+class CheckerError(Exception):
     pass
 
 
-class AssertError(Exception):
+class AssumeError(CheckerError):
+    pass
+
+
+class AssertError(CheckerError):
     pass
 
 
@@ -537,8 +541,8 @@ class Module(metaclass=_ModuleMeta):
 
     def _check_1(
         self,
-        cls1: type[Assumption | Assertion],
-        cls2: type[AssumeError | AssertError],
+        cls1: type[Checker],
+        cls2: type[CheckerError],
         name: str,
         f: Callable,
         xs: Sequence[SimVar],
@@ -783,16 +787,18 @@ class Unpacked(Logic, Aggregate):
         Aggregate.__init__(self, dtype.xes())
 
 
-class Assumption(Leaf, _ProcIf, _TraceIf):
+class Checker(Leaf, _ProcIf, _TraceIf):
     def __init__(self, name: str, parent: Module):
         Leaf.__init__(self, name, parent)
         _ProcIf.__init__(self)
 
 
-class Assertion(Leaf, _ProcIf, _TraceIf):
-    def __init__(self, name: str, parent: Module):
-        Leaf.__init__(self, name, parent)
-        _ProcIf.__init__(self)
+class Assumption(Checker):
+    pass
+
+
+class Assertion(Checker):
+    pass
 
 
 class Float(Leaf, _ProcIf, _TraceIf, Singular):
