@@ -38,6 +38,7 @@ class Hierarchy:
     @property
     def qualname(self) -> str:
         """Return the design element's fully qualified name."""
+        raise NotImplementedError()  # pragma: no cover
 
     def iter_bfs(self) -> Generator[Hierarchy, None, None]:
         """Iterate through the design hierarchy in BFS order."""
