@@ -548,7 +548,7 @@ class Module(metaclass=_ModuleMeta):
         xs: Sequence[SimVar],
         clk: Packed,
         rst: Packed,
-    ) -> Assumption | Assertion:
+    ) -> Checker:
         # Require valid name
         self._check_name(name)
         # Require unique name
@@ -601,13 +601,13 @@ class Module(metaclass=_ModuleMeta):
 
     def _check_2(
         self,
-        cls: type[Assumption | Assertion],
+        cls: type[Checker],
         name: str,
         p: Callable[[], bool],
         q,
         clk: Packed,
         rst: Packed,
-    ) -> Assumption | Assertion:
+    ) -> Checker:
         # Require valid name
         self._check_name(name)
         # Require unique name
