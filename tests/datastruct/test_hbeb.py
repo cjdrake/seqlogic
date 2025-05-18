@@ -42,7 +42,7 @@ class Top(Module):
 
         self.submod(
             name="dut",
-            mod=Hbeb.paramz(T=self.T),
+            mod=Hbeb(T=self.T),
         ).connect(
             rd_ready=rd_ready,
             rd_valid=rd_valid,
@@ -154,7 +154,7 @@ def test_hbeb():
         VCDWriter(f, timescale="1ns") as vcdw,
     ):
         # Instantiate top
-        top = Top(name="top")
+        top = Top()(name="top")
 
         # Dump all signals to VCD
         top.dump_vcd(vcdw, ".*")

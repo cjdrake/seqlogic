@@ -36,7 +36,7 @@ class DataMemBus(Module):
         m, n = 2, 2 + word_addr_bits
         self.submod(
             name="data_mem",
-            mod=DataMem.paramz(WORD_ADDR_BITS=word_addr_bits),
+            mod=DataMem(WORD_ADDR_BITS=word_addr_bits),
         ).connect(
             addr=GetItem(addr, slice(m, n)),
             wr_en=(wr_en & is_data),

@@ -48,7 +48,7 @@ class Top(Module):
         # Design Under Test
         self.submod(
             name="dut",
-            mod=RCA.paramz(N=self.N),
+            mod=RCA(N=self.N),
         ).connect(
             s=s,
             ci=ci,
@@ -88,7 +88,7 @@ def test_structural():
             VCDWriter(f, timescale="1ns") as vcdw,
         ):
             # Instantiate top
-            top_n = Top.paramz(N=n)
+            top_n = Top(N=n)
             top = top_n(name="top", parent=None)
 
             # Dump all signals to VCD

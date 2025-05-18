@@ -39,7 +39,7 @@ class Top(Module):
 
         self.submod(
             name="dut",
-            mod=PipeReg.paramz(T=self.T),
+            mod=PipeReg(T=self.T),
         ).connect(
             rd_valid=rd_valid,
             rd_data=rd_data,
@@ -112,7 +112,7 @@ def test_pipe_reg():
         VCDWriter(f, timescale="1ns") as vcdw,
     ):
         # Instantiate top
-        top = Top(name="top")
+        top = Top()(name="top")
 
         # Dump all signals to VCD
         top.dump_vcd(vcdw, ".*")

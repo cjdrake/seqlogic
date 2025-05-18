@@ -66,29 +66,61 @@ class _TraceIf:
         """Dump design elements w/ names matching pattern to VCD file."""
 
 
-_ModuleParams = defaultdict(dict)
-
-
-def _get_pmod(mod: type[Module], params) -> type[Module]:
-    """Return parameterized Module[p1=v1,p2=v2,...] type."""
-    key = tuple(sorted(params.items()))
-    try:
-        return _ModuleParams[mod][key]
-    except KeyError:
-        s = ",".join(f"{k}={v}" for k, v in key)
-        pmod = type(f"{mod.__name__}[{s}]", (mod,), params)
-        _ModuleParams[mod][key] = pmod
-        return pmod
-
-
-def _mod_paramz_source(pntvs) -> str:
-    """Return source code for Module paramz method."""
+def _mod_factory_new(pntvs):
+    # Create source for _new function
     lines = []
     s = ", ".join(f"{pn}=None" for pn, _, _ in pntvs)
-    lines.append(f"def paramz(cls, {s}):\n")
+    lines.append(f"def _new(cls, {s}):\n")
     s = ", ".join(pn for pn, _, _ in pntvs)
-    lines.append(f"    return _paramz_body(cls, {s})\n")
-    return "".join(lines)
+    lines.append(f"    return _new_body(cls, {s})\n")
+    source = "".join(lines)
+
+    def _new_body(cls, *args):
+        # For all parameters, use either default or override value
+        params = {}
+        for arg, (pn, _, pv) in zip(args, pntvs):
+            if arg is None:
+                params[pn] = pv  # default
+            else:
+                # TODO(cjdrake): Check input type?
+                params[pn] = arg  # override
+        return _get_mod(cls, params)
+
+    globals_ = {"_new_body": _new_body}
+    locals_ = {}
+    # Create _new method
+    exec(source, globals_, locals_)
+    return locals_["_new"]
+
+
+_Modules = defaultdict(dict)
+
+
+def _mod_name(cls, key) -> str:
+    parts = []
+    for name, value in key:
+        if isinstance(value, type):
+            parts.append(f"{name}={value.__name__}")
+        else:
+            parts.append(f"{name}={value}")
+    return f"{cls.__name__}[{','.join(parts)}]"
+
+
+def _mod_new(cls, name: str, parent: Module | None = None):
+    return object.__new__(cls)
+
+
+def _get_mod(cls, params) -> type[Module]:
+    key = tuple(sorted(params.items()))
+    try:
+        mod = _Modules[cls][key]
+    except KeyError:
+        # Create extended Module
+        name = _mod_name(cls, key)
+        mod = type(name, (cls,), params)
+        mod.__new__ = _mod_new
+        _Modules[cls][key] = mod
+    return mod
 
 
 class _ModuleMeta(type):
@@ -112,45 +144,15 @@ class _ModuleMeta(type):
                 raise TypeError(s)
             pntvs.append((pn, pt, pv))
 
-        # Create Module class
+        if pntvs:
+            # Create Module factory
+            mod_factory = super().__new__(mcs, name, bases, attrs)
+            mod_factory.__new__ = _mod_factory_new(pntvs)
+            return mod_factory
+
+        # Create base Module
         mod = super().__new__(mcs, name, bases + (Branch, _ProcIf, _TraceIf), attrs)
-
-        # Override Module.__init__ method
-        def _init(self, name: str, parent: Module | None = None):
-            Branch.__init__(self, name, parent)
-            _ProcIf.__init__(self)
-
-            # Ports: name => connected
-            self._inputs = {}
-            self._outputs = {}
-
-            self.build()
-
-        mod.__init__ = _init
-
-        def _paramz_body(cls, *args):
-            # No parameters
-            if not pntvs:
-                return cls
-
-            # For all parameters, use either default or override value
-            params = {}
-            for arg, (pn, _, pv) in zip(args, pntvs):
-                if arg is None:
-                    params[pn] = pv  # default
-                else:
-                    # TODO(cjdrake): Check input type?
-                    params[pn] = arg  # override
-
-            return _get_pmod(cls, params)
-
-        source = _mod_paramz_source(pntvs)
-        globals_ = {"_paramz_body": _paramz_body}
-        locals_ = {}
-        exec(source, globals_, locals_)
-        mod.paramz = classmethod(locals_["paramz"])
-        mod.parameterize = mod.paramz
-
+        mod.__new__ = _mod_new
         return mod
 
 
@@ -163,6 +165,16 @@ class Module(metaclass=_ModuleMeta):
     * Local variables
     * Local processes
     """
+
+    def __init__(self, name: str, parent: Module | None = None):
+        Branch.__init__(self, name, parent)
+        _ProcIf.__init__(self)
+
+        # Ports: name => connected
+        self._inputs = {}
+        self._outputs = {}
+
+        self.build()
 
     def build(self):
         raise NotImplementedError("Module requires a build method")
