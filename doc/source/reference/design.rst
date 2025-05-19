@@ -7,7 +7,7 @@
 .. autoclass:: seqlogic.Module
 
     .. automethod:: seqlogic.Module.build
-    .. automethod:: seqlogic.Module.elab
+    .. automethod:: seqlogic.Module.main
 
     .. autoproperty:: seqlogic.Module.scope
 
@@ -28,10 +28,11 @@
     .. automethod:: seqlogic.Module.assign
 
     .. automethod:: seqlogic.Module.dff
-    .. automethod:: seqlogic.Module.dff_r
-    .. automethod:: seqlogic.Module.dff_en
-    .. automethod:: seqlogic.Module.dff_en_r
     .. automethod:: seqlogic.Module.mem_wr
+
+.. autoclass:: seqlogic.Logic
+
+    .. autoproperty:: seqlogic.Logic.dtype
 
 .. autoclass:: seqlogic.Packed
 

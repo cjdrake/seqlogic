@@ -11,9 +11,14 @@
 .. autoclass:: seqlogic.Or
 .. autoclass:: seqlogic.And
 .. autoclass:: seqlogic.Xor
+.. autoclass:: seqlogic.Impl
 
 .. autoclass:: seqlogic.ITE
 .. autoclass:: seqlogic.Mux
+
+.. autoclass:: seqlogic.Lor
+.. autoclass:: seqlogic.Land
+.. autoclass:: seqlogic.Lxor
 
 .. autoclass:: seqlogic.Uor
 .. autoclass:: seqlogic.Uand
@@ -27,6 +32,8 @@
 .. autoclass:: seqlogic.Ngc
 
 .. autoclass:: seqlogic.Mul
+.. autoclass:: seqlogic.Div
+.. autoclass:: seqlogic.Mod
 
 .. autoclass:: seqlogic.Lsh
 .. autoclass:: seqlogic.Rsh

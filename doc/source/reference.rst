@@ -9,5 +9,3 @@
 
     reference/expr
     reference/design
-    reference/sim
-    reference/util
