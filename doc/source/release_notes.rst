@@ -8,6 +8,25 @@ This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
 
+Version 0.45.0
+==============
+
+Update how module parameterization works.
+Get rid of ``Module.parameterize`` and ``Module.paramz`` methods.
+Now, if the module has parameters,
+use its constructor to create a parameterized module.
+
+For example::
+
+    class MyModule(Module):
+        N: int = 8
+
+        def build(self):
+            ...
+
+    my_mod = MyModule(N=32)
+
+
 Version 0.44.0
 ==============
 
