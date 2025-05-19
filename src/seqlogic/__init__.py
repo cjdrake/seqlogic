@@ -1,6 +1,6 @@
 """Sequential Logic."""
 
-from .design import DesignError, Float, Module, Packed, Unpacked
+from .design import DesignError, Float, Logic, Module, Packed, Unpacked
 from .expr import (
     EQ,
     GE,
@@ -48,6 +48,7 @@ __all__ = [
     # design
     "DesignError",
     "Module",
+    "Logic",
     "Packed",
     "Unpacked",
     "Float",
