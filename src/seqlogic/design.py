@@ -442,18 +442,20 @@ class Module(metaclass=_ModuleMeta):
             if rsync:
                 if rneg:
                     async def cf():
-                        x = await touched({clk: clk_en})
-                        if x is clk:
-                            q.next = rval if not rst.prev else d.prev
-                        else:
-                            assert False  # pragma: no cover
+                        while True:
+                            x = await touched({clk: clk_en})
+                            if x is clk:
+                                q.next = rval if not rst.prev else d.prev
+                            else:
+                                assert False  # pragma: no cover
                 else:
                     async def cf():
-                        x = await touched({clk: clk_en})
-                        if x is clk:
-                            q.next = rval if rst.prev else d.prev
-                        else:
-                            assert False  # pragma: no cover
+                        while True:
+                            x = await touched({clk: clk_en})
+                            if x is clk:
+                                q.next = rval if rst.prev else d.prev
+                            else:
+                                assert False  # pragma: no cover
 
             # Asynchronous Reset
             else:
