@@ -12,9 +12,11 @@ select = [
 ]
 
 ignore = [
-    "PLR0911",  # too-many-return-statements
-    "PLR0912",  # too-many-branches
     "PLR0913",  # too-many-arguments
     "PLR0915",  # too-many-statements
     "PLR2004",  # magic-value-comparison
 ]
+
+# Ignore PyLint Refactor/Warning rules for examples and tests
+[lint.per-file-ignores]
+"{ipynb,tests}/*" = ["PLR", "PLW"]
