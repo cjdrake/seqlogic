@@ -21,7 +21,7 @@ class SeqDetect(Enum):
     D = "2b11"
 
 
-async def drive_input(x, reset_n, clock):
+async def drv_input(x, reset_n, clock):
     await reset_n.negedge()
     x.next = "1b0"
 
@@ -84,12 +84,12 @@ def test_fsm():
         await top.main()
 
         # Schedule input
-        create_task(drive_input(x, reset_n, clock))
+        create_task(drv_input(x, reset_n, clock), name="drv_input")
 
         # Schedule reset and clock
         # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose
-        create_task(drv_reset(reset_n, shiftticks=6, onticks=10, neg=True))
-        create_task(drv_clock(clock, shiftticks=5, onticks=5, offticks=5))
+        create_task(drv_reset(reset_n, shiftticks=6, onticks=10, neg=True), name="drv_reset")
+        create_task(drv_clock(clock, shiftticks=5, onticks=5, offticks=5), name="drv_clock")
 
     run(main(), until=100)
 

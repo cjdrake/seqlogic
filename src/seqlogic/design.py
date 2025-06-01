@@ -560,7 +560,8 @@ class Packed(Logic, Singular, ExprVar):
                 value = i2bv(value, size=self._dtype.size)
             else:
                 value = u2bv(value, size=self._dtype.size)
-        super()._set_next(self._dtype.cast(value))
+        value = self._dtype.cast(value)
+        super()._set_next(value)
 
     next = property(fset=_set_next)
 
