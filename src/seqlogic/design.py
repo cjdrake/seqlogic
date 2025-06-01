@@ -426,8 +426,9 @@ class Module(metaclass=_ModuleMeta):
         # No Reset
         if rst is None:
             async def cf():
+                vps = {clk: clk_en}
                 while True:
-                    x = await touched({clk: clk_en})
+                    x = await touched(vps)
                     if x is clk:
                         q.next = d.prev
                     else:
@@ -442,16 +443,18 @@ class Module(metaclass=_ModuleMeta):
             if rsync:
                 if rneg:
                     async def cf():
+                        vps = {clk: clk_en}
                         while True:
-                            x = await touched({clk: clk_en})
+                            x = await touched(vps)
                             if x is clk:
                                 q.next = rval if not rst.prev else d.prev
                             else:
                                 assert False  # pragma: no cover
                 else:
                     async def cf():
+                        vps = {clk: clk_en}
                         while True:
-                            x = await touched({clk: clk_en})
+                            x = await touched(vps)
                             if x is clk:
                                 q.next = rval if rst.prev else d.prev
                             else:
@@ -469,8 +472,9 @@ class Module(metaclass=_ModuleMeta):
                         return clk_en() and rst.is_neg()
 
                 async def cf():
+                    vps = {rst: rst_pred, clk: clk_pred}
                     while True:
-                        x = await touched({rst: rst_pred, clk: clk_pred})
+                        x = await touched(vps)
                         if x is rst:
                             q.next = rval
                         elif x is clk:
@@ -498,8 +502,9 @@ class Module(metaclass=_ModuleMeta):
         # fmt: off
         if be is None:
             async def cf():
+                vps = {clk: clk_pred}
                 while True:
-                    x = await touched({clk: clk_pred})
+                    x = await touched(vps)
                     assert not addr.prev.has_unknown()
                     if x is clk:
                         mem[addr.prev].next = data.prev
@@ -511,8 +516,9 @@ class Module(metaclass=_ModuleMeta):
             assert len(data.dtype.shape) == 2 and data.dtype.shape[1] == 8
 
             async def cf():
+                vps = {clk: clk_pred}
                 while True:
-                    x = await touched({clk: clk_pred})
+                    x = await touched(vps)
                     assert not addr.prev.has_unknown()
                     assert not be.prev.has_unknown()
                     if x is clk:
@@ -550,6 +556,10 @@ class Packed(Logic, Singular, ExprVar):
         ExprVar.__init__(self, name)
         self._waves_change = None
         self._vcd_change = None
+
+        self._vps_e = {self: self.is_edge}
+        self._vps_pe = {self: self.is_posedge}
+        self._vps_ne = {self: self.is_negedge}
 
     # Singular => Variable
     def _set_next(self, value):
@@ -640,15 +650,15 @@ class Packed(Logic, Singular, ExprVar):
 
     async def posedge(self):
         """Suspend; resume execution at signal posedge."""
-        await touched({self: self.is_posedge})
+        await touched(self._vps_pe)
 
     async def negedge(self):
         """Suspend; resume execution at signal negedge."""
-        await touched({self: self.is_negedge})
+        await touched(self._vps_ne)
 
     async def edge(self):
         """Suspend; resume execution at signal edge."""
-        await touched({self: self.is_edge})
+        await touched(self._vps_e)
 
 
 class Unpacked(Logic, Aggregate):
