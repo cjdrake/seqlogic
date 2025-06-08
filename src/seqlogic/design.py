@@ -12,7 +12,7 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from deltacycle import Aggregate, Loop, Singular, create_task, now, touched
+from deltacycle import Aggregate, Loop, Singular, TaskGroup, now, touched
 from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
 from vcd.writer import VCDWriter as VcdWriter
@@ -191,17 +191,19 @@ class Module(metaclass=_ModuleMeta):
 
     def main(self) -> Coroutine:
         """Add design processes to the simulator."""
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
 
         async def cf():
-            assert isinstance(self, Branch)
-            for node in self.iter_bfs():
-                assert isinstance(node, _ProcIf)
-                for coro in node.reactive:
-                    create_task(coro, priority=Region.REACTIVE)
-                for coro in node.active:
-                    create_task(coro, priority=Region.ACTIVE)
-                for coro in node.inactive:
-                    create_task(coro, priority=Region.INACTIVE)
+            async with TaskGroup() as tg:
+                for node in self.iter_bfs():
+                    assert isinstance(node, _ProcIf)
+                    for coro in node.reactive:
+                        tg.create_task(coro, priority=Region.REACTIVE)
+                    for coro in node.active:
+                        tg.create_task(coro, priority=Region.ACTIVE)
+                    for coro in node.inactive:
+                        tg.create_task(coro, priority=Region.INACTIVE)
 
         return cf()
 

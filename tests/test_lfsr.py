@@ -40,7 +40,7 @@ def test_lfsr():
     assert top.q.qualname == "/top/q"
 
     async def main():
-        await top.main()
+        create_task(top.main())
 
         # Schedule reset and clock
         # Note: Avoiding simultaneous reset/clock negedge/posedge on purpose

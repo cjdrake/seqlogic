@@ -81,7 +81,7 @@ def test_fsm():
     top.dump_waves(waves, r"/top/ps")
 
     async def main():
-        await top.main()
+        create_task(top.main())
 
         # Schedule input
         create_task(drv_input(x, reset_n, clock), name="drv_input")
