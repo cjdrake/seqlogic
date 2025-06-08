@@ -46,7 +46,11 @@ def test_duplicate_logic():
             with pytest.raises(DesignError):
                 self.logic(name="_children", dtype=Vec[8])
             with pytest.raises(DesignError):
-                self.logic(name="_initial", dtype=Vec[8])
+                self.logic(name="_reactive", dtype=Vec[8])
+            with pytest.raises(DesignError):
+                self.logic(name="_active", dtype=Vec[8])
+            with pytest.raises(DesignError):
+                self.logic(name="_inactive", dtype=Vec[8])
 
     _ = Top2(name="top2")
 

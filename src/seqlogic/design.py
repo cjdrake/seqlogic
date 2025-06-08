@@ -46,11 +46,21 @@ class _ProcIf:
     """
 
     def __init__(self):
-        self._initial: list[tuple[Coroutine, Region]] = []
+        self._reactive: list[Coroutine] = []
+        self._active: list[Coroutine] = []
+        self._inactive: list[Coroutine] = []
 
     @property
-    def initial(self) -> list[tuple[Coroutine, Region]]:
-        return self._initial
+    def reactive(self) -> list[Coroutine]:
+        return self._reactive
+
+    @property
+    def active(self) -> list[Coroutine]:
+        return self._active
+
+    @property
+    def inactive(self) -> list[Coroutine]:
+        return self._inactive
 
 
 class _TraceIf:
@@ -183,9 +193,15 @@ class Module(metaclass=_ModuleMeta):
         """Add design processes to the simulator."""
 
         async def cf():
+            assert isinstance(self, Branch)
             for node in self.iter_bfs():
-                for coro, region in node.initial:
-                    create_task(coro, priority=region)
+                assert isinstance(node, _ProcIf)
+                for coro in node.reactive:
+                    create_task(coro, priority=Region.REACTIVE)
+                for coro in node.active:
+                    create_task(coro, priority=Region.ACTIVE)
+                for coro in node.inactive:
+                    create_task(coro, priority=Region.INACTIVE)
 
         return cf()
 
@@ -328,12 +344,16 @@ class Module(metaclass=_ModuleMeta):
         return node
 
     def drv(self, coro: Coroutine):
-        self._initial.append((coro, Region.ACTIVE))
+        assert isinstance(self, _ProcIf)
+        self._active.append(coro)
 
     def mon(self, coro: Coroutine):
-        self._initial.append((coro, Region.INACTIVE))
+        assert isinstance(self, _ProcIf)
+        self._inactive.append(coro)
 
     def _combi(self, ys: Sequence[SimVal], f: Callable, xs: Sequence[SimVar]):
+        assert isinstance(self, _ProcIf)
+
         async def cf():
             vps = {x: x.changed for x in xs}
             while True:
@@ -351,7 +371,8 @@ class Module(metaclass=_ModuleMeta):
                 for y, value in zip(ys, values):
                     y.next = value
 
-        self._initial.append((cf(), Region.REACTIVE))
+        coro = cf()
+        self._reactive.append(coro)
 
     def combi(
         self,
@@ -379,17 +400,21 @@ class Module(metaclass=_ModuleMeta):
 
     def assign(self, y: SimVal, x: Packed | str):
         """Assign input to output."""
+        assert isinstance(self, _ProcIf)
+
         # fmt: off
         if isinstance(x, str):
             async def cf():
                 y.next = x
-            self._initial.append((cf(), Region.ACTIVE))
+            coro = cf()
+            self._active.append(coro)
         elif isinstance(x, Packed):
             async def cf():
                 while True:
                     await x
                     y.next = x.value
-            self._initial.append((cf(), Region.REACTIVE))
+            coro = cf()
+            self._reactive.append(coro)
         else:
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
@@ -417,6 +442,8 @@ class Module(metaclass=_ModuleMeta):
             rsync: reset is edge triggered
             rneg: reset is active negative
         """
+        assert isinstance(self, _ProcIf)
+
         # fmt: off
         if en is None:
             clk_en = clk.is_posedge
@@ -483,7 +510,8 @@ class Module(metaclass=_ModuleMeta):
                         else:
                             assert False  # pragma: no cover
 
-        self._initial.append((cf(), Region.ACTIVE))
+        coro = cf()
+        self._active.append(coro)
         # fmt: on
 
     def mem_wr(
@@ -496,6 +524,7 @@ class Module(metaclass=_ModuleMeta):
         be: Packed | None = None,
     ):
         """Memory with write enable."""
+        assert isinstance(self, _ProcIf)
 
         def clk_pred() -> bool:
             return clk.is_posedge() and en.prev == "1b1"
@@ -533,7 +562,8 @@ class Module(metaclass=_ModuleMeta):
                     else:
                         assert False  # pragma: no cover
 
-        self._initial.append((cf(), Region.ACTIVE))
+        coro = cf()
+        self._active.append(coro)
         # fmt: on
 
 
