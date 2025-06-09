@@ -12,7 +12,7 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from deltacycle import Aggregate, Loop, Singular, changed, create_task, now, touched
+from deltacycle import Aggregate, Loop, Singular, create_task, now, touched
 from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
 from vcd.writer import VCDWriter as VcdWriter
@@ -335,8 +335,9 @@ class Module(metaclass=_ModuleMeta):
 
     def _combi(self, ys: Sequence[SimVal], f: Callable, xs: Sequence[SimVar]):
         async def cf():
+            vps = {x: x.changed for x in xs}
             while True:
-                await changed(*xs)
+                await touched(vps)
 
                 # Apply f to inputs
                 values = f(*[x.value for x in xs])
@@ -386,7 +387,7 @@ class Module(metaclass=_ModuleMeta):
         elif isinstance(x, Packed):
             async def cf():
                 while True:
-                    await changed(x)
+                    await x
                     y.next = x.value
             self._initial.append((cf(), Region.REACTIVE))
         else:
