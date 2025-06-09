@@ -21,7 +21,7 @@ class SeqDetect(Enum):
     D = "2b11"
 
 
-async def drv_input(x, reset_n, clock):
+async def drv_input(x: Packed, reset_n: Packed, clock: Packed):
     await reset_n.negedge()
     x.next = "1b0"
 
