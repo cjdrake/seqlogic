@@ -210,72 +210,106 @@ class Module(metaclass=_ModuleMeta):
     @property
     def scope(self) -> str:
         """Return the branch's full name using dot separator syntax."""
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
         if self._parent is None:
             return self.name
         assert isinstance(self._parent, Module)
         return f"{self._parent.scope}.{self.name}"
 
     def dump_waves(self, waves: defaultdict, pattern: str):
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
         for child in self._children:
             assert isinstance(child, _TraceIf)
             child.dump_waves(waves, pattern)
 
     def dump_vcd(self, vcdw: VcdWriter, pattern: str):
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
         for child in self._children:
             assert isinstance(child, _TraceIf)
             child.dump_vcd(vcdw, pattern)
 
     def input(self, name: str, dtype: type[Bits]) -> Packed:
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
         # Require valid port name and type
         self._check_name(name)
+
         # Require ports to have unique name
         if hasattr(self, name):
             raise DesignError(f"Invalid input port name: {name}")
+
         # Create port
         node = Packed(name, parent=self, dtype=dtype)
+
         # Mark port unconnected
         self._inputs[name] = False
+
         # Save port in module namespace
         setattr(self, name, node)
+
+        # Return a reference for local use
         return node
 
     def output(self, name: str, dtype: type[Bits]) -> Packed:
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
         # Require valid port name and type
         self._check_name(name)
+
         # Require ports to have unique name
         if hasattr(self, name):
             raise DesignError(f"Invalid output port name: {name}")
+
         # Create port
         node = Packed(name, parent=self, dtype=dtype)
+
         # Mark port unconnected
         self._outputs[name] = False
+
         # Save port in module namespace
         setattr(self, name, node)
+
+        # Return a reference for local use
         return node
 
     def _connect_input(self, name: str, rhs):
         y = getattr(self, name)
+
         if self._inputs[name]:
             raise DesignError(f"Input port {name} already connected")
+
+        # Implement the connection
         match rhs:
             # y = x
             case Packed() as x:
                 self.assign(y, x)
-            # y = (f, x0, x1, ...)
             case Expr() as ex:
                 f, xs = ex.to_func()
                 self.combi(y, f, *xs)
+            # y = (f, x0, x1, ...)
             case [Callable() as f, *xs]:
                 self.combi(y, f, *xs)
             case _:
                 raise DesignError(f"Input port {name} invalid connection")
+
         # Mark port connected
         self._inputs[name] = True
 
     def _connect_output(self, name: str, rhs):
         x = getattr(self, name)
+
         if self._outputs[name]:
             raise DesignError(f"Output port {name} already connected")
+
+        # Implement the connection
         match rhs:
             # x = y
             case Packed() as y:
@@ -285,6 +319,7 @@ class Module(metaclass=_ModuleMeta):
                 self.combi(ys, f, x)
             case _:
                 raise DesignError(f"Output port {name} invalid connection")
+
         # Mark port connected
         self._outputs[name] = True
 
@@ -305,11 +340,14 @@ class Module(metaclass=_ModuleMeta):
         dtype: type[Bits],
         shape: tuple[int, ...] | None = None,
     ) -> Packed | Unpacked:
-        # Require valid name
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
+        # Require valid and unique name
         self._check_name(name)
-        # Require unique name
         if hasattr(self, name):
             raise DesignError(f"Invalid logic name: {name}")
+
         # Create logic
         if shape is None:
             node = Packed(name, parent=self, dtype=dtype)
@@ -317,32 +355,47 @@ class Module(metaclass=_ModuleMeta):
             # TODO(cjdrake): Support > 1 unpacked dimensions
             assert len(shape) == 1
             node = Unpacked(name, parent=self, dtype=dtype)
+
         # Save in module namespace
         setattr(self, name, node)
+
+        # Return a reference for local use
         return node
 
     def float(self, name: str) -> Float:
-        # Require valid name
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
+        # Require valid and unique name
         self._check_name(name)
-        # Require unique name
         if hasattr(self, name):
             raise DesignError(f"Invalid float name: {name}")
+
         # Create float
         node = Float(name, parent=self)
+
         # Save in module namespace
         setattr(self, name, node)
+
+        # Return a reference for local use
         return node
 
     def submod(self, name: str, mod: type[Module]) -> Module:
-        # Require valid name
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
+        # Require valid and unique name
         self._check_name(name)
-        # Require unique name
         if hasattr(self, name):
             raise DesignError(f"Invalid submodule name: {name}")
+
         # Create submodule
         node = mod(name, parent=self)
+
         # Save in module namespace
         setattr(self, name, node)
+
+        # Return a reference for local use
         return node
 
     def drv(self, coro: Coroutine):
