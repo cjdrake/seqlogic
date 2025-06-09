@@ -181,8 +181,8 @@ class Module(metaclass=_ModuleMeta):
         _ProcIf.__init__(self)
 
         # Ports: name => connected
-        self._inputs = {}
-        self._outputs = {}
+        self._inputs: dict[str, bool] = {}
+        self._outputs: dict[str, bool] = {}
 
         self.build()
 
