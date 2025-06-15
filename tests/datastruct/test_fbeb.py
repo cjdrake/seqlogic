@@ -5,7 +5,7 @@ from collections import deque
 from random import randint
 
 from bvwx import Struct, Vec
-from deltacycle import finish, run, sleep, touched
+from deltacycle import any_var, finish, run, sleep
 from vcd import VCDWriter
 
 from seqlogic import Module
@@ -83,7 +83,7 @@ class Top(Module):
         for _ in range(self.N):
             self.wr_valid.next = "1b1"
             self.wr_data.next = self.T.rand()
-            await touched({self.clock: pred})
+            await any_var({self.clock: pred})
 
             for _ in range(randint(0, 5)):
                 self.wr_valid.next = "1b0"
@@ -110,7 +110,7 @@ class Top(Module):
 
         while True:
             self.rd_ready.next = "1b1"
-            await touched({self.clock: pred})
+            await any_var({self.clock: pred})
 
             for _ in range(randint(0, 5)):
                 self.rd_ready.next = "1b0"
@@ -126,7 +126,7 @@ class Top(Module):
             )
 
         while True:
-            await touched({self.clock: pred})
+            await any_var({self.clock: pred})
             self.wdata.append(self.wr_data.prev)
 
     async def mon_rd(self):
@@ -139,7 +139,7 @@ class Top(Module):
             )
 
         while True:
-            await touched({self.clock: pred})
+            await any_var({self.clock: pred})
             self.rdata.append(self.rd_data.prev)
 
             exp = self.wdata.popleft()

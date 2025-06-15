@@ -12,7 +12,7 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from deltacycle import Aggregate, Loop, Singular, TaskGroup, now, touched
+from deltacycle import Aggregate, Loop, Singular, TaskGroup, any_var, now
 from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
 from vcd.writer import VCDWriter as VcdWriter
@@ -412,7 +412,7 @@ class Module(metaclass=_ModuleMeta):
         async def cf():
             vps = {x: x.changed for x in xs}
             while True:
-                await touched(vps)
+                await any_var(vps)
 
                 # Apply f to inputs
                 values = f(*[x.value for x in xs])
@@ -511,7 +511,7 @@ class Module(metaclass=_ModuleMeta):
             async def cf():
                 vps = {clk: clk_en}
                 while True:
-                    x = await touched(vps)
+                    x = await any_var(vps)
                     if x is clk:
                         q.next = d.prev
                     else:
@@ -528,7 +528,7 @@ class Module(metaclass=_ModuleMeta):
                     async def cf():
                         vps = {clk: clk_en}
                         while True:
-                            x = await touched(vps)
+                            x = await any_var(vps)
                             if x is clk:
                                 q.next = rval if not rst.prev else d.prev
                             else:
@@ -537,7 +537,7 @@ class Module(metaclass=_ModuleMeta):
                     async def cf():
                         vps = {clk: clk_en}
                         while True:
-                            x = await touched(vps)
+                            x = await any_var(vps)
                             if x is clk:
                                 q.next = rval if rst.prev else d.prev
                             else:
@@ -557,7 +557,7 @@ class Module(metaclass=_ModuleMeta):
                 async def cf():
                     vps = {rst: rst_pred, clk: clk_pred}
                     while True:
-                        x = await touched(vps)
+                        x = await any_var(vps)
                         if x is rst:
                             q.next = rval
                         elif x is clk:
@@ -589,7 +589,7 @@ class Module(metaclass=_ModuleMeta):
             async def cf():
                 vps = {clk: clk_pred}
                 while True:
-                    x = await touched(vps)
+                    x = await any_var(vps)
                     assert not addr.prev.has_unknown()
                     if x is clk:
                         mem[addr.prev].next = data.prev
@@ -603,7 +603,7 @@ class Module(metaclass=_ModuleMeta):
             async def cf():
                 vps = {clk: clk_pred}
                 while True:
-                    x = await touched(vps)
+                    x = await any_var(vps)
                     assert not addr.prev.has_unknown()
                     assert not be.prev.has_unknown()
                     if x is clk:
@@ -736,15 +736,15 @@ class Packed(Logic, Singular, ExprVar):
 
     async def posedge(self):
         """Suspend; resume execution at signal posedge."""
-        await touched(self._vps_pe)
+        await any_var(self._vps_pe)
 
     async def negedge(self):
         """Suspend; resume execution at signal negedge."""
-        await touched(self._vps_ne)
+        await any_var(self._vps_ne)
 
     async def edge(self):
         """Suspend; resume execution at signal edge."""
-        await touched(self._vps_e)
+        await any_var(self._vps_e)
 
 
 class Unpacked(Logic, Aggregate):
