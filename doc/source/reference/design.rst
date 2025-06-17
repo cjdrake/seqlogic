@@ -3,6 +3,8 @@
 ***********************
 
 .. autoexception:: seqlogic.DesignError
+.. autoexception:: seqlogic.AssumeError
+.. autoexception:: seqlogic.AssertError
 
 .. autoclass:: seqlogic.Module
 
@@ -29,6 +31,13 @@
 
     .. automethod:: seqlogic.Module.dff
     .. automethod:: seqlogic.Module.mem_wr
+
+    .. automethod:: seqlogic.Module.assume_immed
+    .. automethod:: seqlogic.Module.assert_immed
+    .. automethod:: seqlogic.Module.assume_impl
+    .. automethod:: seqlogic.Module.assert_impl
+    .. automethod:: seqlogic.Module.assume_seq
+    .. automethod:: seqlogic.Module.assert_seq
 
 .. autoclass:: seqlogic.Logic
 

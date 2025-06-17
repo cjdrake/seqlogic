@@ -8,6 +8,28 @@ This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
 
+Version 0.47.0
+==============
+
+Implemented new checker feature.
+Modules contain new methods:
+
+* assume_impl
+* assert_impl
+* assume_immed
+* assert_immed
+* assume_seq
+* assert_seq
+
+Checkers can raise new assertions:
+
+* AssumeError
+* AssertError
+
+Created a basic ready/valid checker,
+and attached it to HBEB, FBEB, and pipe register tests.
+
+
 Version 0.46.0
 ==============
 
