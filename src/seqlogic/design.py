@@ -885,7 +885,7 @@ class Packed(Logic, Singular, ExprVar):
         self._vps_ne = {self: self.is_negedge}
 
     # Singular => Variable
-    def _set_next(self, value):
+    def set_next(self, value):
         if isinstance(value, str):
             value = lit2bv(value)
         elif isinstance(value, int):
@@ -894,9 +894,9 @@ class Packed(Logic, Singular, ExprVar):
             else:
                 value = u2bv(value, size=self._dtype.size)
         value = self._dtype.cast(value)
-        super()._set_next(value)
+        super().set_next(value)
 
-    next = property(fset=_set_next)
+    next = property(fset=set_next)
 
     def update(self):
         if self._waves_change and (self._next != self._prev):

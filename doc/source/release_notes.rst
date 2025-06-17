@@ -8,6 +8,12 @@ This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
 
+Verison 0.48.0
+==============
+
+Minor changes for ``deltacycle`` v0.12.0.
+
+
 Version 0.47.0
 ==============
 
