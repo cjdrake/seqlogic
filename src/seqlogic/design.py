@@ -624,6 +624,79 @@ class Module(metaclass=_ModuleMeta):
         self._active.append(coro)
         # fmt: on
 
+    def _check_immed(
+        self,
+        C: type[Checker],
+        E: type[CheckerError],
+        name: str,
+        f,
+        xs: Sequence[SimVar],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None,
+    ) -> Checker:
+        # Help type checker w/ metaclass
+        assert isinstance(self, Branch)
+
+        # Require valid and unique name
+        self._check_name(name)
+        if hasattr(self, name):
+            raise DesignError(f"Invalid assume name: {name}")
+
+        node = C(name, parent=self)
+
+        def _check():
+            y = f(*[x.value for x in xs])
+            if not y:
+                args = () if msg is None else (msg,)
+                raise E(*args)
+
+        async def cf():
+            def clk_pred() -> bool:
+                return clk.is_posedge() and rst.is_neg()
+
+            vps = {rst: rst.is_posedge, clk: clk_pred}
+
+            on = False
+            while True:
+                x = await any_var(vps)
+                if x is rst:
+                    on = True
+                elif x is clk:
+                    if on:
+                        _check()
+                else:
+                    assert False  # pragma: no cover
+
+        coro = cf()
+        node._inactive.append(coro)
+
+        # Save in module namespace
+        setattr(self, name, node)
+        return node
+
+    def assume_immed(
+        self,
+        name: str,
+        f,
+        xs: Sequence[Logic],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None = None,
+    ) -> Assumption:
+        return self._check_immed(Assumption, AssumeError, name, f, xs, clk, rst, msg)
+
+    def assert_immed(
+        self,
+        name: str,
+        f,
+        xs: Sequence[Logic],
+        clk: Packed,
+        rst: Packed,
+        msg: str | None = None,
+    ) -> Assertion:
+        return self._check_immed(Assertion, AssertError, name, f, xs, clk, rst, msg)
+
     def _check_impl(
         self,
         C: type[Checker],
@@ -702,79 +775,6 @@ class Module(metaclass=_ModuleMeta):
         msg: str | None = None,
     ) -> Assertion:
         return self._check_impl(Assertion, AssertError, name, p, f, xs, clk, rst, msg)
-
-    def _check_immed(
-        self,
-        C: type[Checker],
-        E: type[CheckerError],
-        name: str,
-        f,
-        xs: Sequence[SimVar],
-        clk: Packed,
-        rst: Packed,
-        msg: str | None,
-    ) -> Checker:
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
-        # Require valid and unique name
-        self._check_name(name)
-        if hasattr(self, name):
-            raise DesignError(f"Invalid assume name: {name}")
-
-        node = C(name, parent=self)
-
-        def _check():
-            y = f(*[x.value for x in xs])
-            if not y:
-                args = () if msg is None else (msg,)
-                raise E(*args)
-
-        async def cf():
-            def clk_pred() -> bool:
-                return clk.is_posedge() and rst.is_neg()
-
-            vps = {rst: rst.is_posedge, clk: clk_pred}
-
-            on = False
-            while True:
-                x = await any_var(vps)
-                if x is rst:
-                    on = True
-                elif x is clk:
-                    if on:
-                        _check()
-                else:
-                    assert False  # pragma: no cover
-
-        coro = cf()
-        node._inactive.append(coro)
-
-        # Save in module namespace
-        setattr(self, name, node)
-        return node
-
-    def assume_immed(
-        self,
-        name: str,
-        f,
-        xs: Sequence[Logic],
-        clk: Packed,
-        rst: Packed,
-        msg: str | None = None,
-    ) -> Assumption:
-        return self._check_immed(Assumption, AssumeError, name, f, xs, clk, rst, msg)
-
-    def assert_immed(
-        self,
-        name: str,
-        f,
-        xs: Sequence[Logic],
-        clk: Packed,
-        rst: Packed,
-        msg: str | None = None,
-    ) -> Assertion:
-        return self._check_immed(Assertion, AssertError, name, f, xs, clk, rst, msg)
 
     def _check_seq(
         self,
