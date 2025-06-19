@@ -48,7 +48,7 @@ def test_dump():
     # Create module hierarchy
     top = Top(name="top")
 
-    waves = defaultdict(dict)
+    waves: defaultdict[int, dict] = defaultdict(dict)
     top.dump_waves(waves, r"/top/pc")
     top.dump_waves(waves, r"/top/inst")
     top.dump_waves(waves, r"/top/bus_addr")

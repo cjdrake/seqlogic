@@ -72,7 +72,7 @@ class _TraceIf:
     Implemented by components that support debug dump.
     """
 
-    def dump_waves(self, waves: defaultdict, pattern: str):
+    def dump_waves(self, waves: defaultdict[int, dict], pattern: str):
         """Dump design elements w/ names matching pattern to waves dict."""
 
     def dump_vcd(self, vcdw: VcdWriter, pattern: str):
@@ -225,7 +225,7 @@ class Module(metaclass=_ModuleMeta):
         assert isinstance(self._parent, Module)
         return f"{self._parent.scope}.{self.name}"
 
-    def dump_waves(self, waves: defaultdict, pattern: str):
+    def dump_waves(self, waves: defaultdict[int, dict], pattern: str):
         # Help type checker w/ metaclass
         assert isinstance(self, Branch)
 
@@ -932,7 +932,7 @@ class Packed(Logic, Singular, ExprVar):
         super().update()
 
     # TraceIf
-    def dump_waves(self, waves: defaultdict, pattern: str):
+    def dump_waves(self, waves: defaultdict[int, dict], pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
             waves[Loop.init_time][self] = self._prev
@@ -1062,7 +1062,7 @@ class Float(Leaf, _ProcIf, _TraceIf, Singular):
         super().update()
 
     # TraceIf
-    def dump_waves(self, waves: defaultdict, pattern: str):
+    def dump_waves(self, waves: defaultdict[int, dict], pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
             waves[Loop.init_time][self] = self._prev
