@@ -866,7 +866,7 @@ class Logic(Leaf, _ProcIf, _TraceIf):
         self._dtype = dtype
 
     @property
-    def dtype(self) -> tuple[Bits]:
+    def dtype(self) -> type[Bits]:
         return self._dtype
 
 
