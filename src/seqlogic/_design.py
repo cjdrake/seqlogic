@@ -518,10 +518,8 @@ class Module(metaclass=_ModuleMeta):
                 vps = {clk: clk_en}
                 while True:
                     x = await any_var(vps)
-                    if x is clk:
-                        q.next = d.prev
-                    else:
-                        assert False  # pragma: no cover
+                    assert x is clk
+                    q.next = d.prev
 
         # Reset
         else:
@@ -535,19 +533,15 @@ class Module(metaclass=_ModuleMeta):
                         vps = {clk: clk_en}
                         while True:
                             x = await any_var(vps)
-                            if x is clk:
-                                q.next = rval if not rst.prev else d.prev
-                            else:
-                                assert False  # pragma: no cover
+                            assert x is clk
+                            q.next = rval if not rst.prev else d.prev
                 else:
                     async def cf():
                         vps = {clk: clk_en}
                         while True:
                             x = await any_var(vps)
-                            if x is clk:
-                                q.next = rval if rst.prev else d.prev
-                            else:
-                                assert False  # pragma: no cover
+                            assert x is clk
+                            q.next = rval if rst.prev else d.prev
 
             # Asynchronous Reset
             else:
@@ -596,11 +590,9 @@ class Module(metaclass=_ModuleMeta):
                 vps = {clk: clk_pred}
                 while True:
                     x = await any_var(vps)
+                    assert x is clk
                     assert not addr.prev.has_unknown()
-                    if x is clk:
-                        mem[addr.prev].next = data.prev
-                    else:
-                        assert False  # pragma: no cover
+                    mem[addr.prev].next = data.prev
         else:
             # Require mem/data to be Array[N,8]
             assert len(mem.dtype.shape) == 2 and mem.dtype.shape[1] == 8
@@ -610,18 +602,16 @@ class Module(metaclass=_ModuleMeta):
                 vps = {clk: clk_pred}
                 while True:
                     x = await any_var(vps)
+                    assert x is clk
                     assert not addr.prev.has_unknown()
                     assert not be.prev.has_unknown()
-                    if x is clk:
-                        xs = []
-                        for i, data_en in enumerate(be.prev):
-                            if data_en:
-                                xs.append(data.prev[i])
-                            else:
-                                xs.append(mem[addr.prev].prev[i])
-                        mem[addr.prev].next = stack(*xs)
-                    else:
-                        assert False  # pragma: no cover
+                    xs = []
+                    for i, data_en in enumerate(be.prev):
+                        if data_en:
+                            xs.append(data.prev[i])
+                        else:
+                            xs.append(mem[addr.prev].prev[i])
+                    mem[addr.prev].next = stack(*xs)
 
         coro = cf()
         self._active.append(coro)
