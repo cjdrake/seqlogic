@@ -7,6 +7,12 @@
     .. autoproperty:: seqlogic.Expr.support
     .. automethod:: seqlogic.Expr.to_func
 
+.. autoclass:: seqlogic.Const
+.. autoclass:: seqlogic.BitsConst
+.. autoclass:: seqlogic.IntConst
+
+.. autoclass:: seqlogic.Variable
+
 .. autoclass:: seqlogic.Not
 .. autoclass:: seqlogic.Or
 .. autoclass:: seqlogic.And

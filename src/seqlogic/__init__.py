@@ -23,6 +23,7 @@ from ._expr import (
     And,
     BitsConst,
     Cat,
+    Const,
     Div,
     Expr,
     GetAttr,
@@ -68,9 +69,10 @@ __all__ = [
     "Float",
     # expr
     "Expr",
-    "Variable",
+    "Const",
     "IntConst",
     "BitsConst",
+    "Variable",
     # expr.bitwise
     "Not",
     "Or",
