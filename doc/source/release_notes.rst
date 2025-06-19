@@ -8,7 +8,24 @@ This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
 
-Verison 0.48.0
+Version 0.49.0
+==============
+
+Renamed/Consolidated checker methods:
+
+* assume_impl => assume_func
+* assert_impl => assert_func
+* assume_immed => assume_func
+* assert_immed => assert_func
+
+Gave checkers new options to choose negedge async reset.
+
+Added ``Const``, ``BitsConst``, and ``IntConst`` to top level namespace
+
+Various other refactoring and simplification.
+
+
+Version 0.48.0
 ==============
 
 Minor changes for ``deltacycle`` v0.12.0.
