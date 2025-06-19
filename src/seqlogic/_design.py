@@ -404,16 +404,17 @@ class Module(metaclass=_ModuleMeta):
         assert isinstance(self, _ProcIf)
         self._inactive.append(coro)
 
-    def _combi(self, ys: tuple[SimVal, ...], f: Callable, xs: list[SimVar]):
+    def _combi(self, ys: tuple[SimVal, ...], f: Callable, vs: list[SimVar]):
         assert isinstance(self, _ProcIf)
 
+        vps = {v: v.changed for v in vs}
+
         async def cf():
-            vps = {x: x.changed for x in xs}
             while True:
                 await any_var(vps)
 
                 # Apply f to inputs
-                values = f(*[x.value for x in xs])
+                values = f(*[v.value for v in vs])
 
                 # Pack outputs
                 if not isinstance(values, (list, tuple)):
@@ -509,11 +510,11 @@ class Module(metaclass=_ModuleMeta):
 
         # No Reset
         if rst is None:
+            vps = {clk: clk_en}
             async def cf():
-                vps = {clk: clk_en}
                 while True:
-                    x = await any_var(vps)
-                    assert x is clk
+                    v = await any_var(vps)
+                    assert v is clk
                     q.next = d.prev
 
         # Reset
@@ -523,19 +524,18 @@ class Module(metaclass=_ModuleMeta):
 
             # Synchronous Reset
             if rsync:
+                vps = {clk: clk_en}
                 if rneg:
                     async def cf():
-                        vps = {clk: clk_en}
                         while True:
-                            x = await any_var(vps)
-                            assert x is clk
+                            v = await any_var(vps)
+                            assert v is clk
                             q.next = rval if not rst.prev else d.prev
                 else:
                     async def cf():
-                        vps = {clk: clk_en}
                         while True:
-                            x = await any_var(vps)
-                            assert x is clk
+                            v = await any_var(vps)
+                            assert v is clk
                             q.next = rval if rst.prev else d.prev
 
             # Asynchronous Reset
@@ -549,13 +549,14 @@ class Module(metaclass=_ModuleMeta):
                     def clk_pred() -> bool:
                         return clk_en() and rst.is_neg()
 
+                vps = {rst: rst_pred, clk: clk_pred}
+
                 async def cf():
-                    vps = {rst: rst_pred, clk: clk_pred}
                     while True:
-                        x = await any_var(vps)
-                        if x is rst:
+                        v = await any_var(vps)
+                        if v is rst:
                             q.next = rval
-                        elif x is clk:
+                        elif v is clk:
                             q.next = d.prev
                         else:
                             assert False  # pragma: no cover
@@ -579,13 +580,14 @@ class Module(metaclass=_ModuleMeta):
         def clk_pred() -> bool:
             return clk.is_posedge() and en.prev == "1b1"
 
+        vps = {clk: clk_pred}
+
         # fmt: off
         if be is None:
             async def cf():
-                vps = {clk: clk_pred}
                 while True:
-                    x = await any_var(vps)
-                    assert x is clk
+                    v = await any_var(vps)
+                    assert v is clk
                     assert not addr.prev.has_unknown()
                     mem[addr.prev].next = data.prev
         else:
@@ -594,10 +596,9 @@ class Module(metaclass=_ModuleMeta):
             assert len(data.dtype.shape) == 2 and data.dtype.shape[1] == 8
 
             async def cf():
-                vps = {clk: clk_pred}
                 while True:
-                    x = await any_var(vps)
-                    assert x is clk
+                    v = await any_var(vps)
+                    assert v is clk
                     assert not addr.prev.has_unknown()
                     assert not be.prev.has_unknown()
                     xs = []
@@ -618,7 +619,7 @@ class Module(metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         f,
-        xs: Sequence[SimVar],
+        vs: Sequence[SimVar],
         clk: Packed,
         rst: Packed,
         rsync: bool,
@@ -639,7 +640,7 @@ class Module(metaclass=_ModuleMeta):
         p_f, p_xs = p.to_func()
 
         def _check():
-            y = f(*[x.value for x in xs])
+            y = f(*[v.value for v in vs])
             if not y:
                 args = () if msg is None else (msg,)
                 raise E(*args)
@@ -661,16 +662,17 @@ class Module(metaclass=_ModuleMeta):
                 def clk_pred() -> bool:
                     return clk.is_posedge() and rst.is_neg()
 
+            vps = {rst: rst_pred, clk: clk_pred}
+
             async def cf():
                 on = False
-                vps = {rst: rst_pred, clk: clk_pred}
                 while True:
-                    x = await any_var(vps)
-                    if x is rst:
+                    v  = await any_var(vps)
+                    if v is rst:
                         on = True
-                    elif x is clk:
+                    elif v is clk:
                         if on:
-                            en = p_f(*[x.value for x in p_xs])
+                            en = p_f(*[v.value for v in p_xs])
                             if en:
                                 _check()
                     else:
@@ -688,28 +690,28 @@ class Module(metaclass=_ModuleMeta):
         self,
         name: str,
         p: Expr,
-        ex: Expr,
+        q: Expr,
         clk: Packed,
         rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
     ) -> Assumption:
-        f, xs = ex.to_func()
+        f, xs = q.to_func()
         return self._check_func(Assumption, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
     def assert_expr(
         self,
         name: str,
         p: Expr,
-        ex: Expr,
+        q: Expr,
         clk: Packed,
         rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
     ) -> Assertion:
-        f, xs = ex.to_func()
+        f, xs = q.to_func()
         return self._check_func(Assertion, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
     def assume_func(
@@ -717,7 +719,7 @@ class Module(metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         f,
-        xs: Sequence[SimVar],
+        xs: Sequence[Logic],
         clk: Packed,
         rst: Packed,
         rsync: bool = False,
@@ -731,7 +733,7 @@ class Module(metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         f,
-        xs: Sequence[SimVar],
+        xs: Sequence[Logic],
         clk: Packed,
         rst: Packed,
         rsync: bool = False,
@@ -746,7 +748,7 @@ class Module(metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         s,
-        xs: Sequence[SimVar],
+        xs: Sequence[Logic],
         clk: Packed,
         rst: Packed,
         rsync: bool,
@@ -789,19 +791,20 @@ class Module(metaclass=_ModuleMeta):
                 def clk_pred() -> bool:
                     return clk.is_posedge() and rst.is_neg()
 
+            vps = {rst: rst_pred, clk: clk_pred}
+
             async def cf():
                 loop = get_running_loop()
                 task = loop.task()
 
                 on = False
-                vps = {rst: rst_pred, clk: clk_pred}
                 while True:
-                    x = await any_var(vps)
-                    if x is rst:
+                    v = await any_var(vps)
+                    if v is rst:
                         on = True
-                    elif x is clk:
+                    elif v is clk:
                         if on:
-                            en = p_f(*[x.value for x in p_xs])
+                            en = p_f(*[v.value for v in p_xs])
                             if en:
                                 task.group.create_task(_check(), priority=Region.INACTIVE)
                     else:
@@ -820,7 +823,7 @@ class Module(metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         s,
-        xs: Sequence[SimVar],
+        xs: Sequence[Logic],
         clk: Packed,
         rst: Packed,
         rsync: bool = False,
@@ -834,13 +837,51 @@ class Module(metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         s,
-        xs: Sequence[SimVar],
+        xs: Sequence[Logic],
         clk: Packed,
         rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
     ) -> Assertion:
+        return self._check_seq(Assertion, name, p, s, xs, clk, rst, rsync, rneg, msg)
+
+    def assume_next(
+        self,
+        name: str,
+        p: Expr,
+        q: Expr,
+        clk: Packed,
+        rst: Packed,
+        rsync: bool = False,
+        rneg: bool = False,
+        msg: str | None = None,
+    ) -> Assumption:
+        f, xs = q.to_func()
+
+        async def s(*vs: SimVar):
+            await clk.posedge()
+            return f(*[v.value for v in vs])
+
+        return self._check_seq(Assumption, name, p, s, xs, clk, rst, rsync, rneg, msg)
+
+    def assert_next(
+        self,
+        name: str,
+        p: Expr,
+        q: Expr,
+        clk: Packed,
+        rst: Packed,
+        rsync: bool = False,
+        rneg: bool = False,
+        msg: str | None = None,
+    ) -> Assertion:
+        f, xs = q.to_func()
+
+        async def s(*vs: SimVar):
+            await clk.posedge()
+            return f(*[v.value for v in vs])
+
         return self._check_seq(Assertion, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
 

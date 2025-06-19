@@ -38,6 +38,8 @@
     .. automethod:: seqlogic.Module.assert_expr
     .. automethod:: seqlogic.Module.assume_seq
     .. automethod:: seqlogic.Module.assert_seq
+    .. automethod:: seqlogic.Module.assume_next
+    .. automethod:: seqlogic.Module.assert_next
 
 .. autoclass:: seqlogic.Logic
 

@@ -14,11 +14,6 @@ def known(p: Vec[1]) -> bool:
     return not p.has_unknown()
 
 
-async def ready_stable(ready: Packed, clock: Packed) -> Vec[1]:
-    await clock.posedge()
-    return ready.value
-
-
 async def valid_data_stable(valid: Packed, data: Packed, clock: Packed) -> Vec[1]:
     data_prev = data.value
     await clock.posedge()
@@ -61,11 +56,10 @@ class CheckReadyValid(Module):
 
             if self.TX_READY_STABLE:
                 # Assume: Ready must remain stable until Valid/Data
-                self.assume_seq(
+                self.assume_next(
                     name="ReadyStable",
                     p=(ready & ~valid),
-                    s=ready_stable,
-                    xs=(ready, clock),
+                    q=ready,
                     clk=clock,
                     rst=reset,
                 )
@@ -143,11 +137,10 @@ class CheckReadyValid(Module):
 
             if self.RX_READY_STABLE:
                 # Assert: Ready must remain stable until Valid/Data
-                self.assert_seq(
+                self.assert_next(
                     name="ReadyStable",
                     p=(ready & ~valid),
-                    s=ready_stable,
-                    xs=(ready, clock),
+                    q=ready,
                     clk=clock,
                     rst=reset,
                 )
