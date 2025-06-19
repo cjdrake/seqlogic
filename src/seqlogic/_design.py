@@ -11,6 +11,7 @@ import re
 from collections import defaultdict
 from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
+from typing import Any
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
 from deltacycle import Aggregate, Loop, Singular, TaskGroup, any_var, get_running_loop, now
@@ -79,9 +80,9 @@ class _TraceIf:
         """Dump design elements w/ names matching pattern to VCD file."""
 
 
-def _mod_factory_new(pntvs):
+def _mod_factory_new(pntvs: list[tuple[str, type, Any]]):
     # Create source for _new function
-    lines = []
+    lines: list[str] = []
     s = ", ".join(f"{pn}=None" for pn, _, _ in pntvs)
     lines.append(f"def _new(cls, {s}):\n")
     s = ", ".join(pn for pn, _, _ in pntvs)
@@ -139,14 +140,19 @@ def _get_mod(cls, params) -> type[Module]:
 class _ModuleMeta(type):
     """Module metaclass, for parameterization."""
 
-    def __new__(mcs, name, bases, attrs):
+    def __new__(mcs, name: str, bases: tuple[()] | tuple[Module], attrs: dict[str, Any]):
         # Base case for API
         if name == "Module":
-            return super().__new__(mcs, name, bases, attrs)
+            assert not bases
+            return super().__new__(mcs, name, (), attrs)
+
+        # TODO(cjdrake): Support multiple inheritance?
+        assert len(bases) == 1
 
         # Get parameter names, types, default values
-        pntvs = []
-        for pn, pt in attrs.get("__annotations__", {}).items():
+        pntvs: list[tuple[str, type, Any]] = []
+        params: dict[str, type] = attrs.get("__annotations__", {})
+        for pn, pt in params.items():
             try:
                 pv = attrs[pn]
             except KeyError as e:

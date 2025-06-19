@@ -55,7 +55,7 @@ class Hierarchy:
     @staticmethod
     def _check_name(name: str):
         if not name.isidentifier():
-            raise ValueError(f"Expected public identifier, got {name}")
+            raise ValueError(f"Expected identifier, got {name}")
 
 
 class Branch(Hierarchy):
