@@ -617,15 +617,18 @@ class Module(metaclass=_ModuleMeta):
         self._active.append(coro)
         # fmt: on
 
-    def _check_immed(
+    def _check_func(
         self,
         C: type[Checker],
         E: type[CheckerError],
         name: str,
+        p: Expr,
         f,
         xs: Sequence[SimVar],
         clk: Packed,
         rst: Packed,
+        rsync: bool,
+        rneg: bool,
         msg: str | None,
     ) -> Checker:
         # Help type checker w/ metaclass
@@ -638,28 +641,46 @@ class Module(metaclass=_ModuleMeta):
 
         node = C(name, parent=self)
 
+        p_f, p_xs = p.to_func()
+
         def _check():
             y = f(*[x.value for x in xs])
             if not y:
                 args = () if msg is None else (msg,)
                 raise E(*args)
 
-        async def cf():
-            def clk_pred() -> bool:
-                return clk.is_posedge() and rst.is_neg()
+        # fmt: off
 
-            vps = {rst: rst.is_posedge, clk: clk_pred}
+        # Synchronous Reset
+        if rsync:
+            raise NotImplementedError("Sync Reset not implemented yet")
 
-            on = False
-            while True:
-                x = await any_var(vps)
-                if x is rst:
-                    on = True
-                elif x is clk:
-                    if on:
-                        _check()
-                else:
-                    assert False  # pragma: no cover
+        # Asynchronous Reset
+        else:
+            if rneg:
+                rst_pred = rst.is_negedge
+                def clk_pred() -> bool:
+                    return clk.is_posedge() and rst.is_pos()
+            else:
+                rst_pred = rst.is_posedge
+                def clk_pred() -> bool:
+                    return clk.is_posedge() and rst.is_neg()
+
+            async def cf():
+                on = False
+                vps = {rst: rst_pred, clk: clk_pred}
+                while True:
+                    x = await any_var(vps)
+                    if x is rst:
+                        on = True
+                    elif x is clk:
+                        if on:
+                            en = p_f(*[x.value for x in p_xs])
+                            if en:
+                                _check()
+                    else:
+                        assert False  # pragma: no cover
+        # fmt: on
 
         coro = cf()
         node._inactive.append(coro)
@@ -668,106 +689,61 @@ class Module(metaclass=_ModuleMeta):
         setattr(self, name, node)
         return node
 
-    def assume_immed(
+    def assume_expr(
         self,
         name: str,
-        f,
-        xs: Sequence[Logic],
+        p: Expr,
+        ex: Expr,
         clk: Packed,
         rst: Packed,
+        rsync: bool = False,
+        rneg: bool = False,
         msg: str | None = None,
     ) -> Assumption:
-        return self._check_immed(Assumption, AssumeError, name, f, xs, clk, rst, msg)
+        f, xs = ex.to_func()
+        return self._check_func(Assumption, AssumeError, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
-    def assert_immed(
+    def assert_expr(
         self,
         name: str,
-        f,
-        xs: Sequence[Logic],
+        p: Expr,
+        ex: Expr,
         clk: Packed,
         rst: Packed,
+        rsync: bool = False,
+        rneg: bool = False,
         msg: str | None = None,
     ) -> Assertion:
-        return self._check_immed(Assertion, AssertError, name, f, xs, clk, rst, msg)
+        f, xs = ex.to_func()
+        return self._check_func(Assertion, AssertError, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
-    def _check_impl(
+    def assume_func(
         self,
-        C: type[Checker],
-        E: type[CheckerError],
         name: str,
         p: Expr,
         f,
         xs: Sequence[SimVar],
         clk: Packed,
         rst: Packed,
-        msg: str | None,
-    ) -> Checker:
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
-        # Require valid and unique name
-        self._check_name(name)
-        if hasattr(self, name):
-            raise DesignError(f"Invalid assume name: {name}")
-
-        node = C(name, parent=self)
-
-        def _check():
-            y = f(*[x.value for x in xs])
-            if not y:
-                args = () if msg is None else (msg,)
-                raise E(*args)
-
-        async def cf():
-            def clk_pred() -> bool:
-                return clk.is_posedge() and rst.is_neg()
-
-            vps = {rst: rst.is_posedge, clk: clk_pred}
-            p_f, p_xs = p.to_func()
-
-            on = False
-            while True:
-                x = await any_var(vps)
-                if x is rst:
-                    on = True
-                elif x is clk:
-                    if on:
-                        en = p_f(*[x.value for x in p_xs])
-                        if en:
-                            _check()
-                else:
-                    assert False  # pragma: no cover
-
-        coro = cf()
-        node._inactive.append(coro)
-
-        # Save in module namespace
-        setattr(self, name, node)
-        return node
-
-    def assume_impl(
-        self,
-        name: str,
-        p: Expr,
-        f,
-        xs: Sequence[Logic],
-        clk: Packed,
-        rst: Packed,
+        rsync: bool = False,
+        rneg: bool = False,
         msg: str | None = None,
     ) -> Assumption:
-        return self._check_impl(Assumption, AssumeError, name, p, f, xs, clk, rst, msg)
+        return self._check_func(Assumption, AssumeError, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
-    def assert_impl(
+    def assert_func(
         self,
         name: str,
         p: Expr,
         f,
-        xs: Sequence[Logic],
+        xs: Sequence[SimVar],
         clk: Packed,
         rst: Packed,
+        rsync: bool = False,
+        rneg: bool = False,
         msg: str | None = None,
     ) -> Assertion:
-        return self._check_impl(Assertion, AssertError, name, p, f, xs, clk, rst, msg)
+        return self._check_func(Assertion, AssertError, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
     def _check_seq(
         self,
@@ -779,6 +755,8 @@ class Module(metaclass=_ModuleMeta):
         xs: Sequence[SimVar],
         clk: Packed,
         rst: Packed,
+        rsync: bool,
+        rneg: bool,
         msg: str | None,
     ) -> Checker:
         # Help type checker w/ metaclass
@@ -791,34 +769,49 @@ class Module(metaclass=_ModuleMeta):
 
         node = C(name, parent=self)
 
+        p_f, p_xs = p.to_func()
+
         async def _check():
             y = await s(*xs)
             if not y:
                 args = () if msg is None else (msg,)
                 raise E(*args)
 
-        async def cf():
-            loop = get_running_loop()
-            task = loop.task()
+        # fmt: off
 
-            def clk_pred() -> bool:
-                return clk.is_posedge() and rst.is_neg()
+        # Synchronous Reset
+        if rsync:
+            raise NotImplementedError("Sync Reset not implemented yet")
 
-            vps = {rst: rst.is_posedge, clk: clk_pred}
-            p_f, p_xs = p.to_func()
+        # Asynchronous Reset
+        else:
+            if rneg:
+                rst_pred = rst.is_negedge
+                def clk_pred() -> bool:
+                    return clk.is_posedge() and rst.is_pos()
+            else:
+                rst_pred = rst.is_posedge
+                def clk_pred() -> bool:
+                    return clk.is_posedge() and rst.is_neg()
 
-            on = False
-            while True:
-                x = await any_var(vps)
-                if x is rst:
-                    on = True
-                elif x is clk:
-                    if on:
-                        en = p_f(*[x.value for x in p_xs])
-                        if en:
-                            task.group.create_task(_check(), priority=Region.INACTIVE)
-                else:
-                    assert False  # pragma: no cover
+            async def cf():
+                loop = get_running_loop()
+                task = loop.task()
+
+                on = False
+                vps = {rst: rst_pred, clk: clk_pred}
+                while True:
+                    x = await any_var(vps)
+                    if x is rst:
+                        on = True
+                    elif x is clk:
+                        if on:
+                            en = p_f(*[x.value for x in p_xs])
+                            if en:
+                                task.group.create_task(_check(), priority=Region.INACTIVE)
+                    else:
+                        assert False  # pragma: no cover
+        # fmt: on
 
         coro = cf()
         node._inactive.append(coro)
@@ -835,9 +828,11 @@ class Module(metaclass=_ModuleMeta):
         xs: Sequence[SimVar],
         clk: Packed,
         rst: Packed,
+        rsync: bool = False,
+        rneg: bool = False,
         msg: str | None = None,
     ) -> Assumption:
-        return self._check_seq(Assumption, AssumeError, name, p, s, xs, clk, rst, msg)
+        return self._check_seq(Assumption, AssumeError, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
     def assert_seq(
         self,
@@ -847,9 +842,11 @@ class Module(metaclass=_ModuleMeta):
         xs: Sequence[SimVar],
         clk: Packed,
         rst: Packed,
+        rsync: bool = False,
+        rneg: bool = False,
         msg: str | None = None,
     ) -> Assertion:
-        return self._check_seq(Assertion, AssertError, name, p, s, xs, clk, rst, msg)
+        return self._check_seq(Assertion, AssertError, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
 
 class Logic(Leaf, _ProcIf, _TraceIf):

@@ -2,9 +2,12 @@
 Ready/Valid Protocol Checker
 """
 
-from bvwx import Vec
+from bvwx import Vec, bits
 
-from seqlogic import Module, Packed
+from seqlogic import BitsConst, Module, Packed
+
+# TODO(cjdrake): Use expect_scalar?
+ONE = BitsConst(bits("1b1"))
 
 
 def known(p: Vec[1]) -> bool:
@@ -47,8 +50,9 @@ class CheckReadyValid(Module):
 
         if self.TX:
             # Assume: Ready must never be unknown
-            self.assume_immed(
+            self.assume_func(
                 name="NeverReadyUnknown",
+                p=ONE,
                 f=known,
                 xs=(ready,),
                 clk=clock,
@@ -67,8 +71,9 @@ class CheckReadyValid(Module):
                 )
 
             # Assert: Valid must never be unknown
-            self.assert_immed(
+            self.assert_func(
                 name="NeverValidUnknown",
+                p=ONE,
                 f=known,
                 xs=(valid,),
                 clk=clock,
@@ -76,7 +81,7 @@ class CheckReadyValid(Module):
             )
 
             # Assert: Data must never be unknown
-            self.assert_impl(
+            self.assert_func(
                 name="NeverDataUnknown",
                 p=valid,
                 f=known,
@@ -97,8 +102,9 @@ class CheckReadyValid(Module):
 
         if self.RX:
             # Assume: Valid must never be unknown
-            self.assume_immed(
+            self.assume_func(
                 name="NeverValidUnknown",
+                p=ONE,
                 f=known,
                 xs=(valid,),
                 clk=clock,
@@ -106,7 +112,7 @@ class CheckReadyValid(Module):
             )
 
             # Assume: Data must never be unknown
-            self.assume_impl(
+            self.assume_func(
                 name="NeverDataUnknown",
                 p=valid,
                 f=known,
@@ -126,8 +132,9 @@ class CheckReadyValid(Module):
             )
 
             # Assert: Ready must never be unknown
-            self.assert_immed(
+            self.assert_func(
                 name="NeverReadyUnknown",
+                p=ONE,
                 f=known,
                 xs=(ready,),
                 clk=clock,
@@ -167,8 +174,9 @@ class CheckValid(Module):
 
         if self.TX:
             # Assert: Valid must never be unknown
-            self.assert_immed(
+            self.assert_func(
                 name="NeverValidUnknown",
+                p=ONE,
                 f=known,
                 xs=(valid,),
                 clk=clock,
@@ -176,7 +184,7 @@ class CheckValid(Module):
             )
 
             # Assert: Data must never be unknown
-            self.assert_impl(
+            self.assert_func(
                 name="NeverDataUnknown",
                 p=valid,
                 f=known,
@@ -187,8 +195,9 @@ class CheckValid(Module):
 
         if self.RX:
             # Assume: Valid must never be unknown
-            self.assume_immed(
+            self.assume_func(
                 name="NeverValidUnknown",
+                p=ONE,
                 f=known,
                 xs=(valid,),
                 clk=clock,
@@ -196,7 +205,7 @@ class CheckValid(Module):
             )
 
             # Assume: Data must never be unknown
-            self.assume_impl(
+            self.assume_func(
                 name="NeverDataUnknown",
                 p=valid,
                 f=known,

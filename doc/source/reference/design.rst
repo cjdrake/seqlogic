@@ -32,10 +32,10 @@
     .. automethod:: seqlogic.Module.dff
     .. automethod:: seqlogic.Module.mem_wr
 
-    .. automethod:: seqlogic.Module.assume_immed
-    .. automethod:: seqlogic.Module.assert_immed
-    .. automethod:: seqlogic.Module.assume_impl
-    .. automethod:: seqlogic.Module.assert_impl
+    .. automethod:: seqlogic.Module.assume_func
+    .. automethod:: seqlogic.Module.assert_func
+    .. automethod:: seqlogic.Module.assume_expr
+    .. automethod:: seqlogic.Module.assert_expr
     .. automethod:: seqlogic.Module.assume_seq
     .. automethod:: seqlogic.Module.assert_seq
 
