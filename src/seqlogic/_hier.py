@@ -54,8 +54,7 @@ class Hierarchy:
 
     @staticmethod
     def _check_name(name: str):
-        valid = name.isidentifier()
-        if not valid:
+        if not name.isidentifier():
             raise ValueError(f"Expected public identifier, got {name}")
 
 

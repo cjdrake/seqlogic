@@ -210,6 +210,10 @@ class Module(metaclass=_ModuleMeta):
 
         return cf()
 
+    def _check_unique(self, name: str, description: str):
+        if hasattr(self, name):
+            raise DesignError(f"Invalid {description} name: {name}")
+
     @property
     def scope(self) -> str:
         """Return the branch's full name using dot separator syntax."""
@@ -241,12 +245,9 @@ class Module(metaclass=_ModuleMeta):
         # Help type checker w/ metaclass
         assert isinstance(self, Branch)
 
-        # Require valid port name and type
+        # Require valid and unique name
         self._check_name(name)
-
-        # Require ports to have unique name
-        if hasattr(self, name):
-            raise DesignError(f"Invalid input port name: {name}")
+        self._check_unique(name, "input port")
 
         # Create port
         node = Packed(name, parent=self, dtype=dtype)
@@ -264,12 +265,9 @@ class Module(metaclass=_ModuleMeta):
         # Help type checker w/ metaclass
         assert isinstance(self, Branch)
 
-        # Require valid port name and type
+        # Require valid and unique name
         self._check_name(name)
-
-        # Require ports to have unique name
-        if hasattr(self, name):
-            raise DesignError(f"Invalid output port name: {name}")
+        self._check_unique(name, "output port")
 
         # Create port
         node = Packed(name, parent=self, dtype=dtype)
@@ -335,7 +333,7 @@ class Module(metaclass=_ModuleMeta):
             elif name in self._outputs:
                 self._connect_output(name, rhs)
             else:
-                raise DesignError(f"Invalid port connection: {name}")
+                raise DesignError(f"Invalid port name: {name}")
 
     def logic(
         self,
@@ -348,8 +346,7 @@ class Module(metaclass=_ModuleMeta):
 
         # Require valid and unique name
         self._check_name(name)
-        if hasattr(self, name):
-            raise DesignError(f"Invalid logic name: {name}")
+        self._check_unique(name, "logic")
 
         # Create logic
         if shape is None:
@@ -371,8 +368,7 @@ class Module(metaclass=_ModuleMeta):
 
         # Require valid and unique name
         self._check_name(name)
-        if hasattr(self, name):
-            raise DesignError(f"Invalid float name: {name}")
+        self._check_unique(name, "float")
 
         # Create float
         node = Float(name, parent=self)
@@ -389,8 +385,7 @@ class Module(metaclass=_ModuleMeta):
 
         # Require valid and unique name
         self._check_name(name)
-        if hasattr(self, name):
-            raise DesignError(f"Invalid submodule name: {name}")
+        self._check_unique(name, "submodule")
 
         # Create submodule
         node = mod(name, parent=self)
@@ -637,8 +632,7 @@ class Module(metaclass=_ModuleMeta):
 
         # Require valid and unique name
         self._check_name(name)
-        if hasattr(self, name):
-            raise DesignError(f"Invalid assume name: {name}")
+        self._check_unique(name, "checker")
 
         node = C(name, parent=self)
 
@@ -766,8 +760,7 @@ class Module(metaclass=_ModuleMeta):
 
         # Require valid and unique name
         self._check_name(name)
-        if hasattr(self, name):
-            raise DesignError(f"Invalid assume name: {name}")
+        self._check_unique(name, "checker")
 
         node = C(name, parent=self)
 
