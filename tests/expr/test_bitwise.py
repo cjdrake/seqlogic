@@ -3,8 +3,7 @@
 import pytest
 from bvwx import Scalar, bits
 
-from seqlogic import ITE, And, Impl, Mux, Not, Or, Xor
-from seqlogic.expr import BitsConst, Variable
+from seqlogic import ITE, And, BitsConst, Impl, Mux, Not, Or, Variable, Xor
 
 a = Variable(name="a")
 b = Variable(name="b")

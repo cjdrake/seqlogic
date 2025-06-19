@@ -3,8 +3,7 @@
 import pytest
 from bvwx import bits
 
-from seqlogic import Cat, Lrot, Rep, Rrot, Sxt, Xt
-from seqlogic.expr import Variable
+from seqlogic import Cat, Lrot, Rep, Rrot, Sxt, Variable, Xt
 
 a = Variable(name="a")
 

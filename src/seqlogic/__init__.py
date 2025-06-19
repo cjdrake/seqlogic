@@ -1,7 +1,16 @@
 """Sequential Logic."""
 
-from .design import AssertError, AssumeError, DesignError, Float, Logic, Module, Packed, Unpacked
-from .expr import (
+from ._design import (
+    AssertError,
+    AssumeError,
+    DesignError,
+    Float,
+    Logic,
+    Module,
+    Packed,
+    Unpacked,
+)
+from ._expr import (
     EQ,
     GE,
     GT,
@@ -12,12 +21,14 @@ from .expr import (
     Adc,
     Add,
     And,
+    BitsConst,
     Cat,
     Div,
     Expr,
     GetAttr,
     GetItem,
     Impl,
+    IntConst,
     Land,
     Lor,
     Lrot,
@@ -40,6 +51,7 @@ from .expr import (
     Uand,
     Uor,
     Uxor,
+    Variable,
     Xor,
     Xt,
 )
@@ -56,6 +68,9 @@ __all__ = [
     "Float",
     # expr
     "Expr",
+    "Variable",
+    "IntConst",
+    "BitsConst",
     # expr.bitwise
     "Not",
     "Or",

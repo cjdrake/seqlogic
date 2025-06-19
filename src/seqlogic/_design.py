@@ -18,9 +18,9 @@ from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
 from vcd.writer import VCDWriter as VcdWriter
 
-from .expr import Expr
-from .expr import Variable as ExprVar
-from .hier import Branch, Leaf
+from ._expr import Expr
+from ._expr import Variable as ExprVar
+from ._hier import Branch, Leaf
 
 logger = logging.getLogger("deltacycle")
 

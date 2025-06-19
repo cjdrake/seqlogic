@@ -3,8 +3,7 @@
 import pytest
 from bvwx import bits
 
-from seqlogic import Adc, Add, Div, Lsh, Mod, Mul, Neg, Ngc, Rsh, Sbc, Srsh, Sub
-from seqlogic.expr import Variable
+from seqlogic import Adc, Add, Div, Lsh, Mod, Mul, Neg, Ngc, Rsh, Sbc, Srsh, Sub, Variable
 
 a = Variable(name="a")
 

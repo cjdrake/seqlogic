@@ -2,8 +2,7 @@
 
 import pytest
 
-from seqlogic import GetAttr, GetItem
-from seqlogic.expr import Variable
+from seqlogic import GetAttr, GetItem, Variable
 
 a = Variable(name="a")
 

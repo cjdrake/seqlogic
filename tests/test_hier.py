@@ -2,7 +2,7 @@
 
 import pytest
 
-from seqlogic.hier import Branch, Leaf
+from seqlogic._hier import Branch, Leaf
 
 
 def test_basic():

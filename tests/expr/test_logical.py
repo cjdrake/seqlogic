@@ -2,8 +2,7 @@
 
 import pytest
 
-from seqlogic import Land, Lor, Lxor
-from seqlogic.expr import Variable
+from seqlogic import Land, Lor, Lxor, Variable
 
 a = Variable(name="a")
 

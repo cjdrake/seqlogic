@@ -1,6 +1,6 @@
 """Test symbolic variables"""
 
-from seqlogic.expr import Variable
+from seqlogic import Variable
 
 a = Variable(name="a")
 

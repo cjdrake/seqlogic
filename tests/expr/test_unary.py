@@ -3,8 +3,7 @@
 import pytest
 from bvwx import bits
 
-from seqlogic import Uand, Uor, Uxor
-from seqlogic.expr import Variable
+from seqlogic import Uand, Uor, Uxor, Variable
 
 a = Variable(name="a")
 

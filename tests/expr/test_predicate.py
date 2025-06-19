@@ -3,8 +3,7 @@
 import pytest
 from bvwx import bits
 
-from seqlogic import EQ, GE, GT, LE, LT, NE
-from seqlogic.expr import Variable
+from seqlogic import EQ, GE, GT, LE, LT, NE, Variable
 
 a = Variable(name="a")
 b = Variable(name="b")
