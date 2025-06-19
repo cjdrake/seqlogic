@@ -620,7 +620,6 @@ class Module(metaclass=_ModuleMeta):
     def _check_func(
         self,
         C: type[Checker],
-        E: type[CheckerError],
         name: str,
         p: Expr,
         f,
@@ -633,6 +632,8 @@ class Module(metaclass=_ModuleMeta):
     ) -> Checker:
         # Help type checker w/ metaclass
         assert isinstance(self, Branch)
+
+        E = {Assumption: AssumeError, Assertion: AssertError}[C]
 
         # Require valid and unique name
         self._check_name(name)
@@ -701,7 +702,7 @@ class Module(metaclass=_ModuleMeta):
         msg: str | None = None,
     ) -> Assumption:
         f, xs = ex.to_func()
-        return self._check_func(Assumption, AssumeError, name, p, f, xs, clk, rst, rsync, rneg, msg)
+        return self._check_func(Assumption, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
     def assert_expr(
         self,
@@ -715,7 +716,7 @@ class Module(metaclass=_ModuleMeta):
         msg: str | None = None,
     ) -> Assertion:
         f, xs = ex.to_func()
-        return self._check_func(Assertion, AssertError, name, p, f, xs, clk, rst, rsync, rneg, msg)
+        return self._check_func(Assertion, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
     def assume_func(
         self,
@@ -729,7 +730,7 @@ class Module(metaclass=_ModuleMeta):
         rneg: bool = False,
         msg: str | None = None,
     ) -> Assumption:
-        return self._check_func(Assumption, AssumeError, name, p, f, xs, clk, rst, rsync, rneg, msg)
+        return self._check_func(Assumption, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
     def assert_func(
         self,
@@ -743,12 +744,11 @@ class Module(metaclass=_ModuleMeta):
         rneg: bool = False,
         msg: str | None = None,
     ) -> Assertion:
-        return self._check_func(Assertion, AssertError, name, p, f, xs, clk, rst, rsync, rneg, msg)
+        return self._check_func(Assertion, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
     def _check_seq(
         self,
         C: type[Checker],
-        E: type[CheckerError],
         name: str,
         p: Expr,
         s,
@@ -761,6 +761,8 @@ class Module(metaclass=_ModuleMeta):
     ) -> Checker:
         # Help type checker w/ metaclass
         assert isinstance(self, Branch)
+
+        E = {Assumption: AssumeError, Assertion: AssertError}[C]
 
         # Require valid and unique name
         self._check_name(name)
@@ -832,7 +834,7 @@ class Module(metaclass=_ModuleMeta):
         rneg: bool = False,
         msg: str | None = None,
     ) -> Assumption:
-        return self._check_seq(Assumption, AssumeError, name, p, s, xs, clk, rst, rsync, rneg, msg)
+        return self._check_seq(Assumption, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
     def assert_seq(
         self,
@@ -846,7 +848,7 @@ class Module(metaclass=_ModuleMeta):
         rneg: bool = False,
         msg: str | None = None,
     ) -> Assertion:
-        return self._check_seq(Assertion, AssertError, name, p, s, xs, clk, rst, rsync, rneg, msg)
+        return self._check_seq(Assertion, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
 
 class Logic(Leaf, _ProcIf, _TraceIf):
