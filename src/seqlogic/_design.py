@@ -409,7 +409,7 @@ class Module(metaclass=_ModuleMeta):
         assert isinstance(self, _ProcIf)
         self._inactive.append(coro)
 
-    def _combi(self, ys: Sequence[SimVal], f: Callable, xs: Sequence[SimVar]):
+    def _combi(self, ys: tuple[SimVal, ...], f: Callable, xs: list[SimVar]):
         assert isinstance(self, _ProcIf)
 
         async def cf():
@@ -432,26 +432,29 @@ class Module(metaclass=_ModuleMeta):
         coro = cf()
         self._reactive.append(coro)
 
-    def combi(
-        self,
-        ys: SimVal | list[SimVal] | tuple[SimVal, ...],
-        f: Callable,
-        *xs: Packed | Unpacked,
-    ):
+    def combi(self, ys: SimVal | Sequence[SimVal], f: Callable, *xs: Logic):
         """Combinational logic."""
 
         # Pack outputs
-        if not isinstance(ys, (list, tuple)):
+        if isinstance(ys, SimVal):
             ys = (ys,)
+        elif isinstance(ys, Sequence) and all(isinstance(y, SimVal) for y in ys):
+            ys = tuple(ys)
+        else:
+            raise TypeError("Expected ys to be Simval or [SimVal]")
 
         self._combi(ys, f, xs)
 
-    def expr(self, ys: SimVal | list[SimVal] | tuple[SimVal, ...], ex: Expr):
+    def expr(self, ys: SimVal | Sequence[SimVal], ex: Expr):
         """Expression logic."""
 
         # Pack outputs
-        if not isinstance(ys, (list, tuple)):
+        if isinstance(ys, SimVal):
             ys = (ys,)
+        elif isinstance(ys, Sequence) and all(isinstance(y, SimVal) for y in ys):
+            ys = tuple(ys)
+        else:
+            raise TypeError("Expected ys to be Simval or [SimVal]")
 
         f, xs = ex.to_func()
         self._combi(ys, f, xs)
