@@ -623,7 +623,7 @@ class GetItem(_Op):
 
     def __str__(self) -> str:
         v = self._xs[0]
-        key = self._xs[1].value  # pyright: ignore[reportAttributeAccessIssue]
+        key = self._xs[1].value
         match key:
             case int() as i:
                 return f"{v}[{i}]"
@@ -648,5 +648,5 @@ class GetAttr(_Op):
 
     def __str__(self) -> str:
         v = self._xs[0]
-        key = self._xs[1].value  # pyright: ignore[reportAttributeAccessIssue]
+        key = self._xs[1].value
         return f"{v}.{key}"
