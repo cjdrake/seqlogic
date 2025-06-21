@@ -140,15 +140,9 @@ def _get_mod(cls, params) -> type[Module]:
 class _ModuleMeta(type):
     """Module metaclass, for parameterization."""
 
-    def __new__(
-        mcs,
-        name: str,
-        bases: tuple[()] | tuple[type[Module]],
-        attrs: dict[str, Any],
-    ):
+    def __new__(mcs, name: str, bases: tuple[type], attrs: dict[str, Any]):
         # Base case for API
         if name == "Module":
-            assert not bases
             return super().__new__(mcs, name, bases, attrs)
 
         # TODO(cjdrake): Support multiple inheritance?
@@ -175,12 +169,12 @@ class _ModuleMeta(type):
             return mod_factory
 
         # Create base Module
-        mod = super().__new__(mcs, name, bases + (Branch, _ProcIf, _TraceIf), attrs)
+        mod = super().__new__(mcs, name, bases, attrs)
         mod.__new__ = _mod_new
         return mod
 
 
-class Module(metaclass=_ModuleMeta):
+class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
     """Hierarchical, branch-level design component.
 
     A module contains:
@@ -205,8 +199,6 @@ class Module(metaclass=_ModuleMeta):
 
     def main(self) -> Coroutine:
         """Add design processes to the simulator."""
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
 
         async def cf():
             async with TaskGroup() as tg:
@@ -228,34 +220,22 @@ class Module(metaclass=_ModuleMeta):
     @property
     def scope(self) -> str:
         """Return the branch's full name using dot separator syntax."""
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
         if self._parent is None:
             return self.name
         assert isinstance(self._parent, Module)
         return f"{self._parent.scope}.{self.name}"
 
     def dump_waves(self, waves: defaultdict[int, dict], pattern: str):
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
         for child in self._children:
             assert isinstance(child, _TraceIf)
             child.dump_waves(waves, pattern)
 
     def dump_vcd(self, vcdw: VcdWriter, pattern: str):
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
         for child in self._children:
             assert isinstance(child, _TraceIf)
             child.dump_vcd(vcdw, pattern)
 
     def input(self, name: str, dtype: type[Bits]) -> Packed:
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
         # Require valid and unique name
         self._check_name(name)
         self._check_unique(name, "input port")
@@ -273,9 +253,6 @@ class Module(metaclass=_ModuleMeta):
         return node
 
     def output(self, name: str, dtype: type[Bits]) -> Packed:
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
         # Require valid and unique name
         self._check_name(name)
         self._check_unique(name, "output port")
@@ -352,9 +329,6 @@ class Module(metaclass=_ModuleMeta):
         dtype: type[Bits],
         shape: tuple[int, ...] | None = None,
     ) -> Packed | Unpacked:
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
         # Require valid and unique name
         self._check_name(name)
         self._check_unique(name, "logic")
@@ -374,9 +348,6 @@ class Module(metaclass=_ModuleMeta):
         return node
 
     def float(self, name: str) -> Float:
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
         # Require valid and unique name
         self._check_name(name)
         self._check_unique(name, "float")
@@ -391,9 +362,6 @@ class Module(metaclass=_ModuleMeta):
         return node
 
     def submod(self, name: str, mod: type[Module]) -> Module:
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
         # Require valid and unique name
         self._check_name(name)
         self._check_unique(name, "submodule")
@@ -408,16 +376,12 @@ class Module(metaclass=_ModuleMeta):
         return node
 
     def drv(self, coro: Coroutine):
-        assert isinstance(self, _ProcIf)
         self._active.append(coro)
 
     def mon(self, coro: Coroutine):
-        assert isinstance(self, _ProcIf)
         self._inactive.append(coro)
 
     def _combi(self, ys: tuple[SimVal, ...], f: Callable, vs: list[SimVar]):
-        assert isinstance(self, _ProcIf)
-
         vps = {v: v.changed for v in vs}
 
         async def cf():
@@ -468,8 +432,6 @@ class Module(metaclass=_ModuleMeta):
 
     def assign(self, y: SimVal, x: Packed | str):
         """Assign input to output."""
-        assert isinstance(self, _ProcIf)
-
         # fmt: off
         if isinstance(x, str):
             async def cf():
@@ -510,8 +472,6 @@ class Module(metaclass=_ModuleMeta):
             rsync: reset is edge triggered
             rneg: reset is active negative
         """
-        assert isinstance(self, _ProcIf)
-
         # fmt: off
         if en is None:
             clk_en = clk.is_posedge
@@ -586,7 +546,6 @@ class Module(metaclass=_ModuleMeta):
         be: Packed | None = None,
     ):
         """Memory with write enable."""
-        assert isinstance(self, _ProcIf)
 
         def clk_pred() -> bool:
             return clk.is_posedge() and en.prev == "1b1"
@@ -637,9 +596,6 @@ class Module(metaclass=_ModuleMeta):
         rneg: bool,
         msg: str | None,
     ) -> Checker:
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
         E = {Assumption: AssumeError, Assertion: AssertError}[C]
 
         # Require valid and unique name
@@ -766,9 +722,6 @@ class Module(metaclass=_ModuleMeta):
         rneg: bool,
         msg: str | None,
     ) -> Checker:
-        # Help type checker w/ metaclass
-        assert isinstance(self, Branch)
-
         E = {Assumption: AssumeError, Assertion: AssertError}[C]
 
         # Require valid and unique name
