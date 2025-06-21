@@ -140,11 +140,16 @@ def _get_mod(cls, params) -> type[Module]:
 class _ModuleMeta(type):
     """Module metaclass, for parameterization."""
 
-    def __new__(mcs, name: str, bases: tuple[()] | tuple[Module], attrs: dict[str, Any]):
+    def __new__(
+        mcs,
+        name: str,
+        bases: tuple[()] | tuple[type[Module]],
+        attrs: dict[str, Any],
+    ):
         # Base case for API
         if name == "Module":
             assert not bases
-            return super().__new__(mcs, name, (), attrs)
+            return super().__new__(mcs, name, bases, attrs)
 
         # TODO(cjdrake): Support multiple inheritance?
         assert len(bases) == 1
