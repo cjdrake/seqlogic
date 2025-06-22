@@ -186,8 +186,8 @@ class Expr(ABC):
         raise NotImplementedError()  # pragma: no cover
 
     @property
-    def support(self) -> set[Variable]:
-        return set(self.iter_vars())
+    def support(self) -> frozenset[Variable]:
+        return frozenset(self.iter_vars())
 
     def to_func(self) -> tuple[Callable, list[Variable]]:
         vs = sorted(self.support, key=lambda v: v.name)
