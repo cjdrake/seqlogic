@@ -48,48 +48,47 @@ from bvwx import (
     xt,
 )
 
-FNS: dict[str, Callable[..., Bits]] = {
-    f.__name__: f
-    for f in [
-        not_,
-        or_,
-        and_,
-        xor,
-        impl,
-        ite,
-        mux,
-        lor,
-        land,
-        lxor,
-        uor,
-        uand,
-        uxor,
-        add,
-        adc,
-        sub,
-        sbc,
-        neg,
-        ngc,
-        mul,
-        div,
-        mod,
-        lsh,
-        rsh,
-        srsh,
-        xt,
-        sxt,
-        lrot,
-        rrot,
-        cat,
-        rep,
-        lt,
-        le,
-        eq,
-        ne,
-        gt,
-        ge,
-    ]
-}
+_FS: list[Callable[..., Bits]] = [
+    not_,
+    or_,
+    and_,
+    xor,
+    impl,
+    ite,
+    mux,
+    lor,
+    land,
+    lxor,
+    uor,
+    uand,
+    uxor,
+    add,
+    adc,
+    sub,
+    sbc,
+    neg,
+    ngc,
+    mul,
+    div,
+    mod,
+    lsh,
+    rsh,
+    srsh,
+    xt,
+    sxt,
+    lrot,
+    rrot,
+    cat,
+    rep,
+    lt,
+    le,
+    eq,
+    ne,
+    gt,
+    ge,
+]
+
+_FNS: dict[str, Callable[..., Bits]] = {f.__name__: f for f in _FS}
 
 
 def _expect_bits(arg: ExprLike) -> Expr:
@@ -194,7 +193,7 @@ class Expr(ABC):
         args = ", ".join(v.name for v in vs)
         source = f"def f({args}):\n    return {self}\n"
         locals_ = {}
-        exec(source, FNS, locals_)
+        exec(source, _FNS, locals_)
         return locals_["f"], vs
 
 
