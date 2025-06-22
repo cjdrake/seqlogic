@@ -48,7 +48,7 @@ from bvwx import (
     xt,
 )
 
-FNS = {
+FNS: dict[str, Callable[..., Bits]] = {
     f.__name__: f
     for f in [
         not_,
