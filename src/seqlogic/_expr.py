@@ -209,28 +209,28 @@ class _Atom(Expr):
     """Atomic expression (leaf) node."""
 
 
-class Const(Expr):
+class Const[T](Expr):
     """Constant node."""
 
-    def __init__(self, value):
+    def __init__(self, value: T):
         self._value = value
 
     @property
-    def value(self):
+    def value(self) -> T:
         return self._value
 
     def iter_vars(self) -> Generator[Variable, None, None]:
         yield from ()
 
 
-class BitsConst(Const):
+class BitsConst(Const[Bits]):
     """Const node."""
 
     def __str__(self) -> str:
         return f'"{self._value}"'
 
 
-class IntConst(Const):
+class IntConst(Const[int]):
     """Integer node."""
 
     def __str__(self) -> str:
@@ -570,11 +570,11 @@ class Rep(_PrefixOp):
 
     def __init__(self, x: ExprLike, n: int):
         if isinstance(n, int):
-            n_ = IntConst(n)
+            _n = IntConst(n)
         else:
             raise TypeError(f"Invalid input: {n}")
         x = _expect_bits(x)
-        super().__init__(x, n_)
+        super().__init__(x, _n)
 
 
 class EQ(_BinOp1):
@@ -619,7 +619,7 @@ class GetItem(_Op):
     def __init__(self, v: Variable, key: int | slice):
         if not isinstance(key, (int, slice)):
             raise TypeError(f"Invalid key: {key}")
-        super().__init__(v, Const(key))
+        self._xs = (v, Const(key))
 
     def __str__(self) -> str:
         v = self._xs[0]
@@ -644,7 +644,7 @@ class GetAttr(_Op):
     def __init__(self, v: Variable, key: str):
         if not isinstance(key, str):
             raise TypeError(f"Invalid key: {key}")
-        super().__init__(v, Const(key))
+        self._xs = (v, Const(key))
 
     def __str__(self) -> str:
         v = self._xs[0]
