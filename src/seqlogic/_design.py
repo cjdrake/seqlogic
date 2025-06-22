@@ -215,7 +215,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
     def _check_unique(self, name: str, description: str):
         if hasattr(self, name):
-            raise DesignError(f"Invalid {description} name: {name}")
+            raise DesignError(f"Duplicate {description}: {name}")
 
     @property
     def scope(self) -> str:
@@ -237,7 +237,6 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
     def input(self, name: str, dtype: type[Bits]) -> Packed:
         # Require valid and unique name
-        self._check_name(name)
         self._check_unique(name, "input port")
 
         # Create port
@@ -254,7 +253,6 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
     def output(self, name: str, dtype: type[Bits]) -> Packed:
         # Require valid and unique name
-        self._check_name(name)
         self._check_unique(name, "output port")
 
         # Create port
@@ -330,7 +328,6 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         shape: tuple[int, ...] | None = None,
     ) -> Packed | Unpacked:
         # Require valid and unique name
-        self._check_name(name)
         self._check_unique(name, "logic")
 
         # Create logic
@@ -349,7 +346,6 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
     def float(self, name: str) -> Float:
         # Require valid and unique name
-        self._check_name(name)
         self._check_unique(name, "float")
 
         # Create float
@@ -363,7 +359,6 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
     def submod(self, name: str, mod: type[Module]) -> Module:
         # Require valid and unique name
-        self._check_name(name)
         self._check_unique(name, "submodule")
 
         # Create submodule
@@ -599,7 +594,6 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         E = {Assumption: AssumeError, Assertion: AssertError}[C]
 
         # Require valid and unique name
-        self._check_name(name)
         self._check_unique(name, "checker")
 
         node = C(name, parent=self)
@@ -725,7 +719,6 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         E = {Assumption: AssumeError, Assertion: AssertError}[C]
 
         # Require valid and unique name
-        self._check_name(name)
         self._check_unique(name, "checker")
 
         node = C(name, parent=self)
