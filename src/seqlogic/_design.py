@@ -14,7 +14,16 @@ from enum import IntEnum
 from typing import Any, override
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
-from deltacycle import Aggregate, Loop, Singular, TaskGroup, any_var, get_running_loop, now
+from deltacycle import (
+    Aggregate,
+    Loop,
+    Predicate,
+    Singular,
+    TaskGroup,
+    any_var,
+    get_running_loop,
+    now,
+)
 from deltacycle import Value as SimVal
 from deltacycle import Variable as SimVar
 from vcd.writer import VCDWriter as VcdWriter
@@ -863,9 +872,9 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
         self._waves_change = None
         self._vcd_change = None
 
-        self._vps_e = {self: self.is_edge}
-        self._vps_pe = {self: self.is_posedge}
-        self._vps_ne = {self: self.is_negedge}
+        self._vps_e: dict[SimVar, Predicate] = {self: self.is_edge}
+        self._vps_pe: dict[SimVar, Predicate] = {self: self.is_posedge}
+        self._vps_ne: dict[SimVar, Predicate] = {self: self.is_negedge}
 
     # Singular => Variable
     @override
