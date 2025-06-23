@@ -266,11 +266,11 @@ wheels = [
 
 [[package]]
 name = "deltacycle"
-version = "0.13.0"
+version = "0.13.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/8f/a0/a08f47596bff73b82bf8ce87f5d3e4c361326948d08d7fb71209c9c3a40f/deltacycle-0.13.0.tar.gz", hash = "sha256:5708a6c3e5ff0bafadd6cb8a8241aa9d97080aaa121ca288652fa827f57f62ca", size = 22149, upload-time = "2025-06-22T03:25:13.98Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e0/33/5da5d91f5355a79555b16c7821d89c0d4499d5486c98aa08fc728a15dd4b/deltacycle-0.13.1.tar.gz", hash = "sha256:f1ec6119f288973ac1dd934f4b6c270493e3eac20f1435f65763bd6606d4fb22", size = 22186, upload-time = "2025-06-23T01:40:58.284Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/5c/f05b964fac5a3402ce9bcee92c6a0f2345e931ca1ea57a42daa406517d28/deltacycle-0.13.0-py3-none-any.whl", hash = "sha256:4f467f6e2ccc032901195b67cc8d3ca019f04bf31646711454c5cd846b70ce7f", size = 15657, upload-time = "2025-06-22T03:25:13.169Z" },
+    { url = "https://files.pythonhosted.org/packages/f8/54/e1bbf5a4863833d7d7b9e18deb0f0537cbf5936a1f79acd38a24c8d49505/deltacycle-0.13.1-py3-none-any.whl", hash = "sha256:ec00e90263f5bb3085d9e08d9bf82d22f445ee4533ec41e22ef8546094383ab2", size = 15665, upload-time = "2025-06-23T01:40:57.254Z" },
 ]
 
 [[package]]
