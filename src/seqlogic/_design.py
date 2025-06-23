@@ -869,8 +869,8 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
         Logic.__init__(self, name, parent, dtype)
         Singular.__init__(self, dtype.xes())
         ExprVar.__init__(self, name)
-        self._waves_change = None
-        self._vcd_change = None
+        self._waves_change: Callable[[], None] | None = None
+        self._vcd_change: Callable[[], None] | None = None
 
         self._vps_e: dict[SimVar, Predicate] = {self: self.is_edge}
         self._vps_pe: dict[SimVar, Predicate] = {self: self.is_posedge}
@@ -1023,8 +1023,8 @@ class Float(Leaf, _ProcIf, _TraceIf, Singular):
         Leaf.__init__(self, name, parent)
         _ProcIf.__init__(self)
         Singular.__init__(self, float())
-        self._waves_change = None
-        self._vcd_change = None
+        self._waves_change: Callable[[], None] | None = None
+        self._vcd_change: Callable[[], None] | None = None
 
     @override
     def update(self):
