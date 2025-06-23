@@ -11,7 +11,7 @@ import re
 from collections import defaultdict
 from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
-from typing import Any
+from typing import Any, override
 
 from bvwx import Bits, i2bv, lit2bv, stack, u2bv
 from deltacycle import Aggregate, Loop, Singular, TaskGroup, any_var, get_running_loop, now
@@ -868,6 +868,7 @@ class Packed(Logic, Singular, ExprVar):
         self._vps_ne = {self: self.is_negedge}
 
     # Singular => Variable
+    @override
     def set_next(self, value):
         if isinstance(value, str):
             value = lit2bv(value)
@@ -881,6 +882,7 @@ class Packed(Logic, Singular, ExprVar):
 
     next = property(fset=set_next)
 
+    @override
     def update(self):
         if self._waves_change and (self._next != self._prev):
             self._waves_change()
@@ -1011,6 +1013,7 @@ class Float(Leaf, _ProcIf, _TraceIf, Singular):
         self._waves_change = None
         self._vcd_change = None
 
+    @override
     def update(self):
         if self._waves_change and (self._next != self._prev):
             self._waves_change()
