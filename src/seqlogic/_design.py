@@ -869,6 +869,7 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
         Logic.__init__(self, name, parent, dtype)
         Singular.__init__(self, dtype.xes())
         ExprVar.__init__(self, name)
+
         self._waves_change: Callable[[], None] | None = None
         self._vcd_change: Callable[[], None] | None = None
 
@@ -937,35 +938,37 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
     def is_neg(self) -> bool:
         """Return True when bit is stable 0 => 0."""
         try:
-            return not self._prev and not self._next
+            return bool(not self._prev and not self._next)
         except ValueError:
             return False
 
     def is_posedge(self) -> bool:
         """Return True when bit transitions 0 => 1."""
         try:
-            return not self._prev and self._next
+            return bool(not self._prev and self._next)
         except ValueError:
             return False
 
     def is_negedge(self) -> bool:
         """Return True when bit transitions 1 => 0."""
         try:
-            return self._prev and not self._next
+            return bool(self._prev and not self._next)
         except ValueError:
             return False
 
     def is_pos(self) -> bool:
         """Return True when bit is stable 1 => 1."""
         try:
-            return self._prev and self._next
+            return bool(self._prev and self._next)
         except ValueError:
             return False
 
     def is_edge(self) -> bool:
         """Return True when bit transitions 0 => 1 or 1 => 0."""
         try:
-            return (not self._prev and self._next) or (self._prev and not self._next)
+            pe = bool(not self._prev and self._next)
+            ne = bool(self._prev and not self._next)
+            return pe or ne
         except ValueError:
             return False
 
@@ -1023,6 +1026,7 @@ class Float(Leaf, _ProcIf, _TraceIf, Singular):
         Leaf.__init__(self, name, parent)
         _ProcIf.__init__(self)
         Singular.__init__(self, float())
+
         self._waves_change: Callable[[], None] | None = None
         self._vcd_change: Callable[[], None] | None = None
 
