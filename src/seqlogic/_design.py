@@ -842,21 +842,21 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         return self._check_seq(Assertion, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
 
-class Logic(Leaf, _ProcIf, _TraceIf):
-    def __init__(self, name: str, parent: Module, dtype: type[Bits]):
+class Logic[T: Bits](Leaf, _ProcIf, _TraceIf):
+    def __init__(self, name: str, parent: Module, dtype: T):
         Leaf.__init__(self, name, parent)
         _ProcIf.__init__(self)
         self._dtype = dtype
 
     @property
-    def dtype(self) -> type[Bits]:
+    def dtype(self) -> T:
         return self._dtype
 
 
-class Packed(Logic, Singular, ExprVar):
+class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
     """Leaf-level bitvector design component."""
 
-    def __init__(self, name: str, parent: Module, dtype: type[Bits]):
+    def __init__(self, name: str, parent: Module, dtype: T):
         Logic.__init__(self, name, parent, dtype)
         Singular.__init__(self, dtype.xes())
         ExprVar.__init__(self, name)
@@ -869,16 +869,20 @@ class Packed(Logic, Singular, ExprVar):
 
     # Singular => Variable
     @override
-    def set_next(self, value):
-        if isinstance(value, str):
-            value = lit2bv(value)
-        elif isinstance(value, int):
+    def set_next(self, value: T | str | int):
+        if isinstance(value, int):
             if value < 0:
-                value = i2bv(value, size=self._dtype.size)
+                _value = i2bv(value, size=self._dtype.size)
             else:
-                value = u2bv(value, size=self._dtype.size)
-        value = self._dtype.cast(value)
-        super().set_next(value)
+                _value = u2bv(value, size=self._dtype.size)
+        elif isinstance(value, str):
+            _value = lit2bv(value)
+        elif isinstance(value, Bits):
+            _value = value
+        else:
+            raise TypeError("Expected value to be Bits, str literal, or int")
+        _value = self._dtype.cast(_value)
+        super().set_next(_value)
 
     next = property(fset=set_next)
 
@@ -969,10 +973,10 @@ class Packed(Logic, Singular, ExprVar):
         await any_var(self._vps_e)
 
 
-class Unpacked(Logic, Aggregate):
+class Unpacked[T: Bits](Logic[T], Aggregate[T]):
     """Leaf-level array of vec/enum/struct/union design components."""
 
-    def __init__(self, name: str, parent: Module, dtype: type[Bits]):
+    def __init__(self, name: str, parent: Module, dtype: T):
         Logic.__init__(self, name, parent, dtype)
         Aggregate.__init__(self, dtype.xes())
 
