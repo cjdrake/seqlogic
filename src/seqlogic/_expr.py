@@ -188,7 +188,7 @@ class Expr(ABC):
     def support(self) -> frozenset[Variable]:
         return frozenset(self.iter_vars())
 
-    def to_func(self) -> tuple[Callable, list[Variable]]:
+    def to_func(self) -> tuple[Callable[..., Bits], list[Variable]]:
         vs = sorted(self.support, key=lambda v: v.name)
         args = ", ".join(v.name for v in vs)
         source = f"def f({args}):\n    return {self}\n"
