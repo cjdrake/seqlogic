@@ -203,7 +203,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
         self.build()
 
-    def build(self):
+    def build(self) -> None:
         raise NotImplementedError("Module requires a build method")
 
     def main(self) -> Coroutine:
