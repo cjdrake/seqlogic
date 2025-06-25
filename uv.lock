@@ -79,11 +79,11 @@ wheels = [
 
 [[package]]
 name = "bvwx"
-version = "0.13.0"
+version = "0.13.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/4a/42/0db919b80cc600ac10f9d16d501c41994de67e54c38b93b1bf5db90c3101/bvwx-0.13.0.tar.gz", hash = "sha256:577a7a8da100625a05cbc9126004e00c729946f30a9f37e7b1ece5961d4a52cf", size = 36428, upload-time = "2025-06-22T02:39:51.246Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/05/78/faea4b1bdff037f54c923dce5524559a7752b85a690e4621313380da9d77/bvwx-0.13.3.tar.gz", hash = "sha256:a0c3ace0ac07847d904adc6b6a115d918406edf5902dec17566efbbe37653959", size = 36662, upload-time = "2025-06-25T04:03:48.679Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/74/60cf0790f6c6085eeb9a942015460b2877d2fdba1dcdbdd3a6e766039a12/bvwx-0.13.0-py3-none-any.whl", hash = "sha256:aa429ac99b51d8f02afb33f960299eef4513a224db568c1e7f7b2341049aceb6", size = 29197, upload-time = "2025-06-22T02:39:50.218Z" },
+    { url = "https://files.pythonhosted.org/packages/8c/6f/3e9cbbc24d39eac53af205052bf427c0fcb5e5dd746650320ffb3de33489/bvwx-0.13.3-py3-none-any.whl", hash = "sha256:c972075825e18ef49f9ded276f87f93b4049d2469900029e699f20c54c15dd8f", size = 29336, upload-time = "2025-06-25T04:03:47.802Z" },
 ]
 
 [[package]]
