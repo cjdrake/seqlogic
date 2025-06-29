@@ -244,7 +244,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
             assert isinstance(child, _TraceIf)
             child.dump_vcd(vcdw, pattern)
 
-    def input(self, name: str, dtype: type[Bits]) -> Packed:
+    def input[T: Bits](self, name: str, dtype: T) -> Packed[T]:
         # Require valid and unique name
         self._check_unique(name, "input port")
 
