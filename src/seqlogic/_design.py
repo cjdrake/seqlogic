@@ -260,7 +260,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         # Return a reference for local use
         return node
 
-    def output(self, name: str, dtype: type[Bits]) -> Packed:
+    def output[T: Bits](self, name: str, dtype: T) -> Packed[T]:
         # Require valid and unique name
         self._check_unique(name, "output port")
 
