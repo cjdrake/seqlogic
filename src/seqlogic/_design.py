@@ -13,7 +13,7 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
 from typing import Any, override
 
-from bvwx import Bits, Scalar, i2bv, lit2bv, stack, u2bv
+from bvwx import Array, Bits, Scalar, Vector, i2bv, lit2bv, stack, u2bv
 from deltacycle import (
     Aggregate,
     Loop,
@@ -535,11 +535,11 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         self._active.append(coro)
         # fmt: on
 
-    def mem_wr(
+    def mem_wr[T: Array](
         self,
-        mem: Unpacked,
+        mem: Unpacked[T],
         addr: Packed,
-        data: Packed,
+        data: Packed[T],
         clk: Packed[Scalar],
         en: Packed,
         be: Packed | None = None,
