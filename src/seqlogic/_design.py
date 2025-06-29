@@ -332,12 +332,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
             else:
                 raise DesignError(f"Invalid port name: {name}")
 
-    def logic(
-        self,
-        name: str,
-        dtype: type[Bits],
-        shape: tuple[int, ...] | None = None,
-    ) -> Packed | Unpacked:
+    def logic[T: Bits](self, name: str, dtype: T, shape: tuple[int, ...] | None = None) -> Logic[T]:
         # Require valid and unique name
         self._check_unique(name, "logic")
 
