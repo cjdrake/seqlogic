@@ -637,7 +637,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                         on = True
                     elif v is clk:
                         if on:
-                            en = p_f(*[x.value for x in p_xs])
+                            en = p_f(*[x.value for x in p_xs])  # pyright: ignore[reportAttributeAccessIssue]
                             if en:
                                 _check()
                     else:
@@ -765,7 +765,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                         on = True
                     elif v is clk:
                         if on:
-                            en = p_f(*[x.value for x in p_xs])
+                            en = p_f(*[x.value for x in p_xs])  # pyright: ignore[reportAttributeAccessIssue]
                             if en:
                                 assert task.group is not None
                                 task.group.create_task(_check(), priority=Region.INACTIVE)
@@ -821,9 +821,9 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
     ) -> Assumption:
         f, xs = q.to_func()
 
-        async def s(*vs: SimVar):
+        async def s(*xs: Packed | Unpacked):
             await clk.posedge()
-            return f(*[v.value for v in vs])
+            return f(*[x.value for x in xs])
 
         return self._check_seq(Assumption, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
@@ -840,9 +840,9 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
     ) -> Assertion:
         f, xs = q.to_func()
 
-        async def s(*vs: SimVar):
+        async def s(*xs: Packed | Unpacked):
             await clk.posedge()
-            return f(*[v.value for v in vs])
+            return f(*[x.value for x in xs])
 
         return self._check_seq(Assertion, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
