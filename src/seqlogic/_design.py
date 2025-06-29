@@ -582,30 +582,30 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         self._active.append(coro)
         # fmt: on
 
-    def _check_func(
+    def _check_func[T: Checker](
         self,
-        C: type[Checker],
+        t: type[T],
         name: str,
         p: Expr,
         f,
-        vs: Sequence[SimVar],
+        xs,
         clk: Packed[Scalar],
         rst: Packed[Scalar],
         rsync: bool,
         rneg: bool,
         msg: str | None,
-    ) -> Checker:
-        E = {Assumption: AssumeError, Assertion: AssertError}[C]
+    ) -> T:
+        E = {Assumption: AssumeError, Assertion: AssertError}[t]
 
         # Require valid and unique name
         self._check_unique(name, "checker")
 
-        node = C(name, parent=self)
+        node = t(name, parent=self)
 
         p_f, p_xs = p.to_func()
 
         def _check():
-            y = f(*[v.value for v in vs])
+            y = f(*[x.value for x in xs])
             if not y:
                 args = () if msg is None else (msg,)
                 raise E(*args)
@@ -637,7 +637,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                         on = True
                     elif v is clk:
                         if on:
-                            en = p_f(*[v.value for v in p_xs])
+                            en = p_f(*[x.value for x in p_xs])
                             if en:
                                 _check()
                     else:
@@ -684,7 +684,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         f,
-        xs: Sequence[Logic],
+        xs,
         clk: Packed[Scalar],
         rst: Packed[Scalar],
         rsync: bool = False,
@@ -698,7 +698,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         f,
-        xs: Sequence[Logic],
+        xs,
         clk: Packed[Scalar],
         rst: Packed[Scalar],
         rsync: bool = False,
@@ -707,25 +707,25 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
     ) -> Assertion:
         return self._check_func(Assertion, name, p, f, xs, clk, rst, rsync, rneg, msg)
 
-    def _check_seq(
+    def _check_seq[T: Checker](
         self,
-        C: type[Checker],
+        t: type[T],
         name: str,
         p: Expr,
         s,
-        xs: Sequence[Logic],
+        xs,
         clk: Packed[Scalar],
         rst: Packed[Scalar],
         rsync: bool,
         rneg: bool,
         msg: str | None,
-    ) -> Checker:
-        E = {Assumption: AssumeError, Assertion: AssertError}[C]
+    ) -> T:
+        E = {Assumption: AssumeError, Assertion: AssertError}[t]
 
         # Require valid and unique name
         self._check_unique(name, "checker")
 
-        node = C(name, parent=self)
+        node = t(name, parent=self)
 
         p_f, p_xs = p.to_func()
 
@@ -765,8 +765,9 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                         on = True
                     elif v is clk:
                         if on:
-                            en = p_f(*[v.value for v in p_xs])
+                            en = p_f(*[x.value for x in p_xs])
                             if en:
+                                assert task.group is not None
                                 task.group.create_task(_check(), priority=Region.INACTIVE)
                     else:
                         assert False  # pragma: no cover
@@ -784,7 +785,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         s,
-        xs: Sequence[Logic],
+        xs,
         clk: Packed[Scalar],
         rst: Packed[Scalar],
         rsync: bool = False,
@@ -798,7 +799,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         s,
-        xs: Sequence[Logic],
+        xs,
         clk: Packed[Scalar],
         rst: Packed[Scalar],
         rsync: bool = False,
