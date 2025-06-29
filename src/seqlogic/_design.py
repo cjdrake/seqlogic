@@ -276,7 +276,8 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         # Return a reference for local use
         return node
 
-    def _connect_input(self, name: str, rhs):
+    # TODO(cjdrake): Type signature for (f, x0, x1, ...)
+    def _connect_input(self, name: str, rhs: Packed | Expr):
         y = getattr(self, name)
 
         if self._inputs[name]:
@@ -289,7 +290,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                 self.assign(y, x)
             case Expr() as ex:
                 f, xs = ex.to_func()
-                self.combi(y, f, *xs)
+                self.combi(y, f, *xs)  # pyright: ignore[reportArgumentType]
             # y = (f, x0, x1, ...)
             case [Callable() as f, *xs]:
                 self.combi(y, f, *xs)
