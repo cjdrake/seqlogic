@@ -331,8 +331,7 @@ def cipher(pt: Text, rkeys: RoundKeys) -> Text:
     state = shift_rows(state)
     state ^= rkeys[nr]
 
-    ct = state.reshape(Text.shape)
-    return ct
+    return Text.cast(state)
 
 
 def inv_cipher(ct: Text, rkeys: RoundKeys) -> Text:
@@ -360,8 +359,7 @@ def inv_cipher(ct: Text, rkeys: RoundKeys) -> Text:
     state = inv_sub_bytes(state)
     state ^= rkeys[0]
 
-    pt = state.reshape(Text.shape)
-    return pt
+    return Text.cast(state)
 
 
 def encrypt(pt: Text, key: Key) -> Text:
