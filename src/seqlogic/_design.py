@@ -480,7 +480,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
         # No Reset
         if rst is None:
-            vps = {clk: clk_en}
+            vps: dict[SimVar, Predicate] = {clk: clk_en}
             async def cf():
                 while True:
                     v = await any_var(vps)
@@ -494,7 +494,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
             # Synchronous Reset
             if rsync:
-                vps = {clk: clk_en}
+                vps: dict[SimVar, Predicate] = {clk: clk_en}
                 if rneg:
                     async def cf():
                         while True:
@@ -519,7 +519,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                     def clk_pred() -> bool:
                         return clk_en() and rst.is_neg()
 
-                vps = {rst: rst_pred, clk: clk_pred}
+                vps: dict[SimVar, Predicate] = {rst: rst_pred, clk: clk_pred}
 
                 async def cf():
                     while True:
@@ -549,7 +549,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         def clk_pred() -> bool:
             return clk.is_posedge() and en.prev == "1b1"
 
-        vps = {clk: clk_pred}
+        vps: dict[SimVar, Predicate] = {clk: clk_pred}
 
         # fmt: off
         if be is None:
@@ -627,7 +627,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                 def clk_pred() -> bool:
                     return clk.is_posedge() and rst.is_neg()
 
-            vps = {rst: rst_pred, clk: clk_pred}
+            vps: dict[SimVar, Predicate] = {rst: rst_pred, clk: clk_pred}
 
             async def cf():
                 on = False
@@ -752,7 +752,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                 def clk_pred() -> bool:
                     return clk.is_posedge() and rst.is_neg()
 
-            vps = {rst: rst_pred, clk: clk_pred}
+            vps: dict[SimVar, Predicate] = {rst: rst_pred, clk: clk_pred}
 
             async def cf():
                 loop = get_running_loop()
