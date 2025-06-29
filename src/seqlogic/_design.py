@@ -300,7 +300,8 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         # Mark port connected
         self._inputs[name] = True
 
-    def _connect_output(self, name: str, rhs):
+    # TODO(cjdrake): Type signature for (f, y0, y1, ...)
+    def _connect_output(self, name: str, rhs: Packed):
         x = getattr(self, name)
 
         if self._outputs[name]:
