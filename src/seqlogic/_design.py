@@ -179,7 +179,7 @@ class _ModuleMeta(type):
 
         # Create base Module
         mod = super().__new__(mcs, name, bases, attrs)
-        mod.__new__ = _mod_new
+        mod.__new__ = _mod_new  # pyright: ignore[reportAttributeAccessIssue]
         return mod
 
 
