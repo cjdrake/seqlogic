@@ -277,7 +277,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         return node
 
     # TODO(cjdrake): Type signature for (f, x0, x1, ...)
-    def _connect_input(self, name: str, rhs: Packed | Expr):
+    def _connect_input(self, name: str, rhs):
         y = getattr(self, name)
 
         if self._inputs[name]:
@@ -301,7 +301,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         self._inputs[name] = True
 
     # TODO(cjdrake): Type signature for (f, y0, y1, ...)
-    def _connect_output(self, name: str, rhs: Packed):
+    def _connect_output(self, name: str, rhs):
         x = getattr(self, name)
 
         if self._outputs[name]:
@@ -332,7 +332,9 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
             else:
                 raise DesignError(f"Invalid port name: {name}")
 
-    def logic[T: Bits](self, name: str, dtype: T, shape: tuple[int, ...] | None = None) -> Logic[T]:
+    def logic[T: Bits](
+        self, name: str, dtype: T, shape: tuple[int, ...] | None = None
+    ) -> Packed[T] | Unpacked[T]:
         # Require valid and unique name
         self._check_unique(name, "logic")
 
@@ -363,12 +365,12 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         # Return a reference for local use
         return node
 
-    def submod(self, name: str, mod: type[Module]) -> Module:
+    def submod[T: Module](self, name: str, mod: T) -> T:
         # Require valid and unique name
         self._check_unique(name, "submodule")
 
         # Create submodule
-        node = mod(name, parent=self)
+        node = mod(name, parent=self)  # pyright: ignore[reportCallIssue]
 
         # Save in module namespace
         setattr(self, name, node)
@@ -382,15 +384,15 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
     def mon(self, coro: Coroutine):
         self._inactive.append(coro)
 
-    def _combi(self, ys: tuple[SimVal, ...], f: Callable, vs: list[SimVar]):
-        vps = {v: v.changed for v in vs}
+    def _combi(self, ys: tuple[SimVal, ...], f: Callable, *xs: Packed | Unpacked):
+        vps: dict[SimVar, Predicate] = {x: x.changed for x in xs}
 
         async def cf():
             while True:
                 await any_var(vps)
 
                 # Apply f to inputs
-                values = f(*[v.value for v in vs])
+                values = f(*[x.value for x in xs])
 
                 # Pack outputs
                 if not isinstance(values, (list, tuple)):
@@ -404,7 +406,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         coro = cf()
         self._reactive.append(coro)
 
-    def combi(self, ys: SimVal | Sequence[SimVal], f: Callable, *xs: Logic):
+    def combi(self, ys: SimVal | Sequence[SimVal], f: Callable, *xs: Packed | Unpacked):
         """Combinational logic."""
 
         # Pack outputs
@@ -415,7 +417,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         else:
             raise TypeError("Expected ys to be Simval or [SimVal]")
 
-        self._combi(ys, f, xs)
+        self._combi(ys, f, *xs)
 
     def expr(self, ys: SimVal | Sequence[SimVal], ex: Expr):
         """Expression logic."""
@@ -429,7 +431,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
             raise TypeError("Expected ys to be Simval or [SimVal]")
 
         f, xs = ex.to_func()
-        self._combi(ys, f, xs)
+        self._combi(ys, f, *xs)  # pyright: ignore[reportArgumentType]
 
     def assign[T: Bits](self, y: SimVal[T], x: Packed[T] | str):
         """Assign input to output."""
