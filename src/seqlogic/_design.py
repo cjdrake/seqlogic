@@ -435,21 +435,19 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         f, xs = ex.to_func()
         self._combi(ys, f, xs)
 
-    def assign(self, y: SimVal, x: Packed | str):
+    def assign[T: Bits](self, y: SimVal[T], x: Packed[T] | str):
         """Assign input to output."""
         # fmt: off
         if isinstance(x, str):
-            async def cf():
+            async def cf_str():
                 y.next = x
-            coro = cf()
-            self._active.append(coro)
+            self._active.append(cf_str())
         elif isinstance(x, Packed):
-            async def cf():
+            async def cf_packed():
                 while True:
                     await x
                     y.next = x.value
-            coro = cf()
-            self._reactive.append(coro)
+            self._reactive.append(cf_packed())
         else:
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
