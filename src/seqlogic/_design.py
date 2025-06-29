@@ -384,7 +384,12 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
     def mon(self, coro: Coroutine):
         self._inactive.append(coro)
 
-    def _combi(self, ys: tuple[SimVal, ...], f: Callable, *xs: Packed | Unpacked):
+    def _combi(
+        self,
+        ys: tuple[SimVal, ...],
+        f: Callable[..., Bits | str | tuple[Bits | str, ...]],
+        *xs: Packed | Unpacked,
+    ):
         vps: dict[SimVar, Predicate] = {x: x.changed for x in xs}
 
         async def cf():
@@ -395,7 +400,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                 values = f(*[x.value for x in xs])
 
                 # Pack outputs
-                if not isinstance(values, (list, tuple)):
+                if not isinstance(values, tuple):
                     values = (values,)
 
                 assert len(ys) == len(values)
@@ -406,7 +411,12 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         coro = cf()
         self._reactive.append(coro)
 
-    def combi(self, ys: SimVal | Sequence[SimVal], f: Callable, *xs: Packed | Unpacked):
+    def combi(
+        self,
+        ys: SimVal | Sequence[SimVal],
+        f: Callable[..., Bits | str | tuple[Bits | str, ...]],
+        *xs: Packed | Unpacked,
+    ):
         """Combinational logic."""
 
         # Pack outputs
@@ -433,7 +443,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         f, xs = ex.to_func()
         self._combi(ys, f, *xs)  # pyright: ignore[reportArgumentType]
 
-    def assign[T: Bits](self, y: SimVal[T], x: Packed[T] | str):
+    def assign(self, y: SimVal, x: Packed | str):
         """Assign input to output."""
         # fmt: off
         if isinstance(x, str):
