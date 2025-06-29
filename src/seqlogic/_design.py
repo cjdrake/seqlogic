@@ -1014,7 +1014,7 @@ class AssertError(CheckerError):
     pass
 
 
-class Float(Leaf, _ProcIf, _TraceIf, Singular):
+class Float(Leaf, _ProcIf, _TraceIf, Singular[float]):
     """Leaf-level float design component."""
 
     def __init__(self, name: str, parent: Module):
