@@ -13,7 +13,7 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
 from typing import Any, override
 
-from bvwx import Array, Bits, Scalar, Vector, i2bv, lit2bv, stack, u2bv
+from bvwx import Array, Bits, Scalar, i2bv, lit2bv, stack, u2bv
 from deltacycle import (
     Aggregate,
     Loop,
