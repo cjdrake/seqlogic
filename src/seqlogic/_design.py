@@ -13,7 +13,7 @@ from collections.abc import Callable, Coroutine, Sequence
 from enum import IntEnum
 from typing import Any, override
 
-from bvwx import Bits, i2bv, lit2bv, stack, u2bv
+from bvwx import Bits, Scalar, i2bv, lit2bv, stack, u2bv
 from deltacycle import (
     Aggregate,
     Loop,
@@ -448,14 +448,14 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
 
-    def dff(
+    def dff[T: Bits](
         self,
-        q: Packed,
-        d: Packed,
-        clk: Packed,
-        en: Packed | None = None,
-        rst: Packed | None = None,
-        rval: Bits | str | None = None,
+        q: Packed[T],
+        d: Packed[T],
+        clk: Packed[Scalar],
+        en: Packed[Scalar] | None = None,
+        rst: Packed[Scalar] | None = None,
+        rval: T | str | None = None,
         rsync: bool = False,
         rneg: bool = False,
     ):
