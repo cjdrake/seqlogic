@@ -408,8 +408,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                 for y, value in zip(ys, values):
                     y.next = value
 
-        coro = cf()
-        self._reactive.append(coro)
+        self._reactive.append(cf())
 
     def combi(
         self,
@@ -429,19 +428,10 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
         self._combi(ys, f, *xs)
 
-    def expr(self, ys: SimVal | Sequence[SimVal], ex: Expr):
+    def expr(self, y: SimVal, ex: Expr):
         """Expression logic."""
-
-        # Pack outputs
-        if isinstance(ys, SimVal):
-            ys = (ys,)
-        elif isinstance(ys, Sequence) and all(isinstance(y, SimVal) for y in ys):
-            ys = tuple(ys)
-        else:
-            raise TypeError("Expected ys to be Simval or [SimVal]")
-
         f, xs = ex.to_func()
-        self._combi(ys, f, *xs)  # pyright: ignore[reportArgumentType]
+        self._combi((y,), f, *xs)  # pyright: ignore[reportArgumentType]
 
     def assign(self, y: SimVal, x: Packed | str):
         """Assign input to output."""
@@ -542,10 +532,10 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                             q.next = d.prev
                         else:
                             assert False  # pragma: no cover
+        # fmt: on
 
         coro = cf()
         self._active.append(coro)
-        # fmt: on
 
     def mem_wr[T: Array](
         self,
@@ -589,10 +579,10 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                         else:
                             xs.append(mem[addr.prev].prev[i])
                     mem[addr.prev].next = stack(*xs)
+        # fmt: on
 
         coro = cf()
         self._active.append(coro)
-        # fmt: on
 
     def _check_func[T: Checker](
         self,
