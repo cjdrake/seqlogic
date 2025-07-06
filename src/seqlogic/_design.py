@@ -32,6 +32,7 @@ from ._expr import Expr
 from ._expr import Variable as ExprVar
 from ._hier import Branch, Leaf
 from ._proc_if import ProcIf
+from ._trace_if import TraceIf
 
 logger = logging.getLogger("deltacycle")
 
@@ -51,19 +52,6 @@ class Region(IntEnum):
 
 class DesignError(Exception):
     """Design Error."""
-
-
-class _TraceIf:
-    """Tracing interface.
-
-    Implemented by components that support debug dump.
-    """
-
-    def dump_waves(self, waves: defaultdict[int, dict], pattern: str):
-        """Dump design elements w/ names matching pattern to waves dict."""
-
-    def dump_vcd(self, vcdw: VcdWriter, pattern: str):
-        """Dump design elements w/ names matching pattern to VCD file."""
 
 
 def _mod_factory_new(pntvs: list[tuple[str, type, Any]]):
@@ -162,7 +150,7 @@ class _ModuleMeta(type):
         return mod
 
 
-class Module(Branch, ProcIf, _TraceIf, metaclass=_ModuleMeta):
+class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
     """Hierarchical, branch-level design component.
 
     A module contains:
@@ -215,12 +203,12 @@ class Module(Branch, ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
     def dump_waves(self, waves: defaultdict[int, dict], pattern: str):
         for child in self._children:
-            assert isinstance(child, _TraceIf)
+            assert isinstance(child, TraceIf)
             child.dump_waves(waves, pattern)
 
     def dump_vcd(self, vcdw: VcdWriter, pattern: str):
         for child in self._children:
-            assert isinstance(child, _TraceIf)
+            assert isinstance(child, TraceIf)
             child.dump_vcd(vcdw, pattern)
 
     def input[T: Bits](self, name: str, dtype: T) -> Packed[T]:
@@ -831,7 +819,7 @@ class Module(Branch, ProcIf, _TraceIf, metaclass=_ModuleMeta):
         return self._check_seq(Assertion, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
 
-class Logic[T: Bits](Leaf, ProcIf, _TraceIf):
+class Logic[T: Bits](Leaf, ProcIf, TraceIf):
     def __init__(self, name: str, parent: Module, dtype: T):
         Leaf.__init__(self, name, parent)
         ProcIf.__init__(self)
@@ -972,11 +960,15 @@ class Unpacked[T: Bits](Logic[T], Aggregate[T]):
         Logic.__init__(self, name, parent, dtype)
         Aggregate.__init__(self, dtype.xes())
 
+    # NOTE: TraceIf not implemented
 
-class Checker(Leaf, ProcIf, _TraceIf):
+
+class Checker(Leaf, ProcIf, TraceIf):
     def __init__(self, name: str, parent: Module):
         Leaf.__init__(self, name, parent)
         ProcIf.__init__(self)
+
+    # NOTE: TraceIF not implemented
 
 
 class Assumption(Checker):
@@ -999,7 +991,7 @@ class AssertError(CheckerError):
     pass
 
 
-class Float(Leaf, ProcIf, _TraceIf, Singular[float]):
+class Float(Leaf, ProcIf, TraceIf, Singular[float]):
     """Leaf-level float design component."""
 
     def __init__(self, name: str, parent: Module):
