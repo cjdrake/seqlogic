@@ -98,9 +98,9 @@ def _mod_factory_new(pntvs: list[tuple[str, type, Any]]):
     lines.append(f"    return _new_body(cls, {s})\n")
     source = "".join(lines)
 
-    def _new_body(cls, *args):
+    def _new_body(cls, *args: Any):
         # For all parameters, use either default or override value
-        params = {}
+        params: dict[str, Any] = {}
         for arg, (pn, _, pv) in zip(args, pntvs):
             if arg is None:
                 params[pn] = pv  # default
@@ -116,11 +116,13 @@ def _mod_factory_new(pntvs: list[tuple[str, type, Any]]):
     return locals_["_new"]
 
 
-_Modules = defaultdict(dict)
+type Key = tuple[tuple[str, Any], ...]
+# Parameterized Module [params ...] => Module
+_Modules: defaultdict[type[Module], dict[Key, type[Module]]] = defaultdict(dict)
 
 
-def _mod_name(cls, key) -> str:
-    parts = []
+def _mod_name(cls, key: Key) -> str:
+    parts: list[str] = []
     for name, value in key:
         if isinstance(value, type):
             parts.append(f"{name}={value.__name__}")
@@ -133,8 +135,8 @@ def _mod_new(cls, name: str, parent: Module | None = None):
     return object.__new__(cls)
 
 
-def _get_mod(cls, params) -> type[Module]:
-    key = tuple(sorted(params.items()))
+def _get_mod(cls: type[Module], params: dict[str, Any]) -> type[Module]:
+    key: Key = tuple(sorted(params.items()))
     try:
         mod = _Modules[cls][key]
     except KeyError:
