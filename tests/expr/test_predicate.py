@@ -22,7 +22,7 @@ def test_eq():
     assert str(y) == 'eq("2b10", "2b01")'
 
     with pytest.raises(TypeError):
-        EQ(4.2, 6.9)  # pyright: ignore[reportArgumentType]
+        EQ(4.2, 6.9)
 
 
 def test_ne():
@@ -38,7 +38,7 @@ def test_ne():
     assert str(y) == 'ne("2b10", "2b01")'
 
     with pytest.raises(TypeError):
-        NE(4.2, 6.9)  # pyright: ignore[reportArgumentType]
+        NE(4.2, 6.9)
 
 
 def test_gt():
@@ -54,7 +54,7 @@ def test_gt():
     assert str(y) == 'gt("2b10", "2b01")'
 
     with pytest.raises(TypeError):
-        GT(4.2, 6.9)  # pyright: ignore[reportArgumentType]
+        GT(4.2, 6.9)
 
 
 def test_ge():
@@ -70,7 +70,7 @@ def test_ge():
     assert str(y) == 'ge("2b10", "2b01")'
 
     with pytest.raises(TypeError):
-        GE(4.2, 6.9)  # pyright: ignore[reportArgumentType]
+        GE(4.2, 6.9)
 
 
 def test_lt():
@@ -86,7 +86,7 @@ def test_lt():
     assert str(y) == 'lt("2b10", "2b01")'
 
     with pytest.raises(TypeError):
-        LT(4.2, 6.9)  # pyright: ignore[reportArgumentType]
+        LT(4.2, 6.9)
 
 
 def test_le():
@@ -102,4 +102,4 @@ def test_le():
     assert str(y) == 'le("2b10", "2b01")'
 
     with pytest.raises(TypeError):
-        LE(4.2, 6.9)  # pyright: ignore[reportArgumentType]
+        LE(4.2, 6.9)

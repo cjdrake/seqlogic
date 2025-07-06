@@ -28,7 +28,7 @@ def test_uor():
     assert str(y) == "uor(a)"
 
     with pytest.raises(TypeError):
-        Uor(4.2)  # pyright: ignore[reportArgumentType]
+        Uor(4.2)
 
 
 def test_uand():
@@ -51,7 +51,7 @@ def test_uand():
     assert str(y) == "uand(a)"
 
     with pytest.raises(TypeError):
-        Uand(4.2)  # pyright: ignore[reportArgumentType]
+        Uand(4.2)
 
 
 def test_uxor():
@@ -74,4 +74,4 @@ def test_uxor():
     assert str(y) == "uxor(a)"
 
     with pytest.raises(TypeError):
-        Uxor(4.2)  # pyright: ignore[reportArgumentType]
+        Uxor(4.2)

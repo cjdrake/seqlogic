@@ -53,4 +53,4 @@ def test_rep():
     assert f(*xs) == "4b1111"
 
     with pytest.raises(TypeError):
-        Rep(False, 4.2)  # pyright: ignore[reportArgumentType]
+        Rep(False, 4.2)

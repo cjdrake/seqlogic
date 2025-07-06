@@ -40,7 +40,7 @@ def test_not():
     assert str(y) == "not_(a)"
 
     with pytest.raises(TypeError):
-        Not(4.2)  # pyright: ignore[reportArgumentType]
+        Not(4.2)
 
 
 def test_or():
@@ -62,9 +62,9 @@ def test_or():
     assert str(y) == 'or_("4b1010", a)'
 
     with pytest.raises(TypeError):
-        Or(4.2)  # pyright: ignore[reportArgumentType]
+        Or(4.2)
     with pytest.raises(TypeError):
-        Or("2b00", 4.2)  # pyright: ignore[reportArgumentType]
+        Or("2b00", 4.2)
 
 
 def test_and():
@@ -86,9 +86,9 @@ def test_and():
     assert str(y) == 'and_("4b1010", a)'
 
     with pytest.raises(TypeError):
-        And(4.2)  # pyright: ignore[reportArgumentType]
+        And(4.2)
     with pytest.raises(TypeError):
-        And("2b00", 4.2)  # pyright: ignore[reportArgumentType]
+        And("2b00", 4.2)
 
 
 def test_xor():
@@ -110,9 +110,9 @@ def test_xor():
     assert str(y) == 'xor("4b1010", a)'
 
     with pytest.raises(TypeError):
-        Xor(4.2)  # pyright: ignore[reportArgumentType]
+        Xor(4.2)
     with pytest.raises(TypeError):
-        Xor("2b00", 4.2)  # pyright: ignore[reportArgumentType]
+        Xor("2b00", 4.2)
 
 
 def test_impl():
@@ -128,7 +128,7 @@ def test_impl():
     assert str(y) == 'impl("2b10", "2b01")'
 
     with pytest.raises(TypeError):
-        Impl(4.2, 6.9)  # pyright: ignore[reportArgumentType]
+        Impl(4.2, 6.9)
 
 
 def test_ite():
@@ -146,7 +146,7 @@ def test_ite():
     assert str(y) == 'ite(a, "4b1010", "4b0101")'
 
     with pytest.raises(TypeError):
-        ITE(4.2, 6.9, 9.6)  # pyright: ignore[reportArgumentType]
+        ITE(4.2, 6.9, 9.6)
 
 
 def test_mux():

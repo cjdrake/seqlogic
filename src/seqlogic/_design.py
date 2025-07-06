@@ -179,7 +179,7 @@ class _ModuleMeta(type):
 
         # Create base Module
         mod = super().__new__(mcs, name, bases, attrs)
-        mod.__new__ = _mod_new  # pyright: ignore[reportAttributeAccessIssue]
+        mod.__new__ = _mod_new
         return mod
 
 
@@ -365,7 +365,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         self._check_unique(name, "submodule")
 
         # Create submodule
-        node = mod(name, parent=self)  # pyright: ignore[reportCallIssue]
+        node = mod(name, parent=self)
 
         # Save in module namespace
         setattr(self, name, node)
@@ -425,16 +425,16 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
         # Pack outputs
         if isinstance(ys, SimVal):
-            self._combi(ys, f, *xs)  # pyright: ignore[reportArgumentType]
+            self._combi(ys, f, *xs)
         elif isinstance(ys, Sequence) and all(isinstance(y, SimVal) for y in ys):
-            self._combis(ys, f, *xs)  # pyright: ignore[reportArgumentType]
+            self._combis(ys, f, *xs)
         else:
             raise TypeError("Expected ys to be Simval or [SimVal]")
 
     def expr(self, y: SimVal, ex: Expr):
         """Expression logic."""
         f, xs = ex.to_func()
-        self._combi(y, f, *xs)  # pyright: ignore[reportArgumentType]
+        self._combi(y, f, *xs)
 
     def assign(self, y: SimVal, x: Packed | str):
         """Assign input to output."""
@@ -642,7 +642,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                         on = True
                     elif v is clk:
                         if on:
-                            en = p_f(*[x.value for x in p_xs])  # pyright: ignore[reportAttributeAccessIssue]
+                            en = p_f(*[x.value for x in p_xs])
                             if en:
                                 _check()
                     else:
@@ -770,7 +770,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
                         on = True
                     elif v is clk:
                         if on:
-                            en = p_f(*[x.value for x in p_xs])  # pyright: ignore[reportAttributeAccessIssue]
+                            en = p_f(*[x.value for x in p_xs])
                             if en:
                                 assert task.group is not None
                                 task.group.create_task(_check(), priority=Region.INACTIVE)

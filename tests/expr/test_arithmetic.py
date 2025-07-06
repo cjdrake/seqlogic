@@ -66,7 +66,7 @@ def test_neg():
     assert str(y) == "neg(a)"
 
     with pytest.raises(TypeError):
-        Neg(4.2)  # pyright: ignore[reportArgumentType]
+        Neg(4.2)
 
 
 def test_ngc():
@@ -89,7 +89,7 @@ def test_ngc():
     assert str(y) == "ngc(a)"
 
     with pytest.raises(TypeError):
-        Ngc(4.2)  # pyright: ignore[reportArgumentType]
+        Ngc(4.2)
 
 
 def test_mul():
@@ -132,7 +132,7 @@ def test_lsh():
     assert str(y) == 'lsh("4b1010", a)'
 
     with pytest.raises(TypeError):
-        Lsh("4b1010", 4.2)  # pyright: ignore[reportArgumentType]
+        Lsh("4b1010", 4.2)
 
 
 def test_rsh():

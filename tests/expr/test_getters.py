@@ -21,7 +21,7 @@ def test_getitem():
     assert str(y) == "a[1:3]"
 
     with pytest.raises(TypeError):
-        GetItem(a, 4.2)  # pyright: ignore[reportArgumentType]
+        GetItem(a, 4.2)
 
 
 def test_getattr():
@@ -29,4 +29,4 @@ def test_getattr():
     assert str(y) == "a.foo"
 
     with pytest.raises(TypeError):
-        GetAttr(a, 4.2)  # pyright: ignore[reportArgumentType]
+        GetAttr(a, 4.2)
