@@ -28,7 +28,7 @@ def f_take_branch(funct3: Funct3, alu_result_eq_zero: Vec[1]) -> Vec[1]:
             return Vec[1].xprop(funct3.branch)
 
 
-def f_func(funct3: Funct3):
+def f_func(funct3: Funct3) -> tuple[AluOp, AluOp, AluOp]:
     match funct3.alu_logic:
         case Funct3AluLogic.ADD_SUB:
             default_func = AluOp.ADD
@@ -77,7 +77,7 @@ def f_alu_op(
     default_func: AluOp,
     secondary_func: AluOp,
     branch_func: AluOp,
-):
+) -> AluOp:
     match alu_op_type:
         case CtlAlu.ADD:
             return AluOp.ADD
@@ -95,7 +95,7 @@ def f_alu_op(
             return AluOp.xprop(alu_op_type)
 
 
-def f_next_pc_sel(opcode: Opcode, take_branch: Vec[1]):
+def f_next_pc_sel(opcode: Opcode, take_branch: Vec[1]) -> CtlPc:
     match opcode:
         case (
             Opcode.LOAD
@@ -117,7 +117,9 @@ def f_next_pc_sel(opcode: Opcode, take_branch: Vec[1]):
             return CtlPc.xprop(opcode)
 
 
-def f_ctl(opcode: Opcode):
+def f_ctl(
+    opcode: Opcode,
+) -> tuple[Vec[1], Vec[1], CtlAluA, CtlAluB, Vec[1], Vec[1], CtlWriteBack, CtlAlu]:
     match opcode:
         case Opcode.LOAD:
             pc_wr_en = "1b1"
