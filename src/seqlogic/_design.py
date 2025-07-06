@@ -31,6 +31,7 @@ from vcd.writer import VCDWriter as VcdWriter
 from ._expr import Expr
 from ._expr import Variable as ExprVar
 from ._hier import Branch, Leaf
+from ._proc_if import ProcIf
 
 logger = logging.getLogger("deltacycle")
 
@@ -50,30 +51,6 @@ class Region(IntEnum):
 
 class DesignError(Exception):
     """Design Error."""
-
-
-class _ProcIf:
-    """Process interface.
-
-    Implemented by components that contain local simulator processes.
-    """
-
-    def __init__(self):
-        self._reactive: list[Coroutine] = []
-        self._active: list[Coroutine] = []
-        self._inactive: list[Coroutine] = []
-
-    @property
-    def reactive(self) -> list[Coroutine]:
-        return self._reactive
-
-    @property
-    def active(self) -> list[Coroutine]:
-        return self._active
-
-    @property
-    def inactive(self) -> list[Coroutine]:
-        return self._inactive
 
 
 class _TraceIf:
@@ -185,7 +162,7 @@ class _ModuleMeta(type):
         return mod
 
 
-class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
+class Module(Branch, ProcIf, _TraceIf, metaclass=_ModuleMeta):
     """Hierarchical, branch-level design component.
 
     A module contains:
@@ -197,7 +174,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
     def __init__(self, name: str, parent: Module | None = None):
         Branch.__init__(self, name, parent)
-        _ProcIf.__init__(self)
+        ProcIf.__init__(self)
 
         # Ports: name => connected
         self._inputs: dict[str, bool] = {}
@@ -214,7 +191,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         async def cf():
             async with TaskGroup() as tg:
                 for node in self.iter_bfs():
-                    assert isinstance(node, _ProcIf)
+                    assert isinstance(node, ProcIf)
                     for coro in node.reactive:
                         tg.create_task(coro, priority=Region.REACTIVE)
                     for coro in node.active:
@@ -854,10 +831,10 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         return self._check_seq(Assertion, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
 
-class Logic[T: Bits](Leaf, _ProcIf, _TraceIf):
+class Logic[T: Bits](Leaf, ProcIf, _TraceIf):
     def __init__(self, name: str, parent: Module, dtype: T):
         Leaf.__init__(self, name, parent)
-        _ProcIf.__init__(self)
+        ProcIf.__init__(self)
         self._dtype = dtype
 
     @property
@@ -996,10 +973,10 @@ class Unpacked[T: Bits](Logic[T], Aggregate[T]):
         Aggregate.__init__(self, dtype.xes())
 
 
-class Checker(Leaf, _ProcIf, _TraceIf):
+class Checker(Leaf, ProcIf, _TraceIf):
     def __init__(self, name: str, parent: Module):
         Leaf.__init__(self, name, parent)
-        _ProcIf.__init__(self)
+        ProcIf.__init__(self)
 
 
 class Assumption(Checker):
@@ -1022,12 +999,12 @@ class AssertError(CheckerError):
     pass
 
 
-class Float(Leaf, _ProcIf, _TraceIf, Singular[float]):
+class Float(Leaf, ProcIf, _TraceIf, Singular[float]):
     """Leaf-level float design component."""
 
     def __init__(self, name: str, parent: Module):
         Leaf.__init__(self, name, parent)
-        _ProcIf.__init__(self)
+        ProcIf.__init__(self)
         Singular.__init__(self, float())
 
         self._waves_change: Callable[[], None] | None = None
