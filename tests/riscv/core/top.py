@@ -11,6 +11,17 @@ from .data_mem_bus import DataMemBus
 from .text_mem_bus import TextMemBus
 
 
+def data2inst(d: Vec[32]) -> Inst:
+    return Inst(
+        opcode=Opcode(d[0:7]),
+        rd=d[7:12],
+        funct3=d[12:15],
+        rs1=d[15:20],
+        rs2=d[20:25],
+        funct7=d[25:32],
+    )
+
+
 class Top(Module):
     """Top Level Module."""
 
@@ -29,6 +40,10 @@ class Top(Module):
         clock = self.logic(name="clock", dtype=Vec[1])
         reset = self.logic(name="reset", dtype=Vec[1])
 
+        rd_data = self.logic(name="rd_data", dtype=Vec[32])
+
+        self.combi(inst, data2inst, rd_data)
+
         # Submodules:
         # 16K Instruction Memory
         self.submod(
@@ -36,17 +51,7 @@ class Top(Module):
             mod=TextMemBus(DEPTH=1024),
         ).connect(
             rd_addr=pc,
-            rd_data=(
-                lambda d: Inst(
-                    opcode=Opcode(d[0:7]),
-                    rd=d[7:12],
-                    funct3=d[12:15],
-                    rs1=d[15:20],
-                    rs2=d[20:25],
-                    funct7=d[25:32],
-                ),
-                inst,
-            ),
+            rd_data=rd_data,
         )
 
         # 32K Data Memory

@@ -276,8 +276,7 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
         # Return a reference for local use
         return node
 
-    # TODO(cjdrake): Type signature for (f, x0, x1, ...)
-    def _connect_input(self, name: str, rhs):
+    def _connect_input(self, name: str, rhs: Packed | Expr):
         y = getattr(self, name)
 
         if self._inputs[name]:
@@ -288,20 +287,19 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
             # y = x
             case Packed() as x:
                 self.assign(y, x)
+            # y = x0 & x1 | ...
             case Expr() as ex:
-                f, xs = ex.to_func()
-                self.combi(y, f, *xs)  # pyright: ignore[reportArgumentType]
+                self.expr(y, ex)
             # y = (f, x0, x1, ...)
-            case [Callable() as f, *xs]:
-                self.combi(y, f, *xs)
+            # case [Callable() as f, *xs]:
+            #    self._combi(y, f, *xs)
             case _:
                 raise DesignError(f"Input port {name} invalid connection")
 
         # Mark port connected
         self._inputs[name] = True
 
-    # TODO(cjdrake): Type signature for (f, y0, y1, ...)
-    def _connect_output(self, name: str, rhs):
+    def _connect_output(self, name: str, rhs: Packed):
         x = getattr(self, name)
 
         if self._outputs[name]:
@@ -312,9 +310,6 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
             # x = y
             case Packed() as y:
                 self.assign(y, x)
-            # x = (f, y0, y1, ...)
-            case [Callable() as f, *ys]:
-                self.combi(ys, f, x)
             case _:
                 raise DesignError(f"Output port {name} invalid connection")
 
@@ -386,8 +381,23 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
     def _combi(
         self,
-        ys: tuple[SimVal, ...],
-        f: Callable[..., Bits | str | tuple[Bits | str, ...]],
+        y: SimVal,
+        f: Callable[..., Bits | str],
+        *xs: Packed | Unpacked,
+    ):
+        vps: dict[SimVar, Predicate] = {x: x.changed for x in xs}
+
+        async def cf():
+            while True:
+                await any_var(vps)
+                y.next = f(*[x.value for x in xs])
+
+        self._reactive.append(cf())
+
+    def _combis(
+        self,
+        ys: Sequence[SimVal],
+        f: Callable[..., tuple[Bits | str, ...]],
         *xs: Packed | Unpacked,
     ):
         vps: dict[SimVar, Predicate] = {x: x.changed for x in xs}
@@ -398,11 +408,6 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
                 # Apply f to inputs
                 values = f(*[x.value for x in xs])
-
-                # Pack outputs
-                if not isinstance(values, tuple):
-                    values = (values,)
-
                 assert len(ys) == len(values)
 
                 for y, value in zip(ys, values):
@@ -420,18 +425,16 @@ class Module(Branch, _ProcIf, _TraceIf, metaclass=_ModuleMeta):
 
         # Pack outputs
         if isinstance(ys, SimVal):
-            ys = (ys,)
+            self._combi(ys, f, *xs)  # pyright: ignore[reportArgumentType]
         elif isinstance(ys, Sequence) and all(isinstance(y, SimVal) for y in ys):
-            ys = tuple(ys)
+            self._combis(ys, f, *xs)  # pyright: ignore[reportArgumentType]
         else:
             raise TypeError("Expected ys to be Simval or [SimVal]")
-
-        self._combi(ys, f, *xs)
 
     def expr(self, y: SimVal, ex: Expr):
         """Expression logic."""
         f, xs = ex.to_func()
-        self._combi((y,), f, *xs)  # pyright: ignore[reportArgumentType]
+        self._combi(y, f, *xs)  # pyright: ignore[reportArgumentType]
 
     def assign(self, y: SimVal, x: Packed | str):
         """Assign input to output."""
