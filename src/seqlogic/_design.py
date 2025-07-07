@@ -969,7 +969,7 @@ class Checker(Leaf, ProcIf, TraceIf):
         Leaf.__init__(self, name, parent)
         ProcIf.__init__(self)
 
-    # NOTE: TraceIF not implemented
+    # NOTE: TraceIf not implemented
 
 
 class Assumption(Checker):
