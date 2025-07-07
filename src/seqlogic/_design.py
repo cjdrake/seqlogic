@@ -16,12 +16,12 @@ from typing import Any, override
 from bvwx import Array, Bits, Scalar, i2bv, lit2bv, stack, u2bv
 from deltacycle import (
     Aggregate,
-    Loop,
+    Kernel,
     Predicate,
     Singular,
     TaskGroup,
     any_var,
-    get_running_loop,
+    get_running_kernel,
     now,
 )
 from deltacycle import Value as SimVal
@@ -727,8 +727,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
             vps: dict[SimVar, Predicate] = {rst: rst_pred, clk: clk_pred}
 
             async def cf():
-                loop = get_running_loop()
-                task = loop.task()
+                kernel = get_running_kernel()
+                task = kernel.task()
 
                 on = False
                 while True:
@@ -876,7 +876,7 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
     def dump_waves(self, waves: defaultdict[int, dict], pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
-            waves[Loop.init_time][self] = self._prev
+            waves[Kernel.init_time][self] = self._prev
 
             def change():
                 t = now()
@@ -1014,7 +1014,7 @@ class Float(Leaf, ProcIf, TraceIf, Singular[float]):
     def dump_waves(self, waves: defaultdict[int, dict], pattern: str):
         if re.fullmatch(pattern, self.qualname):
             # Initial time
-            waves[Loop.init_time][self] = self._prev
+            waves[Kernel.init_time][self] = self._prev
 
             def change():
                 t = now()
