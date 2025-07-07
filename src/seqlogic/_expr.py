@@ -48,7 +48,9 @@ from bvwx import (
     xt,
 )
 
-_FS: list[Callable[..., Bits]] = [
+type BitsOp = Callable[..., Bits]
+
+_OPS: list[BitsOp] = [
     not_,
     or_,
     and_,
@@ -88,7 +90,7 @@ _FS: list[Callable[..., Bits]] = [
     ge,
 ]
 
-_FNS: dict[str, Callable[..., Bits]] = {f.__name__: f for f in _FS}
+_GLOBALS: dict[str, BitsOp] = {f.__name__: f for f in _OPS}
 
 
 def _expect_bits(arg: ExprLike) -> Expr:
@@ -188,13 +190,13 @@ class Expr(ABC):
     def support(self) -> frozenset[Variable]:
         return frozenset(self.iter_vars())
 
-    def to_func(self) -> tuple[Callable[..., Bits], list[Variable]]:
+    def to_func(self) -> tuple[BitsOp, list[Variable]]:
         vs = sorted(self.support, key=lambda v: v.name)
         args = ", ".join(v.name for v in vs)
         source = f"def f({args}):\n    return {self}\n"
-        locals_ = {}
-        exec(source, _FNS, locals_)
-        return locals_["f"], vs
+        _locals = {}
+        exec(source, _GLOBALS, _locals)
+        return _locals["f"], vs
 
 
 # Type Aliases

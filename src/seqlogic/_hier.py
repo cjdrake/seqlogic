@@ -10,6 +10,9 @@ from __future__ import annotations
 
 from collections.abc import Generator
 
+type HierGen = Generator[Hierarchy, None, None]
+type LeafGen = Generator[Leaf, None, None]
+
 
 class Hierarchy:
     """Any hierarchical design element."""
@@ -40,15 +43,15 @@ class Hierarchy:
         """Return the design element's fully qualified name."""
         raise NotImplementedError()  # pragma: no cover
 
-    def iter_bfs(self) -> Generator[Hierarchy, None, None]:
+    def iter_bfs(self) -> HierGen:
         """Iterate through the design hierarchy in BFS order."""
         raise NotImplementedError()  # pragma: no cover
 
-    def iter_dfs(self) -> Generator[Hierarchy, None, None]:
+    def iter_dfs(self) -> HierGen:
         """Iterate through the design hierarchy in DFS order."""
         raise NotImplementedError()  # pragma: no cover
 
-    def iter_leaves(self) -> Generator[Leaf, None, None]:
+    def iter_leaves(self) -> LeafGen:
         """Iterate through design leaves, left to right."""
         raise NotImplementedError()  # pragma: no cover
 
@@ -73,17 +76,17 @@ class Branch(Hierarchy):
             return f"/{self._name}"
         return f"{self._parent.qualname}/{self._name}"
 
-    def iter_bfs(self) -> Generator[Hierarchy, None, None]:
+    def iter_bfs(self) -> HierGen:
         yield self
         for child in self._children:
             yield from child.iter_bfs()
 
-    def iter_dfs(self) -> Generator[Hierarchy, None, None]:
+    def iter_dfs(self) -> HierGen:
         for child in self._children:
             yield from child.iter_dfs()
         yield self
 
-    def iter_leaves(self) -> Generator[Leaf, None, None]:
+    def iter_leaves(self) -> LeafGen:
         for child in self._children:
             yield from child.iter_leaves()
 
@@ -110,11 +113,11 @@ class Leaf(Hierarchy):
     def qualname(self) -> str:
         return f"{self._parent.qualname}/{self._name}"
 
-    def iter_bfs(self) -> Generator[Hierarchy, None, None]:
+    def iter_bfs(self) -> HierGen:
         yield self
 
-    def iter_dfs(self) -> Generator[Hierarchy, None, None]:
+    def iter_dfs(self) -> HierGen:
         yield self
 
-    def iter_leaves(self) -> Generator[Leaf, None, None]:
+    def iter_leaves(self) -> LeafGen:
         yield self
