@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import re
 from collections import defaultdict
-from collections.abc import Callable, Coroutine, Sequence
+from collections.abc import Callable, Sequence
 from enum import IntEnum
 from typing import Any, override
 
@@ -19,6 +19,7 @@ from deltacycle import (
     Kernel,
     Predicate,
     Singular,
+    TaskCoro,
     TaskGroup,
     any_var,
     get_running_kernel,
@@ -173,7 +174,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
     def build(self) -> None:
         raise NotImplementedError("Module requires a build method")
 
-    def main(self) -> Coroutine:
+    def main(self) -> TaskCoro:
         """Add design processes to the simulator."""
 
         async def cf():
@@ -340,10 +341,10 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         # Return a reference for local use
         return node
 
-    def drv(self, coro: Coroutine):
+    def drv(self, coro: TaskCoro):
         self._active.append(coro)
 
-    def mon(self, coro: Coroutine):
+    def mon(self, coro: TaskCoro):
         self._inactive.append(coro)
 
     def _combi(

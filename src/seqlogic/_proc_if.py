@@ -1,6 +1,6 @@
 """Process Interface"""
 
-from collections.abc import Coroutine
+from deltacycle import TaskCoro
 
 
 class ProcIf:
@@ -10,18 +10,18 @@ class ProcIf:
     """
 
     def __init__(self):
-        self._reactive: list[Coroutine] = []
-        self._active: list[Coroutine] = []
-        self._inactive: list[Coroutine] = []
+        self._reactive: list[TaskCoro] = []
+        self._active: list[TaskCoro] = []
+        self._inactive: list[TaskCoro] = []
 
     @property
-    def reactive(self) -> list[Coroutine]:
+    def reactive(self) -> list[TaskCoro]:
         return self._reactive
 
     @property
-    def active(self) -> list[Coroutine]:
+    def active(self) -> list[TaskCoro]:
         return self._active
 
     @property
-    def inactive(self) -> list[Coroutine]:
+    def inactive(self) -> list[TaskCoro]:
         return self._inactive
