@@ -7,7 +7,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "bvwx >= 0.13.0",
-    "deltacycle >= 0.13.0",
+    "deltacycle >= 0.18.0",
     "pyvcd",
 ]
 

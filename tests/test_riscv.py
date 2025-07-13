@@ -12,7 +12,7 @@ It merely serves as a non-trivial example design.
 from collections import defaultdict
 
 from bvwx import u2bv
-from deltacycle import create_task, irun, run
+from deltacycle import create_task, run, step
 
 from .riscv.core import (
     AluOp,
@@ -751,7 +751,7 @@ def run_riscv_test(name: str) -> int:
             top.data_mem_bus.data_mem.mem[addr].next = data
 
     # Run the simulation
-    for t in irun(main()):
+    for t in step(main()):
         if t >= 10_000:
             break
         if top.bus_wr_en.prev == "1b1" and top.bus_addr.prev == DEBUG_REG:
