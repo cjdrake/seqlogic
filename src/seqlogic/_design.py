@@ -16,9 +16,9 @@ from typing import Any, override
 from bvwx import Array, Bits, Scalar, i2bv, lit2bv, stack, u2bv
 from deltacycle import (
     Aggregate,
+    AnyOf,
     Kernel,
     Predicate,
-    Schedule,
     Singular,
     TaskCoro,
     TaskGroup,
@@ -357,7 +357,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
 
         async def cf():
             while True:
-                await Schedule(*pvs)
+                await AnyOf(*pvs)
                 y.next = f(*[x.value for x in xs])
 
         self._reactive.append(cf())
@@ -372,7 +372,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
 
         async def cf():
             while True:
-                await Schedule(*pvs)
+                await AnyOf(*pvs)
 
                 # Apply f to inputs
                 values = f(*[x.value for x in xs])
@@ -456,7 +456,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
             pvs: list[tuple[Predicate, SimVar]] = [(clk_en, clk)]
             async def cf():
                 while True:
-                    v = await Schedule(*pvs)
+                    v = await AnyOf(*pvs)
                     assert v is clk
                     q.next = d.prev
 
@@ -471,13 +471,13 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                 if rneg:
                     async def cf():
                         while True:
-                            v = await Schedule(*pvs)
+                            v = await AnyOf(*pvs)
                             assert v is clk
                             q.next = rval if not rst.prev else d.prev
                 else:
                     async def cf():
                         while True:
-                            v = await Schedule(*pvs)
+                            v = await AnyOf(*pvs)
                             assert v is clk
                             q.next = rval if rst.prev else d.prev
 
@@ -496,7 +496,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
 
                 async def cf():
                     while True:
-                        v = await Schedule(*pvs)
+                        v = await AnyOf(*pvs)
                         if v is rst:
                             q.next = rval
                         elif v is clk:
@@ -528,7 +528,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         if be is None:
             async def cf():
                 while True:
-                    v = await Schedule(*pvs)
+                    v = await AnyOf(*pvs)
                     assert v is clk
                     assert not addr.prev.has_unknown()
                     mem[addr.prev].next = data.prev
@@ -539,7 +539,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
 
             async def cf():
                 while True:
-                    v = await Schedule(*pvs)
+                    v = await AnyOf(*pvs)
                     assert v is clk
                     assert not addr.prev.has_unknown()
                     assert not be.prev.has_unknown()
@@ -605,7 +605,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
             async def cf():
                 on = False
                 while True:
-                    v  = await Schedule(*pvs)
+                    v  = await AnyOf(*pvs)
                     if v is rst:
                         on = True
                     elif v is clk:
@@ -733,7 +733,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
 
                 on = False
                 while True:
-                    v = await Schedule(*pvs)
+                    v = await AnyOf(*pvs)
                     if v is rst:
                         on = True
                     elif v is clk:
@@ -943,15 +943,15 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
 
     async def posedge(self):
         """Suspend; resume execution at signal posedge."""
-        await Schedule(*self._vps_pe)
+        await AnyOf(*self._vps_pe)
 
     async def negedge(self):
         """Suspend; resume execution at signal negedge."""
-        await Schedule(*self._vps_ne)
+        await AnyOf(*self._vps_ne)
 
     async def edge(self):
         """Suspend; resume execution at signal edge."""
-        await Schedule(*self._vps_e)
+        await AnyOf(*self._vps_e)
 
 
 class Unpacked[T: Bits](Logic[T], Aggregate[T]):
