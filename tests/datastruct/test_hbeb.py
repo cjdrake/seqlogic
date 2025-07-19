@@ -83,7 +83,7 @@ class Top(Module):
         for _ in range(self.N):
             self.wr_valid.next = "1b1"
             self.wr_data.next = self.T.rand()
-            await AnyOf((pred, self.clock))
+            await AnyOf(self.clock.pred(pred))
 
             for _ in range(randint(0, 5)):
                 self.wr_valid.next = "1b0"
@@ -110,7 +110,7 @@ class Top(Module):
 
         while True:
             self.rd_ready.next = "1b1"
-            await AnyOf((pred, self.clock))
+            await AnyOf(self.clock.pred(pred))
 
             for _ in range(randint(0, 5)):
                 self.rd_ready.next = "1b0"
@@ -126,7 +126,7 @@ class Top(Module):
             )
 
         while True:
-            await AnyOf((pred, self.clock))
+            await AnyOf(self.clock.pred(pred))
             self.wdata.append(self.wr_data.prev)
 
     async def mon_rd(self):
@@ -139,7 +139,7 @@ class Top(Module):
             )
 
         while True:
-            await AnyOf((pred, self.clock))
+            await AnyOf(self.clock.pred(pred))
             self.rdata.append(self.rd_data.prev)
 
             exp = self.wdata.popleft()

@@ -89,7 +89,7 @@ class Top(Module):
             return self.clock.is_posedge() and self.reset.is_neg() and self.wr_valid.prev == "1b1"
 
         while True:
-            await AnyOf((pred, self.clock))
+            await AnyOf(self.clock.pred(pred))
             self.wdata.append(self.wr_data.prev)
 
     async def mon_rd(self):
@@ -97,7 +97,7 @@ class Top(Module):
             return self.clock.is_posedge() and self.reset.is_neg() and self.rd_valid.prev == "1b1"
 
         while True:
-            await AnyOf((pred, self.clock))
+            await AnyOf(self.clock.pred(pred))
             self.rdata.append(self.rd_data.prev)
 
             exp = self.wdata.popleft()

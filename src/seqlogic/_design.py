@@ -18,7 +18,6 @@ from deltacycle import (
     Aggregate,
     AnyOf,
     Kernel,
-    Predicate,
     Singular,
     TaskCoro,
     TaskGroup,
@@ -26,7 +25,6 @@ from deltacycle import (
     now,
 )
 from deltacycle import Value as SimVal
-from deltacycle import Variable as SimVar
 from vcd.writer import VCDWriter as VcdWriter
 
 from ._expr import Expr
@@ -353,11 +351,9 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         f: Callable[..., Bits | str],
         *xs: Packed | Unpacked,
     ):
-        pvs: list[tuple[Predicate, SimVar]] = [(x.changed, x) for x in xs]
-
         async def cf():
             while True:
-                await AnyOf(*pvs)
+                await AnyOf(*xs)
                 y.next = f(*[x.value for x in xs])
 
         self._reactive.append(cf())
@@ -368,11 +364,9 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         f: Callable[..., tuple[Bits | str, ...]],
         *xs: Packed | Unpacked,
     ):
-        pvs: list[tuple[Predicate, SimVar]] = [(x.changed, x) for x in xs]
-
         async def cf():
             while True:
-                await AnyOf(*pvs)
+                await AnyOf(*xs)
 
                 # Apply f to inputs
                 values = f(*[x.value for x in xs])
@@ -453,10 +447,9 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
 
         # No Reset
         if rst is None:
-            pvs: list[tuple[Predicate, SimVar]] = [(clk_en, clk)]
             async def cf():
                 while True:
-                    v = await AnyOf(*pvs)
+                    v = await AnyOf(clk.pred(clk_en))
                     assert v is clk
                     q.next = d.prev
 
@@ -467,17 +460,16 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
 
             # Synchronous Reset
             if rsync:
-                pvs: list[tuple[Predicate, SimVar]] = [(clk_en, clk)]
                 if rneg:
                     async def cf():
                         while True:
-                            v = await AnyOf(*pvs)
+                            v = await AnyOf(clk.pred(clk_en))
                             assert v is clk
                             q.next = rval if not rst.prev else d.prev
                 else:
                     async def cf():
                         while True:
-                            v = await AnyOf(*pvs)
+                            v = await AnyOf(clk.pred(clk_en))
                             assert v is clk
                             q.next = rval if rst.prev else d.prev
 
@@ -492,11 +484,9 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                     def clk_pred() -> bool:
                         return clk_en() and rst.is_neg()
 
-                pvs: list[tuple[Predicate, SimVar]] = [(rst_pred, rst), (clk_pred, clk)]
-
                 async def cf():
                     while True:
-                        v = await AnyOf(*pvs)
+                        v = await AnyOf(rst.pred(rst_pred), clk.pred(clk_pred))
                         if v is rst:
                             q.next = rval
                         elif v is clk:
@@ -522,13 +512,11 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         def clk_pred() -> bool:
             return clk.is_posedge() and en.prev == "1b1"
 
-        pvs: list[tuple[Predicate, SimVar]] = [(clk_pred, clk)]
-
         # fmt: off
         if be is None:
             async def cf():
                 while True:
-                    v = await AnyOf(*pvs)
+                    v = await AnyOf(clk.pred(clk_pred))
                     assert v is clk
                     assert not addr.prev.has_unknown()
                     mem[addr.prev].next = data.prev
@@ -539,7 +527,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
 
             async def cf():
                 while True:
-                    v = await AnyOf(*pvs)
+                    v = await AnyOf(clk.pred(clk_pred))
                     assert v is clk
                     assert not addr.prev.has_unknown()
                     assert not be.prev.has_unknown()
@@ -600,12 +588,10 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                 def clk_pred() -> bool:
                     return clk.is_posedge() and rst.is_neg()
 
-            pvs: list[tuple[Predicate, SimVar]] = [(rst_pred, rst), (clk_pred, clk)]
-
             async def cf():
                 on = False
                 while True:
-                    v  = await AnyOf(*pvs)
+                    v  = await AnyOf(rst.pred(rst_pred), clk.pred(clk_pred))
                     if v is rst:
                         on = True
                     elif v is clk:
@@ -725,15 +711,13 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                 def clk_pred() -> bool:
                     return clk.is_posedge() and rst.is_neg()
 
-            pvs: list[tuple[Predicate, SimVar]] = [(rst_pred, rst), (clk_pred, clk)]
-
             async def cf():
                 kernel = get_running_kernel()
                 task = kernel.task()
 
                 on = False
                 while True:
-                    v = await AnyOf(*pvs)
+                    v = await AnyOf(rst.pred(rst_pred), clk.pred(clk_pred))
                     if v is rst:
                         on = True
                     elif v is clk:
@@ -842,10 +826,6 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
         self._waves_change: Callable[[], None] | None = None
         self._vcd_change: Callable[[], None] | None = None
 
-        self._vps_e: list[tuple[Predicate, SimVar]] = [(self.is_edge, self)]
-        self._vps_pe: list[tuple[Predicate, SimVar]] = [(self.is_posedge, self)]
-        self._vps_ne: list[tuple[Predicate, SimVar]] = [(self.is_negedge, self)]
-
     # Singular => Variable
     @override
     def set_next(self, value: T | str | int):
@@ -943,15 +923,15 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
 
     async def posedge(self):
         """Suspend; resume execution at signal posedge."""
-        await AnyOf(*self._vps_pe)
+        await AnyOf(self.pred(self.is_posedge))
 
     async def negedge(self):
         """Suspend; resume execution at signal negedge."""
-        await AnyOf(*self._vps_ne)
+        await AnyOf(self.pred(self.is_negedge))
 
     async def edge(self):
         """Suspend; resume execution at signal edge."""
-        await AnyOf(*self._vps_e)
+        await AnyOf(self.pred(self.is_edge))
 
 
 class Unpacked[T: Bits](Logic[T], Aggregate[T]):
