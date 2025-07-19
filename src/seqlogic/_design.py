@@ -449,7 +449,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         if rst is None:
             async def cf():
                 while True:
-                    v = await AnyOf(clk.pred(clk_en))
+                    v = await clk.pred(clk_en)
                     assert v is clk
                     q.next = d.prev
 
@@ -463,13 +463,13 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                 if rneg:
                     async def cf():
                         while True:
-                            v = await AnyOf(clk.pred(clk_en))
+                            v = await clk.pred(clk_en)
                             assert v is clk
                             q.next = rval if not rst.prev else d.prev
                 else:
                     async def cf():
                         while True:
-                            v = await AnyOf(clk.pred(clk_en))
+                            v = await clk.pred(clk_en)
                             assert v is clk
                             q.next = rval if rst.prev else d.prev
 
@@ -516,7 +516,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         if be is None:
             async def cf():
                 while True:
-                    v = await AnyOf(clk.pred(clk_pred))
+                    v = await clk.pred(clk_pred)
                     assert v is clk
                     assert not addr.prev.has_unknown()
                     mem[addr.prev].next = data.prev
@@ -527,7 +527,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
 
             async def cf():
                 while True:
-                    v = await AnyOf(clk.pred(clk_pred))
+                    v = await clk.pred(clk_pred)
                     assert v is clk
                     assert not addr.prev.has_unknown()
                     assert not be.prev.has_unknown()
@@ -591,7 +591,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
             async def cf():
                 on = False
                 while True:
-                    v  = await AnyOf(rst.pred(rst_pred), clk.pred(clk_pred))
+                    v = await AnyOf(rst.pred(rst_pred), clk.pred(clk_pred))
                     if v is rst:
                         on = True
                     elif v is clk:
@@ -923,15 +923,15 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
 
     async def posedge(self):
         """Suspend; resume execution at signal posedge."""
-        await AnyOf(self.pred(self.is_posedge))
+        await self.pred(self.is_posedge)
 
     async def negedge(self):
         """Suspend; resume execution at signal negedge."""
-        await AnyOf(self.pred(self.is_negedge))
+        await self.pred(self.is_negedge)
 
     async def edge(self):
         """Suspend; resume execution at signal edge."""
-        await AnyOf(self.pred(self.is_edge))
+        await self.pred(self.is_edge)
 
 
 class Unpacked[T: Bits](Logic[T], Aggregate[T]):
