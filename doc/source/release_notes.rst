@@ -8,6 +8,13 @@ This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
 
+Version 0.50.0
+==============
+
+Mostly updates related to backward-incompatible ``deltacycle`` changes.
+Lots of miscellaneous type annotation work.
+
+
 Version 0.49.0
 ==============
 
@@ -83,7 +90,7 @@ For example::
 Version 0.44.0
 ==============
 
-Updated tooling to use ``uv`` and ``ruff`.
+Updated tooling to use ``uv`` and ``ruff``.
 
 
 Version 0.43.0
