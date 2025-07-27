@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections.abc import Generator
 
 type HierGen = Generator[Hierarchy, None, None]
+type BranchGen = Generator[Branch, None, None]
 type LeafGen = Generator[Leaf, None, None]
 
 
@@ -51,6 +52,10 @@ class Hierarchy:
         """Iterate through the design hierarchy in DFS order."""
         raise NotImplementedError()  # pragma: no cover
 
+    def iter_branches(self) -> BranchGen:
+        """Iterate through design branches, left to right."""
+        raise NotImplementedError()  # pragma: no cover
+
     def iter_leaves(self) -> LeafGen:
         """Iterate through design leaves, left to right."""
         raise NotImplementedError()  # pragma: no cover
@@ -86,6 +91,11 @@ class Branch(Hierarchy):
             yield from child.iter_dfs()
         yield self
 
+    def iter_branches(self) -> BranchGen:
+        for child in self._children:
+            yield from child.iter_branches()
+        yield self
+
     def iter_leaves(self) -> LeafGen:
         for child in self._children:
             yield from child.iter_leaves()
@@ -118,6 +128,9 @@ class Leaf(Hierarchy):
 
     def iter_dfs(self) -> HierGen:
         yield self
+
+    def iter_branches(self) -> BranchGen:
+        yield from ()
 
     def iter_leaves(self) -> LeafGen:
         yield self
