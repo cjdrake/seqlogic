@@ -54,13 +54,13 @@ class Top(Module):
             reset=reset,
         )
 
-        self.drv(drv_clock(clock, shiftticks=1))
-        self.drv(drv_reset(reset, shiftticks=2, onticks=2))
-        self.drv(self.drv_wr())
-        self.drv(self.drv_rd())
+        self.drv(drv_clock, clock, shiftticks=1)
+        self.drv(drv_reset, reset, shiftticks=2, onticks=2)
+        self.drv(self.drv_wr)
+        self.drv(self.drv_rd)
 
-        self.mon(self.mon_wr())
-        self.mon(self.mon_rd())
+        self.mon(self.mon_wr)
+        self.mon(self.mon_rd)
 
         self.wdata = deque()
         self.rdata = deque()

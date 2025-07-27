@@ -22,7 +22,7 @@ async def hello():
 class Top(Module):
     def build(self):
         # Control
-        self.drv(hello())
+        self.drv(hello)
 
 
 EXP1 = {

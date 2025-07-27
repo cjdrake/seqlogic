@@ -73,8 +73,8 @@ class Top(Module):
         self.dff(q, d, clk, rst=rst, rval="1b0")
 
         # Clock/Reset
-        self.drv(drv_clock(clk))
-        self.drv(drv_reset(rst))
+        self.drv(drv_clock, clk)
+        self.drv(drv_reset, rst)
 
 
 # Run simulation w/ VCD dump enabled

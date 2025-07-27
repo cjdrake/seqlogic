@@ -1,7 +1,5 @@
 """Process Interface"""
 
-from deltacycle import TaskCoro
-
 
 class ProcIf:
     """Process interface.
@@ -10,18 +8,18 @@ class ProcIf:
     """
 
     def __init__(self):
-        self._reactive: list[TaskCoro] = []
-        self._active: list[TaskCoro] = []
-        self._inactive: list[TaskCoro] = []
+        self._reactive: list = []
+        self._active: list = []
+        self._inactive: list = []
 
     @property
-    def reactive(self) -> list[TaskCoro]:
+    def reactive(self) -> list:
         return self._reactive
 
     @property
-    def active(self) -> list[TaskCoro]:
+    def active(self) -> list:
         return self._active
 
     @property
-    def inactive(self) -> list[TaskCoro]:
+    def inactive(self) -> list:
         return self._inactive

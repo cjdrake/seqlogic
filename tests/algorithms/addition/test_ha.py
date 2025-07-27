@@ -41,7 +41,7 @@ class Top(Module):
             co=co,
         )
 
-        self.drv(self.drv_inputs())
+        self.drv(self.drv_inputs)
 
     async def drv_inputs(self):
         await sleep(1)

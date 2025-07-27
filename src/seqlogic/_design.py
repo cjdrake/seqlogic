@@ -179,11 +179,14 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
             async with TaskGroup() as tg:
                 for node in self.iter_bfs():
                     assert isinstance(node, ProcIf)
-                    for coro in node.reactive:
+                    for cf, args, kwargs in node.reactive:
+                        coro = cf(*args, **kwargs)
                         tg.create_task(coro, priority=Region.REACTIVE)
-                    for coro in node.active:
+                    for cf, args, kwargs in node.active:
+                        coro = cf(*args, **kwargs)
                         tg.create_task(coro, priority=Region.ACTIVE)
-                    for coro in node.inactive:
+                    for cf, args, kwargs in node.inactive:
+                        coro = cf(*args, **kwargs)
                         tg.create_task(coro, priority=Region.INACTIVE)
 
         return cf()
@@ -339,11 +342,11 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         # Return a reference for local use
         return node
 
-    def drv(self, coro: TaskCoro):
-        self._active.append(coro)
+    def drv(self, cf, *args, **kwargs):
+        self._active.append((cf, args, kwargs))
 
-    def mon(self, coro: TaskCoro):
-        self._inactive.append(coro)
+    def mon(self, cf, *args, **kwargs):
+        self._inactive.append((cf, args, kwargs))
 
     def _combi(
         self,
@@ -356,7 +359,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                 await AnyOf(*xs)
                 y.next = f(*[x.value for x in xs])
 
-        self._reactive.append(cf())
+        self._reactive.append((cf, (), {}))
 
     def _combis(
         self,
@@ -375,7 +378,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                 for y, value in zip(ys, values):
                     y.next = value
 
-        self._reactive.append(cf())
+        self._reactive.append((cf, (), {}))
 
     def combi(
         self,
@@ -404,13 +407,13 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         if isinstance(x, str):
             async def cf_str():
                 y.next = x
-            self._active.append(cf_str())
+            self._active.append((cf_str, (), {}))
         elif isinstance(x, Packed):
             async def cf_packed():
                 while True:
                     await x
                     y.next = x.value
-            self._reactive.append(cf_packed())
+            self._reactive.append((cf_packed, (), {}))
         else:
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
@@ -495,8 +498,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                             assert False  # pragma: no cover
         # fmt: on
 
-        coro = cf()
-        self._active.append(coro)
+        self._active.append((cf, (), {}))
 
     def mem_wr[T: Array](
         self,
@@ -540,8 +542,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                     mem[addr.prev].next = stack(*xs)
         # fmt: on
 
-        coro = cf()
-        self._active.append(coro)
+        self._active.append((cf, (), {}))
 
     def _check_func[T: Checker](
         self,
@@ -603,8 +604,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                         assert False  # pragma: no cover
         # fmt: on
 
-        coro = cf()
-        node._inactive.append(coro)
+        node._inactive.append((cf, (), {}))
 
         # Save in module namespace
         setattr(self, name, node)
@@ -730,8 +730,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                         assert False  # pragma: no cover
         # fmt: on
 
-        coro = cf()
-        node._inactive.append(coro)
+        node._inactive.append((cf, (), {}))
 
         # Save in module namespace
         setattr(self, name, node)
