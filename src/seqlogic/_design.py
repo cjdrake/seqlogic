@@ -342,10 +342,10 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         # Return a reference for local use
         return node
 
-    def drv(self, cf, *args, **kwargs):
+    def drv(self, cf: Callable[..., TaskCoro], *args: Any, **kwargs: Any):
         self._active.append((cf, args, kwargs))
 
-    def mon(self, cf, *args, **kwargs):
+    def mon(self, cf: Callable[..., TaskCoro], *args: Any, **kwargs: Any):
         self._inactive.append((cf, args, kwargs))
 
     def _combi(
