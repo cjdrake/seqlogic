@@ -78,7 +78,7 @@ class Top(Module):
 
             for _ in range(randint(0, 2)):
                 self.wr_valid.next = "1b0"
-                self.wr_data.next = self.T.xes()
+                self.wr_data.next = self.T.xs()
                 await self.clock.posedge()
 
         await sleep(8)

@@ -819,7 +819,7 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
 
     def __init__(self, name: str, parent: Module, dtype: T):
         Logic.__init__(self, name, parent, dtype)
-        Singular.__init__(self, dtype.xes())
+        Singular.__init__(self, dtype.xs())
         ExprVar.__init__(self, name)
 
         self._waves_change: Callable[[], None] | None = None
@@ -938,7 +938,7 @@ class Unpacked[T: Bits](Logic[T], Aggregate[T]):
 
     def __init__(self, name: str, parent: Module, dtype: T):
         Logic.__init__(self, name, parent, dtype)
-        Aggregate.__init__(self, dtype.xes())
+        Aggregate.__init__(self, dtype.xs())
 
     # NOTE: TraceIf not implemented
 
