@@ -1,10 +1,10 @@
 # Runtime Dependencies
 
 # https://bvwx.rtfd.org
-bvwx >= 0.13.0
+bvwx >= 0.16.0
 
 # https://deltacycle.rtfd.org
-deltacycle >= 0.13.0
+deltacycle >= 0.27.0
 
 # https://pyvcd.rtfd.org
 pyvcd
