@@ -446,7 +446,7 @@ class _AddOp(_PrefixOp):
         b: ExprLike,
         ci: ScalarLike | None = None,
     ):
-        xs = []
+        xs: list[Expr] = []
         xs.append(_expect_bits(a))
         xs.append(_expect_bits(b))
         if ci is not None:
