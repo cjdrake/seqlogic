@@ -506,7 +506,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         addr: Packed,
         data: Packed[T],
         clk: Packed[Scalar],
-        en: Packed,
+        en: Packed[Scalar],
         be: Packed | None = None,
     ):
         """Memory with write enable."""
@@ -533,7 +533,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                     assert v is clk
                     assert not addr.prev.has_unknown()
                     assert not be.prev.has_unknown()
-                    xs = []
+                    xs: list[T] = []
                     for i, data_en in enumerate(be.prev):
                         if data_en:
                             xs.append(data.prev[i])
