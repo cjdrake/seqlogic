@@ -94,9 +94,18 @@ _OPS: list[BitsOp] = [
 _GLOBALS: dict[str, BitsOp] = {f.__name__: f for f in _OPS}
 
 
+def _b2c(arg: int) -> BitsConst:
+    if arg in (0, 1):
+        return BitsConst(bits(arg))
+    else:
+        raise ValueError(f"Expected arg: int in {{0, 1}}, got {arg}")
+
+
 def _expect_bits(arg: ExprLike) -> Expr:
     """Any Bits-like object that defines its own size"""
-    if arg in (0, 1) or isinstance(arg, str):
+    if isinstance(arg, int):
+        return _b2c(arg)
+    if isinstance(arg, str):
         return BitsConst(bits(arg))
     if isinstance(arg, Bits):
         return BitsConst(arg)
@@ -107,7 +116,9 @@ def _expect_bits(arg: ExprLike) -> Expr:
 
 def _expect_scalar(arg: ScalarLike) -> Expr:
     """Any Scalar-like object"""
-    if arg in (0, 1) or isinstance(arg, str):
+    if isinstance(arg, int):
+        return _b2c(arg)
+    if isinstance(arg, str):
         return BitsConst(bits(arg))
     if isinstance(arg, Scalar):
         return BitsConst(arg)
