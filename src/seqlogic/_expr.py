@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC
 from collections.abc import Callable, Generator
+from typing import Any
 
 from bvwx import (
     Bits,
@@ -194,7 +195,7 @@ class Expr(ABC):
         vs = sorted(self.support, key=lambda v: v.name)
         args = ", ".join(v.name for v in vs)
         source = f"def f({args}):\n    return {self}\n"
-        _locals = {}
+        _locals: dict[str, Any] = {}
         exec(source, _GLOBALS, _locals)
         return _locals["f"], vs
 
