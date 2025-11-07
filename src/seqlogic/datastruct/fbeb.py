@@ -1,4 +1,4 @@
-"""Half bandwidth elastic buffer."""
+"""Full bandwidth elastic buffer."""
 
 import operator
 
