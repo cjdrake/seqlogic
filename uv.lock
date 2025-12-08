@@ -909,7 +909,7 @@ wheels = [
 
 [[package]]
 name = "seqlogic"
-version = "0.50.0"
+version = "0.51.0"
 source = { virtual = "." }
 dependencies = [
     { name = "bvwx" },
@@ -931,7 +931,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bvwx", specifier = ">=0.16.0" },
+    { name = "bvwx", specifier = ">=0.17.0" },
     { name = "deltacycle", specifier = ">=0.27.0" },
     { name = "pyvcd" },
 ]

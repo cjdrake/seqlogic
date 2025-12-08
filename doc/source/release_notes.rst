@@ -8,6 +8,12 @@ This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
 
+Version 0.51.0
+==============
+
+Minor changes for ``bvwx`` v0.17.
+
+
 Version 0.50.0
 ==============
 
