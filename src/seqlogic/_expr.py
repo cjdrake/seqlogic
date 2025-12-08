@@ -7,7 +7,7 @@ from collections.abc import Callable, Generator
 from typing import Any
 
 from bvwx import (
-    Bits,
+    Array,
     Scalar,
     adc,
     add,
@@ -49,7 +49,7 @@ from bvwx import (
     xt,
 )
 
-type BitsOp = Callable[..., Bits]
+type BitsOp = Callable[..., Array]
 
 _OPS: list[BitsOp] = [
     not_,
@@ -107,11 +107,11 @@ def _expect_bits(arg: ExprLike) -> Expr:
         return _b2c(arg)
     if isinstance(arg, str):
         return BitsConst(bits(arg))
-    if isinstance(arg, Bits):
+    if isinstance(arg, Array):
         return BitsConst(arg)
     if isinstance(arg, Expr):
         return arg
-    raise TypeError("Expected arg to be: Expr, Bits, or str literal, or {0, 1}")
+    raise TypeError("Expected arg to be: Expr, Array, or str literal, or {0, 1}")
 
 
 def _expect_scalar(arg: ScalarLike) -> Expr:
@@ -133,7 +133,7 @@ def _expect_bits_size(arg: ExprLike) -> Expr:
         return IntConst(arg)
     if isinstance(arg, str):
         return BitsConst(bits(arg))
-    if isinstance(arg, Bits):
+    if isinstance(arg, Array):
         return BitsConst(arg)
     if isinstance(arg, Expr):
         return arg
@@ -141,12 +141,12 @@ def _expect_bits_size(arg: ExprLike) -> Expr:
 
 
 def _expect_uint(arg: UintLike) -> Expr:
-    """Any Bits-Like object that may or may not define its own size"""
+    """Any Uint-Like object that may or may not define its own size"""
     if isinstance(arg, int):
         return IntConst(arg)
     if isinstance(arg, str):
         return BitsConst(bits(arg))
-    if isinstance(arg, Bits):
+    if isinstance(arg, Array):
         return BitsConst(arg)
     if isinstance(arg, Expr):
         return arg
@@ -213,9 +213,9 @@ class Expr(ABC):
 
 # Type Aliases
 type ConstLike = str | int
-type ExprLike = Expr | Bits | str | int
+type ExprLike = Expr | Array | str | int
 type ScalarLike = Expr | Scalar | str | int
-type UintLike = Expr | Bits | str | int
+type UintLike = Expr | Array | str | int
 
 
 class _Atom(Expr):
@@ -236,7 +236,7 @@ class Const[T](Expr):
         yield from ()
 
 
-class BitsConst(Const[Bits]):
+class BitsConst(Const[Array]):
     """Const node."""
 
     def __str__(self) -> str:

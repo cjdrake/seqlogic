@@ -13,7 +13,7 @@ from collections.abc import Callable, Sequence
 from enum import IntEnum
 from typing import Any, override
 
-from bvwx import Array, Bits, Scalar, i2bv, lit2bv, stack, u2bv
+from bvwx import Array, Scalar, i2bv, lit2bv, stack, u2bv
 from deltacycle import (
     Aggregate,
     AnyOf,
@@ -213,7 +213,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
             assert isinstance(child, TraceIf)
             child.dump_vcd(vcdw, pattern)
 
-    def input[T: Bits](self, name: str, dtype: T) -> Packed[T]:
+    def input[T: Array](self, name: str, dtype: T) -> Packed[T]:
         # Require valid and unique name
         self._check_unique(name, "input port")
 
@@ -229,7 +229,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         # Return a reference for local use
         return node
 
-    def output[T: Bits](self, name: str, dtype: T) -> Packed[T]:
+    def output[T: Array](self, name: str, dtype: T) -> Packed[T]:
         # Require valid and unique name
         self._check_unique(name, "output port")
 
@@ -296,7 +296,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
             else:
                 raise DesignError(f"Invalid port name: {name}")
 
-    def logic[T: Bits](
+    def logic[T: Array](
         self, name: str, dtype: T, shape: tuple[int, ...] | None = None
     ) -> Packed[T] | Unpacked[T]:
         # Require valid and unique name
@@ -351,7 +351,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
     def _combi(
         self,
         y: SimVal,
-        f: Callable[..., Bits | str],
+        f: Callable[..., Array | str],
         *xs: Packed | Unpacked,
     ):
         async def cf():
@@ -364,7 +364,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
     def _combis(
         self,
         ys: Sequence[SimVal],
-        f: Callable[..., tuple[Bits | str, ...]],
+        f: Callable[..., tuple[Array | str, ...]],
         *xs: Packed | Unpacked,
     ):
         async def cf():
@@ -383,7 +383,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
     def combi(
         self,
         ys: SimVal | Sequence[SimVal],
-        f: Callable[..., Bits | str | tuple[Bits | str, ...]],
+        f: Callable[..., Array | str | tuple[Array | str, ...]],
         *xs: Packed | Unpacked,
     ):
         """Combinational logic."""
@@ -418,7 +418,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
             raise TypeError("Expected x to be Packed or str")
         # fmt: on
 
-    def dff[T: Bits](
+    def dff[T: Array](
         self,
         q: Packed[T],
         d: Packed[T],
@@ -803,7 +803,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         return self._check_seq(Assertion, name, p, s, xs, clk, rst, rsync, rneg, msg)
 
 
-class Logic[T: Bits](Leaf, ProcIf, TraceIf):
+class Logic[T: Array](Leaf, ProcIf, TraceIf):
     def __init__(self, name: str, parent: Module, dtype: T):
         Leaf.__init__(self, name, parent)
         ProcIf.__init__(self)
@@ -814,7 +814,7 @@ class Logic[T: Bits](Leaf, ProcIf, TraceIf):
         return self._dtype
 
 
-class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
+class Packed[T: Array](Logic[T], Singular[T], ExprVar):
     """Leaf-level bitvector design component."""
 
     def __init__(self, name: str, parent: Module, dtype: T):
@@ -835,10 +835,10 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
                 _value = u2bv(value, size=self._dtype.size)
         elif isinstance(value, str):
             _value = lit2bv(value)
-        elif isinstance(value, Bits):
+        elif isinstance(value, Array):
             _value = value
         else:
-            raise TypeError("Expected value to be Bits, str literal, or int")
+            raise TypeError("Expected value to be Array, str literal, or int")
         _value = self._dtype.cast(_value)
         super().set_next(_value)
 
@@ -933,7 +933,7 @@ class Packed[T: Bits](Logic[T], Singular[T], ExprVar):
         await self.pred(self.is_edge)
 
 
-class Unpacked[T: Bits](Logic[T], Aggregate[T]):
+class Unpacked[T: Array](Logic[T], Aggregate[T]):
     """Leaf-level array of vec/enum/struct/union design components."""
 
     def __init__(self, name: str, parent: Module, dtype: T):
