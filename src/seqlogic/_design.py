@@ -120,7 +120,7 @@ class _ModuleMeta(type):
         if name == "Module":
             return super().__new__(mcs, name, bases, attrs)
 
-        # TODO(cjdrake): Support multiple inheritance?
+        # Do not support multiple inheritance
         assert len(bases) == 1
 
         # Get parameter names, types, default values
