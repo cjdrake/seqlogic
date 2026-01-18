@@ -8,10 +8,14 @@ from __future__ import annotations
 
 import logging
 import re
+import sys
 from collections import defaultdict
 from collections.abc import Callable, Sequence
 from enum import IntEnum
 from typing import Any, override
+
+if sys.version_info >= (3, 14):
+    from annotationlib import Format, get_annotate_from_class_namespace
 
 from bvwx import Array, Scalar, i2bv, lit2bv, stack, u2bv
 from deltacycle import (
@@ -115,6 +119,16 @@ def _get_mod(cls: type[Module], params: dict[str, Any]) -> type[Module]:
 class _ModuleMeta(type):
     """Module metaclass, for parameterization."""
 
+    @classmethod
+    def _get_annotations(mcs, attrs: dict[str, Any]) -> dict[str, type]:
+        if sys.version_info >= (3, 14):
+            f = get_annotate_from_class_namespace(attrs)
+            if f is not None:
+                return f(Format.VALUE)
+            else:
+                return {}
+        return attrs.get("__annotations__", {})
+
     def __new__(mcs, name: str, bases: tuple[type], attrs: dict[str, Any]):
         # Base case for API
         if name == "Module":
@@ -125,7 +139,7 @@ class _ModuleMeta(type):
 
         # Get parameter names, types, default values
         pntvs: list[tuple[str, type, Any]] = []
-        params: dict[str, type] = attrs.get("__annotations__", {})
+        params = mcs._get_annotations(attrs)
         for pn, pt in params.items():
             try:
                 pv = attrs[pn]
