@@ -8,6 +8,12 @@ This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
 
+Version 0.52.0
+==============
+
+Support Python 3.14.
+
+
 Version 0.51.0
 ==============
 
