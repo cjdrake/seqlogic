@@ -148,15 +148,15 @@ class _ModuleMeta(type):
                 raise TypeError(s)
             pntvs.append((pn, pt, pv))
 
-        if pntvs:
-            # Create Module factory
-            mod_factory = super().__new__(mcs, name, bases, attrs)
-            mod_factory.__new__ = _mod_factory_new(pntvs)
-            return mod_factory
-
-        # Create base Module
+        # Create Module class
         mod = super().__new__(mcs, name, bases, attrs)
-        mod.__new__ = _mod_new
+
+        # Override Module.__new__ method
+        if pntvs:
+            mod.__new__ = _mod_factory_new(pntvs)
+        else:
+            mod.__new__ = _mod_new
+
         return mod
 
 
