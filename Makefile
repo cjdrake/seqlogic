@@ -19,4 +19,4 @@ prof:
 
 .PHONY: cov
 cov:
-	@$(PYTEST) --doctest-modules --cov=src/$(PKG) --cov-report=html
+	@$(PYTEST) --doctest-modules --cov=src/$(PKG) --cov-branch --cov-report=html
