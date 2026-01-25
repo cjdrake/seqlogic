@@ -8,6 +8,12 @@ This section lists new features, API changes, and bug fixes.
 For a complete history, see the Git commit log.
 
 
+Version 0.53.0
+==============
+
+Update to ``deltacycle`` 0.28.
+
+
 Version 0.52.0
 ==============
 
