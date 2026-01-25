@@ -6,7 +6,6 @@ straightforward API for creating a digital design.
 
 from __future__ import annotations
 
-import logging
 import re
 import sys
 from collections import defaultdict
@@ -36,8 +35,6 @@ from ._expr import Variable as ExprVar
 from ._hier import Branch, Leaf
 from ._proc_if import ProcIf
 from ._trace_if import TraceIf
-
-logger = logging.getLogger("deltacycle")
 
 
 class Region(IntEnum):
