@@ -158,9 +158,6 @@ def _expect_uint(arg: UintLike) -> Expr:
 class Expr(ABC):
     """Symbolic expression."""
 
-    def __repr__(self) -> str:
-        return self.__str__()
-
     def __str__(self) -> str:
         raise NotImplementedError()  # pragma: no cover
 
