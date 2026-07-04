@@ -1,13 +1,13 @@
 """Data Memory Interface."""
 
-from bvwx import Vec, cat, rep
+from bvwx import Array, cat, rep
 
 from seqlogic import Cat, GetItem, Module, Mux
 
 from . import Addr
 
 
-def f_rd_data(data_format: Vec[3], bus_rd_data: Vec[32], byte_addr: Vec[2]) -> Vec[32]:
+def f_rd_data(data_format: Array[3], bus_rd_data: Array[32], byte_addr: Array[2]) -> Array[32]:
     data = bus_rd_data >> cat("3b000", byte_addr)
     sel = data_format[:2]
     match sel:
@@ -20,7 +20,7 @@ def f_rd_data(data_format: Vec[3], bus_rd_data: Vec[32], byte_addr: Vec[2]) -> V
         case "2b10":
             return data
         case _:
-            return Vec[32].xprop(sel)
+            return Array[32].xprop(sel)
 
 
 class DataMemIf(Module):
@@ -28,22 +28,22 @@ class DataMemIf(Module):
 
     def build(self):
         # Ports
-        data_format = self.input(name="data_format", dtype=Vec[3])
+        data_format = self.input(name="data_format", dtype=Array[3])
 
         addr = self.input(name="addr", dtype=Addr)
-        wr_en = self.input(name="wr_en", dtype=Vec[1])
-        wr_data = self.input(name="wr_data", dtype=Vec[32])
-        rd_en = self.input(name="rd_en", dtype=Vec[1])
-        rd_data = self.output(name="rd_data", dtype=Vec[32])
+        wr_en = self.input(name="wr_en", dtype=Array[1])
+        wr_data = self.input(name="wr_data", dtype=Array[32])
+        rd_en = self.input(name="rd_en", dtype=Array[1])
+        rd_data = self.output(name="rd_data", dtype=Array[32])
 
         bus_addr = self.output(name="bus_addr", dtype=Addr)
-        bus_wr_en = self.output(name="bus_wr_en", dtype=Vec[1])
-        bus_wr_be = self.output(name="bus_wr_be", dtype=Vec[4])
-        bus_wr_data = self.output(name="bus_wr_data", dtype=Vec[32])
-        bus_rd_en = self.output(name="bus_rd_en", dtype=Vec[1])
-        bus_rd_data = self.input(name="bus_rd_data", dtype=Vec[32])
+        bus_wr_en = self.output(name="bus_wr_en", dtype=Array[1])
+        bus_wr_be = self.output(name="bus_wr_be", dtype=Array[4])
+        bus_wr_data = self.output(name="bus_wr_data", dtype=Array[32])
+        bus_rd_en = self.output(name="bus_rd_en", dtype=Array[1])
+        bus_rd_data = self.input(name="bus_rd_data", dtype=Array[32])
 
-        byte_addr = self.logic(name="byte_addr", dtype=Vec[2])
+        byte_addr = self.logic(name="byte_addr", dtype=Array[2])
 
         self.assign(bus_addr, addr)
         self.assign(bus_wr_en, wr_en)

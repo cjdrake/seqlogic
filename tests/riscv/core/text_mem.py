@@ -2,7 +2,7 @@
 
 import operator
 
-from bvwx import Vec
+from bvwx import Array
 
 from seqlogic import Module
 
@@ -14,11 +14,11 @@ class TextMem(Module):
 
     def build(self):
         # Ports
-        rd_addr = self.input(name="rd_addr", dtype=Vec[self.WORD_ADDR_BITS])
-        rd_data = self.output(name="rd_data", dtype=Vec[32])
+        rd_addr = self.input(name="rd_addr", dtype=Array[self.WORD_ADDR_BITS])
+        rd_data = self.output(name="rd_data", dtype=Array[32])
 
         # State
-        mem = self.logic(name="mem", dtype=Vec[32], shape=(1024,))
+        mem = self.logic(name="mem", dtype=Array[32], shape=(1024,))
 
         # Read Port
         self.combi(rd_data, operator.getitem, mem, rd_addr)

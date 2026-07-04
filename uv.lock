@@ -944,7 +944,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bvwx", specifier = ">=0.20.0" },
+    { name = "bvwx", specifier = ">=0.22.0" },
     { name = "deltacycle", specifier = ">=0.28.0" },
     { name = "pyvcd" },
 ]

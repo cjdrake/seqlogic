@@ -1,6 +1,6 @@
 """Data Memory Bus."""
 
-from bvwx import Vec, clog2, u2bv
+from bvwx import Array, clog2, u2bv
 
 from seqlogic import GE, LT, GetItem, Module, Mux
 
@@ -21,16 +21,16 @@ class DataMemBus(Module):
 
         # Ports
         addr = self.input(name="addr", dtype=Addr)
-        wr_en = self.input(name="wr_en", dtype=Vec[1])
-        wr_be = self.input(name="wr_be", dtype=Vec[4])
-        wr_data = self.input(name="wr_data", dtype=Vec[32])
-        rd_en = self.input(name="rd_en", dtype=Vec[1])
-        rd_data = self.output(name="rd_data", dtype=Vec[32])
-        clock = self.input(name="clock", dtype=Vec[1])
+        wr_en = self.input(name="wr_en", dtype=Array[1])
+        wr_be = self.input(name="wr_be", dtype=Array[4])
+        wr_data = self.input(name="wr_data", dtype=Array[32])
+        rd_en = self.input(name="rd_en", dtype=Array[1])
+        rd_data = self.output(name="rd_data", dtype=Array[32])
+        clock = self.input(name="clock", dtype=Array[1])
 
         # State
-        is_data = self.logic(name="is_data", dtype=Vec[1])
-        data = self.logic(name="data", dtype=Vec[32])
+        is_data = self.logic(name="is_data", dtype=Array[1])
+        data = self.logic(name="data", dtype=Array[32])
 
         # Submodules
         m, n = 2, 2 + word_addr_bits

@@ -2,7 +2,7 @@
 
 import operator
 
-from bvwx import Vec
+from bvwx import Array
 
 from seqlogic import Module
 from seqlogic.check.ready_valid import CheckReadyValid
@@ -13,30 +13,30 @@ from .fbeb_ctl import FbebCtl
 class Fbeb(Module):
     """Full bandwidth elastic buffer."""
 
-    T: type = Vec[8]
+    T: type = Array[8]
 
     def build(self):
         # Ports
-        rd_ready = self.input(name="rd_ready", dtype=Vec[1])
-        rd_valid = self.output(name="rd_valid", dtype=Vec[1])
+        rd_ready = self.input(name="rd_ready", dtype=Array[1])
+        rd_valid = self.output(name="rd_valid", dtype=Array[1])
         rd_data = self.output(name="rd_data", dtype=self.T)
 
-        wr_ready = self.output(name="wr_ready", dtype=Vec[1])
-        wr_valid = self.input(name="wr_valid", dtype=Vec[1])
+        wr_ready = self.output(name="wr_ready", dtype=Array[1])
+        wr_valid = self.input(name="wr_valid", dtype=Array[1])
         wr_data = self.input(name="wr_data", dtype=self.T)
 
-        clock = self.input(name="clock", dtype=Vec[1])
-        reset = self.input(name="reset", dtype=Vec[1])
+        clock = self.input(name="clock", dtype=Array[1])
+        reset = self.input(name="reset", dtype=Array[1])
 
         # FIFO Control
-        rd_addr = self.logic(name="rd_addr", dtype=Vec[1])
-        wr_addr = self.logic(name="wr_addr", dtype=Vec[1])
+        rd_addr = self.logic(name="rd_addr", dtype=Array[1])
+        wr_addr = self.logic(name="wr_addr", dtype=Array[1])
 
-        empty = self.logic(name="empty", dtype=Vec[1])
-        full = self.logic(name="full", dtype=Vec[1])
+        empty = self.logic(name="empty", dtype=Array[1])
+        full = self.logic(name="full", dtype=Array[1])
 
-        rd_en = self.logic(name="rd_en", dtype=Vec[1])
-        wr_en = self.logic(name="wr_en", dtype=Vec[1])
+        rd_en = self.logic(name="rd_en", dtype=Array[1])
+        wr_en = self.logic(name="wr_en", dtype=Array[1])
 
         # Convert ready/valid to FIFO (full/push, empty/pop)
         self.expr(rd_valid, ~empty)

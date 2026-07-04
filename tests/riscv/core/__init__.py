@@ -1,6 +1,6 @@
 """RiscV Constants and Types."""
 
-from bvwx import Enum, Struct, Union, Vec
+from bvwx import Array, Enum, Struct, Union
 
 TEXT_BASE = 0x0040_0000
 TEXT_BITS = 4 + 10 + 2  # 16K
@@ -11,7 +11,7 @@ DATA_BITS = 5 + 10 + 2  # 32K
 DATA_SIZE = 2**DATA_BITS
 
 
-Addr = Vec[32]
+Addr = Array[32]
 
 
 class Opcode(Enum):
@@ -145,8 +145,8 @@ class Inst(Struct):
     """Instruction"""
 
     opcode: Opcode
-    rd: Vec[5]
+    rd: Array[5]
     funct3: Funct3
-    rs1: Vec[5]
-    rs2: Vec[5]
-    funct7: Vec[7]
+    rs1: Array[5]
+    rs2: Array[5]
+    funct7: Array[7]

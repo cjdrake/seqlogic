@@ -1,6 +1,6 @@
 """Half bandwidth elastic buffer."""
 
-from bvwx import Vec
+from bvwx import Array
 
 from seqlogic import ITE, Module
 from seqlogic.check.ready_valid import CheckReadyValid
@@ -9,26 +9,26 @@ from seqlogic.check.ready_valid import CheckReadyValid
 class Hbeb(Module):
     """Half bandwidth elastic buffer."""
 
-    T: type = Vec[8]
+    T: type = Array[8]
 
     def build(self):
         # Ports
-        rd_ready = self.input(name="rd_ready", dtype=Vec[1])
-        rd_valid = self.output(name="rd_valid", dtype=Vec[1])
+        rd_ready = self.input(name="rd_ready", dtype=Array[1])
+        rd_valid = self.output(name="rd_valid", dtype=Array[1])
         rd_data = self.output(name="rd_data", dtype=self.T)
 
-        wr_ready = self.output(name="wr_ready", dtype=Vec[1])
-        wr_valid = self.input(name="wr_valid", dtype=Vec[1])
+        wr_ready = self.output(name="wr_ready", dtype=Array[1])
+        wr_valid = self.input(name="wr_valid", dtype=Array[1])
         wr_data = self.input(name="wr_data", dtype=self.T)
 
-        clock = self.input(name="clock", dtype=Vec[1])
-        reset = self.input(name="reset", dtype=Vec[1])
+        clock = self.input(name="clock", dtype=Array[1])
+        reset = self.input(name="reset", dtype=Array[1])
 
         # FIFO Control
-        full = self.logic(name="full", dtype=Vec[1])
+        full = self.logic(name="full", dtype=Array[1])
 
-        rd_en = self.logic(name="rd_en", dtype=Vec[1])
-        wr_en = self.logic(name="wr_en", dtype=Vec[1])
+        rd_en = self.logic(name="rd_en", dtype=Array[1])
+        wr_en = self.logic(name="wr_en", dtype=Array[1])
 
         # Convert ready/valid to FIFO
         self.assign(rd_valid, full)
@@ -38,7 +38,7 @@ class Hbeb(Module):
         self.expr(wr_en, wr_ready & wr_valid)
 
         # Control
-        full_next = self.logic(name="full_next", dtype=Vec[1])
+        full_next = self.logic(name="full_next", dtype=Array[1])
         self.expr(full_next, ITE(full, ~rd_en, wr_en))
         self.dff(full, full_next, clock, rst=reset, rval="1b0")
 

@@ -1,6 +1,6 @@
 """Half Adder Module."""
 
-from bvwx import Vec
+from bvwx import Array
 
 from seqlogic import Module
 
@@ -10,11 +10,11 @@ class HalfAdd(Module):
 
     def build(self):
         # Ports
-        s = self.output(name="s", dtype=Vec[1])
-        co = self.output(name="co", dtype=Vec[1])
+        s = self.output(name="s", dtype=Array[1])
+        co = self.output(name="co", dtype=Array[1])
 
-        a = self.input(name="a", dtype=Vec[1])
-        b = self.input(name="b", dtype=Vec[1])
+        a = self.input(name="a", dtype=Array[1])
+        b = self.input(name="b", dtype=Array[1])
 
         # Combinational Logic
         self.expr(s, a ^ b)

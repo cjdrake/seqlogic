@@ -1,7 +1,7 @@
 """Test symbolic bitwise expressions"""
 
 import pytest
-from bvwx import Scalar, bits
+from bvwx import Array, bits
 
 from seqlogic import ITE, And, BitsConst, Impl, Mux, Not, Or, Variable, Xor
 
@@ -138,7 +138,7 @@ def test_ite():
     assert f(*xs) == "4b0101"
 
     s = bits("1b1")
-    assert isinstance(s, Scalar)  # helping the type checker
+    assert isinstance(s, Array)  # helping the type checker
     y = ITE(s, "4b1010", "4b0101")
     assert str(y) == 'ite("1b1", "4b1010", "4b0101")'
 

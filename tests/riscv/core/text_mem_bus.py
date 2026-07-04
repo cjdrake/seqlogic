@@ -1,6 +1,6 @@
 """Text Memory Bus."""
 
-from bvwx import Vec, clog2, u2bv
+from bvwx import Array, clog2, u2bv
 
 from seqlogic import GE, LT, GetItem, Module, Mux
 
@@ -21,11 +21,11 @@ class TextMemBus(Module):
 
         # Ports
         rd_addr = self.input(name="rd_addr", dtype=Addr)
-        rd_data = self.output(name="rd_data", dtype=Vec[32])
+        rd_data = self.output(name="rd_data", dtype=Array[32])
 
         # State
-        is_text = self.logic(name="is_text", dtype=Vec[1])
-        text = self.logic(name="text", dtype=Vec[32])
+        is_text = self.logic(name="is_text", dtype=Array[1])
+        text = self.logic(name="text", dtype=Array[32])
 
         # Submodules
         m, n = 2, 2 + word_addr_bits

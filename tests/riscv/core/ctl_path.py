@@ -1,6 +1,6 @@
 """Control Path."""
 
-from bvwx import Vec, eq, ite
+from bvwx import Array, eq, ite
 
 from seqlogic import Module
 
@@ -18,14 +18,14 @@ from . import (
 )
 
 
-def f_take_branch(funct3: Funct3, alu_result_eq_zero: Vec[1]) -> Vec[1]:
+def f_take_branch(funct3: Funct3, alu_result_eq_zero: Array[1]) -> Array[1]:
     match funct3.branch:
         case Funct3Branch.EQ | Funct3Branch.LT | Funct3Branch.LTU:
             return ~alu_result_eq_zero
         case Funct3Branch.NE | Funct3Branch.GE | Funct3Branch.GEU:
             return alu_result_eq_zero
         case _:
-            return Vec[1].xprop(funct3.branch)
+            return Array[1].xprop(funct3.branch)
 
 
 def f_func(funct3: Funct3) -> tuple[AluOp, AluOp, AluOp]:
@@ -73,7 +73,7 @@ def f_func(funct3: Funct3) -> tuple[AluOp, AluOp, AluOp]:
 def f_alu_op(
     alu_op_type: CtlAlu,
     funct3: Funct3,
-    funct7: Vec[7],
+    funct7: Array[7],
     default_func: AluOp,
     secondary_func: AluOp,
     branch_func: AluOp,
@@ -95,7 +95,7 @@ def f_alu_op(
             return AluOp.xprop(alu_op_type)
 
 
-def f_next_pc_sel(opcode: Opcode, take_branch: Vec[1]) -> CtlPc:
+def f_next_pc_sel(opcode: Opcode, take_branch: Array[1]) -> CtlPc:
     match opcode:
         case (
             Opcode.LOAD
@@ -119,7 +119,7 @@ def f_next_pc_sel(opcode: Opcode, take_branch: Vec[1]) -> CtlPc:
 
 def f_ctl(
     opcode: Opcode,
-) -> tuple[Vec[1], Vec[1], CtlAluA, CtlAluB, Vec[1], Vec[1], CtlWriteBack, CtlAlu]:
+) -> tuple[Array[1], Array[1], CtlAluA, CtlAluB, Array[1], Array[1], CtlWriteBack, CtlAlu]:
     match opcode:
         case Opcode.LOAD:
             pc_wr_en = "1b1"
@@ -212,12 +212,12 @@ def f_ctl(
             reg_wr_sel = CtlWriteBack.PC4
             alu_op_type = CtlAlu.ADD
         case _:
-            pc_wr_en = Vec[1].xprop(opcode)
-            reg_wr_en = Vec[1].xprop(opcode)
+            pc_wr_en = Array[1].xprop(opcode)
+            reg_wr_en = Array[1].xprop(opcode)
             alu_op_a_sel = CtlAluA.xprop(opcode)
             alu_op_b_sel = CtlAluB.xprop(opcode)
-            data_mem_rd_en = Vec[1].xprop(opcode)
-            data_mem_wr_en = Vec[1].xprop(opcode)
+            data_mem_rd_en = Array[1].xprop(opcode)
+            data_mem_wr_en = Array[1].xprop(opcode)
             reg_wr_sel = CtlWriteBack.xprop(opcode)
             alu_op_type = CtlAlu.xprop(opcode)
     return (
@@ -239,21 +239,21 @@ class CtlPath(Module):
         # Ports
         opcode = self.input(name="opcode", dtype=Opcode)
         funct3 = self.input(name="funct3", dtype=Funct3)
-        funct7 = self.input(name="funct7", dtype=Vec[7])
-        alu_result_eq_zero = self.input(name="alu_result_eq_zero", dtype=Vec[1])
+        funct7 = self.input(name="funct7", dtype=Array[7])
+        alu_result_eq_zero = self.input(name="alu_result_eq_zero", dtype=Array[1])
 
-        pc_wr_en = self.output(name="pc_wr_en", dtype=Vec[1])
-        reg_wr_en = self.output(name="reg_wr_en", dtype=Vec[1])
+        pc_wr_en = self.output(name="pc_wr_en", dtype=Array[1])
+        reg_wr_en = self.output(name="reg_wr_en", dtype=Array[1])
         alu_op_a_sel = self.output(name="alu_op_a_sel", dtype=CtlAluA)
         alu_op_b_sel = self.output(name="alu_op_b_sel", dtype=CtlAluB)
-        data_mem_rd_en = self.output(name="data_mem_rd_en", dtype=Vec[1])
-        data_mem_wr_en = self.output(name="data_mem_wr_en", dtype=Vec[1])
+        data_mem_rd_en = self.output(name="data_mem_rd_en", dtype=Array[1])
+        data_mem_wr_en = self.output(name="data_mem_wr_en", dtype=Array[1])
         reg_wr_sel = self.output(name="reg_wr_sel", dtype=CtlWriteBack)
         alu_op = self.output(name="alu_op", dtype=AluOp)
         next_pc_sel = self.output(name="next_pc_sel", dtype=CtlPc)
 
         # State
-        take_branch = self.logic(name="take_branch", dtype=Vec[1])
+        take_branch = self.logic(name="take_branch", dtype=Array[1])
         alu_op_type = self.logic(name="alu_op_type", dtype=CtlAlu)
         default_func = self.logic(name="default_func", dtype=AluOp)
         secondary_func = self.logic(name="secondary_func", dtype=AluOp)

@@ -1,6 +1,6 @@
 """Top Level Module."""
 
-from bvwx import Vec
+from bvwx import Array
 
 from seqlogic import Module
 from seqlogic.control.sync import drv_clock, drv_reset
@@ -11,7 +11,7 @@ from .data_mem_bus import DataMemBus
 from .text_mem_bus import TextMemBus
 
 
-def data2inst(d: Vec[32]) -> Inst:
+def data2inst(d: Array[32]) -> Inst:
     return Inst(
         opcode=Opcode(d[0:7]),
         rd=d[7:12],
@@ -28,19 +28,19 @@ class Top(Module):
     def build(self):
         # Ports
         bus_addr = self.output(name="bus_addr", dtype=Addr)
-        bus_wr_en = self.output(name="bus_wr_en", dtype=Vec[1])
-        bus_wr_be = self.output(name="bus_wr_be", dtype=Vec[4])
-        bus_wr_data = self.output(name="bus_wr_data", dtype=Vec[32])
-        bus_rd_en = self.output(name="bus_rd_en", dtype=Vec[1])
-        bus_rd_data = self.output(name="bus_rd_data", dtype=Vec[32])
+        bus_wr_en = self.output(name="bus_wr_en", dtype=Array[1])
+        bus_wr_be = self.output(name="bus_wr_be", dtype=Array[4])
+        bus_wr_data = self.output(name="bus_wr_data", dtype=Array[32])
+        bus_rd_en = self.output(name="bus_rd_en", dtype=Array[1])
+        bus_rd_data = self.output(name="bus_rd_data", dtype=Array[32])
 
-        pc = self.logic(name="pc", dtype=Vec[32])
+        pc = self.logic(name="pc", dtype=Array[32])
         inst = self.logic(name="inst", dtype=Inst)
 
-        clock = self.logic(name="clock", dtype=Vec[1])
-        reset = self.logic(name="reset", dtype=Vec[1])
+        clock = self.logic(name="clock", dtype=Array[1])
+        reset = self.logic(name="reset", dtype=Array[1])
 
-        rd_data = self.logic(name="rd_data", dtype=Vec[32])
+        rd_data = self.logic(name="rd_data", dtype=Array[32])
 
         self.combi(inst, data2inst, rd_data)
 

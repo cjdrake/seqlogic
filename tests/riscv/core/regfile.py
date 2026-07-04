@@ -2,13 +2,13 @@
 
 import operator
 
-from bvwx import Vec, clog2, u2bv
+from bvwx import Array, clog2, u2bv
 
 from seqlogic import NE, Module
 
 N = 32
-Addr = Vec[clog2(N)]
-Data = Vec[32]
+Addr = Array[clog2(N)]
+Data = Array[32]
 
 
 class RegFile(Module):
@@ -16,7 +16,7 @@ class RegFile(Module):
 
     def build(self):
         # Ports
-        wr_en = self.input(name="wr_en", dtype=Vec[1])
+        wr_en = self.input(name="wr_en", dtype=Array[1])
         wr_addr = self.input(name="wr_addr", dtype=Addr)
         wr_data = self.input(name="wr_data", dtype=Data)
 
@@ -26,7 +26,7 @@ class RegFile(Module):
         rs2_addr = self.input(name="rs2_addr", dtype=Addr)
         rs2_data = self.output(name="rs2_data", dtype=Data)
 
-        clock = self.input(name="clock", dtype=Vec[1])
+        clock = self.input(name="clock", dtype=Array[1])
 
         # State
         regs = self.logic(name="regs", dtype=Data, shape=(N,))
@@ -35,7 +35,7 @@ class RegFile(Module):
         a0 = u2bv(0, Addr.size)
         self.assign(regs[a0], "32h0000_0000")
 
-        en = self.logic(name="en", dtype=Vec[1])
+        en = self.logic(name="en", dtype=Array[1])
         self.expr(en, wr_en & NE(wr_addr, a0))
 
         # Write Port

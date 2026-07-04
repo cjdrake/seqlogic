@@ -16,7 +16,7 @@ from typing import Any, override
 if sys.version_info >= (3, 14):
     from annotationlib import Format, get_annotate_from_class_namespace
 
-from bvwx import Array, Scalar, i2bv, lit2bv, stack, u2bv
+from bvwx import Array, cast, i2bv, lit2bv, stack, u2bv
 from deltacycle import (
     Aggregate,
     AnyOf,
@@ -143,9 +143,9 @@ class _ModuleMeta(type):
             except KeyError as e:
                 s = f"Module {name} param {pn} has no default value"
                 raise ValueError(s) from e
-            if not isinstance(pv, pt):
-                s = f"Module {name} param {pn} has invalid type"
-                raise TypeError(s)
+            # if not isinstance(pv, pt):
+            #    s = f"Module {name} param {pn} has invalid type"
+            #    raise TypeError(s)
             pntvs.append((pn, pt, pv))
 
         # Create Module class
@@ -433,9 +433,9 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         self,
         q: Packed[T],
         d: Packed[T],
-        clk: Packed[Scalar],
-        en: Packed[Scalar] | None = None,
-        rst: Packed[Scalar] | None = None,
+        clk: Packed,
+        en: Packed | None = None,
+        rst: Packed | None = None,
         rval: T | str | None = None,
         rsync: bool = False,
         rneg: bool = False,
@@ -516,8 +516,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         mem: Unpacked[T],
         addr: Packed,
         data: Packed[T],
-        clk: Packed[Scalar],
-        en: Packed[Scalar],
+        clk: Packed,
+        en: Packed,
         be: Packed | None = None,
     ):
         """Memory with write enable."""
@@ -562,8 +562,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         p: Expr,
         f,
         xs,
-        clk: Packed[Scalar],
-        rst: Packed[Scalar],
+        clk: Packed,
+        rst: Packed,
         rsync: bool,
         rneg: bool,
         msg: str | None,
@@ -626,8 +626,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         q: Expr,
-        clk: Packed[Scalar],
-        rst: Packed[Scalar],
+        clk: Packed,
+        rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
@@ -640,8 +640,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         q: Expr,
-        clk: Packed[Scalar],
-        rst: Packed[Scalar],
+        clk: Packed,
+        rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
@@ -655,8 +655,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         p: Expr,
         f,
         xs,
-        clk: Packed[Scalar],
-        rst: Packed[Scalar],
+        clk: Packed,
+        rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
@@ -669,8 +669,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         p: Expr,
         f,
         xs,
-        clk: Packed[Scalar],
-        rst: Packed[Scalar],
+        clk: Packed,
+        rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
@@ -684,8 +684,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         p: Expr,
         s,
         xs,
-        clk: Packed[Scalar],
-        rst: Packed[Scalar],
+        clk: Packed,
+        rst: Packed,
         rsync: bool,
         rneg: bool,
         msg: str | None,
@@ -753,8 +753,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         p: Expr,
         s,
         xs,
-        clk: Packed[Scalar],
-        rst: Packed[Scalar],
+        clk: Packed,
+        rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
@@ -767,8 +767,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         p: Expr,
         s,
         xs,
-        clk: Packed[Scalar],
-        rst: Packed[Scalar],
+        clk: Packed,
+        rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
@@ -780,8 +780,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         q: Expr,
-        clk: Packed[Scalar],
-        rst: Packed[Scalar],
+        clk: Packed,
+        rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
@@ -799,8 +799,8 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         name: str,
         p: Expr,
         q: Expr,
-        clk: Packed[Scalar],
-        rst: Packed[Scalar],
+        clk: Packed,
+        rst: Packed,
         rsync: bool = False,
         rneg: bool = False,
         msg: str | None = None,
@@ -850,7 +850,7 @@ class Packed[T: Array](Logic[T], Singular[T], ExprVar):
             _value = value
         else:
             raise TypeError("Expected value to be Array, str literal, or int")
-        _value = self._dtype.cast(_value)
+        _value = cast(self._dtype, _value)
         super().set_next(_value)
 
     next = property(fset=set_next)

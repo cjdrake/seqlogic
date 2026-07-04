@@ -8,7 +8,6 @@ from typing import Any
 
 from bvwx import (
     Array,
-    Scalar,
     adc,
     add,
     and_,
@@ -120,7 +119,7 @@ def _expect_scalar(arg: ScalarLike) -> Expr:
         return _b2c(arg)
     if isinstance(arg, str):
         return BitsConst(bits(arg))
-    if isinstance(arg, Scalar):
+    if isinstance(arg, Array):
         return BitsConst(arg)
     if isinstance(arg, Expr):
         return arg
@@ -211,7 +210,7 @@ class Expr(ABC):
 # Type Aliases
 type ConstLike = str | int
 type ExprLike = Expr | Array | str | int
-type ScalarLike = Expr | Scalar | str | int
+type ScalarLike = Expr | Array | str | int
 type UintLike = Expr | Array | str | int
 
 

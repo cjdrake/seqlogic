@@ -1,6 +1,6 @@
 """RiscV Core."""
 
-from bvwx import Vec
+from bvwx import Array
 
 from seqlogic import GetAttr, Module
 
@@ -16,33 +16,33 @@ class Core(Module):
     def build(self):
         # Ports
         bus_addr = self.output(name="bus_addr", dtype=Addr)
-        bus_wr_en = self.output(name="bus_wr_en", dtype=Vec[1])
-        bus_wr_be = self.output(name="bus_wr_be", dtype=Vec[4])
-        bus_wr_data = self.output(name="bus_wr_data", dtype=Vec[32])
-        bus_rd_en = self.output(name="bus_rd_en", dtype=Vec[1])
-        bus_rd_data = self.input(name="bus_rd_data", dtype=Vec[32])
+        bus_wr_en = self.output(name="bus_wr_en", dtype=Array[1])
+        bus_wr_be = self.output(name="bus_wr_be", dtype=Array[4])
+        bus_wr_data = self.output(name="bus_wr_data", dtype=Array[32])
+        bus_rd_en = self.output(name="bus_rd_en", dtype=Array[1])
+        bus_rd_data = self.input(name="bus_rd_data", dtype=Array[32])
 
-        pc = self.output(name="pc", dtype=Vec[32])
+        pc = self.output(name="pc", dtype=Array[32])
         inst = self.input(name="inst", dtype=Inst)
 
-        clock = self.input(name="clock", dtype=Vec[1])
-        reset = self.input(name="reset", dtype=Vec[1])
+        clock = self.input(name="clock", dtype=Array[1])
+        reset = self.input(name="reset", dtype=Array[1])
 
         # State
-        pc_wr_en = self.logic(name="pc_wr_en", dtype=Vec[1])
-        reg_wr_en = self.logic(name="reg_wr_en", dtype=Vec[1])
+        pc_wr_en = self.logic(name="pc_wr_en", dtype=Array[1])
+        reg_wr_en = self.logic(name="reg_wr_en", dtype=Array[1])
         alu_op_a_sel = self.logic(name="alu_op_a_sel", dtype=CtlAluA)
         alu_op_b_sel = self.logic(name="alu_op_b_sel", dtype=CtlAluB)
         next_pc_sel = self.logic(name="next_pc_sel", dtype=CtlPc)
         alu_op = self.logic(name="alu_op", dtype=AluOp)
-        alu_result_eq_zero = self.logic(name="alu_result_eq_zero", dtype=Vec[1])
+        alu_result_eq_zero = self.logic(name="alu_result_eq_zero", dtype=Array[1])
         reg_wr_sel = self.logic(name="reg_wr_sel", dtype=CtlWriteBack)
 
         addr = self.logic(name="addr", dtype=Addr)
-        wr_en = self.logic(name="wr_en", dtype=Vec[1])
-        wr_data = self.logic(name="wr_data", dtype=Vec[32])
-        rd_en = self.logic(name="rd_en", dtype=Vec[1])
-        rd_data = self.logic(name="rd_data", dtype=Vec[32])
+        wr_en = self.logic(name="wr_en", dtype=Array[1])
+        wr_data = self.logic(name="wr_data", dtype=Array[32])
+        rd_en = self.logic(name="rd_en", dtype=Array[1])
+        rd_data = self.logic(name="rd_data", dtype=Array[32])
 
         # Submodules
         self.submod(

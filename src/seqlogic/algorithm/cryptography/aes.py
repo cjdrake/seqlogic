@@ -3,11 +3,11 @@
 See https://csrc.nist.gov/pubs/fips/197/final for details.
 """
 
-from bvwx import Array, Vec, bits, ite, rep, stack
+from bvwx import Array, bits, cast, ite, rep, stack
 
 NB = 4
 
-Text = Vec[4 * 4 * 8]
+Text = Array[4 * 4 * 8]
 
 # Nk = {4, 6, 8}
 Key4 = Array[4, 4, 8]
@@ -18,7 +18,7 @@ Key = Key4 | Key6 | Key8
 # Nr = {10, 12, 14}
 RoundKeys = Array[11, 4, 4, 8] | Array[13, 4, 4, 8] | Array[15, 4, 4, 8]
 
-Byte = Vec[8]
+Byte = Array[8]
 Word = Array[4, 8]
 State = Array[4, 4, 8]
 Polynomial = Array[4, 4]
@@ -331,7 +331,7 @@ def cipher(pt: Text, rkeys: RoundKeys) -> Text:
     state = shift_rows(state)
     state ^= rkeys[nr]
 
-    return Text.cast(state)
+    return cast(Text, state)
 
 
 def inv_cipher(ct: Text, rkeys: RoundKeys) -> Text:
@@ -359,7 +359,7 @@ def inv_cipher(ct: Text, rkeys: RoundKeys) -> Text:
     state = inv_sub_bytes(state)
     state ^= rkeys[0]
 
-    return Text.cast(state)
+    return cast(Text, state)
 
 
 def encrypt(pt: Text, key: Key) -> Text:

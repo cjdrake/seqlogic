@@ -5,7 +5,7 @@ Demonstrate usage of an enum.
 
 from collections import defaultdict
 
-from bvwx import Enum, Vec, ite
+from bvwx import Array, Enum, ite
 from deltacycle import create_task, run
 
 from seqlogic import Module, Packed
@@ -43,7 +43,7 @@ async def drv_input(x: Packed, reset_n: Packed, clock: Packed):
     x.next = "1b0"  # D => A
 
 
-def f(ps: SeqDetect, x: Vec[1]) -> SeqDetect:
+def f(ps: SeqDetect, x: Array[1]) -> SeqDetect:
     match ps:
         case SeqDetect.A:
             return ite(x, SeqDetect.B, SeqDetect.A)
@@ -66,12 +66,12 @@ def test_fsm():
     """Test a 3-bit LFSR."""
     top = MyFsm(name="top")
 
-    clock = Packed(name="clock", parent=top, dtype=Vec[1])
-    reset_n = Packed(name="reset_n", parent=top, dtype=Vec[1])
+    clock = Packed(name="clock", parent=top, dtype=Array[1])
+    reset_n = Packed(name="reset_n", parent=top, dtype=Array[1])
 
     ps = Packed(name="ps", parent=top, dtype=SeqDetect)
     ns = Packed(name="ns", parent=top, dtype=SeqDetect)
-    x = Packed(name="x", parent=top, dtype=Vec[1])
+    x = Packed(name="x", parent=top, dtype=Array[1])
 
     top.combi(ns, f, ps, x)
     top.dff(ps, ns, clock, rst=reset_n, rval=SeqDetect.A, rneg=True)

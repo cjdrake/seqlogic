@@ -2,7 +2,7 @@
 Ready/Valid Protocol Checker
 """
 
-from bvwx import Vec, bits
+from bvwx import Array, bits
 
 from seqlogic import BitsConst, Module, Packed
 
@@ -10,11 +10,11 @@ from seqlogic import BitsConst, Module, Packed
 ONE = BitsConst(bits("1b1"))
 
 
-def known(p: Vec[1]) -> bool:
+def known(p: Array[1]) -> bool:
     return not p.has_unknown()
 
 
-async def valid_data_stable(valid: Packed, data: Packed, clock: Packed) -> Vec[1]:
+async def valid_data_stable(valid: Packed, data: Packed, clock: Packed) -> Array[1]:
     data_prev = data.value
     await clock.posedge()
     return valid.value & (data.value == data_prev)
@@ -23,7 +23,7 @@ async def valid_data_stable(valid: Packed, data: Packed, clock: Packed) -> Vec[1
 class CheckReadyValid(Module):
     "Check ready/valid protocol."
 
-    T: type = Vec[8]
+    T: type = Array[8]
 
     TX: bool = False
     TX_READY_STABLE: bool = False
@@ -36,12 +36,12 @@ class CheckReadyValid(Module):
             s = f"Expected Tx != Rx, got Tx={self.TX}, Rx={self.RX}"
             raise ValueError(s)
 
-        ready = self.input(name="ready", dtype=Vec[1])
-        valid = self.input(name="valid", dtype=Vec[1])
+        ready = self.input(name="ready", dtype=Array[1])
+        valid = self.input(name="valid", dtype=Array[1])
         data = self.input(name="data", dtype=self.T)
 
-        clock = self.input(name="clock", dtype=Vec[1])
-        reset = self.input(name="reset", dtype=Vec[1])
+        clock = self.input(name="clock", dtype=Array[1])
+        reset = self.input(name="reset", dtype=Array[1])
 
         if self.TX:
             # Assume: Ready must never be unknown
@@ -149,7 +149,7 @@ class CheckReadyValid(Module):
 class CheckValid(Module):
     "TODO(cjdrake): Write docstring."
 
-    T: type = Vec[8]
+    T: type = Array[8]
 
     TX: bool = False
     RX: bool = False
@@ -159,11 +159,11 @@ class CheckValid(Module):
             s = f"Expected Tx != Rx, got Tx={self.TX}, Rx={self.RX}"
             raise ValueError(s)
 
-        valid = self.input(name="valid", dtype=Vec[1])
+        valid = self.input(name="valid", dtype=Array[1])
         data = self.input(name="data", dtype=self.T)
 
-        clock = self.input(name="clock", dtype=Vec[1])
-        reset = self.input(name="reset", dtype=Vec[1])
+        clock = self.input(name="clock", dtype=Array[1])
+        reset = self.input(name="reset", dtype=Array[1])
 
         if self.TX:
             # Assert: Valid must never be unknown

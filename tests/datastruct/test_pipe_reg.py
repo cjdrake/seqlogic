@@ -4,7 +4,7 @@ import os
 from collections import deque
 from random import randint
 
-from bvwx import Struct, Vec
+from bvwx import Array, Struct
 from deltacycle import finish, run, sleep
 from vcd import VCDWriter
 
@@ -16,10 +16,10 @@ DIR = os.path.dirname(__file__)
 
 
 class MyStruct(Struct):
-    a: Vec[4]
-    b: Vec[4]
-    c: Vec[4]
-    d: Vec[4]
+    a: Array[4]
+    b: Array[4]
+    c: Array[4]
+    d: Array[4]
 
 
 class Top(Module):
@@ -29,13 +29,13 @@ class Top(Module):
     T: type = MyStruct
 
     def build(self):
-        rd_valid = self.logic(name="rd_valid", dtype=Vec[1])
+        rd_valid = self.logic(name="rd_valid", dtype=Array[1])
         rd_data = self.logic(name="rd_data", dtype=self.T)
-        wr_valid = self.logic(name="wr_valid", dtype=Vec[1])
+        wr_valid = self.logic(name="wr_valid", dtype=Array[1])
         wr_data = self.logic(name="wr_data", dtype=self.T)
 
-        clock = self.logic(name="clock", dtype=Vec[1])
-        reset = self.logic(name="reset", dtype=Vec[1])
+        clock = self.logic(name="clock", dtype=Array[1])
+        reset = self.logic(name="reset", dtype=Array[1])
 
         self.submod(
             name="dut",

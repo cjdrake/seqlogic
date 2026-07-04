@@ -1,6 +1,6 @@
 """Data Path."""
 
-from bvwx import Vec, cat, rep
+from bvwx import Array, cat, rep
 
 from seqlogic import EQ, Add, GetAttr, Module
 
@@ -20,8 +20,8 @@ from .regfile import RegFile
 
 
 def f_pc_next(
-    next_pc_sel: CtlPc, pc_plus_4: Vec[32], pc_plus_immediate: Vec[32], alu_result: Vec[32]
-) -> Vec[32]:
+    next_pc_sel: CtlPc, pc_plus_4: Array[32], pc_plus_immediate: Array[32], alu_result: Array[32]
+) -> Array[32]:
     match next_pc_sel:
         case CtlPc.PC4:
             return pc_plus_4
@@ -30,36 +30,36 @@ def f_pc_next(
         case CtlPc.RS1_IMM:
             return cat("1b0", alu_result[1:])
         case _:
-            return Vec[32].xprop(next_pc_sel)
+            return Array[32].xprop(next_pc_sel)
 
 
-def f_alu_op_a(alu_op_a_sel: CtlAluA, rs1_data: Vec[32], pc: Vec[32]) -> Vec[32]:
+def f_alu_op_a(alu_op_a_sel: CtlAluA, rs1_data: Array[32], pc: Array[32]) -> Array[32]:
     match alu_op_a_sel:
         case CtlAluA.RS1:
             return rs1_data
         case CtlAluA.PC:
             return pc
         case _:
-            return Vec[32].xprop(alu_op_a_sel)
+            return Array[32].xprop(alu_op_a_sel)
 
 
-def f_alu_op_b(alu_op_b_sel: CtlAluB, rs2_data: Vec[32], immediate: Vec[32]) -> Vec[32]:
+def f_alu_op_b(alu_op_b_sel: CtlAluB, rs2_data: Array[32], immediate: Array[32]) -> Array[32]:
     match alu_op_b_sel:
         case CtlAluB.RS2:
             return rs2_data
         case CtlAluB.IMM:
             return immediate
         case _:
-            return Vec[32].xprop(alu_op_b_sel)
+            return Array[32].xprop(alu_op_b_sel)
 
 
 def f_wr_data(
     reg_wr_sel: CtlWriteBack,
-    alu_result: Vec[32],
-    data_mem_rd_data: Vec[32],
-    pc_plus_4: Vec[32],
-    immediate: Vec[32],
-) -> Vec[32]:
+    alu_result: Array[32],
+    data_mem_rd_data: Array[32],
+    pc_plus_4: Array[32],
+    immediate: Array[32],
+) -> Array[32]:
     match reg_wr_sel:
         case CtlWriteBack.ALU:
             return alu_result
@@ -70,10 +70,10 @@ def f_wr_data(
         case CtlWriteBack.IMM:
             return immediate
         case _:
-            return Vec[32].xprop(reg_wr_sel)
+            return Array[32].xprop(reg_wr_sel)
 
 
-def f_immediate(inst) -> Vec[32]:
+def f_immediate(inst) -> Array[32]:
     match inst.opcode:
         case Opcode.LOAD | Opcode.LOAD_FP | Opcode.OP_IMM | Opcode.JALR:
             return cat(
@@ -109,7 +109,7 @@ def f_immediate(inst) -> Vec[32]:
                 rep(inst[31], 12),
             )
         case _:
-            return Vec[32].xprop(inst.opcode)
+            return Array[32].xprop(inst.opcode)
 
 
 class DataPath(Module):
@@ -117,52 +117,52 @@ class DataPath(Module):
 
     def build(self):
         data_mem_addr = self.output(name="data_mem_addr", dtype=Addr)
-        data_mem_wr_data = self.output(name="data_mem_wr_data", dtype=Vec[32])
-        data_mem_rd_data = self.input(name="data_mem_rd_data", dtype=Vec[32])
+        data_mem_wr_data = self.output(name="data_mem_wr_data", dtype=Array[32])
+        data_mem_rd_data = self.input(name="data_mem_rd_data", dtype=Array[32])
 
         inst = self.input(name="inst", dtype=Inst)
-        pc = self.output(name="pc", dtype=Vec[32])
+        pc = self.output(name="pc", dtype=Array[32])
 
         # Datapath=>Control
-        alu_result_eq_zero = self.output(name="alu_result_eq_zero", dtype=Vec[1])
+        alu_result_eq_zero = self.output(name="alu_result_eq_zero", dtype=Array[1])
 
         # Control=>Datapath
-        pc_wr_en = self.input(name="pc_wr_en", dtype=Vec[1])
-        reg_wr_en = self.input(name="reg_wr_en", dtype=Vec[1])
+        pc_wr_en = self.input(name="pc_wr_en", dtype=Array[1])
+        reg_wr_en = self.input(name="reg_wr_en", dtype=Array[1])
         alu_op_a_sel = self.input(name="alu_op_a_sel", dtype=CtlAluA)
         alu_op_b_sel = self.input(name="alu_op_b_sel", dtype=CtlAluB)
         alu_op = self.input(name="alu_op", dtype=AluOp)
         reg_wr_sel = self.input(name="reg_wr_sel", dtype=CtlWriteBack)
         next_pc_sel = self.input(name="next_pc_sel", dtype=CtlPc)
 
-        clock = self.input(name="clock", dtype=Vec[1])
-        reset = self.input(name="reset", dtype=Vec[1])
+        clock = self.input(name="clock", dtype=Array[1])
+        reset = self.input(name="reset", dtype=Array[1])
 
         # Immedate generate
-        immediate = self.logic(name="immediate", dtype=Vec[32])
+        immediate = self.logic(name="immediate", dtype=Array[32])
 
         # PC + 4
-        pc_plus_4 = self.logic(name="pc_plus_4", dtype=Vec[32])
+        pc_plus_4 = self.logic(name="pc_plus_4", dtype=Array[32])
 
         # PC + Immediate
-        pc_plus_immediate = self.logic(name="pc_plus_immediate", dtype=Vec[32])
+        pc_plus_immediate = self.logic(name="pc_plus_immediate", dtype=Array[32])
 
         # Select ALU Ops
-        alu_op_a = self.logic(name="alu_op_a", dtype=Vec[32])
-        alu_op_b = self.logic(name="alu_op_b", dtype=Vec[32])
+        alu_op_a = self.logic(name="alu_op_a", dtype=Array[32])
+        alu_op_b = self.logic(name="alu_op_b", dtype=Array[32])
 
         # ALU Outputs
-        alu_result = self.logic(name="alu_result", dtype=Vec[32])
+        alu_result = self.logic(name="alu_result", dtype=Array[32])
 
         # Next PC
-        pc_next = self.logic(name="pc_next", dtype=Vec[32])
+        pc_next = self.logic(name="pc_next", dtype=Array[32])
 
         # Regfile Write
-        wr_data = self.logic(name="wr_data", dtype=Vec[32])
+        wr_data = self.logic(name="wr_data", dtype=Array[32])
 
         # Regfile Read
-        rs1_data = self.logic(name="rs1_data", dtype=Vec[32])
-        rs2_data = self.logic(name="rs2_data", dtype=Vec[32])
+        rs1_data = self.logic(name="rs1_data", dtype=Array[32])
+        rs2_data = self.logic(name="rs2_data", dtype=Array[32])
 
         # Submodules
         self.submod(

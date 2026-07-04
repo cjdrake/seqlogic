@@ -1,13 +1,13 @@
 """Arithmetic Logic Unit (ALU)."""
 
-from bvwx import Vec, add, eq, lt, slt, srsh, sub, xt
+from bvwx import Array, add, eq, lt, slt, srsh, sub, xt
 
 from seqlogic import Module
 
 from . import AluOp
 
 
-def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
+def f(op: AluOp, a: Array[32], b: Array[32]) -> Array[32]:
     match op:
         case AluOp.ADD:
             return add(a, b)
@@ -32,7 +32,7 @@ def f(op: AluOp, a: Vec[32], b: Vec[32]) -> Vec[32]:
         case AluOp.AND:
             return a & b
         case _:
-            return Vec[32].xprop(op)
+            return Array[32].xprop(op)
 
 
 class Alu(Module):
@@ -40,10 +40,10 @@ class Alu(Module):
 
     def build(self):
         # Ports
-        y = self.output(name="y", dtype=Vec[32])
+        y = self.output(name="y", dtype=Array[32])
         op = self.input(name="op", dtype=AluOp)
-        a = self.input(name="a", dtype=Vec[32])
-        b = self.input(name="b", dtype=Vec[32])
+        a = self.input(name="a", dtype=Array[32])
+        b = self.input(name="b", dtype=Array[32])
 
         # Combinational Logic
         self.combi(y, f, op, a, b)

@@ -2,7 +2,7 @@
 
 import operator
 
-from bvwx import Array, Vec
+from bvwx import Array
 
 from seqlogic import Module
 
@@ -14,12 +14,12 @@ class DataMem(Module):
 
     def build(self):
         # Ports
-        addr = self.input(name="addr", dtype=Vec[self.WORD_ADDR_BITS])
-        wr_en = self.input(name="wr_en", dtype=Vec[1])
-        wr_be = self.input(name="wr_be", dtype=Vec[4])
+        addr = self.input(name="addr", dtype=Array[self.WORD_ADDR_BITS])
+        wr_en = self.input(name="wr_en", dtype=Array[1])
+        wr_be = self.input(name="wr_be", dtype=Array[4])
         wr_data = self.input(name="wr_data", dtype=Array[4, 8])
-        rd_data = self.output(name="rd_data", dtype=Vec[32])
-        clock = self.input(name="clock", dtype=Vec[1])
+        rd_data = self.output(name="rd_data", dtype=Array[32])
+        clock = self.input(name="clock", dtype=Array[1])
 
         # State
         mem = self.logic(name="mem", dtype=Array[4, 8], shape=(1024,))

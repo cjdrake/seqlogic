@@ -1,9 +1,9 @@
 """Kogge Stone Addition (KSA)."""
 
-from bvwx import Vec, cat, clog2
+from bvwx import Array, cat, clog2
 
 
-def adc(a: Vec, b: Vec, ci: Vec[1]) -> Vec:
+def adc(a: Array, b: Array, ci: Array[1]) -> Array:
     """Kogge Stone Addition."""
     n = len(a)
     assert n > 0 and n == len(b)

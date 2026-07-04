@@ -2,14 +2,14 @@
 
 from collections import defaultdict
 
-from bvwx import Vec, cat
+from bvwx import Array, cat
 from deltacycle import create_task, run
 
 from seqlogic import Module
 from seqlogic.control.sync import drv_clock, drv_reset
 
 
-def lfsr(x: Vec[3]) -> Vec[3]:
+def lfsr(x: Array[3]) -> Array[3]:
     return cat(x[0] ^ x[2], x[:2])
 
 
@@ -18,12 +18,12 @@ class Top(Module):
 
     def build(self):
         # Control
-        clock = self.input(name="clock", dtype=Vec[1])
-        reset_n = self.input(name="reset_n", dtype=Vec[1])
+        clock = self.input(name="clock", dtype=Array[1])
+        reset_n = self.input(name="reset_n", dtype=Array[1])
 
         # State
-        q = self.logic(name="q", dtype=Vec[3])
-        d = self.logic(name="d", dtype=Vec[3])
+        q = self.logic(name="q", dtype=Array[3])
+        d = self.logic(name="d", dtype=Array[3])
 
         self.combi(d, lfsr, q)
         self.dff(q, d, clock, rst=reset_n, rval="3b100", rneg=True)

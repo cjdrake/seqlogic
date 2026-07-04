@@ -2,7 +2,7 @@
 
 import os
 
-from bvwx import Vec, u2bv
+from bvwx import Array, u2bv
 from deltacycle import run, sleep
 from vcd import VCDWriter
 
@@ -38,12 +38,12 @@ class Top(Module):
     N: int = 8
 
     def build(self):
-        s = self.output(name="s", dtype=Vec[self.N])
-        co = self.output(name="co", dtype=Vec[1])
+        s = self.output(name="s", dtype=Array[self.N])
+        co = self.output(name="co", dtype=Array[1])
 
-        a = self.input(name="a", dtype=Vec[self.N])
-        b = self.input(name="b", dtype=Vec[self.N])
-        ci = self.input(name="ci", dtype=Vec[1])
+        a = self.input(name="a", dtype=Array[self.N])
+        b = self.input(name="b", dtype=Array[self.N])
+        ci = self.input(name="ci", dtype=Array[1])
 
         # Design Under Test
         self.submod(
