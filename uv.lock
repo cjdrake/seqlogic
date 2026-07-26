@@ -954,6 +954,8 @@ dev = [
     { name = "pytest-cov" },
     { name = "pytest-profiling" },
     { name = "ruff" },
+]
+doc = [
     { name = "sphinx" },
     { name = "sphinx-autobuild" },
     { name = "sphinx-book-theme" },
@@ -973,9 +975,11 @@ dev = [
     { name = "pytest-cov", specifier = ">=6.1.1" },
     { name = "pytest-profiling", specifier = ">=1.8.1" },
     { name = "ruff", specifier = ">=0.11.9" },
-    { name = "sphinx", specifier = ">=8.2.3" },
-    { name = "sphinx-autobuild", specifier = ">=2024.10.3" },
-    { name = "sphinx-book-theme", specifier = ">=1.1.4" },
+]
+doc = [
+    { name = "sphinx", specifier = ">=9.1.0" },
+    { name = "sphinx-autobuild", specifier = ">=2025.8.25" },
+    { name = "sphinx-book-theme", specifier = ">=1.4.0" },
 ]
 
 [[package]]

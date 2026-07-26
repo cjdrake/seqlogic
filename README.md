@@ -122,5 +122,4 @@ SeqiLog's repository is on [GitHub](https://github.com):
 
     $ git clone https://github.com/cjdrake/seqlogic.git
 
-Runtime dependencies are listed in `requirements.txt`.
-Development dependencies are listed in `requirements-dev.txt`.
+Runtime and development dependencies are listed in `pyproject.toml`.
