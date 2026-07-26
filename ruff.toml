@@ -4,16 +4,17 @@ line-length = 100
 
 # https://docs.astral.sh/ruff/rules
 select = [
-    "E4",   # pycodestyle
-    "E7",
-    "E9",
-    "F",    # pyflakes
-    "PL",   # pylint
+    "E",    # pycodestyle Error
+    "W",    # pycodestyle Warning
+    "F",    # Pyflakes
+    "PL",   # Pylint
+    "RUF",  # Ruff-specific rules
 ]
 
 ignore = [
     "PLR0913",  # too-many-arguments
     "PLR0915",  # too-many-statements
+    "PLR0917",  # too-many-positional-arguments
     "PLR2004",  # magic-value-comparison
 ]
 
