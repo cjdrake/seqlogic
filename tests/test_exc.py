@@ -23,8 +23,8 @@ class Top(Module):
 
 
 EXP1 = {
-    (0, "Task-0", "foo"),
-    (10, "Task-0", "bar"),
+    (0, "Task-1", "foo"),
+    (10, "Task-1", "bar"),
 }
 
 

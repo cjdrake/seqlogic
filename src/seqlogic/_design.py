@@ -365,9 +365,11 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         f: Callable[..., Array | str],
         *xs: Packed | Unpacked,
     ):
+        _xs = [x.pred() for x in xs]
+
         async def cf():
             while True:
-                await AnyOf(*xs)
+                await AnyOf(*_xs)
                 y.next = f(*[x.value for x in xs])
 
         self._reactive.append((cf, (), {}))
@@ -378,9 +380,11 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         f: Callable[..., tuple[Array | str, ...]],
         *xs: Packed | Unpacked,
     ):
+        _xs = [x.pred() for x in xs]
+
         async def cf():
             while True:
-                await AnyOf(*xs)
+                await AnyOf(*_xs)
 
                 # Apply f to inputs
                 values = f(*[x.value for x in xs])
@@ -422,7 +426,7 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         elif isinstance(x, Packed):
             async def cf_packed():
                 while True:
-                    await x
+                    await x.pred()
                     y.next = x.value
             self._reactive.append((cf_packed, (), {}))
         else:
@@ -462,9 +466,9 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         # No Reset
         if rst is None:
             async def cf():
+                _clk = clk.pred(clk_en)
                 while True:
-                    v = await clk.pred(clk_en)
-                    assert v is clk
+                    await _clk
                     q.next = d.prev
 
         # Reset
@@ -499,11 +503,13 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                         return clk_en() and rst.is_neg()
 
                 async def cf():
+                    _rst = rst.pred(rst_pred)
+                    _clk = clk.pred(clk_pred)
                     while True:
-                        v = await AnyOf(rst.pred(rst_pred), clk.pred(clk_pred))
-                        if v is rst:
+                        vp = await AnyOf(_rst, _clk)
+                        if vp is _rst:
                             q.next = rval
-                        elif v is clk:
+                        elif vp is _clk:
                             q.next = d.prev
                         else:
                             assert False  # pragma: no cover
@@ -528,9 +534,9 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
         # fmt: off
         if be is None:
             async def cf():
+                _clk = clk.pred(clk_pred)
                 while True:
-                    v = await clk.pred(clk_pred)
-                    assert v is clk
+                    await _clk
                     assert not addr.prev.has_unknown()
                     mem[addr.prev].next = data.prev
         else:
@@ -539,9 +545,9 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
             assert len(data.dtype.shape) == 2 and data.dtype.shape[1] == 8
 
             async def cf():
+                _clk = clk.pred(clk_pred)
                 while True:
-                    v = await clk.pred(clk_pred)
-                    assert v is clk
+                    await _clk
                     assert not addr.prev.has_unknown()
                     assert not be.prev.has_unknown()
                     xs: list[T] = []
@@ -602,11 +608,13 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
 
             async def cf():
                 on = False
+                _rst = rst.pred(rst_pred)
+                _clk = clk.pred(clk_pred)
                 while True:
-                    v = await AnyOf(rst.pred(rst_pred), clk.pred(clk_pred))
-                    if v is rst:
+                    vp = await AnyOf(_rst, _clk)
+                    if vp is _rst:
                         on = True
-                    elif v is clk:
+                    elif vp is _clk:
                         if on:
                             en = p_f(*[x.value for x in p_xs])
                             if en:
@@ -727,11 +735,13 @@ class Module(Branch, ProcIf, TraceIf, metaclass=_ModuleMeta):
                 task = kernel.task()
 
                 on = False
+                _rst = rst.pred(rst_pred)
+                _clk = clk.pred(clk_pred)
                 while True:
-                    v = await AnyOf(rst.pred(rst_pred), clk.pred(clk_pred))
-                    if v is rst:
+                    vp = await AnyOf(_rst, _clk)
+                    if vp is _rst:
                         on = True
-                    elif v is clk:
+                    elif vp is _clk:
                         if on:
                             en = p_f(*[x.value for x in p_xs])
                             if en:
